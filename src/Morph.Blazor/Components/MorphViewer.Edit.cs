@@ -74,6 +74,8 @@ public partial class MorphViewer
         editNote = null;
         floatingPicture = null;
         inlinePicture = false;
+        boxUndo = false;
+        boxRedo = false;
         readerPage = -1;
         targetDocument = -1;
         handedIn = null;

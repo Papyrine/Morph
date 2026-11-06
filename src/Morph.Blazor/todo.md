@@ -9,10 +9,6 @@ what those fixes stopped short of.
 
 ## Residues
 
-- **Undo/Redo stay enabled while a paragraph is open**, whether or not anything was typed in it:
-  `EditorState.CanUndo`/`CanRedo` count an open session as undoable, because the box's own stack is
-  known only to the script and reading it would cross to .NET per keystroke. Undo with nothing typed
-  falls through to the file's history.
 - **Insert > Table's greying inside the open paragraph is CSS only** (`markClipboard` marks
   `.editor-caret-only` with `data-selected`), and a button on a freshly shown Insert tab is only marked
   at the next selection change.

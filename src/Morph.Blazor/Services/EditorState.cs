@@ -58,14 +58,14 @@ sealed record EditorState
     public bool SpansParagraphs { get; init; }
 
     /// <summary>
-    /// There is a step to undo: an edit in the file's history, or a paragraph open for typing. What was
-    /// typed into that paragraph is the script's own history, kept as the reader types; asking after it
-    /// would cost a crossing to .NET for every key, so an open paragraph counts as having something to
-    /// undo, and an Undo with nothing typed falls through to the file's history, which may be empty.
+    /// There is a step to undo: an edit in the file's history, or something typed into the paragraph
+    /// open for typing. That paragraph's history is the script's own, which tells .NET only when it
+    /// comes to have a step or stops having one (<c>OnEditHistory</c>), never per keystroke; an Undo in
+    /// a paragraph with nothing typed falls through to the file's history.
     /// </summary>
     public bool CanUndo { get; init; }
 
-    /// <summary>There is a step to redo, as <see cref="CanUndo"/> counts one: an open paragraph has its own.</summary>
+    /// <summary>There is a step to redo, in the file's history or the open paragraph's, as <see cref="CanUndo"/> counts one.</summary>
     public bool CanRedo { get; init; }
 
     public bool Tracking { get; init; }

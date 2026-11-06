@@ -2864,6 +2864,14 @@ class Viewer {
             this.dotNet.invokeMethodAsync('OnEditPicture', picture).catch(() => {});
         }
 
+        // So is whether the open paragraph has a step of its own to undo or redo: when that changes,
+        // which is the first key typed and the last one undone, never per keystroke.
+        const history = `${state?.undo === true}/${state?.redo === true}`;
+        if (history !== (this.editHistory ?? 'false/false')) {
+            this.editHistory = history;
+            this.dotNet.invokeMethodAsync('OnEditHistory', state?.undo === true, state?.redo === true).catch(() => {});
+        }
+
         this.editSelected = state ? state.selected === true : null;
         this.markClipboard();
         if (state) {

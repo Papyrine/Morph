@@ -40,6 +40,29 @@ public partial class SnapshotTests
         await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two. The xfox jumps. Last one.y");
     }
 
+    // Undo and Redo in an open paragraph follow what was typed in it: greyed out with nothing typed and
+    // nothing in the file's history, on with the first key, and swapped by an Undo of the last one.
+    [Test]
+    public async Task UndoAndRedo_FollowWhatIsTypedInTheOpenParagraph()
+    {
+        var page = await OpenEditAsync(Build(P("", R("One two."))));
+        const string undo = "[data-edit-command=undo]";
+        const string redo = "[data-edit-command=redo]";
+
+        await ClickInAsync(page, "two");
+        await Assert.That(await page.IsDisabledAsync(undo)).IsTrue();
+        await Assert.That(await page.IsDisabledAsync(redo)).IsTrue();
+
+        await page.Keyboard.TypeAsync("x");
+        await page.WaitForSelectorAsync($"{undo}:not([disabled])");
+        await Assert.That(await page.IsDisabledAsync(redo)).IsTrue();
+
+        await page.Keyboard.PressAsync("Control+z");
+        await page.WaitForSelectorAsync($"{redo}:not([disabled])");
+        await Assert.That(await page.IsDisabledAsync(undo)).IsTrue();
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two.");
+    }
+
     // A character beyond the Basic Multilingual Plane is two UTF-16 code units and one character:
     // Overtype types over it whole, and F4 repeating a deletion deletes it whole.
     [Test]

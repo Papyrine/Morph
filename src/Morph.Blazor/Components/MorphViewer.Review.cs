@@ -648,11 +648,35 @@ public partial class MorphViewer
         await SelectEntryAsync(changes[index]);
     }
 
-    // What the editor's Undo and Redo are greyed out by (EditorState.CanUndo): the file's history, or a
-    // paragraph open for typing, whose own history is the script's.
-    internal bool CanUndo => undo.Count > 0 || session != null;
+    // What the editor's Undo and Redo are greyed out by (EditorState.CanUndo): the file's history, or
+    // the history of the paragraph open for typing, which is the script's and which it reports only
+    // when it comes to have a step or stops having one (OnEditHistory). An open paragraph with nothing
+    // typed in it falls through to the file's.
+    internal bool CanUndo => undo.Count > 0 || session != null && boxUndo;
 
-    internal bool CanRedo => redo.Count > 0 || session != null;
+    internal bool CanRedo => redo.Count > 0 || session != null && boxRedo;
+
+    bool boxUndo;
+    bool boxRedo;
+
+    /// <summary>
+    /// Called from JavaScript when the paragraph being typed comes to have a step of its own to undo or
+    /// redo, or stops having one: only then, never per keystroke.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditHistory(bool undoable, bool redoable) =>
+        InvokeAsync(() =>
+        {
+            if (boxUndo == undoable &&
+                boxRedo == redoable)
+            {
+                return;
+            }
+
+            boxUndo = undoable;
+            boxRedo = redoable;
+            StateHasChanged();
+        });
 
     // Text is selected across the pages.
     internal bool PagesSelected => selection.Length == 4;

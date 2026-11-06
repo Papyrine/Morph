@@ -1842,6 +1842,28 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsFalse();
     }
 
+    // A paragraph open with nothing typed has nothing of its own to undo: Undo and Redo stay greyed out
+    // with an empty file history until the script says the paragraph has a step.
+    [Test]
+    public async Task UndoAndRedo_InAnOpenParagraph_FollowItsOwnHistory()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var (block, offset) = Place(Paragraphs, 1, "bold");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 100, block.Top + 2, offset, offset));
+        Session();
+
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsTrue();
+        await Assert.That(cut.Find("[data-edit-command=redo]").HasAttribute("disabled")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditHistory(true, false));
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsFalse();
+        await Assert.That(cut.Find("[data-edit-command=redo]").HasAttribute("disabled")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditHistory(false, true));
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsTrue();
+        await Assert.That(cut.Find("[data-edit-command=redo]").HasAttribute("disabled")).IsFalse();
+    }
+
     [Test]
     [Arguments("link")]
     [Arguments("count")]

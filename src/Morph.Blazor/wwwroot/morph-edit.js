@@ -2960,7 +2960,11 @@ export class ParagraphEditor {
             // A picture selected alone, framed: what Layout > Wrap Text acts on.
             picture: Boolean(this.frame),
             // F8's extend mode on, which the status bar shows.
-            extend: Boolean(this.extend)
+            extend: Boolean(this.extend),
+            // Whether the box's own history has a step to undo or redo, which greys Undo and Redo
+            // out only together with the file's.
+            undo: this.undoStack.length > 0,
+            redo: this.redoStack.length > 0
         });
     }
 
