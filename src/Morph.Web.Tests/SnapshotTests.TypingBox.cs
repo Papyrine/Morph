@@ -174,6 +174,25 @@ public partial class SnapshotTests
         await Assert.That(string.Concat(Read(saved)[0].Split('[', ']'))).IsEqualTo("Page and 1 here there.");
     }
 
+    // A field dragged past another field is moved past it, both still fields in the file.
+    [Test]
+    public async Task Drag_WithinTheBox_MovesAFieldPastAnother()
+    {
+        var total = pageField.Replace(" PAGE ", " NUMPAGES ").Replace(">1<", ">9<");
+        var page = await OpenEditAsync(Build(P("", R("Page "), pageField, R(" of "), total, R(" end."))));
+
+        await ClickInAsync(page, "end");
+        var text = await BoxTextAsync(page);
+        await SelectBoxTextAsync(page, "1 of ");
+        await DragAsync(page, editor, 0, text.Length, [text.IndexOf("of", StringComparison.Ordinal), text.IndexOf("end", StringComparison.Ordinal)]);
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Page 9 1 of end.");
+        await HandInAsync(page);
+
+        var body = DocumentBody(await SaveAsync(page));
+        await Assert.That(body.IndexOf("NUMPAGES", StringComparison.Ordinal)).IsLessThan(body.IndexOf(" PAGE ", StringComparison.Ordinal));
+        await Assert.That(body.Split("<w:fldSimple").Length - 1).IsEqualTo(2);
+    }
+
     // A floating picture's anchor takes a place in the text and is not seen: Backspace beside it deletes
     // the character beyond it, and Overtype types over what follows it, the picture kept either way.
     [Test]

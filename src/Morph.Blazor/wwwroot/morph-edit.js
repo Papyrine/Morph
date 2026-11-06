@@ -2162,7 +2162,14 @@ export class ParagraphEditor {
         }
 
         const blocks = copy(this.blocks);
-        const order = list => list.flatMap(_ => _.items).filter(_ => _.atom).map(_ => _.u).join(',');
+        // What is not text can be moved past another of its kind, which .NET writes as a move — but
+        // not text a tracked change deleted, nor, while changes are tracked, a note's reference (both
+        // places would refer to one note): those keep their order among themselves.
+        const fixed = item => {
+            const unit = this.session.u[item.u];
+            return unit?.s === 'deleted' || (this.session.tracked && unit?.s === 'note');
+        };
+        const order = list => list.flatMap(_ => _.items).filter(_ => _.atom && !_.mark && fixed(_)).map(_ => _.u).join(',');
         this.record('move');
         // What is moved is what taking it out takes out: its text, and what is not text that can go.
         const moved = this.contentBetween(from, to).map(block => block.items.filter(_ => !_.atom || this.removable(_)));
@@ -2191,7 +2198,7 @@ export class ParagraphEditor {
             this.undoStack.pop();
             this.render();
             this.select(from, to);
-            this.callbacks.note?.('A picture, a field or a note can be moved past text, but not past another.');
+            this.callbacks.note?.('While changes are tracked, a note cannot be moved past another note, or past text a tracked change deleted.');
             return;
         }
 

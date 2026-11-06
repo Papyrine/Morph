@@ -185,15 +185,26 @@ public class DocumentEditorTests
         await Assert.That(Shape(edited)).IsEqualTo("[From ][«][][|][1 May][»][ to ][«][][|][1 May][»][.] ¶");
     }
 
-    // What is not text keeps its order; left out, it is deleted (AtomDeletionTests).
+    // What is not text left out is deleted (AtomDeletionTests), and put past another is moved
+    // (AtomMoveTests); text a tracked change deleted stays where it is, and a field is not text.
     [Test]
-    public async Task WhatIsNotText_StaysInItsOrder_OrGoes()
+    public async Task WhatIsNotText_MovesOrGoes_ButDeletedTextStays()
     {
         var docx = Build(P(R("Dated "), field, R(" by "), field));
 
         await Assert.That(Shape(Rewrite(docx, 0, Plain, Reads(T(0, "Dated by "))))).IsEqualTo("[Dated by ] ¶");
-        await Assert.That(() => Rewrite(docx, 0, Plain, Reads(T(0, "Dated "), K(3), T(2, " by "), K(1)))).Throws<InvalidOperationException>();
+        var swapped = Rewrite(docx, 0, Plain, Reads(T(0, "Dated "), K(3), T(2, " by "), K(1)));
+        await Assert.That(string.Join(" | ", DocumentOutline.Read(swapped).Paragraphs[0].Units.Select(_ => _.Kind)))
+            .IsEqualTo("Text | Field | Text | Field");
         await Assert.That(() => Rewrite(docx, 0, Plain, Reads(T(1, "Dated "), K(1), K(3)))).Throws<InvalidOperationException>();
+
+        // A field put past deleted text moves; two deleted stretches cannot pass each other.
+        var deleted = Build(P(R("Hello "), Del("Bob", 1, "cruel "), R("world"), field));
+        var moved = Rewrite(deleted, 0, Plain, Reads(T(0, "Hello "), K(3), T(2, "world"), K(1)));
+        await Assert.That(string.Join(" | ", DocumentOutline.Read(moved).Paragraphs[0].Units.Select(_ => _.Kind)))
+            .IsEqualTo("Text | Field | Text | Deleted");
+        var twice = Build(P(R("a"), Del("Bob", 1, "b"), R("c"), Del("Bob", 2, "d")));
+        await Assert.That(() => Rewrite(twice, 0, Plain, Reads(T(0, "a"), K(3), T(2, "c"), K(1)))).Throws<InvalidOperationException>();
     }
 
     [Test]

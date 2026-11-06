@@ -340,7 +340,10 @@ is `RunFormat` through the same `Format` as bold, and `ClearFormatting` takes a 
 but leaves its character style. `DocumentEditor.Atoms.cs` deletes what is not text — a picture, a
 break, a field from its beginning to its end, a note's reference with its note — when a rewritten
 paragraph leaves it out or a deletion spans it; tracked, its runs are struck (`w:delText`,
-`w:delInstrText`) so rejecting puts it back. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
+`w:delInstrText`) so rejecting puts it back. `DocumentEditor.Moves.cs` moves one past another of its kind (a
+picture dragged over a field): those that keep their order still divide `Rewrite`'s stretches, and each
+other goes in as a mark the text diff places, then takes the mark's place — struck and inserted when
+tracked, a note's reference never moved under tracking. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
 DATE fields and Word's Automatic Table 1 table of contents — whose page numbers only the layout knows,
 so the editor lays the edited file out and writes them in (`SetContentsPages`) within the same edit;
 `DocumentEditor.Lists.cs` is the Bullets and Numbering libraries (`ListTemplates.Bullets`/`Numbers`,

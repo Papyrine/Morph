@@ -370,13 +370,33 @@ static partial class DocumentEditor
             // things stay where they are, and in their order, so stretch n of the new text is what
             // stretch n of the old has become. One the new paragraph leaves out has been deleted —
             // a picture, a page break, a field, a note's reference — and the text either side of it
-            // is one stretch.
-            const string fixedInPlace = "The paragraph's pictures, fields and notes have to stay in their order, and text a tracked change deleted has to stay.";
-            var kept = content
+            // is one stretch. One it has put past another is moved (DocumentEditor.Moves.cs): those
+            // that keep their order divide the stretches, and each of the rest is a mark in the text.
+            const string fixedInPlace = "Text a tracked change deleted has to stay where it is, and a note's reference cannot be moved while changes are tracked.";
+            var order = content
                 .SelectMany(_ => _.Items)
                 .Where(_ => _.Text == null)
                 .Select(_ => _.Unit)
-                .ToHashSet();
+                .ToList();
+            if (order.Distinct().Count() != order.Count ||
+                order.Any(_ => _ < 0 || _ >= units.Count))
+            {
+                throw new InvalidOperationException(fixedInPlace);
+            }
+
+            var kept = InOrder(order, units);
+            var marks = new Dictionary<int, char>();
+            foreach (var moving in order.Where(_ => !kept.Contains(_)))
+            {
+                if (marks.Count == markCount ||
+                    !Movable(units[moving]))
+                {
+                    throw new InvalidOperationException(fixedInPlace);
+                }
+
+                marks[moving] = (char) (firstMark + marks.Count);
+            }
+
             var before = new List<List<Old>> {new()};
             var bounds = new List<Unit>();
             var dropped = new List<Unit>();
@@ -391,6 +411,10 @@ static partial class DocumentEditor
                 {
                     bounds.Add(unit);
                     before.Add([]);
+                }
+                else if (marks.ContainsKey(index))
+                {
+                    // Moved: the text either side of where it was is one stretch, as for one deleted.
                 }
                 else if (Removable(unit))
                 {
@@ -412,6 +436,13 @@ static partial class DocumentEditor
 
                 foreach (var item in content[index].Items)
                 {
+                    if (item.Text == null &&
+                        marks.TryGetValue(item.Unit, out var mark))
+                    {
+                        after[^1].Add(new(mark, -1, default, false));
+                        continue;
+                    }
+
                     if (item.Text == null)
                     {
                         if (after.Count > bounds.Count ||
@@ -445,6 +476,9 @@ static partial class DocumentEditor
                 throw new InvalidOperationException(fixedInPlace);
             }
 
+            // What moves is copied before the text around it changes, divided off from it.
+            var lifted = marks.Keys.ToDictionary(_ => _, _ => Lift(units[_]));
+
             // Last stretch first, and within a stretch last change first: a change moves only what
             // comes after it, and what comes after it has been dealt with.
             List<Paragraph> results = [paragraph];
@@ -458,6 +492,12 @@ static partial class DocumentEditor
             foreach (var unit in dropped)
             {
                 Drop(unit);
+            }
+
+            foreach (var (moved, mark) in marks)
+            {
+                TakeOut(units[moved]);
+                PutDown(results, mark, lifted[moved]);
             }
 
             for (var index = 0; index < content.Count && index < results.Count; index++)
