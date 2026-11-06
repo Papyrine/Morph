@@ -220,7 +220,7 @@ embedding). The public entry-point converters live here too (DOCX→PNG and HTML
 backends; the byte-reproducibility post-processing (`MakeDeterministic` / `TrimPages` / `Normalize`) lives
 there too.
 
-**Email** (`src/Morph.Email/`): `EmailConverter` reads `.eml` / Outlook `.msg` (OfficeIMO.Email) into an
+**Email** (`src/Morph.Email/`): `EmailConverter` reads `.eml` / Outlook `.msg` (MsgReader) into an
 HTML document — a header block with the sender, date, recipients, subject and attachment names, then the
 body with its `cid:` images inlined — and imports that as a `.docx` (OpenXmlHtml); `PdfEmailConverter`
 renders it through `PdfDocumentConverter`. A package of its own so the readers stay out of `Morph.Blazor`'s
