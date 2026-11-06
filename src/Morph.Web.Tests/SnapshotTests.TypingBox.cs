@@ -8,10 +8,12 @@ public partial class SnapshotTests
 {
     const string extendShown = ".editor-status-extend[data-value='true']";
 
-    // Delete in extend mode deletes what it selected and ends the mode, so what is typed after is text;
-    // a click ends it too. The status bar shows the mode while it is on.
+    // Delete in extend mode deletes what it selected and ends the mode, so what is typed after is text.
+    // A click extends the selection from where the mode began to the click, and the mode stays on, as
+    // Word's does (WordProbe S-10d), until Esc. The status bar shows the mode while it is on.
     [Test]
-    public async Task ExtendMode_EndsOnDeleteAndOnAClick()
+    [Property("WordBehavior", "R-S-5")]
+    public async Task ExtendMode_EndsOnDelete_AndAClickExtends()
     {
         var page = await OpenEditAsync(Build(P("", R("One two. The quick fox jumps. Last one."))));
 
@@ -33,11 +35,13 @@ public partial class SnapshotTests
 
         await page.Keyboard.PressAsync("F8");
         await page.WaitForSelectorAsync(extendShown);
-        await page.Locator($"{editor} .edit-p").ClickAsync(new() {Position = new() {X = 5, Y = 5}});
+        await page.Locator($"{editor} .edit-p").ClickAsync(new() {Position = new() {X = 2, Y = 5}});
+        await Assert.That(await SelectedAsync(page)).IsEqualTo("One two. The x");
+        await page.WaitForSelectorAsync(extendShown);
+        await page.Keyboard.PressAsync("Escape");
         await page.WaitForSelectorAsync(extendShown, new() {State = WaitForSelectorState.Hidden});
-        await page.Keyboard.PressAsync("End");
-        await page.Keyboard.TypeAsync("y");
-        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two. The xfox jumps. Last one.y");
+        await Assert.That(await SelectedAsync(page)).IsEqualTo("One two. The x");
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two. The xfox jumps. Last one.");
     }
 
     // Undo and Redo in an open paragraph follow what was typed in it: greyed out with nothing typed and

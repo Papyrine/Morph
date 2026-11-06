@@ -974,7 +974,7 @@ export class ParagraphEditor {
         return spaced;
     }
 
-    // Word's extend mode (WordProbe S-10). The first F8 turns it on where the caret is, without
+    // Word's extend mode (WordProbe S-10, S-10d: a click extends too, mousedown below). The first F8 turns it on where the caret is, without
     // selecting; each F8 after takes in more — the word with its trailing space, the sentence, the
     // paragraph, the document; in a cell or a list item the sentence is not a step. Shift+F8 steps
     // back; an arrow extends from the anchor and a typed character extends to that character's next
@@ -1758,7 +1758,19 @@ export class ParagraphEditor {
         box.addEventListener('dragend', event => this.onDragEnd(event), { signal });
         box.addEventListener('mousedown', event => this.onPictureDown(event), { signal });
         box.addEventListener('mousedown', event => {
-            // A click ends extend mode, as Esc does.
+            // A click in extend mode extends the selection from where the mode began to the click, and
+            // the mode stays on, as Word's does (WordProbe S-10d). Any other press ends it, as Esc does.
+            if (this.extend && event.button === 0 && event.detail === 1 && !event.shiftKey && !event.altKey &&
+                !event.ctrlKey && !event.metaKey &&
+                !(event.target instanceof Element && event.target.closest('.edit-drawing, .edit-atom'))) {
+                const at = this.placeAt(event.clientX, event.clientY);
+                if (at && !this.pending && !this.closed) {
+                    event.preventDefault();
+                    this.select(this.extendAnchor, at);
+                    return;
+                }
+            }
+
             this.setExtend(0);
             this.lastKind = '';
             this.pendingFace = null;
@@ -1853,6 +1865,17 @@ export class ParagraphEditor {
         } else {
             this.select(from, wordTo);
         }
+    }
+
+    // The place in the box nearest a point, between characters, as a click puts the caret; or null off it.
+    placeAt(x, y) {
+        if (document.caretPositionFromPoint) {
+            const position = document.caretPositionFromPoint(x, y);
+            return this.toPlace(position?.offsetNode ?? null, position?.offset ?? 0);
+        }
+
+        const range = document.caretRangeFromPoint?.(x, y);
+        return this.toPlace(range?.startContainer ?? null, range?.startOffset ?? 0);
     }
 
     // The place of the character under a point in the box (a caret after a character the point is still

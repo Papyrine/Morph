@@ -207,6 +207,16 @@ static class SelectionFamily
             .Hypotheses("The first F8 turns extend mode on with nothing selected; then word, sentence, paragraph, (a) section, (b) document with the section step skipped; Shift+F8 steps back down the same ladder; Esc ends the mode and keeps the selection. In extend mode Right extends by a character and a typed letter extends to the next occurrence of that letter rather than replacing the selection.")
             .Morph("TODO");
 
+        yield return Probe("S-10d", "A click in F8 extend mode, with nothing selected yet and with a word selected")
+            .In("sentences")
+            .Steps("select(P1:find(\"Two\"))", "F8")
+            .Trace()
+            .Observing(Observe.Selection | Observe.Text)
+            .Branch("click", S("click(P1:30)", "Right"))
+            .Branch("word", S("F8", "click(P1:30)", "Right"))
+            .Hypotheses("(a) The click extends the selection from the anchor at 14 to the click and extend mode stays on, so Right extends it further; (b) the click ends extend mode and places the caret, so Right moves it.")
+            .Morph("PARTIAL");
+
         yield return Probe("S-10b", "F8 cascade from inside a table cell")
             .In("table-3x3")
             .Steps("select(C(2,2):1)", "F8", "F8", "F8", "F8", "F8", "F8", "Esc")

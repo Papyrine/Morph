@@ -1,12 +1,12 @@
 {
   "Family": "selection",
-  "Generated": "2026-10-27T14:08:58.8785336+11:00",
+  "Generated": "2026-11-07T10:53:05.0021124+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20527.20150"
   },
   "Cases": {
     "S-01[fixture=field-page,from=DOC:end,key=Shift+Left]": {
@@ -56511,6 +56511,619 @@
           "Line": "⟦[Three¶‸⟧] …"
         }
       ]
+    },
+    "S-10d": {
+      "DefinitionHash": "3122e36b81bea363",
+      "Title": "A click in F8 extend mode, with nothing selected yet and with a word selected",
+      "Fixture": "sentences",
+      "Steps": [
+        "select(P1:find(\"Two\"))",
+        "F8"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1505,
+      "RunAt": "2026-11-07T10:53:02.234495+11:00",
+      "Lines": [
+        "[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.]",
+        "[Second line starts. It ends here.]",
+        "Selection: IP 14–14 · extend-mode"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 14,
+          "End": 14,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": true,
+          "ColumnSelectMode": false,
+          "SelectionMode": 1,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "T",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 68,
+            "Text": "One is first. Two is next? Three uses e.g. four here. Five ends it.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 68,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 68,
+            "End": 102,
+            "Text": "Second line starts. It ends here.\r",
+            "Runs": [
+              {
+                "Start": 68,
+                "End": 102,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Trace": [
+        {
+          "Step": "F8",
+          "Selection": {
+            "Start": 14,
+            "End": 14,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "T",
+            "IsCollapsed": true
+          },
+          "Line": "[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.]"
+        }
+      ],
+      "Phases": {
+        "open": 906,
+        "open.add": 122,
+        "open.view": 92,
+        "open.front": 561,
+        "open.park": 127,
+        "options": 0,
+        "steps": 361,
+        "observe": 160,
+        "reset": 30,
+        "close": 48
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "S-10d/click": {
+      "DefinitionHash": "261a02cf8eeda45f",
+      "Title": "A click in F8 extend mode, with nothing selected yet and with a word selected",
+      "Fixture": "sentences",
+      "Steps": [
+        "select(P1:find(\"Two\"))",
+        "F8",
+        "click(P1:30)",
+        "Right"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1291,
+      "RunAt": "2026-11-07T10:53:03.5619759+11:00",
+      "Lines": [
+        "[One is first. ⟦Two is next? Three‸⟧ uses e.g. four here. Five ends it.]",
+        "[Second line starts. It ends here.]",
+        "Selection: Normal 14–32 end-active · extend-mode · click(P1:30) → Range 31-31, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 14,
+          "End": 32,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": true,
+          "ColumnSelectMode": false,
+          "SelectionMode": 1,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Two is next? Three",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 68,
+            "Text": "One is first. Two is next? Three uses e.g. four here. Five ends it.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 68,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 68,
+            "End": 102,
+            "Text": "Second line starts. It ends here.\r",
+            "Runs": [
+              {
+                "Start": 68,
+                "End": 102,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "click(P1:30)",
+            "X": 795,
+            "Y": 405,
+            "Under": "Range 31-31",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Trace": [
+        {
+          "Step": "F8",
+          "Selection": {
+            "Start": 14,
+            "End": 14,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "T",
+            "IsCollapsed": true
+          },
+          "Line": "[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.]"
+        },
+        {
+          "Step": "click(P1:30)",
+          "Selection": {
+            "Start": 14,
+            "End": 31,
+            "Type": "Normal",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "Two is next? Thre",
+            "IsCollapsed": false
+          },
+          "Line": "[One is first. ⟦Two is next? Thre‸⟧e uses e.g. four here. Five ends it.]"
+        },
+        {
+          "Step": "Right",
+          "Selection": {
+            "Start": 14,
+            "End": 32,
+            "Type": "Normal",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "Two is next? Three",
+            "IsCollapsed": false
+          },
+          "Line": "[One is first. ⟦Two is next? Three‸⟧ uses e.g. four here. Five ends it.]"
+        }
+      ],
+      "Phases": {
+        "open": 233,
+        "open.add": 88,
+        "open.view": 24,
+        "open.front": 1,
+        "open.park": 117,
+        "options": 0,
+        "steps": 855,
+        "observe": 126,
+        "reset": 34,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "S-10d/word": {
+      "DefinitionHash": "ef0c9efdb1d3efcd",
+      "Title": "A click in F8 extend mode, with nothing selected yet and with a word selected",
+      "Fixture": "sentences",
+      "Steps": [
+        "select(P1:find(\"Two\"))",
+        "F8",
+        "F8",
+        "click(P1:30)",
+        "Right"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1401,
+      "RunAt": "2026-11-07T10:53:04.9894024+11:00",
+      "Lines": [
+        "[One is first. ⟦Two is next? Three‸⟧ uses e.g. four here. Five ends it.]",
+        "[Second line starts. It ends here.]",
+        "Selection: Normal 14–32 end-active · extend-mode · click(P1:30) → Range 31-31, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 14,
+          "End": 32,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": true,
+          "ColumnSelectMode": false,
+          "SelectionMode": 1,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Two is next? Three",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 68,
+            "Text": "One is first. Two is next? Three uses e.g. four here. Five ends it.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 68,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 68,
+            "End": 102,
+            "Text": "Second line starts. It ends here.\r",
+            "Runs": [
+              {
+                "Start": 68,
+                "End": 102,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "click(P1:30)",
+            "X": 795,
+            "Y": 405,
+            "Under": "Range 31-31",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Trace": [
+        {
+          "Step": "F8",
+          "Selection": {
+            "Start": 14,
+            "End": 14,
+            "Type": "IP",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "T",
+            "IsCollapsed": true
+          },
+          "Line": "[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.]"
+        },
+        {
+          "Step": "F8",
+          "Selection": {
+            "Start": 14,
+            "End": 18,
+            "Type": "Normal",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "Two ",
+            "IsCollapsed": false
+          },
+          "Line": "[One is first. ⟦Two ‸⟧is next? Three uses e.g. four here. Five ends it.]"
+        },
+        {
+          "Step": "click(P1:30)",
+          "Selection": {
+            "Start": 14,
+            "End": 31,
+            "Type": "Normal",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "Two is next? Thre",
+            "IsCollapsed": false
+          },
+          "Line": "[One is first. ⟦Two is next? Thre‸⟧e uses e.g. four here. Five ends it.]"
+        },
+        {
+          "Step": "Right",
+          "Selection": {
+            "Start": 14,
+            "End": 32,
+            "Type": "Normal",
+            "Flags": 24,
+            "StartIsActive": false,
+            "AtEndOfLine": false,
+            "StoryType": "wdMainTextStory",
+            "ExtendMode": true,
+            "ColumnSelectMode": false,
+            "SelectionMode": 1,
+            "InTable": false,
+            "AtEndOfRowMarker": false,
+            "Cells": 0,
+            "Rows": 0,
+            "Columns": 0,
+            "InlineShapes": 0,
+            "Shapes": 0,
+            "Overtype": false,
+            "Text": "Two is next? Three",
+            "IsCollapsed": false
+          },
+          "Line": "[One is first. ⟦Two is next? Three‸⟧ uses e.g. four here. Five ends it.]"
+        }
+      ],
+      "Phases": {
+        "open": 186,
+        "open.add": 61,
+        "open.view": 40,
+        "open.front": 0,
+        "open.park": 83,
+        "options": 0,
+        "steps": 1023,
+        "observe": 122,
+        "reset": 30,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "S-11": {
       "DefinitionHash": "20f7f8874847f5c4",

@@ -44,7 +44,7 @@ sealed class WordSession : IDisposable
     // Every recorded result is compared against every other, so they all have to come from one Word: a
     // different build moved paragraph spacing and a floating picture's copy offset across a whole rerun.
     // Raising this means rerunning the catalogue, not one family.
-    public const string ExpectedBuild = "16.0.20527.20088";
+    public const string ExpectedBuild = "16.0.20527.20150";
 
     static void RequireExpectedBuild()
     {

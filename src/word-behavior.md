@@ -6,7 +6,7 @@ below was produced by driving a visible Word with real keyboard and mouse input 
 back over COM. The Blazor editor (`src/Morph.Blazor`, `MorphEditor`) is meant to match these; the file
 doubles as its gap list through the `Morph` status each scenario carries.
 
-<!-- probe:generated --> Generated 2026-10-27 on Word for Microsoft 365, version 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20088), Windows 11, unknown UI, one display 3440x1440 at 125 %. Undo names from the Undo list.
+<!-- probe:generated --> Generated 2026-11-07 on Word for Microsoft 365, version 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20150), Windows 11, unknown UI, one display 3440x1440 at 125 %. Undo names from the Undo list.
 
 Keys and the commands they run are catalogued in `docs/word-command-reference.md` and are not repeated
 here; this file records what a key or click **does** to the document and the selection in a given state.
@@ -233,7 +233,7 @@ in its heading; everything else was measured under these values.
 <!-- probe:begin environment -->
 | what | value |
 | --- | --- |
-| Word | 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20088) |
+| Word | 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20150) |
 | UI language | unknown |
 | display | 3440x1440 at 125 % |
 | undo entry names | control128 |
@@ -1740,9 +1740,12 @@ Shift with every navigation key, Ctrl+A, F8, column mode, anchors and what a sel
   selection.** The first F8 turns extend mode on without selecting; the second selects the word with its
   trailing space; the third the sentence; the fourth the paragraph with its mark; the fifth the whole
   document (the section step did not appear in a one-section document). In extend mode an arrow key extends
-  and a typed letter extends to that letter's next occurrence. In a cell the steps are word, cell, then the
-  whole document; in a list item word, paragraph, document (S-10). — Morph: DONE within the open paragraph
-  (`ParagraphEditor.onExtendKey`; the document step selects every page's text, as Ctrl+A does).
+  and a typed letter extends to that letter's next occurrence, and a click extends from where the mode
+  began to the click with the mode still on, whether or not anything was selected yet (S-10d). In a cell the
+  steps are word, cell, then the whole document; in a list item word, paragraph, document (S-10). — Morph:
+  DONE within the open paragraph (`ParagraphEditor.onExtendKey`, and its mousedown for a click; the
+  document step selects every page's text, as Ctrl+A does). A click on another paragraph closes the open
+  one, which ends the mode.
 - **R-S-6 Column mode (Ctrl+Shift+F8) selects a block; typing into it does nothing, Delete removes every
   segment, Esc leaves an insertion point at the block's start** (S-11). Alt+Num5 (Num Lock off) selects the
   whole table from inside it and nothing outside one (S-12). — Morph: TODO.
@@ -1768,7 +1771,7 @@ Shift with every navigation key, Ctrl+A, F8, column mode, anchors and what a sel
 
 ### State machines
 
-F8 extend mode (R-S-5; S-10):
+F8 extend mode (R-S-5; S-10, S-10d):
 
 ```mermaid
 stateDiagram-v2
@@ -1781,8 +1784,8 @@ stateDiagram-v2
     Paragraph --> Sentence: Shift+F8
     Sentence --> Word: Shift+F8
     Word --> ExtendOn: Shift+F8
-    ExtendOn --> Arbitrary: arrow key, or a typed letter (extends to its next occurrence)
-    Word --> Arbitrary: arrow key
+    ExtendOn --> Arbitrary: arrow key, a click, or a typed letter (extends to its next occurrence)
+    Word --> Arbitrary: arrow key, or a click
     Arbitrary --> Kept: Esc (extend mode off, selection kept)
     Document --> Kept: Esc
     state "In a cell: word, cell, document" as CellNote
@@ -2358,6 +2361,27 @@ flowchart TD
   root --> n_arrow["Right x3 · Esc"]
   root --> n_letter["type(#quot;f#quot;) · Esc"]
   root --> n_esc["Esc"]
+```
+
+#### S-10d · A click in F8 extend mode, with nothing selected yet and with a word selected
+
+`sentences` · Morph: **PARTIAL**
+
+Expected before the run: (a) The click extends the selection from the anchor at 14 to the click and extend mode stays
+on, so Right extends it further; (b) the click ends extend mode and places the caret, so Right moves it.
+
+steps before the branches `select(P1:find("Two"))` · `F8`
+
+- `F8` → `[One is first. ‸Two is next? Three uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · IP 14–14 · extend-mode
+- `click(P1:30) · Right` → `[One is first. ⟦Two is next? Three‸⟧ uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · Normal 14–32 end-active · extend-mode
+- `F8 · click(P1:30) · Right` → `[One is first. ⟦Two is next? Three‸⟧ uses e.g. four here. Five ends it.] / [Second line starts. It ends here.]` · Normal 14–32 end-active · extend-mode
+
+```mermaid
+flowchart TD
+  root["sentences"]
+  root --> n_["F8"]
+  root --> n_click["click(P1:30) · Right"]
+  root --> n_word["F8 · click(P1:30) · Right"]
 ```
 
 #### S-10b · F8 cascade from inside a table cell

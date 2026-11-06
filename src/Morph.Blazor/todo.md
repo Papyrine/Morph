@@ -9,8 +9,9 @@ what those fixes stopped short of.
 
 ## Residues
 
-- **A click in F8 extend mode ends the mode.** Word may extend the selection to the click instead;
-  settle it with a Word probe.
+- **A click on another paragraph in F8 extend mode ends the mode.** Word extends the selection to
+  the click and keeps the mode on (WordProbe S-10d), which the editor now does within the open
+  paragraph; a click elsewhere closes that paragraph, and a selection across paragraphs is the pages'.
 - Touch pinch-zoom is untested on a real touch device.
 
 ## Missing features
