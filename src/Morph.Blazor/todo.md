@@ -9,9 +9,6 @@ what those fixes stopped short of.
 
 ## Residues
 
-- **Insert > Table's greying inside the open paragraph is CSS only** (`markClipboard` marks
-  `.editor-caret-only` with `data-selected`), and a button on a freshly shown Insert tab is only marked
-  at the next selection change.
 - **A click in F8 extend mode ends the mode.** Word may extend the selection to the click instead;
   settle it with a Word probe.
 - **A drag that would reorder a paragraph's fields, pictures or notes is undone** with a status note:

@@ -49,8 +49,9 @@ sealed record EditorState
     public ReviewPart Story { get; init; }
 
     /// <summary>
-    /// Text is selected across the pages. Text selected in the paragraph open for typing is the script's
-    /// alone to know as the caret moves, and the buttons that turn on it are marked by the script too.
+    /// Text is selected rather than a caret: across the pages, or in the paragraph open for typing,
+    /// whose selection the script reports when one is made or let go (<c>OnEditSelected</c>), never as
+    /// it grows. Cut and Copy, which the script carries out, are still marked by the script.
     /// </summary>
     public bool Selected { get; init; }
 

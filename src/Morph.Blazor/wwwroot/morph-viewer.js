@@ -2922,6 +2922,14 @@ class Viewer {
         }
 
         this.editSelected = state ? state.selected === true : null;
+        // And whether text is selected there rather than a caret, which greys Insert > Table out: when
+        // a selection is made or let go, never as it grows.
+        const selected = state?.selected === true;
+        if (selected !== (this.editSelectedTold ?? false)) {
+            this.editSelectedTold = selected;
+            this.dotNet.invokeMethodAsync('OnEditSelected', selected).catch(() => {});
+        }
+
         this.markClipboard();
         if (state) {
             for (const shown of this.root.querySelectorAll('[data-edit-show]')) {
@@ -2969,10 +2977,6 @@ class Viewer {
             button.toggleAttribute('data-unselected', !readable);
         }
 
-        // And Insert > Table the other way about: Word greys it out whenever anything is selected.
-        for (const button of this.root.querySelectorAll('.editor-caret-only')) {
-            button.toggleAttribute('data-selected', selected);
-        }
     }
 
     // A button of the editing bar, or its key. With a paragraph open it is the editor's, if the

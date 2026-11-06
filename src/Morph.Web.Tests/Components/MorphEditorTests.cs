@@ -747,6 +747,25 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(cut.Find(".editor-status").TextContent).Contains("Page 1 of 2");
     }
 
+    // Insert > Table is greyed out, as Word's is, with text selected in the open paragraph as on the
+    // pages: the script says when a selection is made there and let go.
+    [Test]
+    public async Task InsertTable_IsGreyedOut_WithTextSelectedInTheOpenParagraph()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var (block, offset) = Place(Paragraphs, 1, "bold");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 100, block.Top + 2, offset, offset));
+        Session();
+        await ChooseTabAsync(cut, "Insert");
+        await Assert.That(ToolDisabled(cut, "Table")).IsFalse();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditSelected(true));
+        await Assert.That(ToolDisabled(cut, "Table")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditSelected(false));
+        await Assert.That(ToolDisabled(cut, "Table")).IsFalse();
+    }
+
     [Test]
     public async Task ATable_IsInsertedWhereTheCaretIs_AndItsTabComesUp()
     {

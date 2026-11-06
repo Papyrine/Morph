@@ -2218,18 +2218,11 @@
     cursor: default;
 }
 
-/* Cut and Copy at a caret, and Insert > Table with text selected, marked by the script (markClipboard in
-   morph-viewer.js). */
+/* Cut and Copy at a caret, marked by the script (markClipboard in morph-viewer.js). */
 .editor-tool-disabled,
 .editor-tool[data-unselected],
-.editor-menu-item[data-unselected],
-.editor-caret-only[data-selected] {
+.editor-menu-item[data-unselected] {
     pointer-events: none;
-}
-
-.editor-caret-only[data-selected] {
-    opacity: 0.4;
-    cursor: default;
 }
 
 .editor-menu-item[data-unselected] {

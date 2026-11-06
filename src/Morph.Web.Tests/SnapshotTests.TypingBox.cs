@@ -95,6 +95,25 @@ public partial class SnapshotTests
         await Assert.That(saved).DoesNotContain("w:sz w:val=\"96\"");
     }
 
+    // Insert > Table is greyed out with text selected in the open paragraph, on an Insert tab shown
+    // after the selection was made too, and comes back with a caret.
+    [Test]
+    public async Task InsertTable_IsGreyedOut_WhileTextIsSelected()
+    {
+        var page = await OpenEditAsync(Build(P("", R("One two."))));
+        const string table = ".editor-tool:has-text('Table')";
+
+        await ClickInAsync(page, "two");
+        await page.Keyboard.PressAsync("Home");
+        await page.Keyboard.PressAsync("Shift+ArrowRight");
+        await page.Keyboard.PressAsync("Shift+ArrowRight");
+        await ChooseTabAsync(page, "Insert");
+        await page.WaitForSelectorAsync($"{table}[disabled]");
+
+        await page.Keyboard.PressAsync("ArrowRight");
+        await page.WaitForSelectorAsync($"{table}:not([disabled])");
+    }
+
     // A character beyond the Basic Multilingual Plane is two UTF-16 code units and one character:
     // Overtype types over it whole, and F4 repeating a deletion deletes it whole.
     [Test]

@@ -1496,6 +1496,28 @@ public partial class MorphViewer
             StateHasChanged();
         });
 
+    bool typedSelection;
+
+    // Text selected in the paragraph open for typing, rather than a caret.
+    internal bool TypedSelection => session != null && typedSelection;
+
+    /// <summary>
+    /// Called from JavaScript when text comes to be selected in the paragraph being typed, or stops
+    /// being: only then, never as the selection grows or the caret moves.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditSelected(bool selected) =>
+        InvokeAsync(() =>
+        {
+            if (typedSelection == selected)
+            {
+                return;
+            }
+
+            typedSelection = selected;
+            StateHasChanged();
+        });
+
     /// <summary>Called from JavaScript when Delete or Backspace is pressed with a floating picture selected.</summary>
     [JSInvokable]
     public Task OnPictureDelete(int paragraph, int offset) =>

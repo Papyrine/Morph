@@ -36,7 +36,7 @@ public partial class MorphEditor
             PictureSelected = PictureSelected,
             FloatingPicture = FloatingPictureSelected,
             Story = CurrentStory,
-            Selected = PagesSelected,
+            Selected = PagesSelected || TypedSelection,
             SpansParagraphs = SpansParagraphs,
             CanUndo = CanUndo,
             CanRedo = CanRedo,
@@ -697,9 +697,9 @@ public partial class MorphEditor
                 Enabled = ForPages
             };
 
-        // Word greys Table out whenever anything is selected: a table goes in at a caret. Text selected in
-        // the open paragraph is the script's to know, which marks the button as it marks Cut and Copy
-        // (data-caret-only); text selected across the pages is the state's.
+        // Word greys Table out whenever anything is selected: a table goes in at a caret. Text selected
+        // across the pages, or in the open paragraph (which the script reports as a selection is made or
+        // let go, OnEditSelected), is the state's.
         public static readonly EditorCommand Table =
             new("table", "Table", _ => _.ToggleMenu(tableMenu))
             {
