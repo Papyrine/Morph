@@ -386,6 +386,29 @@ class Viewer {
                 event.preventDefault();
             }
         }, { signal });
+        // A submenu of a menu that scrolls is placed on the screen against its line, outside the clip
+        // of the menu it is in: as the pointer or the focus reaches it, as .NET opens it, and as the
+        // menu scrolls under it.
+        this.root.addEventListener('pointerover', event => {
+            const line = event.target instanceof Element ? event.target.closest('.editor-menu-sub') : null;
+            if (line) {
+                requestAnimationFrame(() => this.placeSubmenu(line));
+            }
+        }, { signal });
+        this.root.addEventListener('focusin', event => {
+            const line = event.target instanceof Element ? event.target.closest('.editor-menu-sub') : null;
+            if (line) {
+                this.placeSubmenu(line);
+            }
+        }, { signal });
+        this.root.addEventListener('scroll', event => {
+            if (event.target instanceof Element && event.target.matches('.editor-menu')) {
+                this.placeSubmenus();
+            }
+        }, { capture: true, passive: true, signal });
+        const opened = new MutationObserver(() => this.placeSubmenus());
+        opened.observe(this.root, { subtree: true, attributes: true, attributeFilter: ['data-open'] });
+        signal.addEventListener('abort', () => opened.disconnect());
         document.addEventListener('keydown', event => this.onDocumentKeyDown(event), { capture: true, signal });
         document.addEventListener('keyup', event => {
             if (event.key === 'Control' || event.key === 'Meta') {
@@ -3526,7 +3549,7 @@ class Viewer {
         }
 
         // Taller than the editor — a short viewer, a phone on its side — it fits it and scrolls, rather
-        // than losing its last lines below the edge; a submenu is then clipped to it, which is the lesser loss.
+        // than losing its last lines below the edge; its submenus are then placed outside it (placeSubmenu).
         if (box.height > bounds.height - 8) {
             menu.style.maxHeight = `${Math.max(0, bounds.height - 8)}px`;
             menu.style.overflowY = 'auto';
@@ -3540,6 +3563,62 @@ class Viewer {
 
         box = menu.getBoundingClientRect();
         menu.toggleAttribute('data-flip', box.right + box.width > bounds.right);
+    }
+
+    placeSubmenus() {
+        for (const line of this.root.querySelectorAll('.editor-menu-sub[data-open], .editor-menu-sub:hover')) {
+            this.placeSubmenu(line);
+        }
+    }
+
+    // A submenu is drawn beside its line by the stylesheet, which a menu that scrolls — one placeMenu
+    // capped, or a ribbon list taller than its limit — clips. In one, the submenu is fixed on the
+    // screen instead, to the line's right (or its left, with no room), its top level with the line's
+    // and moved up to stay on the screen.
+    placeSubmenu(line) {
+        const list = line.querySelector(':scope > .editor-submenu');
+        const menu = line.parentElement?.closest('.editor-menu');
+        if (!list || !menu) {
+            return;
+        }
+
+        if (getComputedStyle(menu).overflowY === 'visible') {
+            for (const property of ['position', 'left', 'right', 'top']) {
+                list.style.removeProperty(property);
+            }
+
+            return;
+        }
+
+        if (getComputedStyle(list).display === 'none') {
+            return;
+        }
+
+        const at = line.getBoundingClientRect();
+        list.style.position = 'fixed';
+        list.style.right = 'auto';
+        const width = list.offsetWidth;
+        const height = list.offsetHeight;
+        const across = document.documentElement.clientWidth;
+        const down = document.documentElement.clientHeight;
+        let left = at.right;
+        if (left + width > across - 4) {
+            left = Math.max(4, at.left - width);
+        }
+
+        // As the stylesheet's -0.3rem lines its first item up with the line.
+        let top = at.top - 0.3 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+        if (top + height > down - 4) {
+            top = Math.max(4, down - height - 4);
+        }
+
+        list.style.left = `${left}px`;
+        list.style.top = `${top}px`;
+        // A transformed ancestor is what a fixed element is placed in, not the screen: where it landed
+        // corrects where it was put.
+        const landed = list.getBoundingClientRect();
+        list.style.left = `${2 * left - landed.left}px`;
+        list.style.top = `${2 * top - landed.top}px`;
     }
 
     // An arrow key took the caret out of the top or the bottom of a paragraph: the paragraph that way is

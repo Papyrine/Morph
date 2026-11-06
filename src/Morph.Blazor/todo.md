@@ -14,8 +14,6 @@ what those fixes stopped short of.
   at the next selection change.
 - **A click in F8 extend mode ends the mode.** Word may extend the selection to the click instead;
   settle it with a Word probe.
-- **A submenu opened from a menu that scrolls** (`placeMenu` caps a tall menu's height) is clipped by
-  it.
 - **A drag that would reorder a paragraph's fields, pictures or notes is undone** with a status note:
   `Rewrite` requires them to keep their order.
 - Touch pinch-zoom is untested on a real touch device.
