@@ -2,9 +2,10 @@
 /// One step of undo or redo: the whole file to go back to, where the reader was in it before the edit
 /// (<see cref="Before"/>, what undo puts back) and where the edit left them (<see cref="After"/>, what redo
 /// puts back), either unknown for an edit that did not start or end at a place — a change accepted in the
-/// review pane.
+/// review pane. <see cref="Shown"/> is the file the step was made from, the one shown once it was made:
+/// coauthoring takes the step back from the file as others have edited it since, where that is not it.
 /// </summary>
-readonly record struct HistoryStep(byte[] Bytes, CaretPlace? Before, CaretPlace? After);
+readonly record struct HistoryStep(byte[] Bytes, CaretPlace? Before, CaretPlace? After, byte[]? Shown = null);
 
 /// <summary>
 /// A place in the document's paragraphs, by ordinal and offset as <see cref="EditParagraph.Length"/> counts:

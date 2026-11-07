@@ -532,6 +532,7 @@ public partial class MorphViewer : IAsyncDisposable
             documentId = opening;
             await viewer.LoadAsync(opening, pageSizes, opened.Json, currentPage - 1, ZoomName(InitialZoom), info.PageNoun);
             await viewer.SetPicturesAsync(opening, opened.Pictures);
+            await PushPresenceAsync();
             if (findOpen &&
                 findQuery.Trim().Length > 0)
             {
