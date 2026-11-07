@@ -173,17 +173,13 @@ static class SkiaPainter
     {
         var ascent = line.Baseline - line.Y;
 
-        // A line carrying a tracked change gets Word's change bar: a thin black rule in the left
-        // margin spanning the line (Word-measured on tracked_changes/01 — a ~0.5pt rule at half
-        // the left margin, x=36pt inside a 72pt margin at 150 DPI).
-        foreach (var run in line.Runs)
+        // A revised line gets Word's change bar: a thin black rule at half the left margin (Word-measured
+        // on tracked_changes/01 — x=36pt inside a 72pt margin at 150 DPI), as far as the layout says
+        // (PlacedLine.ChangeBar).
+        if (line.ChangeBar is var (barTop, barBottom))
         {
-            if (run.Properties.IsRevisionMark)
-            {
-                var barX = P(context, context.PageSettings.MarginLeft / 2);
-                canvas.DrawLine(barX, P(context, line.Y), barX, P(context, line.Y + line.Height), context.GetReusableRulePaint(SKColors.Black, P(context, 0.75)));
-                break;
-            }
+            var barX = P(context, context.PageSettings.MarginLeft / 2);
+            canvas.DrawLine(barX, P(context, barTop), barX, P(context, barBottom), context.GetReusableRulePaint(SKColors.Black, P(context, 0.75)));
         }
 
         foreach (var run in line.Runs)

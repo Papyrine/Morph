@@ -63,6 +63,8 @@
     },
     "IsAnchorOnlyMark": false,
     "IsSectionBreakMark": false,
-    "IsCollapsedCellMark": false
+    "IsCollapsedCellMark": false,
+    "PropertiesRevised": false,
+    "MarkRevised": false
   }
 ]

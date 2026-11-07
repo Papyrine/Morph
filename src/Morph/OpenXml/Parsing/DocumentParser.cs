@@ -7695,6 +7695,23 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
+        // Where Word's change bars stand for a revision of the w:p itself: its properties' beside its
+        // first line, its mark's beside its last.
+        var revisedProperties = paraProps?.GetFirstChild<ParagraphPropertiesChange>() != null ||
+                                paraProps?.NumberingProperties?.GetFirstChild<NumberingChange>() != null;
+        var revisedMark = paraProps?.ParagraphMarkRunProperties?.ChildElements.Any(_ => _ is Inserted or Deleted or MoveFrom or MoveTo or ParagraphMarkRunPropertiesChange) == true;
+        if (revisedProperties &&
+            result.OfType<ParagraphElement>().FirstOrDefault() is { } firstBuilt)
+        {
+            firstBuilt.PropertiesRevised = true;
+        }
+
+        if (revisedMark &&
+            result.OfType<ParagraphElement>().LastOrDefault() is { } lastBuilt)
+        {
+            lastBuilt.MarkRevised = true;
+        }
+
         // Last, once every paragraph this call builds has its final form: a w:p split around a break
         // is several paragraphs here and one in the file.
         if (paragraphSources?.TryGetValue(para, out var source) == true)
@@ -13300,6 +13317,17 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return properties;
     }
 
+    // A run whose formatting a tracked change altered (w:rPrChange) keeps its new look, uncoloured,
+    // and takes Word's change bar beside its line as an inserted or deleted run does.
+    static RunProperties ApplyFormatRevision(RunProperties properties, OoxmlRun run) =>
+        !properties.IsRevisionMark &&
+        run.RunProperties?.GetFirstChild<RunPropertiesChange>() != null
+            ? properties with
+            {
+                IsRevisionMark = true
+            }
+            : properties;
+
     static RunProperties ApplyRevisionMark(RunProperties properties, RevisionMark mark) =>
         mark switch
         {
@@ -13415,9 +13443,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         RunProperties GetProperties() =>
             properties ??= ApplyComment(
-                ApplyRevisionMark(
-                    ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId),
-                    RevisionOf(run)),
+                ApplyFormatRevision(
+                    ApplyRevisionMark(
+                        ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId),
+                        RevisionOf(run)),
+                    run),
                 run);
 
         // w:vanish / w:specVanish — drop hidden runs at parse time so they don't enter

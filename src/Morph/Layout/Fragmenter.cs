@@ -3364,7 +3364,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
 
                     var (drawnY, drawnHeight, drawnBaseline) = DrawnLine(line, y, baseline, ref drawShift);
-                    var placedLine = new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, placedIndex, lineRuns, MapImages(line, lineLeft, drawnBaseline));
+                    var placedLine = new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, placedIndex, lineRuns, MapImages(line, lineLeft, drawnBaseline))
+                    {
+                        ChangeBar = ChangeBar(paragraph, placedIndex, paragraphLines.Count, lineRuns, drawnY, drawnHeight, paragraphPreSpacingTops[paragraph], properties.SpacingAfterPoints)
+                    };
                     items.Add(placedLine);
 
                     // The line is down: its footnotes open the column's area under it, its endnotes
@@ -4777,6 +4780,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // apart instead of tight). TableHeightCalculator once measured WITHOUT the collapse,
                 // leaving the row oversized by every suppressed gap; it applies the same rule, so measure
                 // and placement agree.
+                // Where the paragraph's own space-before begins, which a change bar on its first line
+                // takes in (ChangeBar).
+                var spaceTop = cellY;
                 if (first)
                 {
                     cellY += (float) properties.SpacingBeforePoints;
@@ -4807,6 +4813,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 else
                 {
                     var (keptAfter, keptBefore) = ParagraphGap.Between(lastCellAfter, lastCellContextual, lastCellStyleId, lastCellIsParagraph, properties);
+                    spaceTop = cellY + keptAfter;
                     cellY += keptAfter + keptBefore;
                 }
 
@@ -4920,7 +4927,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
 
                     var (drawnY, drawnHeight, drawnBaseline) = DrawnLine(line, cellY, baseline, ref drawShift);
-                    lines.Add(new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, drawnBaseline)));
+                    var runs = LineRuns(paragraph, line, lineIndex, lineLeft);
+                    lines.Add(new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, lineIndex, runs, MapImages(line, lineLeft, drawnBaseline))
+                    {
+                        ChangeBar = ChangeBar(paragraph, lineIndex, paragraphLines.Count, runs, drawnY, drawnHeight, spaceTop, properties.SpacingAfterPoints)
+                    });
                     cellY += line.Height;
                 }
 
@@ -5114,6 +5125,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 var properties = paragraph.Properties;
+                var spaceTop = bandY;
                 bandY += (float) properties.SpacingBeforePoints;
                 var paragraphLines = measurer.LayoutLineContents(paragraph, width);
                 var availableWidth = width - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
@@ -5131,7 +5143,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
 
                     var (drawnY, drawnHeight, drawnBaseline) = DrawnLine(line, bandY, baseline, ref drawShift);
-                    result.Add(new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, lineIndex, LineRuns(paragraph, line, lineIndex, lineLeft), MapImages(line, lineLeft, drawnBaseline)));
+                    var runs = LineRuns(paragraph, line, lineIndex, lineLeft);
+                    result.Add(new PlacedLine(lineLeft, drawnY, line.Width, drawnHeight, drawnBaseline, paragraph, lineIndex, runs, MapImages(line, lineLeft, drawnBaseline))
+                    {
+                        ChangeBar = ChangeBar(paragraph, lineIndex, paragraphLines.Count, runs, drawnY, drawnHeight, spaceTop, properties.SpacingAfterPoints)
+                    });
                     bandY += line.Height;
                 }
 
@@ -6124,6 +6140,29 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // reserving nothing but draws as reserving (LaidOutLine.DrawPad) is drawn as tall as a reserving
         // line, its baseline the reserve lower, and every later line of its paragraph lower by the whole
         // growth — drawShift carries that down the paragraph. The flow itself never moves.
+        // Word's change bar beside a revised line (PlacedLine.ChangeBar). Word-probed 2026-11-07
+        // (_probe_changebars: three-line 16pt paragraphs each carrying one kind of revision, then the
+        // same at 24pt before and after, the bars read off the 150 DPI render): a run inserted, deleted
+        // or reformatted bars its own line; a paragraph's changed properties bar its first line and its
+        // revised mark its last. A bar on a paragraph's first line takes in the space the paragraph keeps
+        // before it, from spaceTop where that space begins (the excess over the previous paragraph's
+        // after, ParagraphGap; none at a page top), and one on its last line the paragraph's space
+        // after — an insertion on a last line reached the same 8pt below it as a revised mark did.
+        static (float Top, float Bottom)? ChangeBar(ParagraphElement paragraph, int lineIndex, int lineCount, IReadOnlyList<PlacedRun> runs, float top, float height, float? spaceTop, double after)
+        {
+            var first = lineIndex == 0;
+            var last = lineIndex == lineCount - 1;
+            if (!runs.Any(_ => _.Properties.IsRevisionMark) &&
+                !(first && paragraph.PropertiesRevised) &&
+                !(last && paragraph.MarkRevised))
+            {
+                return null;
+            }
+
+            var barTop = first && spaceTop is { } space && space < top ? space : top;
+            return (barTop, top + height + (last ? (float) after : 0));
+        }
+
         static (float Y, float Height, float Baseline) DrawnLine(LaidOutLine line, float y, float baseline, ref float drawShift)
         {
             var top = y + drawShift;

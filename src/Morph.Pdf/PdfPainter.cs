@@ -231,7 +231,14 @@ static class PdfPainter
     static void PaintLine(PdfRenderContext context, Surface surface, PlacedLine line)
     {
         var ascent = line.Baseline - line.Y;
-        var revisionBarDrawn = false;
+
+        // A revised line gets Word's change bar — see SkiaPainter.PaintLine.
+        if (line.ChangeBar is var (barTop, barBottom))
+        {
+            var barX = context.PageSettings.MarginLeft / 2;
+            PdfShapeDrawing.StrokeLine(surface, context.GetStroke(PdfColor.Black, 0.75), barX, barTop, barX, barBottom);
+        }
+
         foreach (var run in line.Runs)
         {
             // A tab-leader filler fills its span with the leader (tiled glyph, or a baseline rule for
@@ -245,15 +252,6 @@ static class PdfPainter
             if (string.IsNullOrEmpty(run.Text))
             {
                 continue;
-            }
-
-            // A line carrying a tracked change gets Word's change bar — see SkiaPainter.PaintLine.
-            if (run.Properties.IsRevisionMark &&
-                !revisionBarDrawn)
-            {
-                revisionBarDrawn = true;
-                var barX = context.PageSettings.MarginLeft / 2;
-                PdfShapeDrawing.StrokeLine(surface, context.GetStroke(PdfColor.Black, 0.75), barX, line.Y, barX, line.Y + line.Height);
             }
 
             var properties = run.Properties;

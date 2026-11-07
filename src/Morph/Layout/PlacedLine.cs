@@ -18,4 +18,15 @@ sealed record PlacedLine(
     ParagraphElement Paragraph,
     int LineIndex,
     IReadOnlyList<PlacedRun> Runs,
-    IReadOnlyList<PlacedImage> Images) : PlacedItem(X, Y, Width, Height);
+    IReadOnlyList<PlacedImage> Images) : PlacedItem(X, Y, Width, Height)
+{
+    /// <summary>
+    /// Where Word's change bar runs down the left margin beside the line, top and bottom in points from
+    /// the page's top, when the line is revised; null when it is not. A line is revised when a run on
+    /// it is inserted, deleted or reformatted, when it is the first line of a paragraph whose
+    /// properties changed, or the last of one whose mark did. The bar spans the line's box, and on the
+    /// paragraph's first line the space the paragraph keeps before it too, on its last its space after
+    /// (Fragmenter.ChangeBar).
+    /// </summary>
+    public (float Top, float Bottom)? ChangeBar { get; init; }
+}

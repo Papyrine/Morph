@@ -1,6 +1,6 @@
 {
   "Family": "editing",
-  "Generated": "2026-11-07T13:03:31.0075792+11:00",
+  "Generated": "2026-11-07T22:27:02.6534207+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
@@ -150104,6 +150104,2932 @@
       },
       "Build": "16.0.20527.20150"
     },
+    "E-50c[range=P1:0-P1:3,key=Backspace]": {
+      "DefinitionHash": "66f5b8d0ec810c27",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0-P1:3)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 714,
+      "RunAt": "2026-11-07T22:26:20.0460016+11:00",
+      "Lines": [
+        "[‸quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "q",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 237,
+        "open.add": 77,
+        "open.view": 39,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 0,
+        "steps": 291,
+        "observe": 109,
+        "reset": 29,
+        "close": 48
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:0-P1:3,key=Backspace]~tracked": {
+      "DefinitionHash": "9005eb398622e433",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0-P1:3)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 833,
+      "RunAt": "2026-11-07T22:26:20.9211504+11:00",
+      "Lines": [
+        "{-[‸The ]-}[quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Tracking · Revisions 1 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "T",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 0,
+            "End": 4,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 244,
+        "open.add": 81,
+        "open.view": 36,
+        "open.front": 0,
+        "open.park": 125,
+        "options": 3,
+        "steps": 311,
+        "observe": 198,
+        "reset": 30,
+        "close": 47
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:0-P1:3,key=Delete]": {
+      "DefinitionHash": "f1a9e1411dca6bf8",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0-P1:3)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 709,
+      "RunAt": "2026-11-07T22:26:21.6725242+11:00",
+      "Lines": [
+        "[‸quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "q",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 244,
+        "open.add": 77,
+        "open.view": 39,
+        "open.front": 0,
+        "open.park": 125,
+        "options": 0,
+        "steps": 282,
+        "observe": 110,
+        "reset": 31,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:0-P1:3,key=Delete]~tracked": {
+      "DefinitionHash": "b9834cd6edd45bb3",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0-P1:3)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 876,
+      "RunAt": "2026-11-07T22:26:22.6091148+11:00",
+      "Lines": [
+        "{-[The ]-}[‸quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 4–4 · Tracking · Revisions 1 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 4,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "q",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 0,
+            "End": 4,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 304,
+        "open.add": 142,
+        "open.view": 40,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 3,
+        "steps": 307,
+        "observe": 187,
+        "reset": 34,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:10-P1:15,key=Backspace]": {
+      "DefinitionHash": "63b7a75290b5516a",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:10-P1:15)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1728,
+      "RunAt": "2026-11-07T22:26:13.4908375+11:00",
+      "Lines": [
+        "[The quick ‸fox jumps over the lazy dog.]",
+        "Selection: IP 10–10 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "f",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 39,
+            "Text": "The quick fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 966,
+        "open.add": 148,
+        "open.view": 106,
+        "open.front": 575,
+        "open.park": 133,
+        "options": 0,
+        "steps": 348,
+        "observe": 326,
+        "reset": 31,
+        "close": 56
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:10-P1:15,key=Backspace]~tracked": {
+      "DefinitionHash": "7eb6091512cefe4b",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:10-P1:15)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 830,
+      "RunAt": "2026-11-07T22:26:14.4155318+11:00",
+      "Lines": [
+        "[The quick ]{-[‸brown ]-}[fox jumps over the lazy dog.]",
+        "Selection: IP 10–10 · Tracking · Revisions 1 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "b",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 10,
+            "End": 16,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 251,
+        "open.add": 80,
+        "open.view": 58,
+        "open.front": 0,
+        "open.park": 110,
+        "options": 4,
+        "steps": 302,
+        "observe": 198,
+        "reset": 34,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:10-P1:15,key=Delete]": {
+      "DefinitionHash": "6661725f056c4c24",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:10-P1:15)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 697,
+      "RunAt": "2026-11-07T22:26:15.1883923+11:00",
+      "Lines": [
+        "[The quick ‸fox jumps over the lazy dog.]",
+        "Selection: IP 10–10 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "f",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 39,
+            "Text": "The quick fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 234,
+        "open.add": 70,
+        "open.view": 45,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 0,
+        "steps": 283,
+        "observe": 101,
+        "reset": 33,
+        "close": 46
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:10-P1:15,key=Delete]~tracked": {
+      "DefinitionHash": "cf7f1f6b6fb722e6",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:10-P1:15)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 751,
+      "RunAt": "2026-11-07T22:26:16.0211182+11:00",
+      "Lines": [
+        "[The quick ]{-[brown ]-}[‸fox jumps over the lazy dog.]",
+        "Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 16,
+          "End": 16,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "f",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 10,
+            "End": 16,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 218,
+        "open.add": 76,
+        "open.view": 34,
+        "open.front": 0,
+        "open.park": 105,
+        "options": 3,
+        "steps": 281,
+        "observe": 176,
+        "reset": 28,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:4-P1:9,key=Backspace]": {
+      "DefinitionHash": "d004fcf79044cfa9",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:4-P1:9)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 755,
+      "RunAt": "2026-11-07T22:26:16.8194432+11:00",
+      "Lines": [
+        "[The ‸brown fox jumps over the lazy dog.]",
+        "Selection: IP 4–4 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 4,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "b",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 39,
+            "Text": "The brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 234,
+        "open.add": 76,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 112,
+        "options": 0,
+        "steps": 313,
+        "observe": 128,
+        "reset": 39,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:4-P1:9,key=Backspace]~tracked": {
+      "DefinitionHash": "edafa790a0f11553",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:4-P1:9)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 800,
+      "RunAt": "2026-11-07T22:26:17.6621862+11:00",
+      "Lines": [
+        "[The ]{-[‸quick ]-}[brown fox jumps over the lazy dog.]",
+        "Selection: IP 4–4 · Tracking · Revisions 1 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 4,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "q",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 4,
+            "End": 10,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 240,
+        "open.add": 69,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 122,
+        "options": 3,
+        "steps": 288,
+        "observe": 196,
+        "reset": 28,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:4-P1:9,key=Delete]": {
+      "DefinitionHash": "91ce1c4b6188ca8c",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:4-P1:9)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 729,
+      "RunAt": "2026-11-07T22:26:18.44023+11:00",
+      "Lines": [
+        "[The ‸brown fox jumps over the lazy dog.]",
+        "Selection: IP 4–4 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 4,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "b",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 39,
+            "Text": "The brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 237,
+        "open.add": 73,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 122,
+        "options": 0,
+        "steps": 306,
+        "observe": 110,
+        "reset": 36,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:4-P1:9,key=Delete]~tracked": {
+      "DefinitionHash": "29c6377daceb4926",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:4-P1:9)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 792,
+      "RunAt": "2026-11-07T22:26:19.2738051+11:00",
+      "Lines": [
+        "[The ]{-[quick ]-}[‸brown fox jumps over the lazy dog.]",
+        "Selection: IP 10–10 · Tracking · Revisions 1 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "b",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 4,
+            "End": 10,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 231,
+        "open.add": 74,
+        "open.view": 37,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 3,
+        "steps": 313,
+        "observe": 180,
+        "reset": 33,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:43,key=Backspace]": {
+      "DefinitionHash": "4eba1f041376218f",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:43)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 734,
+      "RunAt": "2026-11-07T22:26:23.3857539+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy‸.]",
+        "Selection: IP 39–39 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 39,
+          "End": 39,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": ".",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "The quick brown fox jumps over the lazy.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 239,
+        "open.add": 81,
+        "open.view": 36,
+        "open.front": 0,
+        "open.park": 115,
+        "options": 0,
+        "steps": 307,
+        "observe": 121,
+        "reset": 27,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:43,key=Backspace]~tracked": {
+      "DefinitionHash": "cb5027ac5673db89",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:43)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 808,
+      "RunAt": "2026-11-07T22:26:24.2357887+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy]{-[ ‸dog]-}[.]",
+        "Selection: IP 40–40 · Tracking · Revisions 1 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 40,
+          "End": 40,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "d",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 39,
+            "End": 43,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 230,
+        "open.add": 71,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 115,
+        "options": 3,
+        "steps": 326,
+        "observe": 168,
+        "reset": 30,
+        "close": 51
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:43,key=Delete]": {
+      "DefinitionHash": "edeae377daf6b68b",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:43)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 712,
+      "RunAt": "2026-11-07T22:26:24.9891615+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy‸.]",
+        "Selection: IP 39–39 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 39,
+          "End": 39,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": ".",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "The quick brown fox jumps over the lazy.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 231,
+        "open.add": 76,
+        "open.view": 35,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 0,
+        "steps": 310,
+        "observe": 96,
+        "reset": 30,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:43,key=Delete]~tracked": {
+      "DefinitionHash": "0896f961108c22ef",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:43)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 856,
+      "RunAt": "2026-11-07T22:26:25.8961352+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy]{-[ dog]-}[‸.]",
+        "Selection: IP 43–43 · Tracking · Revisions 1 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 43,
+          "End": 43,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": ".",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 39,
+            "End": 43,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 264,
+        "open.add": 85,
+        "open.view": 47,
+        "open.front": 0,
+        "open.park": 129,
+        "options": 4,
+        "steps": 310,
+        "observe": 202,
+        "reset": 33,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:44,key=Backspace]": {
+      "DefinitionHash": "acf7d0061830be90",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:44)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 737,
+      "RunAt": "2026-11-07T22:26:26.6842823+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy ‸]",
+        "Selection: IP 40–40 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 40,
+          "End": 40,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "\r",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "The quick brown fox jumps over the lazy \r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 249,
+        "open.add": 74,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 129,
+        "options": 0,
+        "steps": 311,
+        "observe": 108,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:44,key=Backspace]~tracked": {
+      "DefinitionHash": "145d4186fa75621c",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:44)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 822,
+      "RunAt": "2026-11-07T22:26:27.54724+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy ]{-[‸dog.]-}",
+        "Selection: IP 40–40 · Tracking · Revisions 1 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 40,
+          "End": 40,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "d",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 40,
+            "End": 44,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 228,
+        "open.add": 74,
+        "open.view": 40,
+        "open.front": 0,
+        "open.park": 112,
+        "options": 4,
+        "steps": 302,
+        "observe": 211,
+        "reset": 37,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:44,key=Delete]": {
+      "DefinitionHash": "d8098b1c8c4aba69",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:44)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 707,
+      "RunAt": "2026-11-07T22:26:28.2945177+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy ‸]",
+        "Selection: IP 40–40 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 40,
+          "End": 40,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "\r",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "The quick brown fox jumps over the lazy \r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 240,
+        "open.add": 73,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 0,
+        "steps": 288,
+        "observe": 102,
+        "reset": 28,
+        "close": 49
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50c[range=P1:40-P1:44,key=Delete]~tracked": {
+      "DefinitionHash": "39a8cc4e08aa9cd9",
+      "Title": "Backspace and Delete on a whole selected word: smart cut's space",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:40-P1:44)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 845,
+      "RunAt": "2026-11-07T22:26:29.1845474+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy ]{-[dog.]-}‸",
+        "Selection: IP 44–44 · Tracking · Revisions 1 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 44,
+          "End": 44,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "\r",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 40,
+            "End": 44,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 269,
+        "open.add": 121,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 104,
+        "options": 4,
+        "steps": 292,
+        "observe": 205,
+        "reset": 34,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:10,key=Backspace]": {
+      "DefinitionHash": "a2a13fc6272cb258",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:10)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1746,
+      "RunAt": "2026-11-07T22:26:37.9993449+11:00",
+      "Lines": [
+        "[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 5–5 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": ",",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 54,
+            "Text": "alpha,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 54,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 970,
+        "open.add": 145,
+        "open.view": 120,
+        "open.front": 569,
+        "open.park": 132,
+        "options": 0,
+        "steps": 345,
+        "observe": 344,
+        "reset": 37,
+        "close": 50
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:10,key=Backspace]~tracked": {
+      "DefinitionHash": "da406e059a740d79",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:10)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 816,
+      "RunAt": "2026-11-07T22:26:38.9079706+11:00",
+      "Lines": [
+        "[24:alpha]{-[24: ‸beta]-}[24:,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 6–6 · Tracking · Revisions 1 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 6,
+          "End": 6,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "b",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 59,
+            "Text": "alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 59,
+                "Marks": "24"
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 5,
+            "End": 10,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 248,
+        "open.add": 71,
+        "open.view": 33,
+        "open.front": 1,
+        "open.park": 140,
+        "options": 4,
+        "steps": 292,
+        "observe": 200,
+        "reset": 31,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:10,key=Delete]": {
+      "DefinitionHash": "3c893f88550d647e",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:10)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 690,
+      "RunAt": "2026-11-07T22:26:39.6777005+11:00",
+      "Lines": [
+        "[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 5–5 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": ",",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 54,
+            "Text": "alpha,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 54,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 228,
+        "open.add": 77,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 0,
+        "steps": 282,
+        "observe": 107,
+        "reset": 30,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:10,key=Delete]~tracked": {
+      "DefinitionHash": "9305b65b0925e1eb",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:10)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 824,
+      "RunAt": "2026-11-07T22:26:40.5880703+11:00",
+      "Lines": [
+        "[24:alpha]{-[24: beta]-}[24:‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 10–10 · Tracking · Revisions 1 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": ",",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 59,
+            "Text": "alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 59,
+                "Marks": "24"
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 5,
+            "End": 10,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 245,
+        "open.add": 83,
+        "open.view": 47,
+        "open.front": 0,
+        "open.park": 112,
+        "options": 7,
+        "steps": 298,
+        "observe": 194,
+        "reset": 34,
+        "close": 46
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:11,key=Backspace]": {
+      "DefinitionHash": "c7d6d4e1ad5c5033",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:11)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 738,
+      "RunAt": "2026-11-07T22:26:41.3672076+11:00",
+      "Lines": [
+        "[alpha‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 5–5 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": " ",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 53,
+            "Text": "alpha  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 53,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 235,
+        "open.add": 79,
+        "open.view": 37,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 0,
+        "steps": 321,
+        "observe": 103,
+        "reset": 32,
+        "close": 47
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:11,key=Backspace]~tracked": {
+      "DefinitionHash": "92afd66e64922bcd",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:11)",
+        "Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 790,
+      "RunAt": "2026-11-07T22:26:42.2004317+11:00",
+      "Lines": [
+        "[24:alpha]{-[24: ‸beta,]-}[24:  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 6–6 · Tracking · Revisions 1 · Undo: Typing"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 6,
+          "End": 6,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "b",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 59,
+            "Text": "alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 59,
+                "Marks": "24"
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 5,
+            "End": 11,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Typing"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 253,
+        "open.add": 83,
+        "open.view": 44,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 3,
+        "steps": 290,
+        "observe": 173,
+        "reset": 30,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:11,key=Delete]": {
+      "DefinitionHash": "f1bd0229ff977924",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:11)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 777,
+      "RunAt": "2026-11-07T22:26:43.0498227+11:00",
+      "Lines": [
+        "[alpha‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 5–5 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 5,
+          "End": 5,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": " ",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 53,
+            "Text": "alpha  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 53,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 306,
+        "open.add": 140,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 125,
+        "options": 0,
+        "steps": 282,
+        "observe": 110,
+        "reset": 33,
+        "close": 46
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-50d[range=P1:6-P1:11,key=Delete]~tracked": {
+      "DefinitionHash": "3fc3e70ee053c81b",
+      "Title": "Backspace and Delete on a selected word before punctuation and before two spaces",
+      "Fixture": "words",
+      "Steps": [
+        "select(P1:6-P1:11)",
+        "Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 809,
+      "RunAt": "2026-11-07T22:26:43.9086495+11:00",
+      "Lines": [
+        "[24:alpha]{-[24: beta,]-}[24:‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
+        "Selection: IP 11–11 · Tracking · Revisions 1 · Undo: Clear"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 11,
+          "End": 11,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": " ",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 59,
+            "Text": "alpha beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 59,
+                "Marks": "24"
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 5,
+            "End": 11,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Clear"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 247,
+        "open.add": 79,
+        "open.view": 44,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 3,
+        "steps": 289,
+        "observe": 194,
+        "reset": 35,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
     "E-51[fixture=bookmark]": {
       "DefinitionHash": "361563684b3a0276",
       "Title": "Backspace at the end of a commented and of a bookmarked span",
@@ -190160,6 +193086,1257 @@
         "observe": 344,
         "reset": 29,
         "close": 43
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e": {
+      "DefinitionHash": "bdc72e591ce2bc12",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1583,
+      "RunAt": "2026-11-07T22:26:52.90827+11:00",
+      "Lines": [
+        "[‸The quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Undo —"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "T",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 974,
+        "open.add": 154,
+        "open.view": 114,
+        "open.front": 567,
+        "open.park": 135,
+        "options": 0,
+        "steps": 156,
+        "observe": 356,
+        "reset": 35,
+        "close": 61
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/back-after-space": {
+      "DefinitionHash": "dd89203ae9ea2e45",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:16)",
+        "Ctrl+Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 768,
+      "RunAt": "2026-11-07T22:26:56.3368102+11:00",
+      "Lines": [
+        "[The quick ‸fox jumps over the lazy dog.]",
+        "Selection: IP 10–10 · Undo: Delete Back Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "f",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 39,
+            "Text": "The quick fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Back Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 224,
+        "open.add": 77,
+        "open.view": 56,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 0,
+        "steps": 369,
+        "observe": 99,
+        "reset": 36,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/back-after-space~tracked": {
+      "DefinitionHash": "16df51244f9a8617",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:16)",
+        "Ctrl+Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 919,
+      "RunAt": "2026-11-07T22:26:57.3014987+11:00",
+      "Lines": [
+        "[The quick ]{-[‸brown ]-}[fox jumps over the lazy dog.]",
+        "Selection: IP 10–10 · Tracking · Revisions 1 · Undo: Delete Back Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "b",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 10,
+            "End": 16,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Back Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 237,
+        "open.add": 71,
+        "open.view": 47,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 3,
+        "steps": 391,
+        "observe": 212,
+        "reset": 29,
+        "close": 47
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/back-after-word": {
+      "DefinitionHash": "e9e9e826b77b20e5",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:15)",
+        "Ctrl+Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 788,
+      "RunAt": "2026-11-07T22:26:54.5330314+11:00",
+      "Lines": [
+        "[The quick‸ fox jumps over the lazy dog.]",
+        "Selection: IP 9–9 · Undo: Delete Back Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 9,
+          "End": 9,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": " ",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 39,
+            "Text": "The quick fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Back Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 223,
+        "open.add": 69,
+        "open.view": 33,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 0,
+        "steps": 391,
+        "observe": 101,
+        "reset": 29,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/back-after-word~tracked": {
+      "DefinitionHash": "c9a074fee3d12d59",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:15)",
+        "Ctrl+Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 874,
+      "RunAt": "2026-11-07T22:26:55.4853733+11:00",
+      "Lines": [
+        "[The quick]{-[‸ brown]-}[ fox jumps over the lazy dog.]",
+        "Selection: IP 9–9 · Tracking · Revisions 1 · Undo: Delete Back Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 9,
+          "End": 9,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": " ",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 9,
+            "End": 15,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Back Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 233,
+        "open.add": 74,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 120,
+        "options": 4,
+        "steps": 375,
+        "observe": 194,
+        "reset": 29,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/back-before-stop": {
+      "DefinitionHash": "e8a5be94378bd848",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:43)",
+        "Ctrl+Backspace"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 834,
+      "RunAt": "2026-11-07T22:26:58.2011316+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy‸.]",
+        "Selection: IP 39–39 · Undo: Delete Back Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 39,
+          "End": 39,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": ".",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "The quick brown fox jumps over the lazy.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Back Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 291,
+        "open.add": 138,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 121,
+        "options": 0,
+        "steps": 372,
+        "observe": 93,
+        "reset": 34,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/back-before-stop~tracked": {
+      "DefinitionHash": "82ad82ec6a6d747e",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:43)",
+        "Ctrl+Backspace"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 905,
+      "RunAt": "2026-11-07T22:26:59.1516509+11:00",
+      "Lines": [
+        "[The quick brown fox jumps over the lazy]{-[‸ dog]-}[.]",
+        "Selection: IP 39–39 · Tracking · Revisions 1 · Undo: Delete Back Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 39,
+          "End": 39,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": " ",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 39,
+            "End": 43,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Back Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 244,
+        "open.add": 80,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 3,
+        "steps": 383,
+        "observe": 200,
+        "reset": 30,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/delete-at-start": {
+      "DefinitionHash": "8ae802d8d5cc0699",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:0)",
+        "Ctrl+Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 777,
+      "RunAt": "2026-11-07T22:27:01.7200974+11:00",
+      "Lines": [
+        "[‸quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Undo: Delete Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "q",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 41,
+            "Text": "quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 236,
+        "open.add": 78,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 0,
+        "steps": 368,
+        "observe": 103,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/delete-at-start~tracked": {
+      "DefinitionHash": "23b8764ab10aea7e",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:0)",
+        "Ctrl+Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 848,
+      "RunAt": "2026-11-07T22:27:02.6086089+11:00",
+      "Lines": [
+        "{-[The ]-}[‸quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 4–4 · Tracking · Revisions 1 · Undo: Delete Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 4,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "q",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 0,
+            "End": 4,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 232,
+        "open.add": 71,
+        "open.view": 39,
+        "open.front": 0,
+        "open.park": 119,
+        "options": 3,
+        "steps": 368,
+        "observe": 175,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/delete-at-word": {
+      "DefinitionHash": "3ce5b224b9516646",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:10)",
+        "Ctrl+Delete"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 786,
+      "RunAt": "2026-11-07T22:26:59.979166+11:00",
+      "Lines": [
+        "[The quick ‸fox jumps over the lazy dog.]",
+        "Selection: IP 10–10 · Undo: Delete Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 10,
+          "End": 10,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "f",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 39,
+            "Text": "The quick fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 237,
+        "open.add": 76,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 0,
+        "steps": 362,
+        "observe": 110,
+        "reset": 37,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e/delete-at-word~tracked": {
+      "DefinitionHash": "025552b0fb8cdfd3",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)",
+        "select(P1:10)",
+        "Ctrl+Delete"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 878,
+      "RunAt": "2026-11-07T22:27:00.9011908+11:00",
+      "Lines": [
+        "[The quick ]{-[brown ]-}[‸fox jumps over the lazy dog.]",
+        "Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Delete Word"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 16,
+          "End": 16,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "f",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 10,
+            "End": 16,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Delete Word"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 242,
+        "open.add": 73,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 124,
+        "options": 3,
+        "steps": 381,
+        "observe": 172,
+        "reset": 38,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "E-70e~tracked": {
+      "DefinitionHash": "5113f18e57257d75",
+      "Title": "Ctrl+Backspace and Ctrl+Delete on a word between two spaces",
+      "Fixture": "plain",
+      "Steps": [
+        "select(P1:0)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 652,
+      "RunAt": "2026-11-07T22:26:53.660741+11:00",
+      "Lines": [
+        "[‸The quick brown fox jumps over the lazy dog.]",
+        "Selection: IP 0–0 · Tracking · Revisions 0 · Undo —"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 0,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "T",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": true,
+        "Hotspots": [],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 245,
+        "open.add": 79,
+        "open.view": 39,
+        "open.front": 0,
+        "open.park": 124,
+        "options": 4,
+        "steps": 150,
+        "observe": 157,
+        "reset": 40,
+        "close": 56
       },
       "Build": "16.0.20527.20150"
     },

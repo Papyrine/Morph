@@ -311,7 +311,7 @@ static class ClipboardFamily
             .Tracked()
             .Notes("P1:6-11 is 'beta,' with the two spaces after it; P1:6-10 is 'beta' alone; P1:0-6 is 'alpha ' with its space; the last range is 'end.' with the space before it.")
             .Hypotheses("(a) with the option on the two spaces left by the cut collapse to one; (b) only when the cut took a trailing space; the trailing space before 'end.' (a) is removed (b) kept.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("C-17", "Cut whole and partial paragraphs")
             .In("three-paragraphs")

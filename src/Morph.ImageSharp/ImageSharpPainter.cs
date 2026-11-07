@@ -171,15 +171,11 @@ static class ImageSharpPainter
 
     static void PaintLine(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedLine line)
     {
-        // A line carrying a tracked change gets Word's change bar — see SkiaPainter.PaintLine.
-        foreach (var run in line.Runs)
+        // A revised line gets Word's change bar — see SkiaPainter.PaintLine.
+        if (line.ChangeBar is var (barTop, barBottom))
         {
-            if (run.Properties.IsRevisionMark)
-            {
-                var barX = P(context, context.PageSettings.MarginLeft / 2);
-                canvas.DrawLine(context.GetPen(Color.Black, P(context, 0.75)), new PointF(barX, P(context, line.Y)), new PointF(barX, P(context, line.Y + line.Height)));
-                break;
-            }
+            var barX = P(context, context.PageSettings.MarginLeft / 2);
+            canvas.DrawLine(context.GetPen(Color.Black, P(context, 0.75)), new PointF(barX, P(context, barTop)), new PointF(barX, P(context, barBottom)));
         }
 
         PaintLineContent(context, canvas, line);

@@ -161,7 +161,7 @@ static class TrackingFamily
             .Observing(Observe.Default | Observe.Revisions | Observe.Markup)
             .Notes("P1:11 is the start of the other author's deletion 'gone '; P1:7 is inside the other author's insertion 'added '.")
             .Hypotheses("(a) Delete on another author's deletion skips it and marks the next undeleted character; (b) it does nothing. Backspace inside another's insertion marks the character deleted (nested w:del inside w:ins) rather than removing it; typing inside splits the other's insertion around an own one. Deleting the span marks the insertion deleted and leaves the deletion as it was.")
-            .Morph("PARTIAL");
+            .Morph("DONE");
 
         yield return Probe("R-11", "Right over another author's deletion, per markup view")
             .In("tracked")
@@ -276,7 +276,7 @@ static class TrackingFamily
             .Branch("word-delete", S("select(P1:10)", "Ctrl+Delete"))
             .Observing(Observe.Default | Observe.Revisions)
             .Hypotheses("(a) the caret goes after the struck text whichever key struck it, as Delete leaves it after R-19's selection; (b) Backspace leaves it before the struck text and Delete after, as on one character (R-02, R-03).")
-            .Notes("(b): Backspace leaves the caret before the struck text and Delete after it, on a selection as on one character. Struck by Backspace or Delete, 'brown' took its trailing space with it, and Ctrl+Backspace after 'brown' the space before it; Morph's open paragraph places the caret as Word does but strikes the word alone.")
-            .Morph("PARTIAL");
+            .Notes("(b): Backspace leaves the caret before the struck text and Delete after it, on a selection as on one character. Struck by Backspace or Delete, 'brown' took its trailing space with it, and Ctrl+Backspace after 'brown' the space before it — smart cut's spaces, as untracked (E-50c, E-70e).")
+            .Morph("DONE");
     }
 }

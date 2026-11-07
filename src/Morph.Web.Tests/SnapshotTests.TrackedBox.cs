@@ -67,7 +67,7 @@ public partial class SnapshotTests
     }
 
     // Backspace on a selection leaves the caret before what it struck, so what is typed next goes in
-    // ahead of it (WordProbe R-21).
+    // ahead of it (WordProbe R-21); the selected word takes its space with it (smart cut, E-50c).
     [Test]
     [Property("WordBehavior", "R-21")]
     public async Task Tracked_BackspaceOnASelection_LeavesTheCaretBeforeIt()
@@ -90,7 +90,7 @@ public partial class SnapshotTests
         await page.Keyboard.PressAsync("Backspace");
         await page.Keyboard.TypeAsync("or");
         await Assert.That(await BoxTextAsync(page)).IsEqualTo("Third orand last.");
-        await Assert.That(await StruckAsync(page)).IsEqualTo("and");
+        await Assert.That(await StruckAsync(page)).IsEqualTo("and ");
     }
 
     // Delete strikes what was there and steps the caret over it (WordProbe R-03); a selection typed
@@ -181,5 +181,75 @@ public partial class SnapshotTests
 
         await HandInAsync(page);
         await Assert.That(string.Concat(Read(await SaveAsync(page)))).DoesNotContain("new");
+    }
+
+    // "Kept ", an insertion "added " and a deletion "gone " both by Ann Lee, then "text stays.", opened
+    // under tracking as Ann Lee: in places, "Kept added " is 0 to 11, the deletion is place 11, and
+    // "text stays." follows it (WordProbe R-10's fixture).
+    static async Task<IPage> OwnRevisionsAsync()
+    {
+        var page = await OpenEditAsync(
+            Build(
+                P(
+                    "",
+                    R("Kept "),
+                    "<w:ins w:id=\"1\" w:author=\"Ann Lee\" w:date=\"2026-01-01T00:00:00Z\">", R("added "), "</w:ins>",
+                    "<w:del w:id=\"2\" w:author=\"Ann Lee\" w:date=\"2026-01-01T00:00:00Z\"><w:r><w:delText xml:space=\"preserve\">gone </w:delText></w:r></w:del>",
+                    R("text stays."))));
+        await TrackAsync(page);
+        await page.FillAsync(".viewer-edit-signature input", "Ann Lee");
+        await ClickInAsync(page, "text stays");
+        await page.Keyboard.PressAsync("Home");
+        return page;
+    }
+
+    // The author's own revisions are theirs to undo (WordProbe R-R-6, R-10): Delete before their
+    // deletion steps over it, Backspace in their insertion takes a letter out and typing there joins
+    // it, and deleting the insertion with the deletion takes the one out and leaves the other.
+    [Test]
+    [Property("WordBehavior", "R-R-6")]
+    [Property("WordBehavior", "R-10")]
+    public async Task Tracked_TheAuthorsOwnRevisions_AreTheirsToUndo()
+    {
+        var page = await OwnRevisionsAsync();
+        for (var index = 0; index < "Kept added ".Length; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        await page.Keyboard.PressAsync("Delete");
+        await page.Keyboard.TypeAsync("Z");
+        await Assert.That(await BoxTextAsync(page)).IsEqualTo("Kept added gone Ztext stays.");
+        await HandInAsync(page);
+        await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[Kept ]{+[added ]+}{-[gone ]-}{+[Z]+}[text stays.]");
+
+        page = await OwnRevisionsAsync();
+        for (var index = 0; index < "Kept ad".Length; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        await page.Keyboard.PressAsync("Backspace");
+        await page.Keyboard.TypeAsync("x");
+        await Assert.That(await BoxTextAsync(page)).IsEqualTo("Kept axded gone text stays.");
+        await Assert.That(await StruckAsync(page)).IsEqualTo("gone ");
+        await HandInAsync(page);
+        await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[Kept ]{+[axded ]+}{-[gone ]-}[text stays.]");
+
+        page = await OwnRevisionsAsync();
+        for (var index = 0; index < "Kept ".Length; index++)
+        {
+            await page.Keyboard.PressAsync("ArrowRight");
+        }
+
+        for (var index = 0; index < "added ".Length + 1; index++)
+        {
+            await page.Keyboard.PressAsync("Shift+ArrowRight");
+        }
+
+        await page.Keyboard.PressAsync("Delete");
+        await Assert.That(await BoxTextAsync(page)).IsEqualTo("Kept gone text stays.");
+        await HandInAsync(page);
+        await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[Kept ]{-[gone ]-}[text stays.]");
     }
 }

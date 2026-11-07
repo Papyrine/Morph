@@ -5035,7 +5035,11 @@ Backspace and Delete
   paragraphs with the first's properties (E-50 `P1:end-P2:0`). Delete over a selection that reaches
   from a cell into the paragraph after a table clears the cells' text and keeps the structure; from body
   text into a table it removed the first row and joined the leading text into the next row's first cell
-  (E-64) ❓. — Morph: PARTIAL (Backspace, Delete and Ctrl+X on text selected across paragraphs leave the
+  (E-64) ❓. Whole words deleted take a space with them (smart cut, tracked or not, as Ctrl+X's in C-16):
+  the space after them where one space and then more text follow (`The quick ‸fox`), else the space
+  before them where a space or punctuation follows (`lazy‸.`, `alpha‸  gamma`), and nothing at the
+  paragraph's end (`lazy ‸`) or for part of a word (E-50c, E-50d). — Morph: PARTIAL (smart cut as Word's
+  in the open paragraph, `ParagraphEditor.smartCut`; Backspace, Delete and Ctrl+X on text selected across paragraphs leave the
   first and the last apart with their own properties and remove those between, in `DocumentEditor.Delete`;
   tracked, the marks are struck but the last paragraph's properties are not changed as Word's are; a
   selection into or out of a table is refused, and nothing types over a selection across paragraphs).
@@ -5046,13 +5050,14 @@ Backspace and Delete
   TODO.
 - **R-E-17 Ctrl+Backspace deletes to the previous word start, Ctrl+Delete to the next**: a word with its
   trailing spaces is one unit, a punctuation run with its spaces another, a hyphen its own; a space left
-  before punctuation is removed with the word (`alpha ,` → `alpha,`); at a list item's start
+  before punctuation, or before a space, is removed with the word (`alpha ,` → `alpha,`, `quick brown‸ fox`
+  → `quick‸ fox`, E-70e); at a list item's start
   Ctrl+Backspace merges with the previous item in one press (no number cascade); after a line break it
   deletes the break first; Ctrl+Delete deletes a whole field in one press, nothing before an inline
   picture, nothing at a cell's or the document's end (E-70, E-70b, E-70c, E-70d, E-71, E-71b, E-71c,
   E-71d). Tracked, the words are struck and the caret moves to the deletion's start (E-70 tracked). —
   Morph: PARTIAL (`ParagraphEditor.wordRange` takes Word's units and a whole field, and Ctrl+Backspace takes a
-  space left before punctuation; the stop before a picture is not matched).
+  space left before punctuation or a space; the stop before a picture is not matched).
 
 Character formatting keys
 
@@ -8188,6 +8193,110 @@ steps `select(P1:4-P2:5)` · `{key}`
 | Ctrl+X | on | IP 27–27 · Tracking · Revisions 2 · Undo: Cut | `[Firs]{-[t paragraph here.]<br>{~[Secon]-}[‸d ][b:bold ][one.]~}<br>[Third and last.]` |
 | type("x") | off | IP 5–5 · Undo: Typing "x" | `[Firsx‸d ][b:bold ][one.]<br>[Third and last.]` |
 | type("x") | on | IP 28–28 · Tracking · Revisions 3 · Undo: Typing "x" | `[Firs]{-[t paragraph here.]<br>{~[Secon]-}{+[x]+}[‸d ][b:bold ][one.]~}<br>[Third and last.]` |
+
+#### E-50c · Backspace and Delete on a whole selected word: smart cut's space
+
+`plain` · Morph: **DONE**
+
+Expected before the run: R-21 struck 'brown ' under tracking where C-16's cut took the space before the word. (a)
+Backspace and Delete take the space after a word with a space after it, and the space before one that ends at
+punctuation or the mark, tracked or not; (b) untracked, nothing but the word goes; (c) they follow the cut exactly.
+
+Tests: `SnapshotTests.SmartCut_AWordDeleted_TakesASpaceWithIt`, `SnapshotTests.SmartCut_Tracked_StrikesTheSpaceWithTheWord`
+
+steps `select({range})` · `{key}`
+
+| range | key | tracked | selection | observed |
+| --- | --- | --- | --- | --- |
+| P1:10-P1:15 | Backspace | off | IP 10–10 · Undo: Typing | `[The quick ‸fox jumps over the lazy dog.]` |
+| P1:10-P1:15 | Backspace | on | IP 10–10 · Tracking · Revisions 1 · Undo: Typing | `[The quick ]{-[‸brown ]-}[fox jumps over the lazy dog.]` |
+| P1:10-P1:15 | Delete | off | IP 10–10 · Undo: Clear | `[The quick ‸fox jumps over the lazy dog.]` |
+| P1:10-P1:15 | Delete | on | IP 16–16 · Tracking · Revisions 1 · Undo: Clear | `[The quick ]{-[brown ]-}[‸fox jumps over the lazy dog.]` |
+| P1:4-P1:9 | Backspace | off | IP 4–4 · Undo: Typing | `[The ‸brown fox jumps over the lazy dog.]` |
+| P1:4-P1:9 | Backspace | on | IP 4–4 · Tracking · Revisions 1 · Undo: Typing | `[The ]{-[‸quick ]-}[brown fox jumps over the lazy dog.]` |
+| P1:4-P1:9 | Delete | off | IP 4–4 · Undo: Clear | `[The ‸brown fox jumps over the lazy dog.]` |
+| P1:4-P1:9 | Delete | on | IP 10–10 · Tracking · Revisions 1 · Undo: Clear | `[The ]{-[quick ]-}[‸brown fox jumps over the lazy dog.]` |
+| P1:0-P1:3 | Backspace | off | IP 0–0 · Undo: Typing | `[‸quick brown fox jumps over the lazy dog.]` |
+| P1:0-P1:3 | Backspace | on | IP 0–0 · Tracking · Revisions 1 · Undo: Typing | `{-[‸The ]-}[quick brown fox jumps over the lazy dog.]` |
+| P1:0-P1:3 | Delete | off | IP 0–0 · Undo: Clear | `[‸quick brown fox jumps over the lazy dog.]` |
+| P1:0-P1:3 | Delete | on | IP 4–4 · Tracking · Revisions 1 · Undo: Clear | `{-[The ]-}[‸quick brown fox jumps over the lazy dog.]` |
+| P1:40-P1:43 | Backspace | off | IP 39–39 · Undo: Typing | `[The quick brown fox jumps over the lazy‸.]` |
+| P1:40-P1:43 | Backspace | on | IP 40–40 · Tracking · Revisions 1 · Undo: Typing | `[The quick brown fox jumps over the lazy]{-[ ‸dog]-}[.]` |
+| P1:40-P1:43 | Delete | off | IP 39–39 · Undo: Clear | `[The quick brown fox jumps over the lazy‸.]` |
+| P1:40-P1:43 | Delete | on | IP 43–43 · Tracking · Revisions 1 · Undo: Clear | `[The quick brown fox jumps over the lazy]{-[ dog]-}[‸.]` |
+| P1:40-P1:44 | Backspace | off | IP 40–40 · Undo: Typing | `[The quick brown fox jumps over the lazy ‸]` |
+| P1:40-P1:44 | Backspace | on | IP 40–40 · Tracking · Revisions 1 · Undo: Typing | `[The quick brown fox jumps over the lazy ]{-[‸dog.]-}` |
+| P1:40-P1:44 | Delete | off | IP 40–40 · Undo: Clear | `[The quick brown fox jumps over the lazy ‸]` |
+| P1:40-P1:44 | Delete | on | IP 44–44 · Tracking · Revisions 1 · Undo: Clear | `[The quick brown fox jumps over the lazy ]{-[dog.]-}‸` |
+
+Notes: P1:10-15 is 'brown' between two spaces; P1:4-9 'quick'; P1:0-3 'The' at the start; P1:40-43 'dog' before the
+full stop; P1:40-44 'dog.' before the mark.
+
+#### E-50d · Backspace and Delete on a selected word before punctuation and before two spaces
+
+`words` · Morph: **DONE**
+
+Expected before the run: (a) as C-16's cut: the space before the word goes in both; (b) before the comma the space
+before goes, before the two spaces one of them.
+
+Tests: `SnapshotTests.SmartCut_AWordBeforeTwoSpaces_TakesTheSpaceBeforeIt`
+
+steps `select({range})` · `{key}`
+
+| range | key | tracked | selection | observed |
+| --- | --- | --- | --- | --- |
+| P1:6-P1:10 | Backspace | off | IP 5–5 · Undo: Typing | `[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:10 | Backspace | on | IP 6–6 · Tracking · Revisions 1 · Undo: Typing | `[24:alpha]{-[24: ‸beta]-}[24:,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:10 | Delete | off | IP 5–5 · Undo: Clear | `[alpha‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:10 | Delete | on | IP 10–10 · Tracking · Revisions 1 · Undo: Clear | `[24:alpha]{-[24: beta]-}[24:‸,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:11 | Backspace | off | IP 5–5 · Undo: Typing | `[alpha‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:11 | Backspace | on | IP 6–6 · Tracking · Revisions 1 · Undo: Typing | `[24:alpha]{-[24: ‸beta,]-}[24:  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:11 | Delete | off | IP 5–5 · Undo: Clear | `[alpha‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+| P1:6-P1:11 | Delete | on | IP 11–11 · Tracking · Revisions 1 · Undo: Clear | `[24:alpha]{-[24: beta,]-}[24:‸  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]` |
+
+Notes: P1:6-10 is 'beta' before the comma; P1:6-11 is 'beta,' before two spaces (C-16's ranges).
+
+#### E-70e · Ctrl+Backspace and Ctrl+Delete on a word between two spaces
+
+`plain` · Morph: **DONE**
+
+Expected before the run: R-21 struck ' brown' for Ctrl+Backspace after 'brown' under tracking. (a) Ctrl+Backspace
+after a word that a space follows takes the space before it too, tracked or not; (b) only under tracking; (c) after
+the space (P1:16) it takes 'brown ' with nothing more.
+
+Tests: `SnapshotTests.SmartCut_CtrlBackspaceAfterAWord_TakesTheSpaceBeforeIt`
+
+steps before the branches `select(P1:0)`
+
+- `select(P1:0)` → `[‸The quick brown fox jumps over the lazy dog.]` · IP 0–0 · Undo —
+- `select(P1:15) · Ctrl+Backspace` → `[The quick‸ fox jumps over the lazy dog.]` · IP 9–9 · Undo: Delete Back Word
+- `select(P1:16) · Ctrl+Backspace` → `[The quick ‸fox jumps over the lazy dog.]` · IP 10–10 · Undo: Delete Back Word
+- `select(P1:43) · Ctrl+Backspace` → `[The quick brown fox jumps over the lazy‸.]` · IP 39–39 · Undo: Delete Back Word
+- `select(P1:10) · Ctrl+Delete` → `[The quick ‸fox jumps over the lazy dog.]` · IP 10–10 · Undo: Delete Word
+- `select(P1:0) · Ctrl+Delete` → `[‸quick brown fox jumps over the lazy dog.]` · IP 0–0 · Undo: Delete Word
+
+**Track Changes on**
+
+- `select(P1:0)` → `[‸The quick brown fox jumps over the lazy dog.]` · IP 0–0 · Tracking · Revisions 0 · Undo —
+- `select(P1:15) · Ctrl+Backspace` → `[The quick]{-[‸ brown]-}[ fox jumps over the lazy dog.]` · IP 9–9 · Tracking · Revisions 1 · Undo: Delete Back Word
+- `select(P1:16) · Ctrl+Backspace` → `[The quick ]{-[‸brown ]-}[fox jumps over the lazy dog.]` · IP 10–10 · Tracking · Revisions 1 · Undo: Delete Back Word
+- `select(P1:43) · Ctrl+Backspace` → `[The quick brown fox jumps over the lazy]{-[‸ dog]-}[.]` · IP 39–39 · Tracking · Revisions 1 · Undo: Delete Back Word
+- `select(P1:10) · Ctrl+Delete` → `[The quick ]{-[brown ]-}[‸fox jumps over the lazy dog.]` · IP 16–16 · Tracking · Revisions 1 · Undo: Delete Word
+- `select(P1:0) · Ctrl+Delete` → `{-[The ]-}[‸quick brown fox jumps over the lazy dog.]` · IP 4–4 · Tracking · Revisions 1 · Undo: Delete Word
+
+```mermaid
+flowchart TD
+  root["plain"]
+  root --> n_["select(P1:0)"]
+  root --> n_back_after_word["select(P1:15) · Ctrl+Backspace"]
+  root --> n_back_after_space["select(P1:16) · Ctrl+Backspace"]
+  root --> n_back_before_stop["select(P1:43) · Ctrl+Backspace"]
+  root --> n_delete_at_word["select(P1:10) · Ctrl+Delete"]
+  root --> n_delete_at_start["select(P1:0) · Ctrl+Delete"]
+```
+
+Notes: P1:15 is after 'brown', P1:16 after the space after it, P1:43 after 'dog' before the full stop, P1:10 before
+'brown'.
 
 #### E-51 · Backspace at the end of a commented and of a bookmarked span
 
@@ -19762,7 +19871,8 @@ paste; drag and drop.
   with its properties, cutting a whole paragraph with its mark removes it, cutting to the document's end
   leaves the final mark (C-17). Cutting a selected row, column or table removes the structure and cutting
   a selected cell cuts its text; a column cut is refused under Track Changes (C-18a, C-18b). — Morph:
-  PARTIAL.
+  PARTIAL (the open paragraph's Ctrl+X takes the orphan space as Word's does, with the option on; there
+  is no option to turn it off).
 - **R-C-7 Pasted atoms**: a footnote reference pastes as a new note, a comment anchor as a second
   comment on the pasted text, a bookmark's text without the bookmark, a content control as a copy, an
   inline picture as a picture, a floating picture as a new shape anchored to the paste paragraph with its
@@ -21682,7 +21792,7 @@ Notes: P1:4-12 is the link's display text 'the site'.
 
 #### C-16 · Smart cut spacing after a cut
 
-`words` · Morph: **TODO**
+`words` · Morph: **PARTIAL**
 
 Expected before the run: (a) with the option on the two spaces left by the cut collapse to one; (b) only when the cut
 took a trailing space; the trailing space before 'end.' (a) is removed (b) kept.
@@ -27229,7 +27339,9 @@ pictures under tracking. Every editing scenario elsewhere in this file also has 
 - **R-R-6 Another author's revisions behave as one's own when the author name matches**: Backspace
   inside the fixture's insertion removed text outright and typing inside it joined it; Delete on a
   deletion stepped over it; a selection spanning the insertion and plain text, deleted, removed the
-  insertion and struck the text (R-10, R-19). — Morph: UNKNOWN.
+  insertion and struck the text (R-10, R-19). — Morph: DONE (the open paragraph takes the author's own
+  insertion out outright, by the name tracking is under, and steps Delete over a deletion; another
+  author's insertion is struck).
 - **R-R-7 The view decides how the caret crosses a deletion**: in All Markup Left and Right walk the
   struck characters one by one and Ctrl+Right stops inside them; in Simple Markup and No Markup the
   deletion is skipped in one step and the caret cannot enter it (R-11, R-11b, R-11c; N-04). A selection
@@ -27650,12 +27762,14 @@ Markup diff: `WordProbe/Results/markup/R-09c.diff`
 
 #### R-10 · Keys on another author's revisions
 
-`tracked` · Morph: **PARTIAL**
+`tracked` · Morph: **DONE**
 
 Expected before the run: (a) Delete on another author's deletion skips it and marks the next undeleted character; (b)
 it does nothing. Backspace inside another's insertion marks the character deleted (nested w:del inside w:ins) rather
 than removing it; typing inside splits the other's insertion around an own one. Deleting the span marks the insertion
 deleted and leaves the deletion as it was.
+
+Tests: `SnapshotTests.Tracked_TheAuthorsOwnRevisions_AreTheirsToUndo`
 
 steps before the branches `track(on)`
 
@@ -27937,12 +28051,12 @@ Selection: Normal 8–14 end-active · Revisions 2 · Undo —
 
 #### R-21 · Where the caret goes once a selection, or a word, is struck
 
-`plain` · Morph: **PARTIAL**
+`plain` · Morph: **DONE**
 
 Expected before the run: (a) the caret goes after the struck text whichever key struck it, as Delete leaves it after
 R-19's selection; (b) Backspace leaves it before the struck text and Delete after, as on one character (R-02, R-03).
 
-Tests: `SnapshotTests.Tracked_BackspaceOnASelection_LeavesTheCaretBeforeIt`
+Tests: `SnapshotTests.SmartCut_Tracked_StrikesTheSpaceWithTheWord`, `SnapshotTests.Tracked_BackspaceOnASelection_LeavesTheCaretBeforeIt`
 
 steps before the branches `track(on)`
 
@@ -27964,7 +28078,7 @@ flowchart TD
 
 Notes: (b): Backspace leaves the caret before the struck text and Delete after it, on a selection as on one
 character. Struck by Backspace or Delete, 'brown' took its trailing space with it, and Ctrl+Backspace after 'brown'
-the space before it; Morph's open paragraph places the caret as Word does but strikes the word alone.
+the space before it — smart cut's spaces, as untracked (E-50c, E-70e).
 <!-- probe:end tracking -->
 
 ## Headers, footers, notes, comments and text boxes

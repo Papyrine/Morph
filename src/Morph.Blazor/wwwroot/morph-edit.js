@@ -2540,8 +2540,40 @@ export class ParagraphEditor {
         event.clipboardData.setData('text/html', this.htmlText(content));
         if (cut && !this.pending && !this.closed) {
             this.setExtend(0);
-            this.replace(range, '', 'delete');
+            this.replace(this.smartCut(range), '', 'delete');
         }
+    }
+
+    // Word's smart cut (Options.SmartCutPaste, on by default), tracked or not: whole words deleted take
+    // a space with them rather than leave two, or one before punctuation — the space after them where
+    // one space and then more text follow, else the space before them where a space or punctuation
+    // follows; nothing at the paragraph's end, for part of a word, or for a selection that already
+    // ends in a space (WordProbe E-50c, E-50d, C-16). What is copied is the selection alone.
+    smartCut(range) {
+        if (range.from.b !== range.to.b) {
+            return range;
+        }
+
+        const text = this.blockText(range.from.b);
+        const from = range.from.o;
+        const to = range.to.o;
+        const wordy = /[\p{L}\p{N}_'\u2019]/u;
+        const selected = text.slice(from, to);
+        if (!wordy.test(selected[0] ?? '') || /\s$/.test(selected) ||
+            (from > 0 && wordy.test(text[from - 1])) || wordy.test(text[to] ?? '')) {
+            return range;
+        }
+
+        const after = text[to];
+        if (after === ' ' && text[to + 1] !== undefined && !/[\s,.;:!?]/.test(text[to + 1])) {
+            return { from: range.from, to: { b: range.to.b, o: to + 1 } };
+        }
+
+        if (from > 0 && text[from - 1] === ' ' && (after === ' ' || /[,.;:!?]/.test(after ?? ''))) {
+            return { from: { b: range.from.b, o: from - 1 }, to: range.to };
+        }
+
+        return range;
     }
 
     // Text dragged from the box carries the model's text, and the drag remembers where it came from:
@@ -2778,11 +2810,19 @@ export class ParagraphEditor {
                     const at = this.pastInvisible(caret.from, backward);
                     let word = this.wordRange(at, backward) ?? { from: at, to: at };
                     const text = this.blockText(at.b);
-                    if (backward && word.from.o > 0 && text[word.from.o - 1] === ' ' && /[,.;:!?]/.test(text[at.o] ?? '')) {
+                    // A word deleted back from a space or punctuation takes the space before it, so as
+                    // not to leave two, or one before the punctuation (WordProbe E-70, E-70e).
+                    if (backward && word.from.o > 0 && text[word.from.o - 1] === ' ' && /[ ,.;:!?]/.test(text[at.o] ?? '')) {
                         word = { from: { b: word.from.b, o: word.from.o - 1 }, to: word.to };
                     }
 
-                    this.onDelete(word, backward);
+                    // The word is the key's own unit, not a selection: smart cut's rule is not for it.
+                    if (same(word.from, word.to)) {
+                        this.onDelete(word, backward);
+                    } else {
+                        this.replace(word, '', 'delete', backward);
+                    }
+
                     this.lastAction = { delete: backward };
                 } else {
                     this.onDelete(range, backward);
@@ -2886,7 +2926,11 @@ export class ParagraphEditor {
     // between it and its neighbour: the two are joined, which is the file's to do.
     onDelete(range, backward) {
         if (!same(range.from, range.to)) {
-            this.replace(range, '', 'delete', backward);
+            // Smart cut is for what the reader selected, not the character a key at a caret takes,
+            // which the browser hands in as a range of its own.
+            const selected = this.range();
+            const chosen = selected && !same(selected.from, selected.to) ? this.smartCut(range) : range;
+            this.replace(chosen, '', 'delete', backward);
             return;
         }
 

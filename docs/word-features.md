@@ -3444,17 +3444,32 @@ Insertions, deletions, and formatting changes tracked with author/date metadata.
 - **Render**: **markup view**, which is what Word PRINTS — an insertion underlined, a deletion struck through, both in the revision colour. `w:delText` is read alongside `w:t` (it is a sibling type, not a subclass, so a deleted run yielded no text at all before it was handled). Moved text is drawn as a deletion where it was and an insertion where it went.
 - **Review**: the Blazor viewer lists tracked changes and accepts or rejects them, singly or all at once. `DocumentReview` gathers the elements of one edit into one `ReviewChange` (adjacent revisions of one kind by one author, the paragraph marks between them included), and `ReviewEditor` settles them — both in `src/Morph/OpenXml/Review/`.
 - **Editing**: the Blazor viewer also WRITES tracked changes. With the document's `w:trackRevisions` on (the viewer's Track changes button sets it), or its protection enforcing tracked changes, text typed into a paragraph is a `w:ins`, text deleted a `w:del`, a paragraph split an inserted mark, a join a deleted one, and a formatting or alignment change a `w:rPrChange` / `w:pPrChange` holding what was there. `DocumentEditor` in `src/Morph/OpenXml/Editing/`.
-- **Test**: `tracked_changes/`, spec tests `TrackedChangesTests`, `RevisionMarkTests`, `DocumentReviewTests`, `ReviewEditorTests`, `DocumentEditorTests`, `EditCorpusTests`
+- **Test**: `tracked_changes/`, spec tests `TrackedChangesTests`, `RevisionMarkTests`, `ChangeBarTests`, `DocumentReviewTests`, `FormatWordsTests`, `ReviewEditorTests`, `DocumentEditorTests`, `TrackedHandInTests`, `EditCorpusTests`
 
 > **Contributors**: Rendering "as accepted" (dropping deletions) was the original choice and it is **wrong against Word**: Word's own render of `tracked_changes/01` shows "removed." struck through in red on the page, so accepting the change silently deleted ink Word draws. The revision colour is `D13438`, sampled from that render at 150 DPI; Word cycles a palette per author and only the first entry is modelled, which covers the whole corpus (exactly one document carries tracked changes). The model record on `ParsedDocument.TrackedChanges` is unaffected either way, so a consumer that wants the accepted text still has it.
 >
-> The left-margin change bar landed 2026-08-19: any placed line whose runs carry
-> `RunProperties.IsRevisionMark` gets a 0.75pt black rule at half the left margin, spanning the
-> line box, in all three painters — Word-measured on `tracked_changes/01` (a ~1px column at
-> x=75 = 36pt inside the 72pt margin at 150 DPI, spanning the revised lines).
+> The left-margin change bar landed 2026-08-19: a 0.75pt black rule at half the left margin, in every
+> painter — Word-measured on `tracked_changes/01` (a ~1px column at x=75 = 36pt inside the 72pt
+> margin at 150 DPI). Which lines get one, and how far it runs, is the layout's
+> (`PlacedLine.ChangeBar`), Word-probed 2026-11-07 on `_probe_changebars` (three-line 16pt paragraphs,
+> each carrying one kind of revision, then the same at 24pt before and after; bars read off the
+> 150 DPI render):
 >
-> Not yet rendered: `w:rPrChange` (run-property revision history). Word sets a move apart from an
-> insertion and a deletion — green, with doubled rules — and that distinction is not modelled either.
+> - **A run inserted, deleted or reformatted** (`w:rPrChange`) bars its own line. A reformatted run
+>   keeps its new look uncoloured (`RunProperties.IsRevisionMark` without the recolouring).
+> - **Changed paragraph properties** (`w:pPrChange`, `w:numberingChange`) bar the paragraph's FIRST
+>   line only, and a **revised paragraph mark** (inserted, deleted, moved, or `w:rPrChange` on it) its
+>   LAST (`ParagraphElement.PropertiesRevised` / `MarkRevised`).
+> - **A bar spans its line's box**, and on a paragraph's last line also the paragraph's space after:
+>   63px (47 + 16, Word's 8pt) where a middle line's bar is 47px, for an insertion on the last line as
+>   for a revised mark, and 97px with 24pt after. On the first line it also takes in the space the
+>   paragraph keeps before it — the excess over the previous paragraph's after (`ParagraphGap`): 24pt
+>   before after 8pt after started the bar 16pt above the line; at a page top, where the before is
+>   dropped, at the line. `tracked_changes/01`'s one-line paragraph reads 52px in Word, which the line
+>   box alone drew 34px.
+>
+> Word sets a move apart from an insertion and a deletion — green, with doubled rules — and that
+> distinction is not modelled.
 >
 > The mark used to come from HOW the parser reached a run: the paragraph's `w:ins` and `w:del` cases
 > passed it down, and every other path passed nothing. So a revision inside a content control was

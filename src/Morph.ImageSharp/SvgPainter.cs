@@ -175,15 +175,11 @@ static class SvgPainter
 
         void Line(PlacedLine line)
         {
-            // Word's change bar beside a line that carries a tracked change (ImageSharpPainter.PaintLine).
-            foreach (var run in line.Runs)
+            // Word's change bar beside a revised line (ImageSharpPainter.PaintLine).
+            if (line.ChangeBar is var (barTop, barBottom))
             {
-                if (run.Properties.IsRevisionMark)
-                {
-                    var barX = context.PageSettings.MarginLeft / 2;
-                    Stroke(barX, line.Y, barX, line.Y + line.Height, Color.Black, 0.75, null);
-                    break;
-                }
+                var barX = context.PageSettings.MarginLeft / 2;
+                Stroke(barX, barTop, barX, barBottom, Color.Black, 0.75, null);
             }
 
             var ascent = line.Baseline - line.Y;
