@@ -169,6 +169,9 @@ sealed class WordSession : IDisposable
         var zoom = view.Zoom;
         Ensure(() => zoom.Percentage, _ => zoom.Percentage = _, settings.ZoomPercent);
         Ensure(() => view.ShowAll, _ => view.ShowAll = _, false);
+        // Persisted like an option, so the profile's value is kept for the restore first.
+        OptionsSnapshot.Remember(OriginalOptions, "View.ShowHiddenText", view.ShowHiddenText);
+        Ensure(() => view.ShowHiddenText, _ => view.ShowHiddenText = _, false);
         Ensure(() => view.ShowFieldCodes, _ => view.ShowFieldCodes = _, false);
         Ensure(() => view.ShowBookmarks, _ => view.ShowBookmarks = _, false);
         Ensure(() => view.ShowRevisionsAndComments, _ => view.ShowRevisionsAndComments = _, true);

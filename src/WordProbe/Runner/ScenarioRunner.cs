@@ -228,12 +228,14 @@ static class ScenarioRunner
     }
 
     // Done when it ran cleanly, to the scenario as it is now, on this build of Word. A case recorded before
-    // results carried their build takes its family's.
+    // results carried their build is never done: the family's own stamp moves to the new build with the
+    // first case recorded on it, so it cannot say which build the family's older cases ran on (on
+    // 16.0.20527.20150 it passed 104 selection and 75 field cases recorded on 20088 as already run).
     static bool IsDone(FamilyResults results, ProbeCase probeCase, string build) =>
         results.Cases.TryGetValue(probeCase.Id, out var existing) &&
         existing.Status is "ok" or "not-applicable" &&
         existing.DefinitionHash == probeCase.DefinitionHash &&
-        (existing.Build ?? results.Word?.ClickToRun) == build;
+        existing.Build == build;
 
     public static WordInfo WordInformation(WordSession session) =>
         new(session.Version, session.Build, UiLanguage(session), (int) NativeMethods.GetDpiForWindow(session.Window), ClickToRunVersion());

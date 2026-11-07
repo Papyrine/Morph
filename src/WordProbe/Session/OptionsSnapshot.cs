@@ -46,16 +46,20 @@ static class OptionsSnapshot
     {
         var failed = new List<string>();
         var owners = new Dictionary<string, object>(StringComparer.Ordinal);
-        foreach (var member in members)
+        var applying = members.Where(snapshot.Values.ContainsKey).ToList();
+        // A View member is set on a document window, and the probe's own documents may be closed already.
+        Word.Document? blank = null;
+        if (applying.Any(_ => _.StartsWith("View.", StringComparison.Ordinal)) &&
+            application.Windows.Count == 0)
         {
-            if (!snapshot.Values.TryGetValue(member, out var element))
-            {
-                continue;
-            }
+            blank = application.Documents.Add();
+        }
 
+        foreach (var member in applying)
+        {
             try
             {
-                ProbeOptions.SetIfDifferent(application, member, element, owners);
+                ProbeOptions.SetIfDifferent(application, member, snapshot.Values[member], owners);
             }
             catch (Exception)
             {
@@ -63,6 +67,7 @@ static class OptionsSnapshot
             }
         }
 
+        blank?.Close(Word.WdSaveOptions.wdDoNotSaveChanges);
         return failed;
     }
 
@@ -99,6 +104,21 @@ static class OptionsSnapshot
 
     public static void MarkRestored() =>
         File.WriteAllText(Paths.OptionsRestored, DateTimeOffset.Now.ToString("O"));
+
+    /// <summary>
+    /// Adds a member only a document window can read (a View member) to the snapshot, the first time a
+    /// window exists, and writes the snapshot out again. A value the snapshot already holds is kept: it was
+    /// read before this harness changed anything.
+    /// </summary>
+    public static void Remember(WordOptionsSnapshot snapshot, string member, object value)
+    {
+        if (!snapshot.Values.TryAdd(member, JsonSerializer.SerializeToElement(Normalise(value))))
+        {
+            return;
+        }
+
+        File.WriteAllText(Paths.OptionsSnapshot, JsonSerializer.Serialize(snapshot, json));
+    }
 }
 
 // The members the harness may change, the UI-noise baseline it forces, and typed setting from a snapshot
@@ -259,8 +279,15 @@ static class ProbeOptions
         "AutoCorrect.OtherCorrectionsAutoAdd"
     ];
 
+    /// <summary>
+    /// The View members the harness pins on its window, which persist like the options do. Hidden text
+    /// shown made Right walk through a hidden run and Delete before it delete its first letter, where
+    /// with it not shown both pass the run whole (F-08, F-08b; this profile had it on, 2026-11-07).
+    /// </summary>
+    public static readonly string[] ViewMembers = ["View.ShowHiddenText"];
+
     /// <summary>Every member the harness may set, so restore knows what to put back.</summary>
-    public static HashSet<string> Touched { get; } = [with(StringComparer.Ordinal), .. baseline.Keys];
+    public static HashSet<string> Touched { get; } = [with(StringComparer.Ordinal), .. baseline.Keys, .. ViewMembers];
 
     public static void ApplyBaseline(Word.Application application)
     {
@@ -361,6 +388,7 @@ static class ProbeOptions
             "Options" => application.Options,
             "AutoCorrect" => application.AutoCorrect,
             "Application" => application,
+            "View" => application.ActiveWindow.View,
             _ => throw new ArgumentException($"Unknown option owner '{owner}' in '{member}'.")
         };
         owners?.Add(owner, target);
