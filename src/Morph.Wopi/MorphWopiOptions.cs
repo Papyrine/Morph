@@ -43,4 +43,19 @@ public sealed class MorphWopiOptions
     /// The largest file a save sends to the host, in bytes. Default 25 MB, the largest the editor opens.
     /// </summary>
     public long MaxFileSize { get; set; } = 25 * 1024 * 1024;
+
+    /// <summary>
+    /// Whether several people may edit a document at once. Default true: the pages editing a file join one
+    /// session on the server, which holds the file's lock, merges their edits paragraph by paragraph, shows
+    /// each where the others are, and saves the file (<see cref="AutosaveDelay"/>). The sessions are held in
+    /// memory, so every page editing a file has to reach the same instance of the application. False, each
+    /// page locks and saves the file itself, and a second user opens it read only.
+    /// </summary>
+    public bool Coauthoring { get; set; } = true;
+
+    /// <summary>
+    /// How long after the first change not yet saved a coauthoring session saves the document to the host.
+    /// Default 10 seconds. The document is also saved when the last person leaves, and when someone saves.
+    /// </summary>
+    public TimeSpan AutosaveDelay { get; set; } = TimeSpan.FromSeconds(10);
 }

@@ -7,6 +7,8 @@ global using System.IO.Compression;
 global using System.Linq;
 global using System.Net;
 global using System.Net.Http;
+global using System.Net.Http.Json;
+global using System.Net.ServerSentEvents;
 global using System.Reflection;
 global using System.Text;
 global using System.Text.Encodings.Web;

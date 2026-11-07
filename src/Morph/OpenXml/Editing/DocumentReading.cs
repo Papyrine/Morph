@@ -96,10 +96,11 @@ static class DocumentReading
     /// </summary>
     public static byte[] Edit(byte[] docx, Action<WordprocessingDocument> edit)
     {
+        var make = Stamped(edit);
         if (capturing &&
             Take(docx) is { } held)
         {
-            return EditCaptured(held, edit);
+            return EditCaptured(held, make);
         }
 
         var stream = Copy(docx);
@@ -108,18 +109,33 @@ static class DocumentReading
         if (capturing &&
             !StrictToTransitional.IsStrict(stream))
         {
-            return EditCaptured(new(docx, stream, OpenCaptured(stream)), edit);
+            return EditCaptured(new(docx, stream, OpenCaptured(stream)), make);
         }
 
         using (stream)
         {
             using (var document = WordprocessingDocument.Open(stream, true))
             {
-                edit(document);
+                make(document);
             }
 
             return stream.ToArray();
         }
+    }
+
+    // Under ParagraphIds.Stamping, the parts the edit loaded get their paragraph ids before they are saved.
+    static Action<WordprocessingDocument> Stamped(Action<WordprocessingDocument> edit)
+    {
+        if (!ParagraphIds.IsStamping)
+        {
+            return edit;
+        }
+
+        return _ =>
+        {
+            edit(_);
+            ParagraphIds.Stamp(_);
+        };
     }
 
     // A copy of the file to open for writing, its entries marked to be deflated fast when saved.
