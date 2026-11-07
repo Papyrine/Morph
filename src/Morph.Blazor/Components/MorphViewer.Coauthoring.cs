@@ -201,19 +201,24 @@ public partial class MorphViewer : ICoauthorEditor
         beforeEdit = null;
     }
 
-    async Task ResumeWhereAsync()
+    Task ResumeWhereAsync()
     {
         if (resumeAt is not { } resume ||
             session != null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         resumeAt = null;
         if (OrdinalOf(resume.Paragraph) is { } ordinal)
         {
-            await ResumeAsync(ordinal, Math.Min(resume.Offset, outline.Paragraphs[ordinal].Length), page: resume.Page);
+            return ResumeAsync(
+                ordinal,
+                Math.Min(resume.Offset, outline.Paragraphs[ordinal].Length),
+                page: resume.Page);
         }
+
+        return Task.CompletedTask;
     }
 
     // The file is on the server: nothing in it is unsaved here.

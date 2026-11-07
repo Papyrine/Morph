@@ -2632,19 +2632,22 @@ public partial class MorphViewer
             return (target, start, end, target.StartOffset, target.Offset);
         }
 
-        if (Word(target) is var (from, to) &&
-            outline.Paragraphs[target.Paragraph].PositionAt(from, ending: false) is { } first &&
-            outline.Paragraphs[target.Paragraph].PositionAt(to, ending: true) is { } last)
+        if (Word(target) is var (from, to))
         {
-            return (
-                target with
-                {
-                    StartParagraph = target.Paragraph
-                },
-                first,
-                last,
-                from,
-                to);
+            var paragraph = outline.Paragraphs[target.Paragraph];
+            if (paragraph.PositionAt(from, ending: false) is { } first &&
+                paragraph.PositionAt(to, ending: true) is { } last)
+            {
+                return (
+                    target with
+                    {
+                        StartParagraph = target.Paragraph
+                    },
+                    first,
+                    last,
+                    from,
+                    to);
+            }
         }
 
         editNote = note;
