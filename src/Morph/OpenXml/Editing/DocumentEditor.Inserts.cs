@@ -27,6 +27,14 @@ static partial class DocumentEditor
         Edit(docx, options, edit => edit.PageBreak(paragraph, offset));
 
     /// <summary>
+    /// Puts a column break in the line at a place, as Word's Ctrl+Shift+Enter does (WordProbe E-29): a
+    /// character of its own and no paragraph — the text after it starts the next column, or the next
+    /// page where there is one column. The place returned is after it.
+    /// </summary>
+    public static EditResult InsertColumnBreak(byte[] docx, int paragraph, int offset, EditOptions options) =>
+        Edit(docx, options, edit => edit.ColumnBreak(paragraph, offset));
+
+    /// <summary>
     /// Inserts a table of empty cells at a place, in the Table Grid style and as wide as the text, as
     /// Word's Insert Table does: the paragraph is divided there and the table stands between the
     /// halves — before the paragraph, at its start. The place returned is the first cell.
@@ -182,6 +190,26 @@ static partial class DocumentEditor
             }
 
             return (paragraph, 0);
+        }
+
+        // Column breaks: in the line, no part of a link's text, an insertion when tracked (Add).
+        public (Paragraph Paragraph, int Offset) ColumnBreak(int ordinal, int offset)
+        {
+            var paragraph = Find(ordinal);
+            var point = At(paragraph, offset);
+            while (point.Parent is Hyperlink)
+            {
+                point = Divide(point);
+            }
+
+            Add(
+                point,
+                new(
+                    new Break
+                    {
+                        Type = BreakValues.Column
+                    }));
+            return (paragraph, offset + 1);
         }
 
         // Tables

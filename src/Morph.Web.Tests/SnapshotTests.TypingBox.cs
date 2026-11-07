@@ -178,22 +178,24 @@ public partial class SnapshotTests
         await Assert.That(string.Concat(Read(saved)[0].Split('[', ']'))).IsEqualTo("Page and 1 here there.");
     }
 
-    // A field dragged past another field is moved past it, both still fields in the file.
+    // A field dragged past another field is moved past it, both still fields in the file. The other is
+    // one whose result the layout does not work out again — a page field reads the page's number in the
+    // box as on the page — so that the two read apart.
     [Test]
     public async Task Drag_WithinTheBox_MovesAFieldPastAnother()
     {
-        var total = pageField.Replace(" PAGE ", " NUMPAGES ").Replace(">1<", ">9<");
-        var page = await OpenEditAsync(Build(P("", R("Page "), pageField, R(" of "), total, R(" end."))));
+        var author = pageField.Replace(" PAGE ", " AUTHOR ").Replace(">1<", ">Ann<");
+        var page = await OpenEditAsync(Build(P("", R("Page "), pageField, R(" by "), author, R(" end."))));
 
         await ClickInAsync(page, "end");
         var text = await BoxTextAsync(page);
-        await SelectBoxTextAsync(page, "1 of ");
-        await DragAsync(page, editor, 0, text.Length, [text.IndexOf("of", StringComparison.Ordinal), text.IndexOf("end", StringComparison.Ordinal)]);
-        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Page 9 1 of end.");
+        await SelectBoxTextAsync(page, "1 by ");
+        await DragAsync(page, editor, 0, text.Length, [text.IndexOf("by", StringComparison.Ordinal), text.IndexOf("end", StringComparison.Ordinal)]);
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Page Ann 1 by end.");
         await HandInAsync(page);
 
         var body = DocumentBody(await SaveAsync(page));
-        await Assert.That(body.IndexOf("NUMPAGES", StringComparison.Ordinal)).IsLessThan(body.IndexOf(" PAGE ", StringComparison.Ordinal));
+        await Assert.That(body.IndexOf("AUTHOR", StringComparison.Ordinal)).IsLessThan(body.IndexOf(" PAGE ", StringComparison.Ordinal));
         await Assert.That(body.Split("<w:fldSimple").Length - 1).IsEqualTo(2);
     }
 
@@ -378,8 +380,7 @@ public partial class SnapshotTests
 
         await page.Keyboard.PressAsync("Shift+ArrowLeft");
         await page.Keyboard.PressAsync("Meta+b");
-        // Command+Enter hands the paragraph in, as Ctrl+Enter does elsewhere.
-        await page.Keyboard.PressAsync("Meta+Enter");
+        await HandInAsync(page);
         for (var attempt = 0; attempt < 40; attempt++)
         {
             if (Read(await SaveAsync(page))[2] == "[Third ][b:X][and last.]")

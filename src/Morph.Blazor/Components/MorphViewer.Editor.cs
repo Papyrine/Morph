@@ -61,7 +61,8 @@ public partial class MorphViewer
         int[] place;
         try
         {
-            place = await viewer.EditTargetAsync();
+            // No place at all is no place, as an empty one is.
+            place = await viewer.EditTargetAsync() ?? [];
         }
         catch (JSDisconnectedException)
         {
@@ -925,6 +926,17 @@ public partial class MorphViewer
         await InsertAsync(target, DocumentEditor.InsertPageBreak);
     }
 
+    // Word's column break, in the line at the caret, which goes on after it.
+    internal async Task InsertColumnBreakAsync()
+    {
+        if (await RequireAsync("Click in the document where the column is to break.") is not { } target)
+        {
+            return;
+        }
+
+        await InsertAsync(target, DocumentEditor.InsertColumnBreak);
+    }
+
     // Word's Blank Page: two page breaks at the caret, as one step to undo, the caret between them on
     // the page they make.
     internal async Task InsertBlankPageAsync()
@@ -1596,7 +1608,9 @@ public partial class MorphViewer
         });
 
     // The picture Wrap Text acts on: the floating one selected, or the inline one the open paragraph
-    // has selected.
+    // has selected — one place wide, by the places the script names. Not by the selection's positions
+    // in the file: a picture takes no position there, and one that ends its paragraph has no text after
+    // it for its start to be found at, so it would read as nothing selected.
     async Task<(int Paragraph, int Offset)?> PictureTargetAsync()
     {
         if (floatingPicture is { } floating)
@@ -1604,7 +1618,7 @@ public partial class MorphViewer
             return floating;
         }
 
-        if (await TargetAsync() is {HasSelection: true} target &&
+        if (await TargetAsync() is {StartParagraph: >= 0} target &&
             target.StartParagraph == target.Paragraph &&
             target.Offset - target.StartOffset == 1 &&
             sourceBytes is { } bytes &&
@@ -2003,20 +2017,58 @@ public partial class MorphViewer
             return null;
         }
 
+        return LinkAt(outline.Paragraphs[paragraph], offset);
+    }
+
+    // The address of the link the character before a place in a paragraph is — or the one after it, at
+    // the paragraph's start — as the pages drew it; null for text in none.
+    string? LinkAt(EditParagraph paragraph, int offset)
+    {
         var at = 0;
-        foreach (var unit in outline.Paragraphs[paragraph].Units)
+        foreach (var unit in paragraph.Units)
         {
             var span = unit.Editable ? unit.Text.Length : 1;
             if (offset <= at + span &&
                 (offset > at || at == 0))
             {
-                return editMap.Link(unit.Run);
+                return unit.Linked ? editMap.Link(unit.Run) : null;
             }
 
             at += span;
         }
 
         return null;
+    }
+
+    // The address of the link the caret stands in, where the paragraph was opened (CaretInLink).
+    internal string? CaretLink => CurrentParagraph is { } paragraph ? LinkAt(paragraph, caretOffset) : null;
+
+    // A link followed — from the right-click menu, or a Ctrl+click: a bookmark's in the document, where
+    // the caret goes (the paragraph being typed handed in first); any other address the script opens in
+    // a new tab, if it is a web or mail address.
+    internal async Task FollowLinkAsync(string address)
+    {
+        if (address.StartsWith('#'))
+        {
+            await HandInFirstAsync();
+            await SettledAsync();
+            await GoToBookmarkAsync(address[1..]);
+            return;
+        }
+
+        if (handle is { } viewer)
+        {
+            await viewer.OpenLinkAsync(address);
+        }
+    }
+
+    // Word's Copy Hyperlink: the address on the clipboard.
+    internal async Task CopyLinkAsync(string address)
+    {
+        if (handle is { } viewer)
+        {
+            await viewer.CopyTextAsync(address);
+        }
     }
 
     // Whether a target's caret stands in a link — the text selected, where there is some, by its start.

@@ -1558,6 +1558,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
                 var characterScale = baseProps?.CharacterScalePercent ?? 100;
 
+                // Superscript and subscript come down the chain like the rest. Left off the style,
+                // every run that took its raise from one stood on the baseline: a note's own number in
+                // Footnote Reference (whose body citation forces its superscript, and hid this) among
+                // them.
+                var verticalAlignment = baseProps?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
+
                 // The kerning threshold comes down the chain like the rest. Leaving it off the style
                 // measured every run that takes its properties from a style UNKERNED, whatever the
                 // document default said — most body text, since such a run carries no w:rPr.
@@ -1590,6 +1596,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         BackgroundColorHex = backgroundColor,
                         CharacterSpacingPoints = characterSpacing,
                         CharacterScalePercent = characterScale,
+                        VerticalAlignment = verticalAlignment,
                         KerningMinFontSizePoints = kerningMinFontSize,
                         Outline = outline,
                         Shadow = shadow,
@@ -1692,6 +1699,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     characterScale = styleScale;
                 }
 
+                if (runProps.GetFirstChild<VerticalTextAlignment>()?.Val?.Value is { } styleVertical)
+                {
+                    verticalAlignment = styleVertical == VerticalPositionValues.Superscript
+                        ? VerticalRunAlignment.Superscript
+                        : styleVertical == VerticalPositionValues.Subscript
+                            ? VerticalRunAlignment.Subscript
+                            : VerticalRunAlignment.Baseline;
+                }
+
                 // Kerning threshold (w:kern in rPr); w:val="0" switches it off for this style.
                 if (DeclaredKerningMinPoints(runProps) is { } declaredKerning)
                 {
@@ -1758,6 +1774,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     BackgroundColorHex = backgroundColor,
                     CharacterSpacingPoints = characterSpacing,
                     CharacterScalePercent = characterScale,
+                    VerticalAlignment = verticalAlignment,
                     KerningMinFontSizePoints = kerningMinFontSize,
                     Outline = outline,
                     Shadow = shadow,
@@ -13166,6 +13183,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return bytes;
     }
 
+    // Whether a style, or one it is based on, declares something in its own run properties. Bounded, so a
+    // chain that loops back on itself ends.
+    bool DeclaresUpChain(MainDocumentPart mainPart, Style? style, Func<StyleRunProperties, bool> declares)
+    {
+        for (var depth = 0; style != null && depth < 16; depth++)
+        {
+            if (style.StyleRunProperties is { } properties &&
+                declares(properties))
+            {
+                return true;
+            }
+
+            style = style.BasedOn?.Val?.Value is { } basedOn ? LookupStyle(mainPart, basedOn) : null;
+        }
+
+        return false;
+    }
+
     // First-wins on duplicate style ids, matching the FirstOrDefault scan this replaces.
     Style? LookupStyle(MainDocumentPart mainPart, string styleId)
     {
@@ -14154,8 +14189,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 backgroundColor = runStyleProps.BackgroundColorHex;
             }
 
+            // A raise the character style takes from the style it is based on is its own as much as one
+            // it declares (a style based on Footnote Reference is superscript too).
             if (vertAlignElement == null &&
-                originalRPr?.GetFirstChild<VerticalTextAlignment>() != null)
+                DeclaresUpChain(mainPart, originalStyle, _ => _.GetFirstChild<VerticalTextAlignment>() != null))
             {
                 verticalAlignment = runStyleProps.VerticalAlignment;
             }

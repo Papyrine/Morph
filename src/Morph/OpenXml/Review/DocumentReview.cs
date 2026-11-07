@@ -72,10 +72,11 @@ sealed class DocumentReview
         var changes = new List<(int Part, int Order, ReviewChange Change)>();
         Reader? body = null;
         var roots = RevisionElements.Roots(document);
+        var words = FormatWords.Read(document);
         for (var index = 0; index < roots.Count; index++)
         {
             var (part, root) = roots[index];
-            var reader = new Reader(index, part, root);
+            var reader = new Reader(index, part, root, words);
             reader.Read();
             if (part == ReviewPart.Body)
             {
@@ -293,6 +294,9 @@ sealed class DocumentReview
         public List<int> Runs { get; } = [];
         public StringBuilder Text { get; } = new();
 
+        // What a formatting change did (FormatWords), from the first of its elements that says.
+        public string? Description { get; set; }
+
         // Where a change that covers no run sits.
         public int Point { get; set; } = -1;
 
@@ -337,7 +341,7 @@ sealed class DocumentReview
         public int Start { get; set; }
     }
 
-    sealed class Reader(int partIndex, ReviewPart part, OpenXmlElement root)
+    sealed class Reader(int partIndex, ReviewPart part, OpenXmlElement root, FormatWords words)
     {
         readonly Dictionary<OpenXmlElement, int> ordinals = [with(ReferenceEqualityComparer.Instance)];
         readonly Dictionary<OoxmlRun, int> runOrdinals = SourceRuns.Index(root);
@@ -402,6 +406,7 @@ sealed class DocumentReview
                     Author = builder.Author,
                     Date = builder.Date,
                     Text = builder.Text.ToString(),
+                    Description = builder.Description,
                     Part = part,
                     Runs = runs,
                     Anchor = anchor
@@ -596,6 +601,10 @@ sealed class DocumentReview
         {
             builder.Elements.Add(ordinals[element]);
             builderOf[element] = builder;
+            if (builder.Kind is ReviewChangeKind.Formatting or ReviewChangeKind.ParagraphFormatting)
+            {
+                builder.Description ??= words.Describe(element);
+            }
         }
 
         static bool SameHand(Builder builder, ReviewChangeKind kind, OpenXmlElement element) =>

@@ -146,6 +146,21 @@ public class PasteTests
         await Assert.That(Shape(ReviewEditor.ResolveAll(result.Document, accept: true))).IsEqualTo("[Hello ][one] ¶ [b:two] ¶ [three ][world] ¶");
     }
 
+    // One line pasted against a word is spaced from it, either side, as Word's smart cut and paste does
+    // (WordProbe C-01); against a space, or as several paragraphs, it goes in as it is.
+    [Test]
+    [Arguments(5, "[Hello big world] ¶")]
+    [Arguments(6, "[Hello big world] ¶")]
+    [Arguments(11, "[Hello world big] ¶")]
+    public async Task OneLine_AgainstAWord_IsSpacedFromIt(int offset, string expected)
+    {
+        var docx = Build(P(R("Hello world")), styles: styles);
+
+        var result = DocumentEditor.Paste(docx, 0, offset, [Para(Text("big"))], Plain);
+
+        await Assert.That(Shape(result.Document)).IsEqualTo(expected);
+    }
+
     // HTML from the clipboard, read and pasted.
     [Test]
     public async Task Html_ReadAndPasted()

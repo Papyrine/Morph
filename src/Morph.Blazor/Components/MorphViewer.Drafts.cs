@@ -3,8 +3,8 @@ namespace Morph;
 // The editor keeping the reader's work (MorphEditor's alone, by Editing): while the document has edits
 // not saved, the page asks before it is left, and the file is kept as a draft in the browser's own
 // storage (morph-draft.js), which the start page offers back after a reload, a crash or a closed tab.
-// The draft goes once the document is saved, or its edits are discarded. There is one draft: the last
-// document edited and not saved.
+// The draft goes once the document is saved, or its edits are discarded. Each tab keeps its own: the
+// start page offers the tab's, or else the newest a closed tab left, which recovering makes the tab's.
 public partial class MorphViewer
 {
     /// <summary>

@@ -91,8 +91,8 @@ public partial class SnapshotTests
         await WaitForTableAsync(page, _ => _.Rows == 3);
     }
 
-    // Escape closes the menu that is open — the ribbon's or a right-click's — and goes no further: what
-    // was typed in the open paragraph stays, where Escape with no menu open abandons it.
+    // Escape closes the menu that is open — the ribbon's or a right-click's — and goes no further: the
+    // paragraph stays open with what was typed, where Escape with no menu open hands it in and leaves it.
     [Test]
     public async Task Escape_ClosesAMenu_AndKeepsWhatWasTyped()
     {

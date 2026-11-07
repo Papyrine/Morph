@@ -258,7 +258,8 @@ The viewer also **reviews** a Word document: a pane lists its comments and track
 (accept/reject, add/reply/reword/resolve/delete). Three pieces, and the split between them is deliberate:
 
 - **`src/Morph/OpenXml/Review/`** (core, internal) works on the markup and knows nothing of pages.
-  `DocumentReview` reads comments and gathers revision elements into changes; `ReviewEditor` takes a
+  `DocumentReview` reads comments and gathers revision elements into changes, and `FormatWords` says
+  what a formatting change did in Word's own words (probed over COM, `FormatWordsTests`); `ReviewEditor` takes a
   file's bytes and returns the edited file's. Its tests are spec tests (`src/Tests/SpecTests/Review/`)
   and run on the host.
 - **`Run.Source`** is the join between markup and model: under `captureSources` (which only
@@ -291,7 +292,11 @@ The editor **edits** a Word document's text, on the same footing and with the sa
   per run, and only that is changed — so what the editor never showed (bookmarks, comment anchors, a
   run's own spelling of its properties) stays, and a paragraph handed in unchanged changes nothing.
   With `EditOptions.Track` the same differences are written as `w:ins` / `w:del` / `w:rPrChange` /
-  `w:pPrChange`. Its tests are spec tests (`src/Tests/SpecTests/Editing/`); `EditCorpusTests` runs it
+  `w:pPrChange`. The one place the keys DO count is tracked typing: the open paragraph strikes what
+  is deleted in place (morph-edit.js `left`, `joinStruck`) and hands in which text it struck and which
+  was typed (`NewItem.Struck` / `Typed`), and `DocumentEditor.Told` reads the steps straight off that,
+  so a change lands where the reader made it (WordProbe R-R-1) rather than where `TextDiff` would put
+  it; when what the box says is not the old text, the comparison takes over. Its tests are spec tests (`src/Tests/SpecTests/Editing/`); `EditCorpusTests` runs it
   over every document of the corpus.
 - **`ParagraphElement.Source`** is `Run.Source`'s counterpart for paragraphs: under `captureSources`
   the parser stamps each paragraph with the ordinal of its `w:p`, which is what finds a paragraph with
@@ -398,7 +403,8 @@ script's alone (`data-fold`, and `data-open` for a folded group opened), on elem
 forms; a ResizeObserver and a MutationObserver on the ribbon refold it a frame after it changes. A
 command line the script handles carries `data-edit-command`, so its press is the script's as the
 ribbon's button is. Escape with a menu or a dialog open is caught at the document, before the open
-paragraph's own Escape abandons what was typed, and handed to `OnMenuEscape`.
+paragraph's own Escape (which hands it in and leaves it, keeping what was typed), and handed to
+`OnMenuEscape`; a dialog cancelled puts the reader back where they were (`ReturnToDocumentAsync`).
 
 Word's keys that change what a paragraph IS rather than what it says — Tab/Shift+Tab in a list, Enter
 in an empty list paragraph, Backspace at a list paragraph's start, Enter at a heading's end,
@@ -425,8 +431,9 @@ the pages never arrives as positioned spans.
 
 Unsaved work is kept by `MorphViewer.Drafts.cs` (the editor's alone, by `Editing`) and
 `wwwroot/morph-draft.js`: a `beforeunload` prompt while there are edits not saved, and a draft of the
-file in IndexedDB after each edit, which the start page offers back. One slot; saving or discarding
-drops it, and only a draft this session wrote is dropped.
+file in IndexedDB after each edit, which the start page offers back. A slot per tab (its key in
+`sessionStorage`, so a reload finds it): the start page offers the tab's own or else the newest another
+left, recovering one makes it the tab's, and saving or discarding drops it.
 
 An edit always goes file → parse → layout → `reload` in the script, never a patch to the model, so the
 pages cannot disagree with what Download saves. The viewer's edits (under `DocumentReading.Capture`)

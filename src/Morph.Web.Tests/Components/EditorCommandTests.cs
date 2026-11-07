@@ -122,8 +122,9 @@ public class EditorCommandTests
         await Assert.That(MorphEditor.Commands.Bold.Title).IsEqualTo("Bold (Ctrl+B)");
         await Assert.That(MorphEditor.Commands.Bold.KeyShortcuts).IsEqualTo("Control+B");
         await Assert.That(MorphEditor.Commands.Marks.Title).IsEqualTo("Show/Hide ¶ (Ctrl+Shift+8)");
-        await Assert.That(MorphEditor.Commands.PageBreak.Title).IsEqualTo("Page break");
-        await Assert.That(MorphEditor.Commands.PageBreak.KeyShortcuts).IsNull();
+        await Assert.That(MorphEditor.Commands.PageBreak.Title).IsEqualTo("Page break (Ctrl+Enter)");
+        await Assert.That(MorphEditor.Commands.PageBreak.KeyShortcuts).IsEqualTo("Control+Enter");
+        await Assert.That(MorphEditor.Commands.BlankPage.KeyShortcuts).IsNull();
     }
 
     // Everywhere false leaves out the commands the rule allows in every state.

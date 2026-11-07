@@ -3,8 +3,10 @@
 /// it merges it into a document, as Word's Merge Formatting does: its paragraphs and line breaks, its
 /// headings (h1 to h6, and Word's own title and quote classes), its lists with their levels, its
 /// alignment, its links, and its emphasis — bold, italic, underline, strikethrough, superscript and
-/// subscript, by tag or by CSS. Fonts, sizes and colours are the document's, and are not read; nor are
-/// pictures. A table's rows are paragraphs, their cells a tab apart.
+/// subscript, by tag or by CSS. Fonts, sizes and colours are the document's, and are not read — except
+/// in text the editor copied out of the document itself, which keeps its own as Word's Keep Source
+/// Formatting does (<see cref="Own"/>); nor are pictures. A table's rows are paragraphs, their cells a
+/// tab apart.
 /// </summary>
 static partial class PastedHtml
 {
@@ -48,7 +50,8 @@ static partial class PastedHtml
         ["MsoIntenseQuote"] = "IntenseQuote"
     };
 
-    // What text takes from the elements it stands in.
+    // What text takes from the elements it stands in. Font, Size, Color and Highlight come only from
+    // text the editor itself copied (Own).
     readonly record struct Inline(
         bool Bold,
         bool Italic,
@@ -56,7 +59,80 @@ static partial class PastedHtml
         bool Strike,
         VerticalPositionValues? Vertical,
         string? Link,
-        bool Preformatted);
+        bool Preformatted,
+        string? Font = null,
+        double? Size = null,
+        string? Color = null,
+        string? Highlight = null);
+
+    // Word's highlight colours by the colour the pages draw each in (DocumentParser.HighlightToHex).
+    static readonly Dictionary<string, string> highlights = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["FFFF00"] = "yellow",
+        ["00FF00"] = "green",
+        ["00FFFF"] = "cyan",
+        ["FF00FF"] = "magenta",
+        ["0000FF"] = "blue",
+        ["FF0000"] = "red",
+        ["000080"] = "darkBlue",
+        ["008080"] = "darkCyan",
+        ["008000"] = "darkGreen",
+        ["800080"] = "darkMagenta",
+        ["800000"] = "darkRed",
+        ["808000"] = "darkYellow",
+        ["808080"] = "darkGray",
+        ["C0C0C0"] = "lightGray",
+        ["000000"] = "black"
+    };
+
+    /// <summary>
+    /// Text copied out of the editor's own paragraph (morph-edit.js, htmlText) marks each run's look with
+    /// <c>data-morph-*</c>: its font, size, colour and highlight, where they differ from its paragraph's.
+    /// Pasted back into the document it keeps them, as Word's Keep Source Formatting keeps a copy made
+    /// within the document; from anywhere else the look is the document's (Merge Formatting).
+    /// </summary>
+    static Inline Own(IElement element, Inline inline)
+    {
+        if (element.GetAttribute("data-morph-font") is {Length: > 0} font)
+        {
+            inline = inline with
+            {
+                Font = font
+            };
+        }
+
+        if (double.TryParse(element.GetAttribute("data-morph-size"), NumberStyles.Float, CultureInfo.InvariantCulture, out var size) &&
+            size is > 0 and < 1640)
+        {
+            inline = inline with
+            {
+                Size = size
+            };
+        }
+
+        if (element.GetAttribute("data-morph-color") is { } color &&
+            HexColor.IsMatch(color))
+        {
+            inline = inline with
+            {
+                Color = color.ToUpperInvariant()
+            };
+        }
+
+        if (element.GetAttribute("data-morph-highlight") is { } highlight &&
+            highlights.TryGetValue(highlight, out var name))
+        {
+            inline = inline with
+            {
+                Highlight = name
+            };
+        }
+
+        return inline;
+    }
+
+    [GeneratedRegex("^[0-9A-Fa-f]{6}$")]
+    private static partial Regex HexColor { get; }
 
     // What a paragraph takes from the block it stands in. Item names the list item it is the first
     // paragraph of: a second paragraph in the same item is not numbered again.
@@ -105,7 +181,7 @@ static partial class PastedHtml
                 return;
             }
 
-            inline = Styled(element, name, css, inline);
+            inline = Own(element, Styled(element, name, css, inline));
             switch (name)
             {
                 case "br":
@@ -355,6 +431,10 @@ static partial class PastedHtml
                 // A link's own style underlines it.
                 Underline: current is { Underline: true, Link: null } ? true : null,
                 Strike: current.Strike ? true : null,
+                Font: current.Font,
+                SizePoints: current.Size,
+                Color: current.Color,
+                Highlight: current.Highlight,
                 Vertical: current.Vertical);
             // Text that looks as the run before it does is that run's.
             if (runs.Count > 0 &&

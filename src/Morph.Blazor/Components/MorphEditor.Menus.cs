@@ -164,7 +164,19 @@ public partial class MorphEditor
         }
 
         lines.Add(MenuLine.Separator);
-        lines.Add(state.CaretInLink ? MenuLine.Of(Commands.RemoveLink) : MenuLine.Of(Commands.Link, "Link…"));
+        if (state.CaretInLink &&
+            CaretLink is { } address)
+        {
+            // Word's Edit, Open, Copy and Remove Hyperlink.
+            lines.Add(MenuLine.Of(Commands.Link, "Edit link…"));
+            lines.Add(new("Open link") {Choice = () => FollowLinkAsync(address)});
+            lines.Add(new("Copy link") {Choice = () => CopyLinkAsync(address)});
+            lines.Add(MenuLine.Of(Commands.RemoveLink));
+        }
+        else
+        {
+            lines.Add(state.CaretInLink ? MenuLine.Of(Commands.RemoveLink) : MenuLine.Of(Commands.Link, "Link…"));
+        }
         if (Shown(Commands.NewComment))
         {
             lines.Add(MenuLine.Of(Commands.NewComment));
@@ -298,6 +310,7 @@ public partial class MorphEditor
     [
         MenuLine.Heading("Page breaks"),
         MenuLine.Of(Commands.PageBreak, "Page"),
+        MenuLine.Of(Commands.ColumnBreak, "Column"),
         MenuLine.Heading("Section breaks"),
         new("Next page") {Choice = () => InsertSectionBreakAsync(false)},
         new("Continuous") {Choice = () => InsertSectionBreakAsync(true)}

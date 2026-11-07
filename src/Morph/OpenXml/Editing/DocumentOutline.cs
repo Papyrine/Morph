@@ -272,8 +272,24 @@ sealed class DocumentOutline
         {
             WidthPoints = unit.WidthPoints,
             HeightPoints = unit.HeightPoints,
-            Linked = unit.Run.Ancestors<Hyperlink>().Any()
+            Linked = unit.Run.Ancestors<Hyperlink>().Any(),
+            InsertedBy = InsertionAuthor(unit.Run)
         };
+
+    // The author of the insertion nearest a run, within its paragraph, as DocumentEditor finds the
+    // insertion it decides by.
+    static string? InsertionAuthor(DocumentFormat.OpenXml.Wordprocessing.Run run)
+    {
+        for (var parent = run.Parent; parent != null && parent is not Paragraph; parent = parent.Parent)
+        {
+            if (parent is InsertedRun or MoveToRun)
+            {
+                return RevisionElements.Author(parent);
+            }
+        }
+
+        return null;
+    }
 
     // w:documentProtection restricts editing only while it is enforced. Tracked-changes protection
     // allows any edit so long as it is tracked; every other kind allows none to the text.

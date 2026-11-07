@@ -1526,19 +1526,34 @@ static class SvgPainter
                 }
             }
 
-            // A character no glyph starts at — a ligature's tail, a pair's second half — stands where the
-            // one before it does.
-            var last = 0f;
+            // A character no glyph starts at. A surrogate pair's second half stands where its first does. A
+            // ligature's tail (bold Aptos's "fi") stands after the character before it, at that character's
+            // own advance: the page's style turns ligatures off, so the browser draws each character of the
+            // ligature apart, and the tail at the head's x would be drawn over it and leave a gap after.
             for (var index = 0; index < positions.Length; index++)
             {
-                if (float.IsNaN(positions[index]))
+                if (!float.IsNaN(positions[index]))
                 {
-                    positions[index] = last;
+                    continue;
                 }
-                else
+
+                if (index == 0)
                 {
-                    last = positions[index];
+                    positions[index] = 0;
+                    continue;
                 }
+
+                var previous = positions[index - 1];
+                if (char.IsLowSurrogate(text[index]))
+                {
+                    positions[index] = previous;
+                    continue;
+                }
+
+                var head = char.IsLowSurrogate(text[index - 1]) && index >= 2
+                    ? text.Substring(index - 2, 2)
+                    : text.Substring(index - 1, 1);
+                positions[index] = previous + TextMeasurer.MeasureAdvance(head, options).Width;
             }
 
             return positions;

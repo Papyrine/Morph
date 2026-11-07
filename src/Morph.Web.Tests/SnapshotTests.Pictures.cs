@@ -53,6 +53,50 @@ public partial class SnapshotTests
                                           !_.Contains("wp:anchor"));
     }
 
+    // A picture in the line that ends its paragraph, selected in the open paragraph, is wrapped from
+    // Layout > Wrap text. With no text after it, it once read as nothing selected, and the command
+    // answered "Select a picture first."
+    [Test]
+    public async Task Pictures_AnInlineOneEndingItsParagraph_IsWrapped()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pictured = DocumentEditor.InsertPicture(Paragraphs, 2, 15, new(pixelPng, "image/png", 100, 50), options).Document;
+        var page = await OpenEditAsync(pictured);
+
+        await ClickInAsync(page, "and last");
+        await page.ClickAsync($"{editor} .edit-drawing");
+        await page.WaitForSelectorAsync(".edit-frame .edit-handle-se");
+        await ChooseTabAsync(page, "Layout");
+        await page.ClickAsync(".editor-tool:has-text('Wrap text')");
+        await page.ClickAsync(".editor-menu-item:text-is('Square')");
+        await WaitForBodyAsync(page, _ => _.Contains("wp:wrapSquare") &&
+                                          !_.Contains("wp:inline"));
+    }
+
+    // A picture after the text it shares a line with makes the line as tall as the page drew it, and
+    // the box over the paragraph is no taller: it once set its lines at the picture's height and stood
+    // the picture on top of that, its paper over the paragraphs below.
+    [Test]
+    public async Task Pictures_OneAfterTheText_LeavesTheBoxItsLinesHeight()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pictured = DocumentEditor.InsertPicture(Paragraphs, 0, 21, new(pixelPng, "image/png", 100, 50), options).Document;
+        var page = await OpenEditAsync(pictured);
+
+        await ClickInAsync(page, "paragraph here");
+        var gap = await page.EvaluateAsync<double>(
+            """
+            () => {
+                const box = document.querySelector('.edit-box[contenteditable=true]').getBoundingClientRect();
+                const next = [...document.querySelectorAll('.text-layer span')]
+                    .find(_ => _.textContent.includes('Second'))
+                    .getBoundingClientRect();
+                return next.top - box.bottom;
+            }
+            """);
+        await Assert.That(gap).IsGreaterThan(-1);
+    }
+
     // The first drawing's size in points.
     static (double Width, double Height)? Extent(string body)
     {

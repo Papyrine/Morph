@@ -427,8 +427,9 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(cut.Find(".editor-submenu .editor-menu-item[aria-checked=true]").TextContent).IsEqualTo("In line with text");
     }
 
+    // In a link: Word's Edit, Open, Copy and Remove Hyperlink.
     [Test]
-    public async Task TheContextMenu_InALink_OffersToRemoveIt()
+    public async Task TheContextMenu_InALink_OffersToEditOpenCopyAndRemoveIt()
     {
         var linked = Build(P("", "<w:hyperlink w:anchor=\"top\"><w:r><w:t>Linked</w:t></w:r></w:hyperlink>", R(" plain")));
         var cut = await OpenEditing(linked);
@@ -437,7 +438,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.InvokeAsync(() => cut.Instance.OnContextMenu(10, 10));
 
-        await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Font… | Paragraph… | Remove link | New comment");
+        await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Font… | Paragraph… | Edit link… | Open link | Copy link | Remove link | New comment");
     }
 
     [Test]

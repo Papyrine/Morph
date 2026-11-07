@@ -176,4 +176,18 @@ public class PastedHtmlTests
     [Test]
     public async Task BareText_AndEmptyParagraphsAtTheEnds() =>
         await Assert.That(Show("<p></p><p><br></p>loose <b>text</b><p><br></p>")).IsEqualTo("[loose ][b:text]");
+
+    // Text the editor copied out of the document marks its own look (morph-edit.js, htmlText), which a
+    // paste back into it keeps, as Word's Keep Source Formatting does; the same CSS from anywhere else
+    // is merged away. A highlight is Word's by the colour it draws; a shading is not one.
+    [Test]
+    public async Task TheEditorsOwnCopy_KeepsItsLook()
+    {
+        var own = PastedHtml.Read("<span data-morph-font=\"Georgia\" data-morph-size=\"20\" data-morph-color=\"ff0000\" data-morph-highlight=\"FFFF00\" style=\"font-size:20pt\">gamma</span> <span data-morph-highlight=\"123456\">shaded</span>")[0].Runs;
+        var other = PastedHtml.Read("<span style=\"font-family:Georgia;font-size:20pt;color:#ff0000;background-color:#ffff00\">gamma</span>")[0].Runs;
+
+        await Assert.That(own[0].Format).IsEqualTo(new RunFormat(Font: "Georgia", SizePoints: 20, Color: "FF0000", Highlight: "yellow"));
+        await Assert.That(own[^1].Format).IsEqualTo(default(RunFormat));
+        await Assert.That(other[0].Format).IsEqualTo(default(RunFormat));
+    }
 }

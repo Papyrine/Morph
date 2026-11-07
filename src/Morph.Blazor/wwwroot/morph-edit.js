@@ -10,7 +10,10 @@
 // What is edited is a model, not the DOM: a paragraph is a list of items, each a stretch of text like
 // one of the paragraph's units (formatted as that unit's run is) or a thing that is not text — a field,
 // a picture, a note's reference, text a tracked change deleted — which is shown, kept in its place, and
-// cannot be typed into or deleted. Every input is taken from the browser before it touches the DOM
+// cannot be typed into or deleted. Under Track Changes what the reader deletes of what was there is
+// struck rather than taken out — an item of the same kind as a deletion the file holds, until the
+// paragraph is handed in and the file has its own — and what they type is new (n), shown inserted and
+// taken out outright when they delete it again. Every input is taken from the browser before it touches the DOM
 // (beforeinput), applied to the model, and the box redrawn from it. The one exception is composition —
 // an input method, and nearly all typing on a phone — which cannot be taken from the browser: there
 // the DOM is left to change and the model is read back out of it when the composition ends.
@@ -39,12 +42,55 @@ const gutter = 2;
 // Default tab stops are half an inch apart.
 const tabStop = 36;
 
+// The colour the page draws a tracked insertion or deletion in (DocumentParser's revisionColorHex,
+// EditSession's revisionColor), which the box draws its own in until the paragraph is handed in.
+const revisionColor = 'D13438';
+
 function copy(blocks) {
     return blocks.map(_ => ({ align: _.align, items: _.items.map(item => ({ ...item })) }));
 }
 
 function lengthOf(item) {
     return item.atom ? 1 : item.t.length;
+}
+
+// Text put in a run's or a field's span, each tab an element of its own (.edit-tab), which
+// ParagraphEditor.layoutTabs sizes to the paragraph's stop: CSS's tab-size knows only one interval,
+// from the line's start, and nothing of a right or a centred stop or a leader. The span holds the text
+// nodes of its text and nothing else.
+function appendText(span, text) {
+    const parts = text.split('\t');
+    parts.forEach((part, index) => {
+        if (index > 0) {
+            const tab = document.createElement('span');
+            tab.className = 'edit-tab';
+            tab.append(document.createTextNode('\t'));
+            span.append(tab);
+        }
+
+        if (part.length > 0 || parts.length === 1) {
+            span.append(document.createTextNode(part));
+        }
+    });
+}
+
+// The DOM point an offset into a run's text is: in the text node it falls in, the tabs the run holds as
+// elements of their own (ParagraphEditor.renderItem) counted as their one character; at a boundary,
+// the end of the text before it, so a caret before a tab stands with the text it follows.
+function textPoint(span, offset) {
+    const walker = document.createTreeWalker(span, NodeFilter.SHOW_TEXT);
+    let at = 0;
+    let last = null;
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (offset <= at + node.data.length) {
+            return [node, offset - at];
+        }
+
+        at += node.data.length;
+        last = node;
+    }
+
+    return last ? [last, last.data.length] : [span, 0];
 }
 
 function blockLength(block) {
@@ -184,6 +230,10 @@ export function wordKey(event) {
                 return { key: 'hidden' };
             case 'KeyQ':
                 return { key: 'symbol-font' };
+            // A column break in the line (WordProbe E-29).
+            case 'Enter':
+            case 'NumpadEnter':
+                return { key: 'column-break' };
             // Normal style, outdent and the hanging indent back (WordProbe E-83, E-91, E-92).
             case 'KeyN':
                 return { key: 'normal-style' };
@@ -204,6 +254,10 @@ export function wordKey(event) {
     }
 
     switch (event.code) {
+        // A page break on a paragraph of its own (WordProbe E-28), typing going on after it.
+        case 'Enter':
+        case 'NumpadEnter':
+            return { key: 'page-break' };
         case 'KeyL':
             return { command: 'align-left' };
         case 'KeyE':
@@ -312,11 +366,26 @@ export class ParagraphEditor {
         const first = session.u.find(_ => _.k === 0 && _.t.length > 0);
         const size = first?.z ?? session.size;
         const { ascent, descent } = faceMetrics((first?.f ?? session.face) & 3);
-        // A picture ahead of the text that stands taller than that sits on the baseline from the line
-        // box's top, and takes the baseline down with it.
+        // A picture in the first line that stands taller than that sits on the baseline from the line
+        // box's top, and takes the baseline down with it, wherever in the line it is. One ahead of the
+        // text is in the first line; one after it may be. Where the page broke the line is not known
+        // here, but the first line's baseline is as far down as the tallest picture in it stands, so a
+        // picture taller than that was not in it, and one no taller could have been.
         const lead = first ? session.u.slice(0, session.u.indexOf(first)) : session.u;
-        const picture = Math.max(0, ...lead.filter(_ => _.s === 'drawing').map(_ => _.e ?? 0));
-        const drawn = Math.max(session.line / 2 + (ascent - (ascent + descent) / 2) * size, picture);
+        const picture = Math.max(0, ...session.u
+            .filter(_ => _.s === 'drawing' && (lead.includes(_) || (_.e ?? 0) <= session.base + 0.5))
+            .map(_ => _.e ?? 0));
+        // That picture also made the line as tall as it is on the page — itself, and the text's descent
+        // under it — so the box sets its lines at the text's own height and lets the picture raise the
+        // first, as the page did. Set as tall as the picture, the line would centre the text in itself
+        // and the picture, on that baseline, would stand half its height again above the box's top: a
+        // box taller than the paragraph, its paper over what follows.
+        let lineHeight = session.line;
+        if (picture > ascent * size) {
+            lineHeight = (ascent + descent) * size + 2 * Math.max(0, session.line - picture - descent * size);
+        }
+
+        const drawn = Math.max(lineHeight / 2 + (ascent - (ascent + descent) / 2) * size, picture);
         const shift = session.base - drawn;
         const hang = Math.min(session.indent, 0);
         const top = session.y + Math.min(shift, 0);
@@ -324,7 +393,7 @@ export class ParagraphEditor {
 
         let css = `left:${this.cq(left)};top:${this.cq(top)};width:${this.cq(session.w - hang + 2 * gutter)};` +
             `padding:${this.cq(Math.max(shift, 0))} ${this.cq(gutter)} 0 ${this.cq(gutter - hang)};` +
-            `font-size:${this.cq(session.size)};line-height:${this.cq(session.line)};tab-size:${this.cq(tabStop)};` +
+            `font-size:${this.cq(session.size)};line-height:${this.cq(lineHeight)};tab-size:${this.cq(tabStop)};` +
             `color:#${session.color};`;
         const room = Math.max(this.page.height - top, session.h);
         if (session.skip > 0) {
@@ -336,6 +405,15 @@ export class ParagraphEditor {
 
         if (session.fill) {
             css += `background-color:#${session.fill};`;
+        }
+
+        // Raised above the paragraph's line to put its text on the page's baseline, the box would lay its
+        // paper and its outline over what is above the paragraph — a table's bottom border, the
+        // paragraph before — so nothing of it shows above the line's top. Its text starts lower than
+        // that: the page set the line at least its ascent above the baseline. A picture leading the line
+        // stands on the baseline from the box's top, and is not cut into.
+        if (shift < 0 && picture <= ascent * size) {
+            css += `clip-path:inset(${this.cq(-shift)} -1em -1em -1em);`;
         }
 
         box.style.cssText = css;
@@ -353,6 +431,7 @@ export class ParagraphEditor {
         const fragment = document.createDocumentFragment();
         this.blocks.forEach((block, index) => fragment.append(this.renderBlock(block, index)));
         this.box.replaceChildren(fragment);
+        this.layoutTabs();
     }
 
     renderBlock(block, index) {
@@ -383,18 +462,110 @@ export class ParagraphEditor {
     renderItem(item, position) {
         const span = document.createElement('span');
         span.dataset.i = String(position);
+        if (item.atom && item.x && typeof item.t === 'string') {
+            this.renderStruck(span, item);
+            return span;
+        }
+
         if (item.atom) {
             this.renderAtom(span, this.session.u[item.u]);
+            if (item.x) {
+                span.classList.add('edit-struck');
+            }
+
             return span;
         }
 
         const like = this.session.u[item.u];
         // Text the page did not draw (hidden text) is shown as Word shows it with its marks on.
         span.className = like?.h ? 'edit-run edit-undrawn' : 'edit-run';
-        span.style.cssText = this.faceCss(item.f, like?.z ?? this.session.size, like?.c ?? this.session.color, like?.g, like?.v) +
+        // Text typed under tracking is shown inserted, as the page will draw it: underlined, in the
+        // revision colour. The underline is the box's alone; the text is handed in as typed.
+        const face = item.n ? item.f | underline : item.f;
+        const color = item.n ? revisionColor : like?.c ?? this.session.color;
+        span.style.cssText = this.faceCss(face, like?.z ?? this.session.size, color, like?.g, like?.v) +
             this.spacingCss(item, like);
-        span.append(document.createTextNode(item.t));
+        appendText(span, item.t);
         return span;
+    }
+
+    // Text struck under tracking in the box, shown as the page shows a deletion: struck through, in
+    // the revision colour, and kept in its place, which cannot be typed into.
+    renderStruck(span, item) {
+        const like = this.session.u[item.u];
+        span.contentEditable = 'false';
+        span.className = 'edit-atom edit-deleted';
+        span.style.cssText = this.faceCss(item.f | strike, like?.z ?? this.session.size, revisionColor, like?.g, like?.v) +
+            this.spacingCss(item, like);
+        appendText(span, item.t);
+    }
+
+    // Each tab of the box set to where the page's stops put it (the session's tabs, as
+    // TabStopResolver resolves a stop): the next stop past where the tab starts — for a right or a
+    // centred stop, less the text after the tab up to the next one, all or half of it — or else the
+    // next default stop past the last of them, and a leader across the gap a stop has one for. In
+    // order, since each tab moves the ones after it on its line.
+    layoutTabs() {
+        const tabs = [...this.box.querySelectorAll('.edit-tab')];
+        const stops = this.session.tabs;
+        if (tabs.length === 0 || !stops || !this.layer) {
+            return;
+        }
+
+        const sheet = this.layer.getBoundingClientRect();
+        if (sheet.width <= 0) {
+            return;
+        }
+
+        const perPoint = sheet.width / this.page.width;
+        for (const tab of tabs) {
+            tab.style.width = '0px';
+            delete tab.dataset.leader;
+        }
+
+        for (const tab of tabs) {
+            const start = (tab.getBoundingClientRect().left - sheet.left) / perPoint - stops.o;
+            const following = () => {
+                const range = document.createRange();
+                range.setStartAfter(tab);
+                const block = tab.closest('.edit-p');
+                const next = tabs.find(_ => block.contains(_) && (tab.compareDocumentPosition(_) & Node.DOCUMENT_POSITION_FOLLOWING));
+                if (next) {
+                    range.setEndBefore(next);
+                } else {
+                    range.setEnd(block, block.childNodes.length);
+                }
+
+                return range.getBoundingClientRect().width / perPoint;
+            };
+
+            let destination = null;
+            let leader = 0;
+            for (const [position, alignment, kind] of stops.s) {
+                const stop = alignment === 0 ? position : Math.min(position, stops.e);
+                if (stop <= start) {
+                    continue;
+                }
+
+                const at = alignment === 1 ? stop - following() / 2 : alignment >= 2 ? stop - following() : stop;
+                if (at > start) {
+                    destination = at;
+                    leader = kind;
+                    break;
+                }
+            }
+
+            if (destination === null && stops.d > 0) {
+                const base = Math.max(stops.l, stops.s.length ? stops.s[stops.s.length - 1][0] : stops.l);
+                destination = base + (Math.floor((start - base) / stops.d) + 1) * stops.d;
+            }
+
+            const width = Math.max(0, (destination ?? start) - start);
+            tab.style.width = `${width * perPoint}px`;
+            if (leader > 0 && width > 0) {
+                tab.dataset.leader = ['', 'dot', 'hyphen', 'line', 'dot', 'heavy'][leader];
+            }
+        }
     }
 
     // The page set this text's characters wider or narrower than the face does left to itself — a
@@ -494,7 +665,9 @@ export class ParagraphEditor {
                 break;
             default:
                 span.style.cssText = this.faceCss(unit.f ?? 0, unit.z ?? this.session.size, unit.c ?? this.session.color, unit.g, unit.v);
-                span.textContent = unit.t;
+                // A field's result can hold tabs too — a table of contents' entry, its page number at
+                // a right stop with dots up to it — set as the text's are.
+                appendText(span, unit.t);
                 if (unit.s === 'field') {
                     span.title = 'Field';
                 }
@@ -518,12 +691,12 @@ export class ParagraphEditor {
             const length = lengthOf(item);
             const span = element.children[index];
             if (!item.atom && place.o > at && place.o <= at + length) {
-                return [span.firstChild, place.o - at];
+                return textPoint(span, place.o - at);
             }
 
             if (place.o === at) {
                 // After something that is not text, or at the paragraph's start.
-                return item.atom ? [element, index] : [span.firstChild, 0];
+                return item.atom ? [element, index] : textPoint(span, 0);
             }
 
             at += length;
@@ -587,11 +760,11 @@ export class ParagraphEditor {
             return { b, o: o + (offset > 0 ? 1 : 0) };
         }
 
-        if (node.nodeType === Node.TEXT_NODE) {
-            return { b, o: o + Math.min(offset, item.t.length) };
-        }
-
-        return { b, o: o + (offset > 0 ? item.t.length : 0) };
+        // The run's text before the point, through the tabs it holds as elements of their own.
+        const before = document.createRange();
+        before.setStart(child, 0);
+        before.setEnd(node, offset);
+        return { b, o: o + Math.min(before.toString().length, item.t.length) };
     }
 
     selection() {
@@ -707,7 +880,7 @@ export class ParagraphEditor {
                     items.push(item);
                 } else if (item.t.length === 0) {
                     continue;
-                } else if (last && !last.atom && last.u === item.u && last.f === item.f) {
+                } else if (last && !last.atom && last.u === item.u && last.f === item.f && Boolean(last.n) === Boolean(item.n)) {
                     last.t += item.t;
                 } else {
                     items.push(item);
@@ -723,7 +896,27 @@ export class ParagraphEditor {
     // deleted is settled in the review pane, and text the page never drew is not the reader's to see.
     removable(item) {
         const unit = this.session.u[item.u];
-        return item.atom === true && unit?.k === 1 && unit.s !== 'deleted';
+        return item.atom === true && !item.x && unit?.k === 1 && unit.s !== 'deleted';
+    }
+
+    // Whether deleting an item under tracking takes it out rather than striking it: what was typed or
+    // moved here since the box opened, and text the reader inserted before (WordProbe R-R-1, R-R-6).
+    own(item) {
+        return item.n === true || (!item.atom && this.session.u[item.u]?.o === 1);
+    }
+
+    // What deleting an item leaves in its place: the item itself where it cannot go (what a tracked
+    // change deleted, what the page never drew), nothing, or under tracking the item struck.
+    left(item) {
+        if (item.x || (item.atom && !this.removable(item))) {
+            return [item];
+        }
+
+        if (!this.session.tracked || this.own(item)) {
+            return [];
+        }
+
+        return [item.atom ? { ...item, x: true } : { u: item.u, t: item.t, f: item.f, atom: true, x: true }];
     }
 
     // The item that takes up the place after o in a block, or null.
@@ -741,31 +934,78 @@ export class ParagraphEditor {
         return null;
     }
 
-    // Takes out what is between two places: the text, and what is not text that can go.
-    remove(from, to) {
+    // Takes out what is between two places: the text, and what is not text that can go — under
+    // tracking, what was there before is struck in its place instead (left). Says where the caret
+    // goes: before what the range leaves behind, or under tracking after it unless Backspace took it
+    // out, as Word leaves it on a character and on a selection alike (WordProbe R-02, R-03, R-21).
+    remove(from, to, backward = false) {
         if (same(from, to)) {
-            return;
+            return from;
         }
 
         const start = this.divide(from);
         const first = this.blocks[from.b];
+        let kept;
         if (from.b === to.b) {
             const end = this.divide(to);
-            first.items.splice(start, end - start, ...first.items.slice(start, end).filter(_ => _.atom && !this.removable(_)));
-            return;
+            kept = first.items.slice(start, end).flatMap(_ => this.left(_));
+            first.items.splice(start, end - start, ...kept);
+        } else {
+            kept = first.items.slice(start).flatMap(_ => this.left(_));
+            for (let index = from.b + 1; index < to.b; index++) {
+                kept.push(...this.blocks[index].items.flatMap(_ => this.left(_)));
+            }
+
+            const last = this.blocks[to.b];
+            const end = this.divide(to);
+            kept.push(...last.items.slice(0, end).flatMap(_ => this.left(_)));
+            first.items.splice(start, first.items.length - start, ...kept, ...last.items.slice(end));
+            this.blocks.splice(from.b + 1, to.b - from.b);
         }
 
-        const stays = _ => _.atom && !this.removable(_);
-        const kept = first.items.slice(start).filter(stays);
-        for (let index = from.b + 1; index < to.b; index++) {
-            kept.push(...this.blocks[index].items.filter(stays));
+        const [before, after] = this.joinStruck(from.b, start, start + kept.length);
+        return !this.session.tracked || backward ? { b: from.b, o: before } : { b: from.b, o: after };
+    }
+
+    // Joins text struck side by side, of one run and one look, into one deletion of one place, as
+    // the file will hold it once handed in. first and end are the items a deletion left in a block;
+    // says the places before and after them once joined, where whatever they joined counts as theirs.
+    joinStruck(b, first, end) {
+        const items = this.blocks[b].items;
+        const struck = item => item?.x === true && typeof item.t === 'string';
+        let index = Math.max(0, first - 1);
+        let limit = Math.min(items.length, end + 1);
+        while (index + 1 < limit) {
+            const item = items[index];
+            const next = items[index + 1];
+            if (!struck(item) || !struck(next) || item.u !== next.u || item.f !== next.f) {
+                index++;
+                continue;
+            }
+
+            items[index] = { ...item, t: item.t + next.t };
+            items.splice(index + 1, 1);
+            limit--;
+            const joined = index + 1;
+            if (joined === first) {
+                // Into the struck text before: the deletion now starts there.
+                end = first === end ? joined : end - 1;
+                first = index;
+            } else if (joined < end) {
+                end--;
+            }
         }
 
-        const last = this.blocks[to.b];
-        const end = this.divide(to);
-        kept.push(...last.items.slice(0, end).filter(stays), ...last.items.slice(end));
-        first.items.splice(start, first.items.length - start, ...kept);
-        this.blocks.splice(from.b + 1, to.b - from.b);
+        const placeOf = count => {
+            let o = 0;
+            for (let at = 0; at < count; at++) {
+                o += lengthOf(items[at]);
+            }
+
+            return o;
+        };
+
+        return [placeOf(first), placeOf(end)];
     }
 
     insert(place, text, like) {
@@ -774,7 +1014,12 @@ export class ParagraphEditor {
         }
 
         const index = this.divide(place);
-        this.blocks[place.b].items.splice(index, 0, { u: like.u, t: text, f: like.f });
+        const item = { u: like.u, t: text, f: like.f };
+        if (this.session.tracked) {
+            item.n = true;
+        }
+
+        this.blocks[place.b].items.splice(index, 0, item);
         return { b: place.b, o: place.o + text.length };
     }
 
@@ -926,7 +1171,7 @@ export class ParagraphEditor {
         }
 
         const item = this.itemAt(range.from.b, range.from.o);
-        if (!item?.atom || this.session.u[item.u]?.s !== 'drawing') {
+        if (!item?.atom || item.x || this.session.u[item.u]?.s !== 'drawing') {
             return null;
         }
 
@@ -1181,8 +1426,10 @@ export class ParagraphEditor {
         return { b: place.b, o };
     }
 
-    // Replaces what is selected with text; a line's end in the text ends the paragraph.
-    replace(range, text, kind) {
+    // Replaces what is selected with text; a line's end in the text ends the paragraph. Under tracking
+    // what is struck stays ahead of what replaces it (WordProbe R-R-2), and Backspace leaves the caret
+    // before it (backward).
+    replace(range, text, kind, backward = false) {
         const typing = this.record(kind);
         this.lastAction = null;
         if (kind === 'type') {
@@ -1194,8 +1441,7 @@ export class ParagraphEditor {
             like.f = this.pendingFace;
         }
 
-        this.remove(range.from, range.to);
-        let place = range.from;
+        let place = this.remove(range.from, range.to, backward);
         const lines = text.replace(/\r\n?/g, '\n').split('\n');
         lines.forEach((line, index) => {
             if (index > 0) {
@@ -1275,8 +1521,7 @@ export class ParagraphEditor {
     lineBreak(range) {
         this.record('break');
         const like = this.faceAt(range.from);
-        this.remove(range.from, range.to);
-        const place = this.insert(range.from, '\n', like);
+        const place = this.insert(this.remove(range.from, range.to), '\n', like);
         this.tidy();
         this.render();
         this.select(place);
@@ -1284,8 +1529,7 @@ export class ParagraphEditor {
 
     paragraphBreak(range) {
         this.record('break');
-        this.remove(range.from, range.to);
-        const place = this.split(range.from);
+        const place = this.split(this.remove(range.from, range.to));
         this.tidy();
         this.render();
         this.select(place);
@@ -1376,15 +1620,16 @@ export class ParagraphEditor {
 
     // Word's Ctrl+Y with nothing to redo repeats the last action (WordProbe U-05a, U-06a): here, the
     // last burst of typing, at the caret, over what is selected.
+    // Whether there was anything to repeat.
     repeat() {
         const range = this.range();
         if (!range) {
-            return;
+            return false;
         }
 
         if (this.lastAction?.toggle) {
             this.toggle(this.lastAction.toggle);
-            return;
+            return true;
         }
 
         if (this.lastAction && 'delete' in this.lastAction) {
@@ -1400,16 +1645,104 @@ export class ParagraphEditor {
             }
 
             this.lastAction = { delete: backward };
-            return;
+            return true;
         }
 
         if (!this.typed) {
-            return;
+            return false;
         }
 
         const typed = this.typed;
         this.replace(range, typed, 'repeat');
         this.typed = typed;
+        return true;
+    }
+
+    /**
+     * Keys typed while the paragraph before was being handed in, held by the viewer (holdKey, heldKey) and
+     * typed here as they would have been: each through the box's own key handling first (Tab to the next
+     * cell, Enter in an empty list item, Ctrl+B, Ctrl+Right's word stops) and else as the browser would
+     * have taken it — a character, Enter, Backspace or Delete as its input, an arrow, Home or End as its
+     * caret movement. Stops at a key that takes the reader elsewhere — this box handed in, or
+     * `left()` saying a key started the move to another — and gives back the keys after it, which are
+     * for the paragraph the move opens.
+     */
+    replay(keys, left) {
+        for (let index = 0; index < keys.length; index++) {
+            if (this.pending || this.closed || left()) {
+                return keys.slice(index);
+            }
+
+            const key = keys[index];
+            let prevented = false;
+            this.onKeyDown({
+                ...key,
+                repeat: false,
+                isComposing: false,
+                target: this.box,
+                getModifierState: name => ({ Shift: key.shiftKey, Control: key.ctrlKey, Meta: key.metaKey })[name] === true,
+                preventDefault: () => {
+                    prevented = true;
+                },
+                stopPropagation: () => {
+                }
+            });
+            if (prevented || this.pending || this.closed) {
+                continue;
+            }
+
+            // An arrow, Home or End the box left to the browser: the caret moved, or the selection
+            // grown, as the browser moves it for the key.
+            const moves = { ArrowLeft: 'character', ArrowRight: 'character', ArrowUp: 'line', ArrowDown: 'line', Home: 'lineboundary', End: 'lineboundary' };
+            if (moves[key.key]) {
+                const backward = key.key === 'ArrowLeft' || key.key === 'ArrowUp' || key.key === 'Home';
+                const granularity = key.ctrlKey && moves[key.key] === 'character' ? 'word' : moves[key.key];
+                getSelection()?.modify?.(key.shiftKey ? 'extend' : 'move', backward ? 'backward' : 'forward', granularity);
+                continue;
+            }
+
+            if (key.ctrlKey || key.metaKey) {
+                continue;
+            }
+
+            const range = this.range();
+            if (!range) {
+                return keys.slice(index + 1);
+            }
+
+            if (key.key.length === 1 || key.key === 'Tab') {
+                this.typeText(range, key.key === 'Tab' ? '\t' : key.key);
+            } else if (key.key === 'Enter') {
+                if (key.shiftKey) {
+                    this.lineBreak(range);
+                } else {
+                    const rest = this.finishWord(range);
+                    if (rest) {
+                        this.paragraphBreak(rest);
+                    }
+                }
+            } else if (key.key === 'Backspace' || key.key === 'Delete') {
+                const backward = key.key === 'Backspace';
+                if (this.overInvisible(backward) || this.selectAtom(backward)) {
+                    continue;
+                }
+
+                // A caret: the character beside it, as the browser's own range for the key would say.
+                let target = range;
+                if (same(range.from, range.to)) {
+                    const length = this.blockText(range.from.b).length;
+                    if (backward && range.from.o > 0) {
+                        target = { from: { b: range.from.b, o: range.from.o - 1 }, to: range.from };
+                    } else if (!backward && range.from.o < length) {
+                        target = { from: range.from, to: { b: range.from.b, o: range.from.o + 1 } };
+                    }
+                }
+
+                this.onDelete(target, backward);
+            }
+        }
+
+        return [];
     }
 
     // A character typed: a straight quote is typed as Word's smart quote, and a delimiter that finishes
@@ -1442,10 +1775,6 @@ export class ParagraphEditor {
         const text = this.blockText(end.b);
         let caret = this.range()?.from ?? end;
         for (const correction of corrections(text, end.o, trigger)) {
-            if (correction.list && end.b !== 0) {
-                continue;
-            }
-
             const from = { b: end.b, o: correction.from };
             const to = { b: end.b, o: correction.to };
             if (this.blockText(end.b).slice(correction.from, correction.to).includes('\uFFFC')) {
@@ -1454,15 +1783,16 @@ export class ParagraphEditor {
 
             this.record('autocorrect');
             const like = this.faceAt({ b: end.b, o: correction.from + 1 });
-            this.remove(from, to);
-            const written = this.insert(from, correction.text, like);
+            // Under tracking what is corrected of what was there before is struck ahead of it.
+            const at = this.remove(from, to);
+            const written = this.insert(at, correction.text, like);
             if (correction.face) {
-                for (const item of this.textBetween(from, written)) {
+                for (const item of this.textBetween(at, written)) {
                     item.f |= faces[correction.face];
                 }
             }
 
-            const shift = correction.text.length - (correction.to - correction.from);
+            const shift = written.o - to.o;
             if (caret.b === end.b && caret.o >= correction.to) {
                 caret = { b: caret.b, o: caret.o + shift };
             }
@@ -1687,7 +2017,12 @@ export class ParagraphEditor {
                     }
 
                     const like = this.likeOf(node, was) ?? block.items.findLast(_ => !_.atom) ?? { u: -1, f: this.session.face };
-                    block.items.push({ u: like.u, f: like.f, t: node.data });
+                    const item = { u: like.u, f: like.f, t: node.data };
+                    if (like.n) {
+                        item.n = true;
+                    }
+
+                    block.items.push(item);
                     length += node.data.length;
                     return;
                 }
@@ -1812,6 +2147,7 @@ export class ParagraphEditor {
             // The press took the word already, and a drag since may have taken more (startWordDrag).
             if (this.wordDrag) {
                 this.wordDrag = null;
+                this.keepSelected();
                 return;
             }
 
@@ -1819,6 +2155,13 @@ export class ParagraphEditor {
         } else if (event.detail === 3) {
             unit = 'paragraph';
         } else if (event.detail === 1 && commandKey(event) && same(caret.from, caret.to)) {
+            // Ctrl+click on a link follows it, as Word's does, rather than selecting the sentence.
+            const address = this.linkAt(event.clientX, event.clientY);
+            if (address) {
+                this.callbacks.link?.(address);
+                return;
+            }
+
             unit = 'sentence';
         }
 
@@ -1831,6 +2174,32 @@ export class ParagraphEditor {
         const at = event.detail === 3 ? this.characterAt(event.clientX, event.clientY) ?? caret.from : caret.from;
         const [from, to] = this.unitAround(at, unit);
         this.select(from, to);
+        this.keepSelected();
+    }
+
+    // The address of the link the character under a point is (the session's `l`), or null.
+    linkAt(x, y) {
+        const at = this.characterAt(x, y);
+        const item = at ? this.itemAt(at.b, at.o) : null;
+        return item && item.u >= 0 ? this.session.u[item.u]?.l ?? null : null;
+    }
+
+    // A first press inside text already selected leaves Chromium's own "click in the selection" waiting,
+    // to tell a click from the start of a drag, and it collapses the selection once the clicks are over
+    // — after the word or the paragraph was selected, and with no script call, so the double-click took
+    // nothing. What the clicks selected is selected again once their task is done.
+    keepSelected() {
+        const kept = this.range();
+        if (!kept || same(kept.from, kept.to)) {
+            return;
+        }
+
+        setTimeout(() => {
+            const now = this.range();
+            if (!this.closed && !this.pending && now && same(now.from, now.to)) {
+                this.select(kept.from, kept.to);
+            }
+        }, 0);
     }
 
     // A plain drag is by character: Morph follows Word with automatic word selection off (WordProbe M-34,
@@ -1923,7 +2292,9 @@ export class ParagraphEditor {
     // (DocumentEditor.ResizePicture), in points.
     onPictureDown(event) {
         const span = event.target instanceof Element ? event.target.closest('.edit-drawing') : null;
-        if (!span || span.classList.contains('edit-hidden') || !this.box.contains(span) || this.pending) {
+        // A picture struck under tracking is a deletion now, not a picture to size.
+        if (!span || span.classList.contains('edit-hidden') || span.classList.contains('edit-struck') ||
+            !this.box.contains(span) || this.pending) {
             return;
         }
 
@@ -2067,8 +2438,13 @@ export class ParagraphEditor {
     }
 
     // What an item that is not text reads as, copied: a field its result, a note's reference its mark,
-    // a page break the end of a line. A picture, and text a tracked change deleted, read as nothing.
+    // a page break the end of a line. A picture, and text a tracked change deleted, read as nothing,
+    // and so does whatever was struck here.
     atomText(item) {
+        if (item.x) {
+            return '';
+        }
+
         const unit = this.session.u[item.u];
         switch (unit?.s) {
             case 'field':
@@ -2103,6 +2479,38 @@ export class ParagraphEditor {
             if (unit?.v) {
                 const tag = unit.v === 1 ? 'sup' : 'sub';
                 html = `<${tag}>${html}</${tag}>`;
+            }
+
+            // The run's font, size, colour and highlight where they are its own rather than its
+            // paragraph's: as CSS for any other application, and as data-morph-* for the editor, which
+            // keeps them when the text is pasted back into the document, as Word's Keep Source Formatting
+            // does (PastedHtml.Own). Text from anywhere else merges into the document's look.
+            if (unit && !item.atom) {
+                const attributes = [];
+                const styles = [];
+                if (unit.n && unit.n !== this.session.font) {
+                    attributes.push(`data-morph-font="${escape(unit.n)}"`);
+                    styles.push(`font-family:'${unit.n}'`);
+                }
+
+                if (unit.z && unit.z !== this.session.size) {
+                    attributes.push(`data-morph-size="${unit.z}"`);
+                    styles.push(`font-size:${unit.z}pt`);
+                }
+
+                if (unit.c && unit.c !== this.session.color) {
+                    attributes.push(`data-morph-color="${unit.c}"`);
+                    styles.push(`color:#${unit.c}`);
+                }
+
+                if (unit.g) {
+                    attributes.push(`data-morph-highlight="${unit.g}"`);
+                    styles.push(`background-color:#${unit.g}`);
+                }
+
+                if (attributes.length) {
+                    html = `<span ${attributes.join(' ')} style="${escape(styles.join(';'))}">${html}</span>`;
+                }
             }
 
             return html;
@@ -2240,7 +2648,8 @@ export class ParagraphEditor {
             }
 
             const position = this.divide(at);
-            this.blocks[at.b].items.splice(position, 0, ...items.map(_ => ({ ..._ })));
+            // Under tracking, what is put in is new here, wherever it came from.
+            this.blocks[at.b].items.splice(position, 0, ...items.map(_ => (this.session.tracked ? { ..._, n: true } : { ..._ })));
             let length = 0;
             for (const item of items) {
                 length += lengthOf(item);
@@ -2450,7 +2859,7 @@ export class ParagraphEditor {
         const text = this.blockText(place.b);
         const other = backward ? stepBack(text, place.o) : stepOn(text, place.o);
         const [from, to] = backward ? [other, place.o] : [place.o, other];
-        this.replace({ from: { b: place.b, o: from }, to: { b: place.b, o: to } }, '', 'delete');
+        this.replace({ from: { b: place.b, o: from }, to: { b: place.b, o: to } }, '', 'delete', backward);
     }
 
     // Word selects a field, a picture or a note's reference beside the caret before it deletes it: the
@@ -2477,7 +2886,7 @@ export class ParagraphEditor {
     // between it and its neighbour: the two are joined, which is the file's to do.
     onDelete(range, backward) {
         if (!same(range.from, range.to)) {
-            this.replace(range, '', 'delete');
+            this.replace(range, '', 'delete', backward);
             return;
         }
 
@@ -2486,7 +2895,7 @@ export class ParagraphEditor {
         const beside = backward ? range.from.o - 1 : range.from.o;
         const item = beside >= 0 ? this.itemAt(range.from.b, beside) : null;
         if (item && this.removable(item) && !this.invisible(item)) {
-            this.replace({ from: { b: range.from.b, o: beside }, to: { b: range.from.b, o: beside + 1 } }, '', 'delete');
+            this.replace({ from: { b: range.from.b, o: beside }, to: { b: range.from.b, o: beside + 1 } }, '', 'delete', backward);
             return;
         }
 
@@ -2626,27 +3035,21 @@ export class ParagraphEditor {
                     event.preventDefault();
                     this.toggle({ b: bold, i: italic, u: underline }[key]);
                     return;
+                // With no step of the box's own to take back, the key is the document's: the edit
+                // handed in before this paragraph was opened is undone, as the Undo button undoes it.
                 case 'z':
                     event.preventDefault();
-                    if (event.shiftKey) {
-                        this.redo();
-                    } else {
-                        this.undo();
+                    if (!(event.shiftKey ? this.redo() : this.undo())) {
+                        this.callbacks.command(event.shiftKey ? 'redo' : 'undo');
                     }
 
                     return;
                 case 'y':
                     event.preventDefault();
-                    if (!this.redo()) {
-                        this.repeat();
+                    if (!this.redo() && !this.repeat()) {
+                        this.callbacks.command('redo');
                     }
 
-                    return;
-                case 'enter':
-                    // Hands the paragraph in and goes on typing in it once the page is drawn again:
-                    // the caret is not lost to the hand-in.
-                    event.preventDefault();
-                    this.commit(5);
                     return;
                 case 'k':
                     event.preventDefault();
@@ -2677,10 +3080,13 @@ export class ParagraphEditor {
         }
 
         switch (event.key) {
+            // Escape leaves the paragraph, and what was typed in it is kept — handed in as a click
+            // elsewhere hands it in, so Ctrl+Z takes it back as one step. Word's Escape never loses
+            // text; one that threw away the typing, with nothing to undo, lost work to a stray key.
             case 'Escape':
                 event.preventDefault();
                 event.stopPropagation();
-                this.cancel();
+                this.commit(0);
                 return;
             case 'F3':
                 if (event.shiftKey && !event.altKey) {
@@ -2702,12 +3108,15 @@ export class ParagraphEditor {
                 if (this.range() && !event.shiftKey) {
                     const caret = this.range();
                     const before = this.blockText(caret.from.b).slice(0, caret.from.o);
-                    if (caret.from.b === 0 && same(caret.from, caret.to) && numberLeader(before)) {
+                    // In any paragraph of the box, a paragraph Enter made as much as the one opened: the
+                    // list is asked for where the caret is (target).
+                    if (same(caret.from, caret.to) && numberLeader(before)) {
+                        const start = { b: caret.from.b, o: 0 };
                         this.record('autocorrect');
-                        this.remove({ b: 0, o: 0 }, caret.from);
+                        const at = this.remove(start, caret.from);
                         this.tidy();
                         this.render();
-                        this.select({ b: 0, o: 0 });
+                        this.select(at);
                         this.callbacks.key('numbering');
                         return;
                     }
@@ -3021,10 +3430,26 @@ export class ParagraphEditor {
 
     // Handing in
 
+    // What the paragraph now reads as. Under tracking it also says what the box struck (1) and what
+    // was typed (2), so that the file has each change exactly where the reader made it rather than
+    // where a comparison of the two texts would put it (EditSession, DocumentEditor.Told). Something
+    // struck that is not text is left out, which is how the file comes to strike it too.
     payload() {
+        const item = _ => {
+            if (_.atom && _.x && typeof _.t === 'string') {
+                return [_.u, _.t, _.f, 1];
+            }
+
+            if (_.atom) {
+                return [_.u];
+            }
+
+            return _.n ? [_.u, _.t, _.f, 2] : [_.u, _.t, _.f];
+        };
+
         return JSON.stringify(this.blocks.map(block => ({
             a: block.align,
-            i: block.items.map(item => item.atom ? [item.u] : [item.u, item.t, item.f])
+            i: block.items.filter(_ => !_.x || typeof _.t === 'string').map(item)
         })));
     }
 
@@ -3034,9 +3459,8 @@ export class ParagraphEditor {
 
     /**
      * Hands the paragraph in, and says whether there was anything to hand. then is 0, or 1 or 2 to
-     * have the paragraph joined to the one before or after it, 3 or 4 to go on to the paragraph
-     * before or after it, or 5 to go on typing where the caret was. The box stays, no longer
-     * editable, until the page is drawn again.
+     * have the paragraph joined to the one before or after it, or 3 or 4 to go on to the paragraph
+     * before or after it. The box stays, no longer editable, until the page is drawn again.
      */
     commit(then = 0) {
         if (this.pending) {
@@ -3055,11 +3479,6 @@ export class ParagraphEditor {
         this.setExtend(0);
         this.tidy();
         const payload = this.payload();
-        if (then === 5 && payload === this.original) {
-            // Nothing to hand in: typing goes on where it was.
-            return Promise.resolve(false);
-        }
-
         if (payload === this.original && (then === 0 || then >= 3)) {
             this.callbacks.cancel(this.session.id);
             this.dispose();

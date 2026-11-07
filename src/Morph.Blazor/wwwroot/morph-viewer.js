@@ -63,6 +63,9 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         toggleSidebar: open => viewer.toggleSidebar(open),
         setFindResults: (documentId, matches, current) => viewer.setFindResults(documentId, matches, current),
         clearFind: () => viewer.clearFind(),
+        selectFind: () => viewer.selectFind(),
+        openLink: address => viewer.followLink(address),
+        copyText: text => navigator.clipboard?.writeText(text).catch(() => {}),
         setReviewMode: on => viewer.setReviewMode(on),
         setReview: (documentId, comments, current, scroll) => viewer.setReview(documentId, comments, current, scroll),
         revealReviewCard: key => viewer.revealReviewCard(key),
@@ -70,6 +73,7 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         setMarks: on => showMarks(on),
         setPainting: on => viewer.setPainting(on),
         setPictures: (documentId, numbers) => viewer.setPictures(documentId, numbers),
+        setLines: (documentId, numbers) => viewer.setLines(documentId, numbers),
         setRuler: model => viewer.setRuler(model),
         placeMenu: () => viewer.placeMenu(),
         setAbilities: (save, print) => viewer.setAbilities(save, print),
@@ -249,6 +253,29 @@ function isTyping(target) {
         (target.closest('input, textarea, select, [contenteditable=""], [contenteditable="true"]') !== null);
 }
 
+// The keys held while the reader moves to another paragraph (Viewer.holdKey) and typed into it after
+// (ParagraphEditor.replay): a character (AltGr's too), Enter, Tab, Backspace and Delete; the arrows,
+// Home and End, with Shift or Ctrl; and Ctrl+B, I, U, Z and Y. Not the clipboard's keys, whose
+// events only the browser can make.
+function heldKey(event) {
+    const altGraph = event.getModifierState?.('AltGraph') === true;
+    const command = (event.ctrlKey || event.metaKey) && !altGraph;
+    const alt = event.altKey && !altGraph;
+    if (alt) {
+        return false;
+    }
+
+    if (['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) {
+        return true;
+    }
+
+    if (command) {
+        return ['b', 'i', 'u', 'z', 'y'].includes(event.key.toLowerCase());
+    }
+
+    return event.key.length === 1 || ['Enter', 'Tab', 'Backspace', 'Delete'].includes(event.key);
+}
+
 // A ribbon group's form (Viewer.foldRibbon): null for whole, 'squeezed' or 'folded'.
 function setFold(group, form) {
     if (form) {
@@ -326,6 +353,13 @@ class Viewer {
         this.editMode = false;
         this.editor = null;
         this.leaving = [];
+        // Keys typed while the reader moves from one paragraph to the next, for the next (holding).
+        this.typeAhead = null;
+        this.moves = 0;
+        this.leavingEditor = null;
+        this.arrived = false;
+        // Every paragraph's lines, by page (setLines).
+        this.lineBoxes = null;
         this.selectionTimer = 0;
         this.lastSelection = '';
         this.abilities = { save: true, print: true };
@@ -1710,9 +1744,14 @@ class Viewer {
 
             this.selectPicture(null);
 
-            // A click in the editor is the editor's; one anywhere else on a page opens what is there.
+            // A click in the editor is the editor's; one anywhere else on a page opens what is there, and
+            // a Ctrl+click on a link follows it.
             if (!target.closest('.edit-box') && target.closest('.viewer-page')) {
-                this.onEditClick(event);
+                if ((event.ctrlKey || event.metaKey) && !event.shiftKey && !event.altKey) {
+                    this.onEditCtrlClick(event);
+                } else {
+                    this.onEditClick(event);
+                }
             }
 
             return;
@@ -1934,6 +1973,12 @@ class Viewer {
             return;
         }
 
+        if (this.holdKey(event)) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+        }
+
         const command = (event.ctrlKey || event.metaKey) && !event.altKey;
         const key = event.key.toLowerCase();
         if (command && key === 'p' && this.pages.length && this.abilities.print && !this.dialogOpen() &&
@@ -1944,14 +1989,24 @@ class Viewer {
             return;
         }
 
-        // Ctrl+F, and Ctrl+H while editing, with the focus nowhere — the page just opened, or a press on
-        // something that does not take it let it go — are the viewer's as they are once the pages have
-        // the focus: the root's own listener never hears a key the body takes.
-        if (command && !event.shiftKey && (key === 'f' || (key === 'h' && this.editMode)) && this.pages.length &&
+        // With the focus nowhere — the page just opened, a comment posted, a press on something that does
+        // not take it let it go — the keys are the viewer's as they are once the pages have the focus:
+        // the root's own listener never hears a key the body takes. While editing that is every key the
+        // pages answer (Undo, Word's keys, typing over text selected on them, Ctrl+F); otherwise Ctrl+F.
+        if (this.editMode && this.pages.length && !this.dialogOpen() && this.unfocused()) {
+            this.onKeyDown(event);
+            if (event.defaultPrevented) {
+                event.stopPropagation();
+            }
+
+            return;
+        }
+
+        if (command && !event.shiftKey && key === 'f' && this.pages.length &&
             !this.dialogOpen() && this.unfocused()) {
             event.preventDefault();
             event.stopPropagation();
-            this.call(key === 'f' ? 'OnFindRequested' : 'OnReplaceRequested');
+            this.call('OnFindRequested');
         }
     }
 
@@ -2171,6 +2226,14 @@ class Viewer {
         }
 
         this.paintFind(true);
+    }
+
+    // The find box, focused with what it holds selected, as Ctrl+F leaves Word's: what is typed then
+    // replaces the last search rather than running on from it.
+    selectFind() {
+        const input = this.root.querySelector('.viewer-findbar input[type=search]');
+        input?.focus();
+        input?.select();
     }
 
     clearFind() {
@@ -2480,6 +2543,20 @@ class Viewer {
     // over it. What is typed is handed in when the reader moves on (OnEditCommit), and the editor
     // stays up until the page has been drawn again.
 
+    // Every line of the paragraphs, as wide as each paragraph's box, from .NET (EditMap.LineBoxes), in
+    // points, by page: what Up and Down choose among (linesBeyond).
+    setLines(documentId, numbers) {
+        if (documentId !== this.documentId) {
+            return;
+        }
+
+        this.lineBoxes = [];
+        for (let index = 0; index + 4 < numbers.length; index += 5) {
+            const [page, left, top, right, bottom] = numbers.slice(index, index + 5);
+            (this.lineBoxes[page] ??= []).push({ left, top, right, bottom });
+        }
+    }
+
     // Floating pictures: where each page draws its own, from .NET (PagedDocument.Pictures), in points.
     setPictures(documentId, numbers) {
         if (documentId !== this.documentId) {
@@ -2723,6 +2800,15 @@ class Viewer {
             return;
         }
 
+        // The keys after it are the pages', as they are after Ctrl+A: undone from the ribbon, the
+        // paragraph handed in has let the focus go, and a character typed would otherwise reach nothing
+        // rather than replace what is selected. So do they once the find bar closes on the match it
+        // found. A box of the ribbon the reader is typing in keeps it.
+        const active = document.activeElement;
+        if (!active || active === document.body || this.scroller.contains(active) || active.closest?.('.viewer-findbar')) {
+            this.scroller.focus({ preventScroll: true });
+        }
+
         const range = document.createRange();
         range.setStart(from.startContainer, from.startOffset);
         range.setEnd(to.startContainer, to.startOffset);
@@ -2802,6 +2888,7 @@ class Viewer {
             state: state => this.editorState(opened, state),
             key: name => this.editKey(name),
             command: name => this.editCommand(name),
+            link: address => this.followLink(address),
             overtype: () => this.toggleOvertype(),
             selectAll: () => this.selectAll(),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
@@ -2813,6 +2900,11 @@ class Viewer {
         this.editor.overtype = this.overtype === true;
         // The ruler follows the caret to the page it is on.
         this.drawRuler();
+        // What was typed while the reader moved here (holding).
+        if (this.typeAhead !== null) {
+            this.arrived = true;
+            this.replayTyped();
+        }
     }
 
     // The look at an editor's caret, for the ribbon. An editor that is done with — released once its
@@ -2852,7 +2944,12 @@ class Viewer {
     }
 
     // The editor stays where it is, showing what was typed, until the page under it shows the same.
-    async handIn(editor, payload, then) {
+    // What is typed meanwhile goes into the paragraph the hand-in opens, if it opens one (holding).
+    handIn(editor, payload, then) {
+        return this.holding(() => this.handInNow(editor, payload, then));
+    }
+
+    async handInNow(editor, payload, then) {
         const before = this.documentId;
         this.leaving.push(editor);
         // Kept while it is under way, for what has to follow it rather than race it (handedIn).
@@ -3215,10 +3312,11 @@ class Viewer {
         }
 
         // A character typed over text selected on the pages replaces it, joining the paragraphs it runs
-        // across into the first (WordProbe R-E-4); typing then goes on in the paragraph.
+        // across into the first (WordProbe R-E-4); typing then goes on in the paragraph, the keys
+        // pressed while it opens held for it (holding).
         if (!command && !event.altKey && event.key.length === 1 && this.selectedText()) {
             event.preventDefault();
-            this.dotNet.invokeMethodAsync('OnEditTypeOver', event.key).catch(() => {});
+            this.holding(() => this.dotNet.invokeMethodAsync('OnEditTypeOver', event.key).catch(() => {}));
             return true;
         }
 
@@ -3241,7 +3339,91 @@ class Viewer {
     // A key whose command .NET carries out where the reader is (MorphViewer.OnEditKey): a list's
     // level, a heading, a link. .NET asks editTarget() where that is, which hands in what is open.
     editKey(name) {
-        this.dotNet.invokeMethodAsync('OnEditKey', name).catch(() => {});
+        return this.holding(() => this.dotNet.invokeMethodAsync('OnEditKey', name).catch(() => {}));
+    }
+
+    // Moving from one paragraph to another — a click, a key that hands the paragraph in and opens the
+    // next (Tab in a table, Enter in an empty list item), an arrow out of it — waits for .NET to take the
+    // edit and lay the pages out again, and nothing is open to type in meanwhile. What the reader types
+    // then is held (holdKey) and typed into the paragraph that opens (replayTyped), as Word, which never
+    // loses a key, would have it; when none opens, it is let go. Moves under way at once share one hold,
+    // which ends with the last of them.
+    async holding(work) {
+        if (!this.editMode) {
+            return work();
+        }
+
+        this.moves++;
+        this.typeAhead ??= [];
+        // The paragraph being left, which a key typed now is not for, though it may still have the focus
+        // until the hand-in takes it.
+        this.leavingEditor = this.editor;
+        // Until a paragraph opens (beginEdit), and no longer: what is pressed after that — Ctrl+A and
+        // Delete on the pages — is not held, though the move may not have finished.
+        this.arrived = false;
+        try {
+            return await work();
+        } finally {
+            this.moves--;
+            this.replayTyped();
+            if (this.moves === 0) {
+                this.typeAhead = null;
+                this.leavingEditor = null;
+            }
+        }
+    }
+
+    // A key typed while the reader is moving to another paragraph, held for it: a character, Enter,
+    // Tab, Backspace or Delete typed on the pages or in the paragraph being left — not in a box of the
+    // ribbon, the find bar or a dialog. Whether it was held.
+    holdKey(event) {
+        if (this.typeAhead === null || event.isComposing) {
+            return false;
+        }
+
+        if (this.arrived) {
+            // The paragraph that opened takes its own keys, once what was held before it is typed.
+            this.replayTyped();
+            return false;
+        }
+
+        const target = event.target;
+        const onPages = target === document.body || target === document.documentElement ||
+            this.scroller.contains(target) && !(target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement);
+        if (!onPages) {
+            return false;
+        }
+
+        if (!heldKey(event)) {
+            return false;
+        }
+
+        const altGraph = event.getModifierState?.('AltGraph') === true;
+        this.typeAhead.push({
+            key: event.key,
+            code: event.code,
+            shiftKey: event.shiftKey,
+            ctrlKey: event.ctrlKey && !altGraph,
+            altKey: event.altKey && !altGraph,
+            metaKey: event.metaKey
+        });
+        return true;
+    }
+
+    // What was held typed into the paragraph now open, if one is; a key of it that moves the reader on
+    // again (Tab to the next cell) leaves the keys after it held for where that move goes.
+    replayTyped() {
+        const keys = this.typeAhead;
+        const editor = this.editor;
+        if (!keys?.length || !editor || editor.closed || editor.pending || editor === this.leavingEditor) {
+            return;
+        }
+
+        this.typeAhead = [];
+        const moves = this.moves;
+        const rest = editor.replay(keys, () => this.moves > moves);
+        // Ahead of anything typed since, which came after them.
+        this.typeAhead = [...rest, ...this.typeAhead];
     }
 
     pageOf(target) {
@@ -3280,7 +3462,71 @@ class Viewer {
         return node && page.layer.contains(node) ? textOffset(page.layer, node, offset) : -1;
     }
 
-    async onEditClick(event) {
+    // Ctrl+click follows a link, as Word's does (.NET says what the character under the pointer links
+    // to); on text in none it is a click, which opens the paragraph there.
+    async onEditCtrlClick(event) {
+        const page = this.pageOf(event.target);
+        const offset = page ? this.characterUnder(page, event.clientX, event.clientY) : -1;
+        if (offset >= 0) {
+            let address = null;
+            try {
+                address = await this.dotNet.invokeMethodAsync('OnEditLinkAt', page.index, offset);
+            } catch {
+                // The component is gone.
+            }
+
+            if (address) {
+                this.followLink(address);
+                return;
+            }
+        }
+
+        this.onEditClick(event);
+    }
+
+    // The offset into a page's text of the character a point is on — not merely nearest, as a caret's
+    // place is; -1 off every character.
+    characterUnder(page, clientX, clientY) {
+        const offset = this.caretOffset(page, clientX, clientY);
+        for (const candidate of [offset, offset - 1]) {
+            if (candidate < 0 || candidate >= textLength(page.layer)) {
+                continue;
+            }
+
+            for (const box of textRange(page.layer, candidate, 1)?.getClientRects() ?? []) {
+                if (clientX >= box.left - 1 && clientX <= box.right + 1 && clientY >= box.top - 1 && clientY <= box.bottom + 1) {
+                    return candidate;
+                }
+            }
+        }
+
+        return -1;
+    }
+
+    // A link followed — by Ctrl+click, or the right-click menu's Open link — as Word follows one: one to
+    // a bookmark (a table of contents' entry) moves the caret to where it starts; a web or mail address
+    // opens in a new tab. Anything else — a file on the author's disk, script — is not opened.
+    followLink(address) {
+        if (!address) {
+            return;
+        }
+
+        if (address.startsWith('#')) {
+            this.dotNet.invokeMethodAsync('OnEditGoToBookmark', address.slice(1)).catch(() => {});
+            return;
+        }
+
+        if (/^(https?:|mailto:)/i.test(address)) {
+            window.open(address, '_blank', 'noopener,noreferrer');
+        }
+    }
+
+    // What is typed straight after the click goes into the paragraph it opens (holding).
+    onEditClick(event) {
+        return this.holding(() => this.clickToEdit(event));
+    }
+
+    async clickToEdit(event) {
         const page = this.pageOf(event.target);
         if (!page) {
             return;
@@ -3632,7 +3878,11 @@ class Viewer {
     // the way down to the next page's body (.NET says which paragraph a point is in, OnEditProbe).
     // Should none be found, or none open, the paragraph left is opened again where the caret was rather
     // than the caret being lost.
-    async leaveEditor(direction, clientX, clientY, line) {
+    leaveEditor(direction, clientX, clientY, line) {
+        return this.holding(() => this.leaveEditorNow(direction, clientX, clientY, line));
+    }
+
+    async leaveEditorNow(direction, clientX, clientY, line) {
         const leaving = this.editor;
         const from = leaving?.page ? this.pages[leaving.page.index] : null;
         // Inside the paragraph left, half a line back from its edge.
@@ -3697,8 +3947,7 @@ class Viewer {
     // at, in the window's coordinates.
     linesBeyond(page, direction, clientX, edge) {
         const lines = [];
-        for (const element of page.layer.querySelectorAll('.text-line')) {
-            const box = element.getBoundingClientRect();
+        for (const box of this.lineRects(page)) {
             if (box.height <= 0) {
                 continue;
             }
@@ -3722,6 +3971,27 @@ class Viewer {
         return lines.sort((first, second) => Math.abs(first.distance - second.distance) > 3
             ? first.distance - second.distance
             : first.aside - second.aside);
+    }
+
+    // A page's lines in the window's coordinates: every paragraph's, empty ones and empty cells' too, each
+    // as wide as the paragraph's box, as .NET laid them out (setLines) — so a column is told by the cell
+    // it is in rather than by how far its text runs. The text layer's lines where those are not known,
+    // or the page is turned.
+    lineRects(page) {
+        const boxes = this.lineBoxes?.[page.index];
+        if (!boxes || this.rotation !== 0) {
+            return [...page.layer.querySelectorAll('.text-line')].map(_ => _.getBoundingClientRect());
+        }
+
+        const sheet = page.element.getBoundingClientRect();
+        const scale = sheet.width / Math.max(1, page.width);
+        return boxes.map(_ => {
+            const left = sheet.left + _.left * scale;
+            const top = sheet.top + _.top * scale;
+            const right = sheet.left + _.right * scale;
+            const bottom = sheet.top + _.bottom * scale;
+            return { left, top, right, bottom, width: right - left, height: bottom - top };
+        });
     }
 
     // Which paragraph a point of a page is in, as [ordinal, story], or null where there is none.

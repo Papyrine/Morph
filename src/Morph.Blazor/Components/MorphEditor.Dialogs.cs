@@ -763,8 +763,7 @@ public partial class MorphEditor
     {
         if (args.Key == "Escape")
         {
-            CloseDialog();
-            return Task.CompletedTask;
+            return CancelDialogAsync();
         }
 
         if (args.Key != "Enter" ||

@@ -4960,8 +4960,10 @@ Enter and breaks
   is deleted first; before a table the break paragraph goes between text and table (E-28, E-28b, E-28c,
   E-28d). Ctrl+Shift+Enter inserts a column break character (`\u000E`) the same way without a
   paragraph of its own; in a table it splits the table at the row and leaves an empty paragraph between
-  the halves (E-29, E-29b). — Morph: PARTIAL (Insert › Page break puts the break on a paragraph of its own as Word does, `InsertTests`;
-  Ctrl+Enter hands the open paragraph in, so it is not the key, and Ctrl+Shift+Enter is TODO).
+  the halves (E-29, E-29b). — Morph: PARTIAL (Ctrl+Enter and Insert › Page break put the break on a paragraph of its own as Word does,
+  a selection deleted first, typing going on after it; Ctrl+Shift+Enter and Layout › Breaks › Column put
+  a column break in the line, `InsertTests`; in a table the column break is greyed out rather than
+  splitting the table, and a page break in a cell is not tested).
 
 Tab
 
@@ -14235,8 +14237,11 @@ selection growth across cells.
   (T-31, T-31b). Tracked, a deleted row or table is marked as a deletion, while Backspace or Ctrl+X on a
   column under Track Changes opens a message box (`NUIDialog`, "Microsoft Word") and Esc leaves the
   column (T-32; T-05 COL2 tracked, T-22 tracked). Neither dialog's control text is readable over Win32
-  (Word draws both itself), so the wording is not recorded. — Morph: TODO (no structural selection by
-  keyboard or mouse; the ribbon deletes rows and columns).
+  (Word draws both itself), so the wording is not recorded. — Morph: PARTIAL (text selected on the pages
+  from one cell into another of the same table is the rectangle of cells between, and Delete or
+  Backspace clears each cell's content and keeps the cells, tracked or not, the caret at the first
+  cell's start — `DocumentEditor.Delete`, `TableEditTests`; Backspace opens no Delete Cells dialog, there
+  is no structural selection by keyboard, and the ribbon deletes rows and columns).
 - **R-T-5 A selection that starts in body text and ends inside a table** is deleted by Backspace, Delete
   and Ctrl+X alike: the rows it spans are removed and the text before the selection joins the next
   row's first cell (`Befor‸a2`); Enter, Tab and typing do nothing on such a selection, and under Track
@@ -19723,8 +19728,9 @@ paste; drag and drop.
   `PasteSmartCutPaste` on (the default) a space is added or removed so the pasted word stands apart
   (`so Strong ft`, `plain words. Strong`), with it off the text goes in exactly; the undo entry is
   "Paste" (C-01). Pasting over a selection replaces it (tracked: the selection struck, the paste
-  inserted after it) (C-20). Nothing is copied or cut when nothing is selected (C-19). — Morph: PARTIAL (plain and HTML paste; a one-line plain paste against a word gets a space either side, as Word's
-  smart cut and paste; no space is taken away).
+  inserted after it) (C-20). Nothing is copied or cut when nothing is selected (C-19). — Morph: PARTIAL (plain and HTML paste; a one-line paste, plain or HTML, against a word gets a space either side, as
+  Word's smart cut and paste; no space is taken away. Text copied out of the paragraph being typed keeps
+  its font, size, colour and highlight pasted back (`PastedHtml.Own`); HTML from elsewhere merges).
 - **R-C-2 A paragraph mark on the clipboard is kept only where a paragraph can start**: pasted at a
   paragraph's start or into an empty paragraph the text becomes a paragraph of its own carrying the
   copied paragraph's style (a Heading 1 stays Heading 1, a list item joins the list before it and
@@ -23265,7 +23271,8 @@ after.
   removed; a URL (`www.`, `http://`, an email, a UNC path) becomes a hyperlink on Space, Tab or Enter but
   not on `,` `.` `)`, and a bare `example.com` becomes `Example.com` by sentence capitalisation instead
   (A-05 to A-10, A-10b). — Morph: PARTIAL (curly quotes, fractions, en and em dashes, `*bold*` and
-  `_italic_`; superscript ordinals and links typed as text are not done).
+  `_italic_`; a spaced ` -- ` becomes an en dash too, as Word's option describes it, which the probes did
+  not type; superscript ordinals and links typed as text are not done).
 - **R-A-3 Automatic lists**: `* `, `- ` and `> ` followed by text and Enter make a bulleted list (the
   glyph the leader's: `●`, `-`, `➢`) and `1. ` `1) ` `(1) ` `1- ` `a. ` `i. ` a numbered one with the
   typed format (`i.` at `⇥54,-36`), the conversion happening on the Space after the leader (the leader
@@ -23274,8 +23281,9 @@ after.
   Enter on it ends the list, Tab on it goes a level deeper (`○` or `a.` at `⇥72`), and one undo right
   after the Enter leaves the list in place; in a cell the same; after an existing list `1. ` starts a new
   list and `3. ` continues the old one (A-11, A-11b, A-11c, A-12, A-12b, A-12c; L-15). — Morph: PARTIAL
-  (the leaders start Word's default bulleted or numbered list, not one in the typed format; `1.` then Tab
-  and continuing an earlier list are not done).
+  (the leaders start Word's default bulleted or numbered list, not one in the typed format, in any
+  paragraph of the open box, one Enter made as well as the one opened; `1.` then Tab converts too;
+  continuing an earlier list is not done).
 - **R-A-4 Border lines and tables as you type**: `---` `___` `***` `===` `~~~` then Enter turn into a
   paragraph border and the text disappears (undo restores the text), `--` does not; `+--+----+` then Enter
   makes a one-row table with the caret in its first cell (A-13, A-14). Headings AutoFormat did not fire
@@ -27186,19 +27194,32 @@ pictures under tracking. Every editing scenario elsewhere in this file also has 
   outright and, once past it, strikes the existing text as a deletion that keeps growing** (`Th{-e q-}uick`
   after five presses); Delete does the same forward and three presses make one deletion (R-01, R-02,
   R-03). Typing beside one's own deletion puts the insertion BEFORE the struck text (`{+z+}{-q-}`); undo
-  takes the deletion away first, then the insertion (R-02b, R-13). — Morph: PARTIAL (the editor writes
-  w:ins and w:del per rewrite; the own-insertion shortcut is not modelled).
+  takes the deletion away first, then the insertion (R-02b, R-13). Backspace leaves the caret before
+  what it struck and Delete after it, on a selection as on one character (R-21). — Morph: DONE (the open
+  paragraph strikes what was there in its place, takes out what was typed since it opened and the
+  author's own insertion, and hands in which is which, so `DocumentEditor.Told` writes each change where
+  the reader made it rather than where comparing the texts would put it).
 - **R-R-2 Typing over a selection strikes it and inserts after it**, the smart-space fix inside the
   insertion (`{-brown -}{+x +}`); a cut word and its paste are a deletion plus an insertion, a cut
   paragraph and its paste a move, a copy and paste one insertion (R-05, R-06, R-06b, R-06c). — Morph:
-  PARTIAL.
+  PARTIAL (typing over a selection strikes it in the open paragraph with the replacement after it; the
+  smart-space fix and move marks are not modelled).
 - **R-R-3 Enter is an inserted mark; Backspace at a paragraph's start first strips (centring here) as a
   paragraph property revision, and a merge by Delete strikes the mark and marks the second paragraph's
   properties changed**, the two paragraphs still shown apart while the deletion stands (R-04, R-04b,
   R-04c). Enter inside one's own insertion keeps both halves in it (R-14, R-14b). — Morph: PARTIAL.
 - **R-R-4 Formatting under tracking is a formatting revision** (`{~…~}`): bold on existing text, centring
   and a heading on the paragraph; bold on one's own insertion nests inside it; clearing formatting that
-  was never set records nothing (R-07). — Morph: PARTIAL (w:rPrChange and w:pPrChange are written).
+  was never set records nothing (R-07). A formatting revision's balloon says what changed
+  (`Revision.FormatDescription`, read over COM for each property alone and in combination): "Font: Bold,
+  Not Italic", "Font: (Default) Arial, 14 pt, Font color: Red", "Centered, Indent: Left: 1.27 cm,
+  Hanging: 0.63 cm, Space Before: 6 pt, After: 12 pt", "List Paragraph, Bulleted + Level: 1 + Aligned at:
+  0.63 cm + Indent at: 1.27 cm", in a fixed order whatever order the markup gives; colours by Word's
+  palette names, a theme's by its slot, any other as "Custom Color(RGB(…))"; a hanging paragraph's Left
+  is where its first line starts; kerning turned off says nothing. — Morph: PARTIAL (w:rPrChange and
+  w:pPrChange are written, and the review pane describes each as Word does, `FormatWords`, 217 of 220
+  probed descriptions matched; a font or size taken off, which Word describes as the style's, is left
+  out).
 - **R-R-5 Tables under tracking**: typing over a cell strikes and inserts, Delete over a row strikes each
   cell's text, Backspace from the row bar marks the row deleted, Tab in the last cell marks the new row
   inserted, Ctrl+Shift+Enter marks the inserted paragraph, a pasted table is one insertion (R-08, R-17,
@@ -27241,11 +27262,13 @@ flowchart TD
 
 #### R-02 · Backspace over own insertion, then over existing text, one press at a time
 
-`plain` · Morph: **PARTIAL**
+`plain` · Morph: **DONE**
 
 Expected before the run: (a) the two own characters are removed outright, then each press marks the character before
 the caret deleted and the caret steps left over it; (b) once own deleted text sits before the caret, Backspace
 deletes the next undeleted character beyond it; (c) Backspace does nothing once it reaches own deleted text.
+
+Tests: `SnapshotTests.Tracked_Backspace_StrikesTheText_InTheBox`
 
 1. `track(on)`
 2. `select(P1:5)`
@@ -27274,9 +27297,11 @@ Selection: IP 2–2 · Tracking · Revisions 1 · Undo: Typing, Typing, Typing, 
 
 Markup diff: `WordProbe/Results/markup/R-02.diff`
 
+Tests: `SnapshotTests.Tracked_Backspace_StrikesTheText_InTheBox`
+
 #### R-02b · After Backspace has reached existing text: the keys that follow
 
-`plain` · Morph: **PARTIAL**
+`plain` · Morph: **DONE**
 
 Expected before the run: (a) type inserts before the deleted character; Backspace marks the next character to the
 left; Delete marks the deleted character's right neighbour, skipping own deleted text; Right steps over the deleted
@@ -27309,10 +27334,12 @@ deleted, with the caret before it. Each branch asks what the next key does from 
 
 #### R-03 · Delete over existing text, repeated
 
-`plain` · Morph: **PARTIAL**
+`plain` · Morph: **DONE**
 
 Expected before the run: (a) the caret stays at P1:5 and each press marks the next undeleted character deleted, so
 the deletion grows rightwards; (b) the caret steps right over each character it marks.
+
+Tests: `SnapshotTests.Tracked_DeleteAndTypingOver_StrikeTheText_InTheBox`
 
 1. `track(on)`
 2. `select(P1:5)`
@@ -27334,6 +27361,8 @@ the deletion grows rightwards; (b) the caret steps right over each character it 
 Selection: IP 8–8 · Tracking · Revisions 1 · Undo: Clear, Clear, Clear
 
 Markup diff: `WordProbe/Results/markup/R-03.diff`
+
+Tests: `SnapshotTests.Tracked_DeleteAndTypingOver_StrikeTheText_InTheBox`
 
 #### R-04 · Enter splits a paragraph: the new mark is an insertion
 
@@ -27402,6 +27431,8 @@ Markup diff: `WordProbe/Results/markup/R-04c.diff`
 
 Expected before the run: 'brown' is marked deleted and 'x' inserted after it, caret after the insertion.
 
+Tests: `SnapshotTests.Tracked_DeleteAndTypingOver_StrikeTheText_InTheBox`
+
 1. `track(on)`
 2. `select(P1:10-P1:15)`
 3. `type("x")`
@@ -27411,6 +27442,8 @@ Expected before the run: 'brown' is marked deleted and 'x' inserted after it, ca
 ```
 
 Selection: IP 17–17 · Tracking · Revisions 2 · Undo: Typing "x"
+
+Tests: `SnapshotTests.Tracked_DeleteAndTypingOver_StrikeTheText_InTheBox`
 
 #### R-05b · A selection of own insertion replaced by typing
 
@@ -27714,10 +27747,12 @@ flowchart TD
 
 #### R-13 · Typing beside own deleted text
 
-`plain` · Morph: **PARTIAL**
+`plain` · Morph: **DONE**
 
 Expected before the run: (a) the insertion is written after the deletion in the markup; (b) before it, where the
 caret stood.
+
+Tests: `SnapshotTests.Tracked_Backspace_StrikesTheText_InTheBox`
 
 1. `track(on)`
 2. `select(P1:9)`
@@ -27731,6 +27766,8 @@ caret stood.
 Selection: IP 7–7 · Tracking · Revisions 2 · Undo: Typing "z", Typing, Typing, Typing
 
 Markup diff: `WordProbe/Results/markup/R-13.diff`
+
+Tests: `SnapshotTests.Tracked_Backspace_StrikesTheText_InTheBox`
 
 #### R-14 · Enter inside an own insertion
 
@@ -27865,7 +27902,7 @@ flowchart TD
 
 #### R-19 · A selection spanning own insertion and existing text deleted
 
-`plain` · Morph: **PARTIAL**
+`plain` · Morph: **DONE**
 
 Expected before the run: The own characters are removed outright and the existing characters on either side are
 marked deleted, leaving two deletions or one around the gap.
@@ -27897,6 +27934,37 @@ range touches.
 ```
 
 Selection: Normal 8–14 end-active · Revisions 2 · Undo —
+
+#### R-21 · Where the caret goes once a selection, or a word, is struck
+
+`plain` · Morph: **PARTIAL**
+
+Expected before the run: (a) the caret goes after the struck text whichever key struck it, as Delete leaves it after
+R-19's selection; (b) Backspace leaves it before the struck text and Delete after, as on one character (R-02, R-03).
+
+Tests: `SnapshotTests.Tracked_BackspaceOnASelection_LeavesTheCaretBeforeIt`
+
+steps before the branches `track(on)`
+
+- `track(on)` → `[‸The quick brown fox jumps over the lazy dog.]` · IP 0–0 · Tracking · Revisions 0 · Undo —
+- `select(P1:10-P1:15) · Backspace` → `[The quick ]{-[‸brown ]-}[fox jumps over the lazy dog.]` · IP 10–10 · Tracking · Revisions 1 · Undo: Typing
+- `select(P1:10-P1:15) · Delete` → `[The quick ]{-[brown ]-}[‸fox jumps over the lazy dog.]` · IP 16–16 · Tracking · Revisions 1 · Undo: Clear
+- `select(P1:15) · Ctrl+Backspace` → `[The quick]{-[‸ brown]-}[ fox jumps over the lazy dog.]` · IP 9–9 · Tracking · Revisions 1 · Undo: Delete Back Word
+- `select(P1:10) · Ctrl+Delete` → `[The quick ]{-[brown ]-}[‸fox jumps over the lazy dog.]` · IP 16–16 · Tracking · Revisions 1 · Undo: Delete Word
+
+```mermaid
+flowchart TD
+  root["plain"]
+  root --> n_["track(on)"]
+  root --> n_selection_backspace["select(P1:10-P1:15) · Backspace"]
+  root --> n_selection_delete["select(P1:10-P1:15) · Delete"]
+  root --> n_word_backspace["select(P1:15) · Ctrl+Backspace"]
+  root --> n_word_delete["select(P1:10) · Ctrl+Delete"]
+```
+
+Notes: (b): Backspace leaves the caret before the struck text and Delete after it, on a selection as on one
+character. Struck by Backspace or Delete, 'brown' took its trailing space with it, and Ctrl+Backspace after 'brown'
+the space before it; Morph's open paragraph places the caret as Word does but strikes the word alone.
 <!-- probe:end tracking -->
 
 ## Headers, footers, notes, comments and text boxes
@@ -27938,8 +28006,10 @@ Entering and leaving the other stories, their edges, and the note reference as a
   existing comment's text: F6 takes focus off the document and the typed letter is lost; Review › Next
   (Alt+R, N) moves the selection into the comment story but typing and Ctrl+Enter there change nothing
   (H-18); a COM selection in the comment story takes no keys either (H-08, H-12). — Morph: PARTIAL
-  (comments are added, replied to and reworded in the review pane; no draft card, and the scope rule at
-  a paragraph's end is not matched).
+  (comments are added, replied to and reworded in the review pane; text deleted, or typed away and
+  handed in, with the whole of a comment's anchor takes the comment, part of it keeps it, and tracked
+  the comment stays — `DocumentEditor.Unanchoring`, `CommentAnchorTests`; no draft card, and the scope
+  rule at a paragraph's end is not matched).
 - **R-H-5 A footer is a story like the header**: typing appends, Backspace deletes, Delete before a PAGE
   field selects it then removes it, Backspace after it the same, Delete at the footer's end does nothing
   (H-15, H-15b). — Morph: PARTIAL.
@@ -28644,7 +28714,8 @@ Click-and-Type, Overtype, Esc per context, Ctrl+A then Delete, section and page 
   caret goes to the anchor paragraph's start; in a text box the first Esc selects the box and the second
   returns to the body; in a header Esc returns to the body at the caret's old place; in a comment Esc
   returns to the body with the scope selected (X-03 to X-03h). — Morph: PARTIAL (Esc after F8 ends extend mode and keeps the selection; with a picture selected in the line Esc
-  leaves the caret before it; otherwise Esc abandons the open paragraph's typing).
+  leaves the caret before it; otherwise Esc hands the open paragraph in and leaves it, what was typed
+  kept and undone by Ctrl+Z, where Word's Esc does nothing at all — never losing the text either way).
 - **R-X-3 Ctrl+A then Delete leaves one empty paragraph and removes every shape; typing after Ctrl+A
   replaces the document with the typed text** (X-07, X-07b). — Morph: PARTIAL.
 - **R-X-4 A non-breaking space is a character and a word boundary**: Shift+Right takes it like a letter,

@@ -7,6 +7,23 @@ public partial class SnapshotTests
 
     static byte[] Comments { get; } = File.ReadAllBytes(ProjectFiles.corpus.comments_docx);
 
+    // A formatting change says what it changed, as Word's balloon does (FormatWords).
+    [Test]
+    public async Task Review_AFormattingChange_SaysWhatItChanged()
+    {
+        const string revision = "w:id=\"1\" w:author=\"Ann\" w:date=\"2026-11-07T10:30:00Z\"";
+        var docx = EditFixtures.Build(
+            $"<w:p><w:pPr><w:jc w:val=\"center\"/><w:pPrChange {revision}><w:pPr/></w:pPrChange></w:pPr>" +
+            "<w:r><w:t xml:space=\"preserve\">The </w:t></w:r>" +
+            $"<w:r><w:rPr><w:b/><w:color w:val=\"FF0000\"/><w:rPrChange {revision.Replace("\"1\"", "\"2\"")}><w:rPr/></w:rPrChange></w:rPr><w:t>quick</w:t></w:r>" +
+            "<w:r><w:t xml:space=\"preserve\"> fox.</w:t></w:r></w:p>");
+        var page = await OpenReviewAsync(docx);
+
+        await Assert.That(await page.Locator(".review-change").CountAsync()).IsEqualTo(2);
+        await Assert.That(string.Join(" | ", await page.Locator(".review-change .review-detail").AllInnerTextsAsync()))
+            .IsEqualTo("Centered | Font: Bold, Font color: Red");
+    }
+
     [Test]
     public async Task Review_ListsAComment_AndPaintsWhatItIsOn()
     {

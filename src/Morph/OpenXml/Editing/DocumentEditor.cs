@@ -33,7 +33,7 @@ static partial class DocumentEditor
             options,
             edit =>
             {
-                var rewritten = edit.Rewrite(paragraph, content);
+                var rewritten = edit.Unanchoring(() => edit.Rewrite(paragraph, content));
                 if (join == JoinDirection.Next)
                 {
                     return edit.Join(rewritten[^1]);
@@ -102,7 +102,7 @@ static partial class DocumentEditor
     /// the first is joined to the last; they have to follow one another in one container.
     /// </summary>
     public static EditResult Delete(byte[] docx, SourcePosition start, SourcePosition end, EditOptions options) =>
-        Edit(docx, options, edit => edit.Delete(start, end));
+        Edit(docx, options, edit => edit.Unanchoring(() => edit.Delete(start, end)));
 
     /// <summary>Turns the document's own change tracking on or off (<c>w:trackRevisions</c>).</summary>
     public static byte[] SetTracking(byte[] docx, bool on) =>
@@ -218,8 +218,8 @@ static partial class DocumentEditor
     }
 
     // A character of the text as it is to read, with the formatting it is to have; or the break
-    // between two paragraphs.
-    readonly record struct Fresh(char Character, int Unit, RunFormat Format, bool Mark);
+    // between two paragraphs. Struck and Typed are what the editor said of it (NewItem).
+    readonly record struct Fresh(char Character, int Unit, RunFormat Format, bool Mark, bool Struck = false, bool Typed = false);
 
     // A character of the text as it was, and the unit it was a character of.
     readonly record struct Old(Cell Cell, int Unit);
@@ -466,7 +466,7 @@ static partial class DocumentEditor
 
                     foreach (var character in Clean(item.Text))
                     {
-                        after[^1].Add(new(character, Math.Max(item.Unit, -1), item.Format, false));
+                        after[^1].Add(new(character, Math.Max(item.Unit, -1), item.Format, false, item.Struck && item.Unit >= 0, item.Typed));
                     }
                 }
             }
@@ -598,9 +598,19 @@ static partial class DocumentEditor
         }
 
         // What an insertion stands before: the next character that stays. One that went has been
-        // dealt with already, and is no longer where it was read.
-        static Old? Right(List<Old> old, List<Step> steps, int last)
+        // dealt with already, and is no longer where it was read. Tracked, an insertion made just
+        // ahead of a deletion (as the editor tells it, Told) stands before nothing that stays: it
+        // goes after the character before it, ahead of the deletion, where the reader typed it
+        // (WordProbe R-13).
+        Old? Right(List<Old> old, List<Step> steps, int last)
         {
+            if (options.Track &&
+                last + 1 < steps.Count &&
+                steps[last + 1].Kind == StepKind.Delete)
+            {
+                return null;
+            }
+
             for (var step = last + 1; step < steps.Count; step++)
             {
                 if (steps[step].Kind == StepKind.Keep)
@@ -615,11 +625,17 @@ static partial class DocumentEditor
         List<Step> Steps(List<Unit> units, List<Old> old, List<Fresh> fresh)
         {
             var was = Text(old.Select(_ => _.Cell));
+            if (Told(old, fresh, was) is { } told)
+            {
+                return told;
+            }
+
             var now = string.Concat(fresh.Select(_ => _.Character));
 
             // A character is what it was only in the run it was in: the editor says which run each
-            // stretch of text is like, and that is what tells a space typed from a space kept.
-            var hunks = TextDiff.Compare(was, now, [.. old.Select(_ => _.Unit)], [.. fresh.Select(_ => _.Unit)]);
+            // stretch of text is like, and that is what tells a space typed from a space kept. What
+            // it says it typed is like nothing that was there (the kind -1, as the mark's own text).
+            var hunks = TextDiff.Compare(was, now, [.. old.Select(_ => _.Unit)], [.. fresh.Select(_ => _.Typed ? -1 : _.Unit)]);
             var steps = new List<Step>();
             var at = 0;
             var to = 0;
@@ -630,6 +646,17 @@ static partial class DocumentEditor
             }
 
             Kept(was.Length - at);
+
+            // Text the editor struck was matched to what it was, like any other kept, and is deleted
+            // there; struck text the search took for new is not put in.
+            if (fresh.Any(_ => _.Struck))
+            {
+                steps = steps
+                    .Where(_ => !(_.Kind == StepKind.Insert && fresh[_.New].Struck))
+                    .Select(_ => _.Kind == StepKind.Keep && fresh[_.New].Struck ? _ with {Kind = StepKind.Delete} : _)
+                    .ToList();
+            }
+
             return steps;
 
             void Kept(int count)
@@ -684,6 +711,44 @@ static partial class DocumentEditor
                 fresh[after].Format.IsEmpty &&
                 old[before].Unit != fresh[after].Unit &&
                 Alike(units, old[before].Unit, fresh[after].Unit);
+        }
+
+        // The steps as the editor told them, when it said which characters it typed and which it
+        // struck (tracked typing in the open paragraph): the new text less what was typed is then the
+        // old text, character for character and run for run, and each change stands exactly where the
+        // reader made it — no search to guess where a deletion was, nor to join two changes into a
+        // word replaced. Null when it did not say, or when what it says is not the old text — a run it
+        // took a character for another of — and the search works it out.
+        static List<Step>? Told(List<Old> old, List<Fresh> fresh, string was)
+        {
+            if (!fresh.Any(_ => _.Struck || _.Typed))
+            {
+                return null;
+            }
+
+            var steps = new List<Step>(fresh.Count);
+            var at = 0;
+            for (var to = 0; to < fresh.Count; to++)
+            {
+                var character = fresh[to];
+                if (character.Typed ||
+                    character.Unit < 0)
+                {
+                    steps.Add(new(StepKind.Insert, at, to));
+                    continue;
+                }
+
+                if (at >= was.Length ||
+                    was[at] != character.Character ||
+                    old[at].Unit != character.Unit)
+                {
+                    return null;
+                }
+
+                steps.Add(new(character.Struck ? StepKind.Delete : StepKind.Keep, at++, to));
+            }
+
+            return at == was.Length ? steps : null;
         }
 
         static bool Alike(List<Unit> units, int first, int second)
@@ -2097,6 +2162,15 @@ static partial class DocumentEditor
 
         public (Paragraph Paragraph, int Offset)? Delete(SourcePosition start, SourcePosition end)
         {
+            // From one cell into another is the cells between, which keep their places and lose what they
+            // hold — though no text of either cell was selected.
+            if (ParagraphAt(start) is { } from &&
+                ParagraphAt(end) is { } to &&
+                CellsApart(from, to) is { } between)
+            {
+                return Clear(between);
+            }
+
             var stretches = Between(start, end);
             if (stretches.Count == 0)
             {

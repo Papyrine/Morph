@@ -881,6 +881,35 @@
     padding: 0;
 }
 
+/* A tab, as wide as the script sets it to reach the paragraph's stop (layoutTabs); its own character
+   takes no room, and a stop's leader is drawn across it. */
+.edit-tab {
+    display: inline-block;
+    width: 0;
+    vertical-align: baseline;
+    tab-size: 0;
+    letter-spacing: 0;
+    white-space: pre;
+    /* So a leader, drawn along the bottom, runs near the baseline rather than under the line. */
+    line-height: 1;
+}
+
+.edit-tab[data-leader="dot"] {
+    border-bottom: 0.12em dotted currentColor;
+}
+
+.edit-tab[data-leader="hyphen"] {
+    border-bottom: 0.08em dashed currentColor;
+}
+
+.edit-tab[data-leader="line"] {
+    border-bottom: 0.06em solid currentColor;
+}
+
+.edit-tab[data-leader="heavy"] {
+    border-bottom: 0.14em solid currentColor;
+}
+
 .edit-atom {
     user-select: all;
     -webkit-user-select: all;
@@ -899,6 +928,19 @@
 
 .edit-field {
     background-color: rgb(0 0 0 / 0.08);
+}
+
+/* A field, a note's reference, a break or a picture struck under tracking in the open paragraph, until
+   it is handed in: struck through in the revision colour, as the page draws a deletion. */
+.edit-struck {
+    color: #D13438 !important;
+    text-decoration-line: line-through !important;
+}
+
+.edit-drawing.edit-struck {
+    opacity: 0.5;
+    outline: 2px solid #D13438;
+    outline-offset: -2px;
 }
 
 .edit-drawing {
@@ -1501,6 +1543,13 @@
     color: var(--morph-muted, #6c757d);
     font-size: 0.75rem;
     white-space: nowrap;
+}
+
+/* What a formatting change did ("Font: Bold, Italic"), which can run to several lines. */
+.review-detail {
+    margin: 0;
+    font-size: 0.8125rem;
+    overflow-wrap: anywhere;
 }
 
 .review-tools {

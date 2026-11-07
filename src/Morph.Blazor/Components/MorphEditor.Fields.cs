@@ -97,6 +97,6 @@ public partial class MorphEditor
             return;
         }
 
-        OnDialogKeyDown(args);
+        await OnDialogKeyDown(args);
     }
 }

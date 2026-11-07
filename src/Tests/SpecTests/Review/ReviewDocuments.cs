@@ -1,4 +1,4 @@
-using DocumentFormat.OpenXml;
+﻿using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using OoxmlParagraphProperties = DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties;
@@ -62,7 +62,7 @@ static class ReviewDocuments
     public static string Mark(string kind, string author, int id, string properties = "") =>
         $"<w:pPr>{properties}<w:rPr><w:{kind} {By(author, id)}/></w:rPr></w:pPr>";
 
-    public static byte[] Build(string body, string? comments = null, string? commentsExtended = null, string? settings = null, string? styles = null, string? header = null)
+    public static byte[] Build(string body, string? comments = null, string? commentsExtended = null, string? settings = null, string? styles = null, string? header = null, string? numbering = null)
     {
         using var stream = new MemoryStream();
         using (var package = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
@@ -92,6 +92,11 @@ static class ReviewDocuments
             if (header != null)
             {
                 main.AddNewPart<HeaderPart>().Header = [with($"<w:hdr {namespaces}>{header}</w:hdr>")];
+            }
+
+            if (numbering != null)
+            {
+                main.AddNewPart<NumberingDefinitionsPart>().Numbering = [with($"<w:numbering {namespaces}>{numbering}</w:numbering>")];
             }
         }
 

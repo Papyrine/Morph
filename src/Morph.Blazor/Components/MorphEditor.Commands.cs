@@ -680,12 +680,26 @@ public partial class MorphEditor
 
         // Insert
 
+        // Word's key for it, Ctrl+Enter (WordProbe E-28): the open paragraph is handed in, and typing
+        // goes on in the paragraph after the break.
         public static readonly EditorCommand PageBreak =
             new("page-break", "Page break", _ => _.InsertPageBreakAsync())
             {
                 Icon = Lucide.SeparatorHorizontal,
+                Key = "Ctrl+Enter",
                 Place = "Insert › Pages",
                 Enabled = ForPages
+            };
+
+        // Ctrl+Shift+Enter (WordProbe E-29), a character in the line. In a table Word splits the table
+        // at the row instead, which the editor does not do: there it is greyed out.
+        public static readonly EditorCommand ColumnBreak =
+            new("column-break", "Column break", _ => _.InsertColumnBreakAsync())
+            {
+                Icon = Lucide.SeparatorVertical,
+                Key = "Ctrl+Shift+Enter",
+                Place = "Layout › Page setup › Breaks",
+                Enabled = _ => ForPages(_) && !_.InTable
             };
 
         // Word's Blank Page: a page break either side of an empty paragraph, as one edit.
@@ -1482,6 +1496,7 @@ public partial class MorphEditor
                 Find,
                 Replace,
                 PageBreak,
+                ColumnBreak,
                 BlankPage,
                 Table,
                 Picture,

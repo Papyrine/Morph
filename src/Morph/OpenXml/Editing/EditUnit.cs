@@ -16,5 +16,11 @@ sealed record EditUnit(EditUnitKind Kind, int Run, int Start, string Text)
     /// <summary>Whether the unit is the text of a link.</summary>
     public bool Linked { get; init; }
 
+    /// <summary>
+    /// The author of the tracked insertion the unit's run is in, or null when it is in none. Deleting
+    /// text an author inserted, under tracking by that author, takes it out rather than striking it.
+    /// </summary>
+    public string? InsertedBy { get; init; }
+
     public bool Editable => Kind == EditUnitKind.Text;
 }

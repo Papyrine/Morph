@@ -25,6 +25,13 @@ sealed record ReviewChange
     /// </summary>
     public required string Text { get; init; }
 
+    /// <summary>
+    /// What a formatting change did, in Word's words: "Font: Bold", "Centered, Space After: 12 pt"
+    /// (<see cref="FormatWords"/>). Null for every other kind, and for a formatting change Word would
+    /// have nothing to say of.
+    /// </summary>
+    public string? Description { get; init; }
+
     public required ReviewPart Part { get; init; }
 
     /// <summary>

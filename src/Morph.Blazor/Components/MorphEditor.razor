@@ -218,7 +218,7 @@
 
     @if (dialog == linkDialog)
     {
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-link-title" @onkeydown="OnLinkKeyDownAsync">
             <h2 id="editor-link-title" class="editor-dialog-title">@(LinkInLink && linkTarget is not { HasSelection: true } ? "Link" : "Insert link")</h2>
             @if (LinkAsksText)
@@ -252,7 +252,7 @@
                 {
                     <button type="button" class="editor-button editor-button-primary" disabled="@(linkAddress.Trim().Length == 0 || (LinkAsksText && linkText.Length == 0))" @onclick="InsertLinkAsync">Insert</button>
                 }
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }
@@ -260,7 +260,7 @@
     @if (dialog == paragraphDialog)
     {
         var fields = paragraphFields;
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-paragraph-title" @onkeydown="OnFormDialogKeyDownAsync">
             <h2 id="editor-paragraph-title" class="editor-dialog-title">Paragraph</h2>
             <div class="editor-dialog-tabs" role="tablist">
@@ -347,7 +347,7 @@
             }
             <div class="editor-dialog-buttons">
                 <button type="button" class="editor-button editor-button-primary" disabled="@(ParagraphChange() is null)" @onclick="ParagraphFromDialogAsync">OK</button>
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }
@@ -355,7 +355,7 @@
     @if (dialog == fontDialog)
     {
         var fields = fontFields;
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-font-title" @onkeydown="OnFormDialogKeyDownAsync">
             <h2 id="editor-font-title" class="editor-dialog-title">Font</h2>
             <div class="editor-field-grid editor-field-grid-three">
@@ -425,7 +425,7 @@
             <div class="editor-font-preview" aria-label="Preview"><span style="@FontPreview">@(fields.Font.Trim().Length > 0 ? fields.Font.Trim() : "Preview")</span></div>
             <div class="editor-dialog-buttons">
                 <button type="button" class="editor-button editor-button-primary" disabled="@(FontChange() is null)" @onclick="FontFromDialogAsync">OK</button>
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }
@@ -433,7 +433,7 @@
     @if (dialog == bookmarkDialog)
     {
         var taken = DocumentEditor.IsBookmarkName(bookmarkName);
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-bookmark-title" @onkeydown="OnBookmarkKeyDownAsync">
             <h2 id="editor-bookmark-title" class="editor-dialog-title">Bookmark</h2>
             <label class="editor-field">
@@ -460,14 +460,14 @@
                 <button type="button" class="editor-button editor-button-primary" disabled="@(!taken)" @onclick="AddBookmarkFromDialogAsync">Add</button>
                 <button type="button" class="editor-button" disabled="@(!BookmarkExists)" @onclick="DeleteBookmarkFromDialogAsync">Delete</button>
                 <button type="button" class="editor-button" disabled="@(!BookmarkExists)" @onclick="GoToBookmarkFromDialogAsync">Go To</button>
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }
 
     @if (dialog == dateDialog)
     {
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         var current = ChosenDate;
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-date-title" @onkeydown="OnDateKeyDownAsync">
             <h2 id="editor-date-title" class="editor-dialog-title">Date and time</h2>
@@ -482,14 +482,14 @@
             <label class="editor-check"><input type="checkbox" checked="@dateUpdates" @onchange="args => dateUpdates = args.Value is true" /> Update automatically</label>
             <div class="editor-dialog-buttons">
                 <button type="button" class="editor-button editor-button-primary" @onclick="DateFromDialogAsync">Insert</button>
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }
 
     @if (dialog == marginsDialog)
     {
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-margins-title" @onkeydown="OnMarginsKeyDownAsync">
             <h2 id="editor-margins-title" class="editor-dialog-title">Margins</h2>
             <div class="editor-margin-fields">
@@ -505,14 +505,14 @@
             </div>
             <div class="editor-dialog-buttons">
                 <button type="button" class="editor-button editor-button-primary" disabled="@(CustomMargins() is null)" @onclick="MarginsFromDialogAsync">Apply</button>
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }
 
     @if (dialog == splitDialog)
     {
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-split-title" @onkeydown="OnSplitKeyDownAsync">
             <h2 id="editor-split-title" class="editor-dialog-title">Split cells</h2>
             <label class="editor-field">
@@ -525,7 +525,7 @@
             </label>
             <div class="editor-dialog-buttons">
                 <button type="button" class="editor-button editor-button-primary" disabled="@(splitColumns * splitRows <= 1)" @onclick="SplitFromDialogAsync">Split</button>
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }
@@ -534,7 +534,7 @@
     {
         var count = Count();
         var selected = CountSelected();
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog" role="dialog" aria-modal="true" aria-labelledby="editor-count-title" @onkeydown="OnDialogKeyDown">
             <h2 id="editor-count-title" class="editor-dialog-title">Word count</h2>
             <dl class="editor-count">
@@ -551,21 +551,21 @@
             }
             <p class="editor-dialog-note">The document's body: headers, footers and notes are not counted.</p>
             <div class="editor-dialog-buttons">
-                <button type="button" class="editor-button editor-button-primary" @onclick="CloseDialog">Close</button>
+                <button type="button" class="editor-button editor-button-primary" @onclick="CancelDialogAsync">Close</button>
             </div>
         </div>
     }
 
     @if (dialog == discardDialog)
     {
-        <div class="editor-dialog-backdrop" @onclick="CloseDialog"></div>
+        <div class="editor-dialog-backdrop" @onclick="CancelDialogAsync"></div>
         <div class="editor-dialog" role="alertdialog" aria-modal="true" aria-labelledby="editor-discard-title" @onkeydown="OnDialogKeyDown">
             <h2 id="editor-discard-title" class="editor-dialog-title">@(waitingOpen is null ? "Start a new document?" : "Open another document?")</h2>
             <p class="editor-dialog-note">@fileName has edits that have not been saved. They are lost unless you save a copy first.</p>
             <div class="editor-dialog-buttons">
                 <button type="button" class="editor-button" @onclick="SaveThenNewAsync">@(SavesInPlace ? "Save first" : "Save a copy first")</button>
                 <button type="button" class="editor-button editor-button-danger" @onclick="DiscardThenNewAsync">Discard edits</button>
-                <button type="button" class="editor-button" @onclick="CloseDialog">Cancel</button>
+                <button type="button" class="editor-button" @onclick="CancelDialogAsync">Cancel</button>
             </div>
         </div>
     }

@@ -12,6 +12,7 @@
 /// <para>To the script (<c>v</c> 1), lengths in points:</para>
 /// <code>
 /// {"v":1,"id":3,"p":12,"page":0,"x":72,"y":80,"w":451.3,"h":29.2,"skip":0,"indent":0,"align":0,
+///  "tabs":{"o":72,"d":36,"l":0,"e":451.3,"s":[[432,2,1]]},
 ///  "line":14.6,"base":11.4,"size":11,"face":0,"font":"Aptos","color":"000000","fill":null,"from":5,"to":5,
 ///  "previous":true,"next":true,
 ///  "u":[{"k":0,"t":"Hello ","z":11,"n":"Aptos","f":1,"c":"000000","a":5.9},{"k":1,"s":"note","t":"1","z":11,"v":1},…]}
@@ -21,14 +22,17 @@
 /// something shown and left alone (<c>s</c> says what: deleted, field, note, drawing, break) and 2
 /// for something unseen; <c>f</c> is the
 /// <see cref="Face"/> bits, and <c>a</c> the room a character of it took on the page
-/// (<see cref="EditMap.Advance"/>), which the script spaces its own text out to. A drawing in the line
+/// (<see cref="EditMap.Advance"/>), which the script spaces its own text out to; <c>l</c> is the address
+/// of the link the text is (<see cref="EditMap.Link"/>, "#name" for a bookmark). A drawing in the line
 /// carries its size (<c>w</c>, <c>e</c>) and, where the layout drew a picture, the picture as a data
-/// URL (<c>img</c>). <c>from</c> and <c>to</c> are where the selection starts and ends, in
+/// URL (<c>img</c>). Under tracking, text the tracking author inserted carries <c>o</c>. <c>from</c> and <c>to</c> are where the selection starts and ends, in
 /// places of the paragraph (<see cref="EditParagraph.Length"/>).
 ///
 /// <para>From the script, a paragraph to each the one has become:</para>
 /// <code>[{"a":null,"i":[[0,"Hello, ",1],[1],[2,"world",0]]},{"a":2,"i":[[-1,"New",0]]}]</code>
 /// An item is a unit's index with its text and face, or the index alone of a unit that is not text.
+/// Under tracking a text item carries a fourth number: 1 for the unit's text struck where it stands,
+/// 2 for text typed (<see cref="NewItem.Struck"/>, <see cref="NewItem.Typed"/>).
 /// </summary>
 sealed class EditSession
 {
@@ -59,6 +63,7 @@ sealed class EditSession
 
     Face[] faces;
     Face markFace;
+    Dictionary<int, string> fieldsDrawn;
 
     public EditSession(int id, EditParagraph paragraph, EditBlock block, EditMap map)
     {
@@ -68,6 +73,61 @@ sealed class EditSession
         Map = map;
         faces = paragraph.Units.Select(_ => FaceOf(map.Format(_.Run))).ToArray();
         markFace = FaceOf(block.Element.Properties.ParagraphMarkRunProperties);
+        fieldsDrawn = DrawnFields(paragraph, block.Element);
+    }
+
+    // What each page field of the paragraph read where the block was drawn, by its unit's index. The
+    // layout works a page number or a page count out for the page it draws on, and the file holds only
+    // what the field read when it was last updated, so a footer opened on page 2 would otherwise show
+    // page 1's number. The parser makes each page field one run with no source of its own, in its
+    // place among the runs that have one, and the layout's copy of the paragraph holds the same runs
+    // with the page's text in theirs (ParagraphElement.RebuiltFrom). A field whose result the file
+    // and the parsed run do not agree on — one inside another field — is left showing the file's.
+    static Dictionary<int, string> DrawnFields(EditParagraph paragraph, ParagraphElement element)
+    {
+        var drawn = new Dictionary<int, string>();
+        if (element.RebuiltFrom is not {Runs: var parsed} ||
+            parsed.Count != element.Runs.Count)
+        {
+            return drawn;
+        }
+
+        var fields = paragraph.Units
+            .Select((unit, index) => (Unit: unit, Index: index))
+            .Where(_ => _.Unit.Kind == EditUnitKind.Field)
+            .ToList();
+        var next = 0;
+        for (var index = 0; index < element.Runs.Count; index++)
+        {
+            var run = element.Runs[index];
+            if (run.Source is { } source)
+            {
+                // Text from a place at or after a field's beginning: that field is passed.
+                while (next < fields.Count &&
+                       (fields[next].Unit.Run < source.Run ||
+                        (fields[next].Unit.Run == source.Run &&
+                         fields[next].Unit.Start <= source.Start)))
+                {
+                    next++;
+                }
+
+                continue;
+            }
+
+            if (parsed[index].PageField == PageFieldKind.None ||
+                next >= fields.Count)
+            {
+                continue;
+            }
+
+            var (unit, at) = fields[next++];
+            if (parsed[index].Text == unit.Text)
+            {
+                drawn[at] = run.Text;
+            }
+        }
+
+        return drawn;
     }
 
     public int Id { get; }
@@ -119,8 +179,12 @@ sealed class EditSession
         return face;
     }
 
-    /// <summary>What the script shows, with the selection from one place of the paragraph to another.</summary>
-    public string Json(int from, int to, bool tracked = false)
+    /// <summary>
+    /// What the script shows, with the selection from one place of the paragraph to another. Under
+    /// tracking, <paramref name="author"/> is who the edit is tracked as: text that author inserted is
+    /// marked (<c>o</c>), since deleting it takes it out rather than striking it (WordProbe R-R-1, R-R-6).
+    /// </summary>
+    public string Json(int from, int to, bool tracked = false, string? author = null)
     {
         var properties = Block.Element.Properties;
         var mark = properties.ParagraphMarkRunProperties;
@@ -166,6 +230,7 @@ sealed class EditSession
             Number(json, "skip", skip);
             Number(json, "indent", Block.Indent);
             json.WriteNumber("align", (int) properties.Alignment);
+            Tabs(json, properties);
             Number(json, "line", first.Height);
             Number(json, "base", first.Baseline - first.Y);
             Number(json, "size", mark?.FontSizePoints ?? properties.ParagraphMarkFontSizePoints ?? Size());
@@ -230,7 +295,7 @@ sealed class EditSession
             json.WriteStartArray("u");
             for (var index = 0; index < Paragraph.Units.Count; index++)
             {
-                Unit(json, index);
+                Unit(json, index, tracked ? author : null);
             }
 
             json.WriteEndArray();
@@ -271,12 +336,19 @@ sealed class EditSession
     static string Color(RunProperties? properties) =>
         properties?.ColorHex ?? "000000";
 
-    void Unit(Utf8JsonWriter json, int index)
+    void Unit(Utf8JsonWriter json, int index, string? author)
     {
         var unit = Paragraph.Units[index];
         var format = Map.Format(unit.Run);
         json.WriteStartObject();
         json.WriteNumber("k", unit.Editable ? 0 : 1);
+        if (author != null &&
+            unit.Editable &&
+            string.Equals(unit.InsertedBy, author, StringComparison.Ordinal))
+        {
+            json.WriteNumber("o", 1);
+        }
+
         if (unit.Editable &&
             format == null)
         {
@@ -285,7 +357,7 @@ sealed class EditSession
             // the script holds count the same places. The box shows it as Word shows hidden text.
             json.WriteNumber("h", 1);
         }
-        json.WriteString("t", Shown(unit));
+        json.WriteString("t", Shown(unit, index));
         Number(json, "z", format?.FontSizePoints ?? Size());
         json.WriteString("n", format?.FontFamily ?? Font());
         var face = faces[index];
@@ -337,6 +409,13 @@ sealed class EditSession
             json.WriteString("g", highlight);
         }
 
+        // The address of the link the text is, which Ctrl+click follows: "#name" for a bookmark.
+        if (unit.Linked &&
+            Map.Link(unit.Run) is { } address)
+        {
+            json.WriteString("l", address);
+        }
+
         if (unit.Editable &&
             format is {VerticalAlignment: not VerticalRunAlignment.Baseline})
         {
@@ -346,9 +425,15 @@ sealed class EditSession
         json.WriteEndObject();
     }
 
-    // What a unit shows. A note's reference shows its number, which is the layout's to know.
-    string Shown(EditUnit unit)
+    // What a unit shows. A note's reference shows its number, and a page field the page's number or
+    // count, which are the layout's to know.
+    string Shown(EditUnit unit, int index)
     {
+        if (unit.Kind == EditUnitKind.Field)
+        {
+            return fieldsDrawn.GetValueOrDefault(index, unit.Text);
+        }
+
         if (unit.Kind != EditUnitKind.Note)
         {
             return unit.Text;
@@ -369,6 +454,42 @@ sealed class EditSession
 
     static void Number(Utf8JsonWriter json, string name, double value) =>
         json.WriteNumber(name, Math.Round(value, 2));
+
+    // Where the paragraph's tabs stop, for the box to set them where the page did (morph-edit.js,
+    // layoutTabs): "o" the page's x the stops count from — the margin, or the cell's content edge —
+    // "d" the document's default interval, "l" the left indent, "e" the edge a right, centred or
+    // decimal stop past it is pulled back to (TabStopResolver), and "s" each stop as its position,
+    // its alignment (0 left, 1 centre, 2 right, 3 decimal) and its leader (0 none, 1 dots, 2
+    // hyphens, 3 a line, 4 middle dots, 5 a heavy line). A bar tab draws a rule and stops nothing.
+    void Tabs(Utf8JsonWriter json, ParagraphProperties properties)
+    {
+        var origin = Block.Left - properties.LeftIndentPoints;
+        json.WriteStartObject("tabs");
+        Number(json, "o", origin);
+        Number(json, "d", properties.DefaultTabStopPoints);
+        Number(json, "l", properties.LeftIndentPoints);
+        Number(json, "e", Block.Right + properties.RightIndentPoints - origin);
+        json.WriteStartArray("s");
+        foreach (var stop in properties.TabStops
+                     .Where(_ => _.Alignment is not (TabAlignment.Bar or TabAlignment.Clear))
+                     .OrderBy(_ => _.PositionPoints))
+        {
+            json.WriteStartArray();
+            json.WriteNumberValue(Math.Round(stop.PositionPoints, 2));
+            json.WriteNumberValue(stop.Alignment switch
+            {
+                TabAlignment.Center => 1,
+                TabAlignment.Right => 2,
+                TabAlignment.Decimal => 3,
+                _ => 0
+            });
+            json.WriteNumberValue((int) stop.Leader);
+            json.WriteEndArray();
+        }
+
+        json.WriteEndArray();
+        json.WriteEndObject();
+    }
 
     /// <summary>
     /// What the script handed back, as the paragraphs the one is to become; null when it is not
@@ -413,9 +534,11 @@ sealed class EditSession
                     }
 
                     var text = item[1].GetString() ?? "";
+                    // Under tracking the script says what it struck (1) and what was typed (2).
+                    var said = item.GetArrayLength() > 3 ? item[3].GetInt32() : 0;
                     if (text.Length > 0)
                     {
-                        items.Add(new(Math.Max(unit, -1), text, Changed(unit, (Face) item[2].GetInt32())));
+                        items.Add(new(Math.Max(unit, -1), text, Changed(unit, (Face) item[2].GetInt32()), said == 1, said == 2));
                     }
                 }
 

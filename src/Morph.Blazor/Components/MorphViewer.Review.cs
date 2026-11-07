@@ -934,6 +934,11 @@ public partial class MorphViewer
                 {
                     await viewer.ReloadAsync(opening, pageSizes, opened.Json);
                     await viewer.SetPicturesAsync(opening, opened.Pictures);
+                    if (Editing)
+                    {
+                        await viewer.SetLinesAsync(opening, opened.Edits.LineBoxes());
+                    }
+
                     if (findOpen &&
                         findQuery.Trim().Length > 0)
                     {

@@ -20,8 +20,8 @@ public partial class SnapshotTests
             .IsEqualTo("Third and last. So then. This is Monday. This works e.g. like this ");
     }
 
-    // Quotes are curly by context, ` - ` becomes an en dash and `--` between words an em dash, and
-    // fractions and `*bold*` are written as Word writes them (WordProbe A-05, A-07, A-08, A-09).
+    // Quotes are curly by context, ` - ` and ` -- ` become an en dash and `--` between words an em dash,
+    // and fractions and `*bold*` are written as Word writes them (WordProbe A-05, A-07, A-08, A-09).
     [Test]
     [Property("WordBehavior", "R-A-2")]
     public async Task AutoFormat_Replaces_AsYouType()
@@ -30,10 +30,10 @@ public partial class SnapshotTests
 
         await ClickInAsync(page, "and last");
         await page.Keyboard.PressAsync("End");
-        await page.Keyboard.TypeAsync(" \"don't\" a - b x--y 1/2 *big* ");
+        await page.Keyboard.TypeAsync(" \"don't\" a - b c -- d x--y 1/2 *big* ");
 
         await Assert.That(await page.InnerTextAsync(editor))
-            .IsEqualTo("Third and last. “don’t” a – b x—y ½ big ");
+            .IsEqualTo("Third and last. “don’t” a – b c – d x—y ½ big ");
         await HandInAsync(page);
 
         await Assert.That(Read(await SaveAsync(page))[2]).Contains("[b:big]");
@@ -52,6 +52,27 @@ public partial class SnapshotTests
         await WaitForBodyAsync(page, _ => _.Contains("<w:numPr>"));
 
         await Assert.That(Read(await SaveAsync(page))[2]).StartsWith("[Third and last.]");
+    }
+
+    // The same in a paragraph Enter made in the open box, which is how a list is begun after a line of
+    // text; what is typed straight after the leader, while the list is made, lands in the item.
+    [Test]
+    [Property("WordBehavior", "R-A-3")]
+    public async Task AutoFormat_StartsAList_AfterEnter()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await ClickInAsync(page, "and last");
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.PressAsync("Enter");
+        await page.Keyboard.TypeAsync("* item");
+        await WaitForBodyAsync(page, _ => _.Contains("<w:numPr>"));
+        await HandInAsync(page);
+
+        var paragraphs = Read(await SaveAsync(page));
+        await Assert.That(paragraphs[2]).IsEqualTo("[Third and last.]");
+        await Assert.That(paragraphs[3]).StartsWith("[item]");
+        await Assert.That(paragraphs[3]).Contains("•");
     }
 
     // The replacement entries fire on Space, and the first undo takes the correction back, leaving what
