@@ -1,37 +1,25 @@
 /// <summary>
 /// The editor's way to the WOPI host. The editor runs in the browser, which neither may call another origin
 /// nor holds the proof key, so it asks this endpoint for an operation by name; the request goes from here to
-/// the file's WOPISrc, signed, and the answer comes back as the host gave it ([MS-WOPI] 3.3.5).
+/// the file's WOPISrc, signed (<see cref="WopiRequests"/>), and the answer comes back as the host gave it
+/// ([MS-WOPI] 3.3.5).
 /// </summary>
 static class WopiProxy
 {
-    public const string ClientName = "Morph.Wopi";
+    public const string ClientName = WopiRequests.ClientName;
     public const string SourceHeader = "X-Morph-Wopi-Src";
     public const string TokenHeader = "X-Morph-Wopi-Token";
-
-    record Operation(HttpMethod Method, bool Contents, string? Override);
-
-    static Dictionary<string, Operation> operations = new(StringComparer.Ordinal)
-    {
-        ["CheckFileInfo"] = new(HttpMethod.Get, false, null),
-        ["GetFile"] = new(HttpMethod.Get, true, null),
-        ["PutFile"] = new(HttpMethod.Post, true, "PUT"),
-        ["Lock"] = new(HttpMethod.Post, false, "LOCK"),
-        ["GetLock"] = new(HttpMethod.Post, false, "GET_LOCK"),
-        ["RefreshLock"] = new(HttpMethod.Post, false, "REFRESH_LOCK"),
-        ["Unlock"] = new(HttpMethod.Post, false, "UNLOCK")
-    };
 
     // What of the host's answer the editor reads.
     static string[] returned = ["X-WOPI-Lock", "X-WOPI-LockFailureReason", "X-WOPI-ItemVersion"];
 
-    public static async Task Handle(HttpContext context, string operation, IOptions<MorphWopiOptions> options, IHttpClientFactory clients, WopiProofs proofs, TimeProvider time)
+    public static async Task Handle(HttpContext context, string operation, IOptions<MorphWopiOptions> options, WopiRequests requests)
     {
         var settings = options.Value;
         var request = context.Request;
         var response = context.Response;
         response.Headers.CacheControl = "no-store";
-        if (!operations.TryGetValue(operation, out var each))
+        if (!WopiRequests.Knows(operation))
         {
             response.StatusCode = StatusCodes.Status404NotFound;
             return;
@@ -65,23 +53,7 @@ static class WopiProxy
             return;
         }
 
-        var url = Url(file, token, each.Contents);
-        using var message = new HttpRequestMessage(each.Method, url);
-        if (each.Override is { } value)
-        {
-            message.Headers.Add("X-WOPI-Override", value);
-        }
-
-        if (!string.IsNullOrEmpty(lockId))
-        {
-            message.Headers.Add("X-WOPI-Lock", lockId);
-        }
-
-        var ticks = time.GetUtcNow().UtcTicks;
-        var (proof, proofOld) = proofs.Sign(token, url.AbsoluteUri, ticks);
-        message.Headers.Add("X-WOPI-Proof", proof);
-        message.Headers.Add("X-WOPI-ProofOld", proofOld);
-        message.Headers.Add("X-WOPI-TimeStamp", ticks.ToString(CultureInfo.InvariantCulture));
+        HttpContent? content = null;
         if (operation == "PutFile")
         {
             if (context.Features.Get<IHttpMaxRequestBodySizeFeature>() is {IsReadOnly: false} limit)
@@ -89,22 +61,17 @@ static class WopiProxy
                 limit.MaxRequestBodySize = settings.MaxFileSize;
             }
 
-            var content = new MemoryStream();
-            await request.Body.CopyToAsync(content, context.RequestAborted);
-            content.Position = 0;
-            message.Content = new StreamContent(content);
-            message.Content.Headers.ContentType = new("application/octet-stream");
-        }
-        else if (each.Method == HttpMethod.Post)
-        {
-            message.Content = new ByteArrayContent([]);
+            var buffer = new MemoryStream();
+            await request.Body.CopyToAsync(buffer, context.RequestAborted);
+            buffer.Position = 0;
+            content = new StreamContent(buffer);
+            content.Headers.ContentType = new("application/octet-stream");
         }
 
-        using var client = clients.CreateClient(ClientName);
         HttpResponseMessage answer;
         try
         {
-            answer = await client.SendAsync(message, HttpCompletionOption.ResponseHeadersRead, context.RequestAborted);
+            answer = await requests.SendAsync(file, token, operation, lockId, content, cancel: context.RequestAborted);
         }
         catch (HttpRequestException)
         {

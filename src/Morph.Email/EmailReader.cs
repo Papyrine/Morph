@@ -1,8 +1,3 @@
-using AngleSharp.Dom;
-using MsgReader.Mime;
-using MsgReader.Mime.Header;
-using MsgReader.Outlook;
-
 namespace Morph;
 
 /// <summary>
@@ -55,8 +50,7 @@ static class EmailReader
                 case Storage.Attachment file:
                     // A picture the body shows is hidden from the attachment list by Outlook, and is still
                     // the picture.
-                    if (file.ContentId is { Length: > 0 } contentId &&
-                        file.Data != null)
+                    if (file is {ContentId: { Length: > 0 } contentId, Data: not null})
                     {
                         pictures[contentId.Trim('<', '>')] = (file.MimeType ?? "application/octet-stream", file.Data);
                     }

@@ -2432,6 +2432,39 @@
     white-space: nowrap;
 }
 
+/* Coauthoring: a bar beside a paragraph someone else has open, in their colour, their name over it. */
+.viewer-presence {
+    position: absolute;
+    z-index: 2;
+    width: 3px;
+    border-radius: 2px;
+    background: var(--presence);
+    pointer-events: none;
+}
+
+.viewer-presence::before {
+    content: attr(data-name);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    padding: 0 4px;
+    border-radius: 3px 3px 3px 0;
+    background: var(--presence);
+    color: #ffffff;
+    font: 600 11px/16px system-ui, sans-serif;
+    white-space: nowrap;
+}
+
+/* The colours the people in a session are told apart by, by the index the session gives each. */
+.viewer-presence-0, .wopi-user-0 { --presence: #c239b3; }
+.viewer-presence-1, .wopi-user-1 { --presence: #0078d4; }
+.viewer-presence-2, .wopi-user-2 { --presence: #107c10; }
+.viewer-presence-3, .wopi-user-3 { --presence: #ca5010; }
+.viewer-presence-4, .wopi-user-4 { --presence: #8764b8; }
+.viewer-presence-5, .wopi-user-5 { --presence: #038387; }
+.viewer-presence-6, .wopi-user-6 { --presence: #986f0b; }
+.viewer-presence-7, .wopi-user-7 { --presence: #d13438; }
+
 .viewer-picture-handle {
     position: absolute;
     width: 10px;
@@ -3277,6 +3310,31 @@ a.wopi-crumb:hover {
 .wopi-status {
     white-space: nowrap;
     color: var(--morph-muted, #6c757d);
+}
+
+/* Who else is in the document: a dot in each one's colour, and their name. */
+.wopi-users {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.wopi-user {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+
+.wopi-user::before {
+    content: "";
+    width: 0.625rem;
+    height: 0.625rem;
+    border-radius: 50%;
+    background: var(--presence);
 }
 
 .wopi-close {

@@ -3,4 +3,7 @@ global using System.Net;
 global using System.Text;
 global using AngleSharp.Html.Parser;
 global using MsgReader;
+global using MsgReader.Mime;
+global using MsgReader.Mime.Header;
+global using MsgReader.Outlook;
 global using OpenXmlHtml;

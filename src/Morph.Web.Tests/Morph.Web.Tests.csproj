@@ -40,6 +40,8 @@
     <!-- Morph.Wopi's endpoints, tested against an OfficeHost host in the same test server (WopiHostTests). -->
     <ProjectReference Include="..\Morph.Wopi\Morph.Wopi.csproj" />
     <PackageReference Include="OfficeHost" />
+    <!-- The clock of the coauthoring sessions, moved on by hand: autosave and leaving (CoauthorHostTests). -->
+    <PackageReference Include="Microsoft.Extensions.TimeProvider.Testing" />
   </ItemGroup>
 
   <!-- The service/bUnit tests need a real file of each readable format and the Aptos faces the PDF
