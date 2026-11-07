@@ -310,6 +310,8 @@ export class ParagraphEditor {
         this.pending = false;
         this.closed = false;
         this.composing = false;
+        // When the reader last typed or clicked here: coauthoring waits for a pause (editIdle).
+        this.lastInput = performance.now();
         this.handled = false;
         this.pendingFace = null;
         this.undoStack = [];
@@ -2078,6 +2080,11 @@ export class ParagraphEditor {
         const signal = this.abort.signal;
         const box = this.box;
         box.addEventListener('beforeinput', event => this.onBeforeInput(event), { signal });
+        for (const type of ['keydown', 'pointerdown', 'compositionupdate']) {
+            box.addEventListener(type, () => {
+                this.lastInput = performance.now();
+            }, { signal, capture: true });
+        }
         box.addEventListener('input', () => this.onInput(), { signal });
         box.addEventListener('compositionstart', () => {
             this.record('compose');

@@ -551,6 +551,8 @@ public partial class MorphViewer : IAsyncDisposable
                 await viewer.SetLinesAsync(opening, opened.Edits.LineBoxes());
             }
 
+            await PushPresenceAsync();
+
             if (findOpen &&
                 findQuery.Trim().Length > 0)
             {

@@ -8,6 +8,9 @@ public class WopiSampleTests
 {
     static Process? sample;
     static string folder = "";
+
+    // What the sample wrote, for a test that fails to say what the server did.
+    static ConcurrentQueue<string> output = new();
     static int hostPort;
     static IPlaywright? playwright;
     static IBrowser? browser;
@@ -48,7 +51,7 @@ public class WopiSampleTests
         sample = Process.Start(start)!;
         // What the sample wrote, told when it does not come up: without it, a sample that failed to start
         // left the tests navigating to a closed port, and the reason was lost.
-        var output = new ConcurrentQueue<string>();
+        output = new();
         sample.OutputDataReceived += (_, line) => output.Enqueue($"out {line.Data}");
         sample.ErrorDataReceived += (_, line) => output.Enqueue($"err {line.Data}");
         sample.BeginOutputReadLine();
@@ -184,10 +187,20 @@ public class WopiSampleTests
         }
     }
 
-    static async Task<IFrame> OpenAsync(IPage page)
+    // Opens Report.docx to edit from the host's page, as the user given (?user=) or the sample's own.
+    static async Task<IFrame> OpenAsync(IPage page, string? user = null)
     {
         await page.GotoAsync(HostUrl);
-        await page.ClickAsync("a:text-is('Edit')");
+        if (user == null)
+        {
+            await page.ClickAsync("a:text-is('Edit')");
+        }
+        else
+        {
+            var edit = await page.GetAttributeAsync("a:text-is('Edit')", "href");
+            await page.GotoAsync($"{HostUrl}{edit}?user={user}");
+        }
+
         var element = await page.WaitForSelectorAsync("iframe[name=editor]");
         var frame = (await element!.ContentFrameAsync())!;
         await frame.WaitForSelectorAsync(
@@ -232,19 +245,107 @@ public class WopiSampleTests
         await Assert.That(await again.InnerTextAsync(".wopi-status")).DoesNotContain("Read-only");
     }
 
-    // A second editor finds the file locked, and opens it read only.
+    static async Task<ILocator> OpenParagraphAsync(IPage page, IFrame frame, string text)
+    {
+        var line = frame.Locator(".text-layer span", new() { HasTextString = text }).First;
+        await line.ClickAsync();
+        return line;
+    }
+
+    // Waits until the text of the pages' text layers, which are built again after each layout, says so: the
+    // whole of it, since what is typed into a line may be drawn in more than one span.
+    static async Task UntilAsync(IFrame frame, Func<string, bool> condition)
+    {
+        var text = "";
+        for (var tries = 0; tries < 240; tries++)
+        {
+            text = await frame.EvaluateAsync<string>("() => [...document.querySelectorAll('.text-layer')].map(_ => _.textContent).join(' ')");
+            if (condition(text))
+            {
+                return;
+            }
+
+            await Task.Delay(250);
+        }
+
+        throw new TimeoutException($"The pages never read as expected; they read:{Environment.NewLine}{text}");
+    }
+
+    // Waits for an element; when it never comes, what the page did meanwhile says why.
+    static async Task WaitForAsync(IFrame frame, string selector)
+    {
+        try
+        {
+            await frame.WaitForSelectorAsync(
+                selector,
+                new()
+                {
+                    Timeout = 60000
+                });
+        }
+        catch (TimeoutException exception)
+        {
+            var log = logs.TryGetValue(frame.Page, out var entries) ? string.Join(Environment.NewLine, entries) : "(none)";
+            var status = await frame.InnerTextAsync(".wopi-bar");
+            var note = await frame.EvaluateAsync<string>("() => document.querySelector('.editor-status-note')?.textContent ?? ''");
+            throw new TimeoutException($"{selector} never came. Bar: {status} Note: {note}{Environment.NewLine}{log}", exception);
+        }
+    }
+
+    // Two people edit the file at once, through the session Morph.Wopi holds: each sees who the other is
+    // and where, cannot open the paragraph the other has open, and sees the other's text once it is handed
+    // in; undo takes back only the reader's own edit, and the file saved holds both people's.
     [Test]
-    public async Task ALockedFile_OpensReadOnly()
+    public async Task TwoEditors_EditTogether()
     {
         var first = await NewPageAsync();
-        var editing = await OpenAsync(first);
+        var demo = await OpenAsync(first);
         var second = await NewPageAsync();
+        var bob = await OpenAsync(second, "bob");
 
-        var frame = await OpenAsync(second);
+        await Assert.That(await bob.InnerTextAsync(".wopi-status")).DoesNotContain("Read-only");
+        await WaitForAsync(demo, ".wopi-user:text-is('Bob User')");
+        await WaitForAsync(bob, ".wopi-user:text-is('Demo User')");
 
-        await Assert.That(await frame.InnerTextAsync(".wopi-status")).StartsWith("Read-only");
-        // Closed as a user closes it, which unlocks the file for the other tests.
-        await CloseAsync(first, editing);
+        // The demo user opens MINUTES: Bob sees where, and cannot open it too.
+        await OpenParagraphAsync(first, demo, "MINUTES");
+        await WaitForAsync(demo, ".edit-box[contenteditable=true]");
+        await first.Keyboard.PressAsync("End");
+        await first.Keyboard.TypeAsync(" by Demo");
+        await WaitForAsync(bob, ".viewer-presence[data-name='Demo User']");
+        await OpenParagraphAsync(second, bob, "MINUTES");
+        await WaitForAsync(bob, ".editor-status-note:text-is('Demo User is editing this paragraph.')");
+
+        // Handed in as the demo user leaves it with Escape, the text reaches Bob. (A click on blank paper
+        // would open the nearest paragraph, as Word's does, and keep it from Bob.)
+        await first.Keyboard.PressAsync("Escape");
+        await UntilAsync(bob, _ => _.Contains("by Demo", StringComparison.OrdinalIgnoreCase));
+
+        // Bob types elsewhere; the demo user sees it once Bob hands it in.
+        var other = await bob.Locator(".text-layer span").Nth(10).InnerTextAsync();
+        await OpenParagraphAsync(second, bob, other.Trim());
+        await WaitForAsync(bob, ".edit-box[contenteditable=true]");
+        await second.Keyboard.PressAsync("End");
+        await second.Keyboard.TypeAsync(" by Bob");
+        await second.Keyboard.PressAsync("Escape");
+        await UntilAsync(demo, _ => _.Contains("by Bob", StringComparison.OrdinalIgnoreCase));
+
+        // Bob's undo takes back his own edit, and leaves the demo user's, on both pages.
+        await second.Keyboard.PressAsync("Control+z");
+        // As drawn, which may be in capitals.
+        await UntilAsync(bob, _ => _.Contains("by Demo", StringComparison.OrdinalIgnoreCase) && !_.Contains("by Bob", StringComparison.OrdinalIgnoreCase));
+        await UntilAsync(demo, _ => _.Contains("by Demo", StringComparison.OrdinalIgnoreCase) && !_.Contains("by Bob", StringComparison.OrdinalIgnoreCase));
+
+        // Saved by the session, with what both left.
+        await first.Keyboard.PressAsync("Control+s");
+        await WaitForAsync(demo, ".wopi-status:text-is('Saved')");
+        var saved = Body(Path.Combine(folder, "Report.docx"));
+        await Assert.That(saved).Contains("by Demo");
+        await Assert.That(saved).DoesNotContain("by Bob");
+
+        // Closed as users close it, which leaves the session and unlocks the file for the other tests.
+        await CloseAsync(second, bob);
+        await CloseAsync(first, demo);
         await first.CloseAsync();
         await second.CloseAsync();
     }

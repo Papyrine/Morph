@@ -273,6 +273,17 @@ public partial class MorphViewer
 
     async Task BeginAsync(ViewerHandle viewer, EditParagraph paragraph, EditBlock block, int from, int to)
     {
+        // Coauthoring, the paragraph is asked of the session first, and may have moved.
+        if (await EnterAsync(paragraph, block) is not var (entered, landed))
+        {
+            StateHasChanged();
+            return;
+        }
+
+        paragraph = entered;
+        block = landed;
+        from = Math.Min(from, paragraph.Length);
+        to = Math.Min(to, paragraph.Length);
         readerPage = block.Page;
         targetDocument = documentId;
         session = new(++sessions, paragraph, block, editMap);
@@ -305,97 +316,119 @@ public partial class MorphViewer
         InvokeAsync(
             async () =>
             {
-                // The session may have been overtaken by another edit's pages, which came while its box
-                // was still on its way in: it is handed in all the same, if its paragraph is still there.
-                var overtaken = session?.Id != id &&
-                                superseded?.Id == id;
-                var open = overtaken ? superseded : session;
-                if (open == null ||
-                    open.Id != id ||
-                    !CanWrite)
+                try
                 {
-                    return;
+                    await CommitEditAsync(id, payload, then);
                 }
-
-                session = null;
-                superseded = null;
-                if (open.Read(payload) is not { } content)
+                finally
                 {
-                    editNote = "That edit could not be read, and was not made.";
-                    StateHasChanged();
-                    return;
-                }
-
-                var join = then switch
-                {
-                    1 => JoinDirection.Previous,
-                    2 => JoinDirection.Next,
-                    _ => JoinDirection.None
-                };
-                var options = await EditOptionsAsync();
-
-                // Handed in while another edit is under way — the box lost the focus to a button that
-                // made one: it waits for that edit rather than being refused, and is made if the file
-                // that edit left still has the paragraph where it was, as it was opened.
-                if (revising ||
-                    overtaken)
-                {
-                    await SettledAsync();
-                    if (open.Paragraph.Ordinal >= outline.Paragraphs.Count ||
-                        !Same(outline.Paragraphs[open.Paragraph.Ordinal], open.Paragraph))
-                    {
-                        editNote = "The document changed while that paragraph was being handed in, so what was typed in it was not kept: type it again.";
-                        StateHasChanged();
-                        return;
-                    }
-                }
-
-                // Undone, a join leaves the caret where the key was pressed: the joined paragraph's start for
-                // Backspace, its end for Delete (WordProbe R-U-2, U-04).
-                var (before, after) = CaretPlace.Typing(open.Paragraph, content);
-                var ordinal = open.Paragraph.Ordinal;
-                beforeEdit = join switch
-                {
-                    JoinDirection.Previous => CaretPlace.At(ordinal, 0),
-                    JoinDirection.Next => CaretPlace.At(ordinal, open.Paragraph.Length),
-                    _ => before
-                };
-                EditResult? result = null;
-                handedIn = null;
-                var edited = await ReviseAsync(
-                    _ =>
-                    {
-                        result = DocumentEditor.Rewrite(_, ordinal, content, options, join);
-                        return result.Document;
-                    },
-                    relayout: true,
-                    () => activeKey);
-                if (!edited)
-                {
-                    return;
-                }
-
-                // The ordinals of the file the script names its place in, for a command that asks.
-                targetDocument = documentId;
-                if (join == JoinDirection.None)
-                {
-                    handedIn = (before, after, content.Count - 1);
-                }
-
-                if (join != JoinDirection.None &&
-                    result is {Paragraph: >= 0} joined)
-                {
-                    await ResumeAsync(joined.Paragraph, joined.Offset);
-                    return;
-                }
-
-                PlacedAfter(after);
-                if (then is 3 or 4)
-                {
-                    // The paragraph handed in is now as many paragraphs as Enter split it into.
-                    await CrossAsync(then == 3 ? ordinal : ordinal + content.Count - 1, then == 3 ? -1 : 1);
+                    // Coauthoring, a paragraph handed in and not opened again is free for the others.
+                    ExitIfClosed();
                 }
             });
+
+    async Task CommitEditAsync(int id, string payload, int then)
+    {
+        // The session may have been overtaken by another edit's pages, which came while its box
+        // was still on its way in: it is handed in all the same, if its paragraph is still there.
+        var overtaken = session?.Id != id &&
+                        superseded?.Id == id;
+        var open = overtaken ? superseded : session;
+        if (open == null ||
+            open.Id != id ||
+            !CanWrite)
+        {
+            return;
+        }
+
+        session = null;
+        superseded = null;
+        if (open.Read(payload) is not { } content)
+        {
+            editNote = "That edit could not be read, and was not made.";
+            StateHasChanged();
+            return;
+        }
+
+        var join = then switch
+        {
+            1 => JoinDirection.Previous,
+            2 => JoinDirection.Next,
+            _ => JoinDirection.None
+        };
+        var options = await EditOptionsAsync();
+
+        // Handed in while another edit is under way — the box lost the focus to a button that
+        // made one: it waits for that edit rather than being refused, and is made if the file
+        // that edit left still has the paragraph where it was, as it was opened.
+        var ordinal = open.Paragraph.Ordinal;
+        if (revising ||
+            overtaken)
+        {
+            await SettledAsync();
+
+            // Coauthoring, others' edits may have moved it: found by its id, which the session keeps unique.
+            if (coauthor != null &&
+                open.Paragraph.Id is { } paragraphId &&
+                OrdinalOf(paragraphId) is { } moved)
+            {
+                ordinal = moved;
+            }
+
+            if (ordinal >= outline.Paragraphs.Count ||
+                !Same(outline.Paragraphs[ordinal], open.Paragraph))
+            {
+                editNote = "The document changed while that paragraph was being handed in, so what was typed in it was not kept: type it again.";
+                StateHasChanged();
+                return;
+            }
+        }
+
+        // Undone, a join leaves the caret where the key was pressed: the joined paragraph's start for
+        // Backspace, its end for Delete (WordProbe R-U-2, U-04).
+        var (before, after) = CaretPlace.Typing(open.Paragraph, content);
+        beforeEdit = join switch
+        {
+            JoinDirection.Previous => CaretPlace.At(ordinal, 0),
+            JoinDirection.Next => CaretPlace.At(ordinal, open.Paragraph.Length),
+            _ => before
+        };
+        EditResult? result = null;
+        handedIn = null;
+        var edited = await ReviseAsync(
+            _ =>
+            {
+                result = DocumentEditor.Rewrite(_, ordinal, content, options, join);
+                return result.Document;
+            },
+            relayout: true,
+            () => activeKey);
+        if (!edited)
+        {
+            return;
+        }
+
+        // The ordinals of the file the script names its place in, for a command that asks.
+        targetDocument = documentId;
+        if (join == JoinDirection.None)
+        {
+            handedIn = (before, after, content.Count - 1);
+        }
+
+        if (join != JoinDirection.None &&
+            result is {Paragraph: >= 0} joined)
+        {
+            await ResumeAsync(joined.Paragraph, joined.Offset);
+            return;
+        }
+
+        PlacedAfter(after);
+        if (then is 3 or 4)
+        {
+            // The paragraph handed in is now as many paragraphs as Enter split it into.
+            await CrossAsync(then == 3 ? ordinal : ordinal + content.Count - 1, then == 3 ? -1 : 1);
+        }
+    }
 
     // Whether a paragraph of the file now is the one opened for typing: the same things in the same
     // order, which is all a hand-in's items name (NewItem.Unit).
@@ -568,6 +601,8 @@ public partial class MorphViewer
                 {
                     superseded = null;
                 }
+
+                ExitIfClosed();
             });
 
     // Goes on editing where an edit left off: the caret at offset, or the text up to `to` selected — a

@@ -88,7 +88,7 @@ public class MorphViewerKeysTests : BunitTestContext
         await cut.InvokeAsync(() => cut.Instance.OpenOrAskAsync(() => cut.Instance.OpenAsync(other, "other.docx", Sample.FontDirectory)));
         await cut.FindAll(".editor-dialog .editor-button").First(_ => _.TextContent.Trim() == "Discard edits").ClickAsync(new());
 
-        cut.WaitForState(() => cut.Find(".editor-name").TextContent.Trim() == "other.docx");
+        await cut.WaitForStateAsync(() => cut.Find(".editor-name").TextContent.Trim() == "other.docx");
     }
 
     // A file with nothing to lose opens at once; New still asks with its own title.

@@ -8,13 +8,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Its own package rather than part of Morph.Pdf: the email readers (OfficeIMO.Email) and the HTML
+    <!-- Its own package rather than part of Morph.Pdf: the email reader (MsgReader) and the HTML
          importer (OpenXmlHtml) are a server-side dependency, and Morph.Pdf is what the Blazor package
          ships to the browser. -->
     <ProjectReference Include="..\Morph.Pdf\Morph.Pdf.csproj" />
     <PackageReference Include="AngleSharp" />
-    <PackageReference Include="OfficeIMO.Email" />
-    <PackageReference Include="OfficeIMO.Email.Html" />
+    <PackageReference Include="MsgReader" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" />
     <PackageReference Include="OpenXmlHtml" />
     <PackageReference Include="ProjectDefaults" PrivateAssets="all" />
     <PackageReference Include="SponsorCheck" PrivateAssets="all" Condition="'$(MORPH_TEST_CONTAINER)' != '1'" />

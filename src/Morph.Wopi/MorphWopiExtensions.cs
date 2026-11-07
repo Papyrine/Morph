@@ -34,13 +34,18 @@ public static class MorphWopiExtensions
                 });
         services.TryAddSingleton(TimeProvider.System);
         services.TryAddSingleton<WopiProofs>();
+        services.TryAddSingleton<WopiRequests>();
+        services.TryAddSingleton<CoauthorSessions>();
+        services.AddHostedService<CoauthorShutdown>();
         return services;
     }
 
     /// <summary>
     /// Maps the discovery at <c>/hosting/discovery</c>, where the WOPI hosts are pointed; the action URLs
     /// <c>/morph/wopi/view</c> and <c>/morph/wopi/edit</c>, which answer with the editor's page; and
-    /// <c>/morph/wopi/proxy/{operation}</c>, which the editor calls the host through.
+    /// <c>/morph/wopi/proxy/{operation}</c>, which the editor calls the host through. With
+    /// <see cref="MorphWopiOptions.Coauthoring"/>, the endpoints of the coauthoring sessions too, under
+    /// <c>/morph/wopi/session</c>.
     /// </summary>
     public static IEndpointRouteBuilder MapMorphWopi(this IEndpointRouteBuilder endpoints)
     {
@@ -67,6 +72,11 @@ public static class MorphWopiExtensions
 
         endpoints.MapPost($"{ProxyPath}/{{operation}}", WopiProxy.Handle)
             .DisableAntiforgery();
+        if (endpoints.ServiceProvider.GetRequiredService<IOptions<MorphWopiOptions>>().Value.Coauthoring)
+        {
+            CoauthorEndpoints.Map(endpoints);
+        }
+
         return endpoints;
     }
 

@@ -711,7 +711,7 @@ public partial class MorphViewer
 
         // The step moves from one list to the other only once the file it restores is the one shown.
         if (await ShowAsync(
-                () => step.Bytes,
+                () => Stepped(step, bytes),
                 relayout: true,
                 () => activeKey,
                 scroll: false,
@@ -725,7 +725,8 @@ public partial class MorphViewer
 
                     Keep(to, step with
                     {
-                        Bytes = bytes
+                        Bytes = bytes,
+                        Shown = sourceBytes
                     });
                 }) &&
             (undoing ? step.Before : step.After) is { } place)
@@ -786,7 +787,7 @@ public partial class MorphViewer
             scroll,
             () =>
             {
-                Keep(undo, new(bytes, before, null));
+                Keep(undo, new(bytes, before, null, sourceBytes));
                 redo.Clear();
             });
         if (edited)
@@ -865,6 +866,7 @@ public partial class MorphViewer
                 () =>
                 {
                     using var capture = DocumentReading.Capture();
+                    using var stamping = Stamping();
                     return produce();
                 },
                 lifetime.Token);
@@ -956,6 +958,7 @@ public partial class MorphViewer
                 await DocumentRevisedAsync();
             }
 
+            await CoauthoredAsync();
             await OnDocumentChanged.InvokeAsync(bytes);
             return true;
         }

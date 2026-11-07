@@ -220,7 +220,7 @@ embedding). The public entry-point converters live here too (DOCX→PNG and HTML
 backends; the byte-reproducibility post-processing (`MakeDeterministic` / `TrimPages` / `Normalize`) lives
 there too.
 
-**Email** (`src/Morph.Email/`): `EmailConverter` reads `.eml` / Outlook `.msg` (OfficeIMO.Email) into an
+**Email** (`src/Morph.Email/`): `EmailConverter` reads `.eml` / Outlook `.msg` (MsgReader) into an
 HTML document — a header block with the sender, date, recipients, subject and attachment names, then the
 body with its `cid:` images inlined — and imports that as a `.docx` (OpenXmlHtml); `PdfEmailConverter`
 renders it through `PdfDocumentConverter`. A package of its own so the readers stay out of `Morph.Blazor`'s
@@ -463,10 +463,40 @@ as JSON, and the proxy (`/morph/wopi/proxy/{operation}`) the editor calls the ho
 neither call another origin nor hold the proof key, so the proxy builds the WOPI request, signs it
 ([MS-WOPI] 2.2.1) and hands back the status, the lock headers and the body. Both refuse a WOPISrc off
 `TrustedHosts`, which are also the only `frame-ancestors`. `MorphWopi` reads the launch, checks the file,
-locks it, refreshes the lock, saves through the editor's `OnSave` and unlocks with a beacon on
-`pagehide`. `src/Morph.Wopi.Sample` is an OfficeHost host and the editor in one application on two ports;
+and joins the file's coauthoring session (below); against a Morph.Wopi without sessions it locks the file,
+refreshes the lock, saves through the editor's `OnSave` and unlocks with a beacon on `pagehide`. `src/Morph.Wopi.Sample` is an OfficeHost host and the editor in one application on two ports;
 `WopiHostTests` run both halves against OfficeHost in a test server with proofs required, and
 `WopiSampleTests` drive the published sample with Playwright.
+
+**Coauthoring** (`src/Morph/OpenXml/Coauthoring/`, `src/Morph.Wopi/Coauthoring/`, `Morph.Blazor`'s
+`Coauthor` and `MorphViewer.Coauthoring.cs`): several people editing one Word document at once, the editor's
+edits unchanged. Three layers:
+- **Core** (internal, spec-tested on the host, `src/Tests/SpecTests/Coauthoring/`): `ParagraphIds` gives
+  every `w:p` and `w:tr` a unique `w14:paraId` (under `ParagraphIds.Stamping`, `DocumentReading.Edit` stamps
+  the parts an edit loaded; a session stamps every part when it starts; Enter's split keeps the id on the
+  tail, as `Split` keeps the element). `DocumentPatch` is the entries that changed between two packages.
+  `DocumentMerge` is the three-way merge of an edit with what came since: part by part, and a part both
+  changed by `KeyedMerge` (children keyed by paraId, note and comment ids, styleId, relationship Id;
+  tables, cells and content controls matched by the paraIds they hold; paragraphs atomic; an inserted block
+  placed before what follows it in mine). An edit is taken whole or refused whole. `IdRemap` renumbers the
+  ids both sides made afresh (relationships, part names, lists, notes, comments with their paraIds and
+  durable ids, bookmarks, drawings) in mine only. A tracked change's `w:id` is left: Word opens a file in
+  which two share one without repairing it, and renumbers them on save (probed over COM, Word 16,
+  2026-11-07). `MergeCorpusTests` merges two edits over every corpus document.
+- **Server** (`Morph.Wopi`, which references core): `CoauthorSession`, one per WOPISrc in memory
+  (`CoauthorSessions`), holds the document, its versions, the one WOPI lock and the paragraph each page has
+  open, merges commits, refuses an edit to a paragraph someone else has open (and a lock asked for with a
+  version older than that paragraph's last change: `stale`), and autosaves through `WopiRequests`, the
+  signed sender the proxy uses too. `CoauthorEndpoints` maps `/morph/wopi/session/*`; the state goes out as
+  Server-Sent Events. `CoauthorHostTests` and `CoauthorTests` run it against OfficeHost in a test server.
+- **Editor**: `Coauthor` (`Services/Coauthor.cs`) commits every file the editor shows as a patch against
+  the version it descends from (`based`), holds a merged answer until the editor is ready, and fetches
+  others' versions; `CoauthorClient` is the HTTP and the events. `MorphViewer.Coauthoring.cs` is the
+  editor's side (`ICoauthorEditor`): a version adopted through `ShowAsync` with no undo step, never in the
+  middle of typing (the open paragraph is handed in once idle for 2 s, `editIdle` in morph-viewer.js, and
+  opened again at the caret by its id), the paragraph asked of the session in `BeginAsync`, the others'
+  bars (`setPresence`), and undo across others' edits (`HistoryStep.Shown`, then `DocumentMerge`).
+  `WopiSampleTests.TwoEditors_EditTogether` drives two pages of the published sample.
 
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
 extracted into `Morph.Blazor` this project is only the shell — header with Convert | View | Edit links,
