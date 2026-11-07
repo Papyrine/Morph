@@ -1,12 +1,12 @@
 {
   "Family": "ribbon",
-  "Generated": "2026-10-25T18:51:19.2760613+11:00",
+  "Generated": "2026-11-07T13:03:44.5563583+11:00",
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.19127",
+    "Build": "16.0.20527",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.19127.20860"
+    "ClickToRun": "16.0.20527.20150"
   },
   "Cases": {
     "B-01[at=P1:0-P1:end]": {
@@ -19,8 +19,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1280,
-      "RunAt": "2026-10-25T18:50:06.387329+11:00",
+      "DurationMs": 914,
+      "RunAt": "2026-11-07T12:47:59.4299676+11:00",
       "Lines": [
         "[⟦The quick brown fox jumps over the lazy dog.‸⟧]",
         "Selection: Normal 0–44 end-active · Undo —"
@@ -106,17 +106,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 61,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 0,
+        "steps": 141,
+        "observe": 510,
+        "reset": 27,
+        "close": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-01[at=P1:0-P1:end]~tracked": {
       "DefinitionHash": "c5ce1f6ab8116530",
@@ -128,8 +142,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1275,
-      "RunAt": "2026-10-25T18:50:07.6691532+11:00",
+      "DurationMs": 947,
+      "RunAt": "2026-11-07T12:48:00.3805092+11:00",
       "Lines": [
         "[⟦The quick brown fox jumps over the lazy dog.‸⟧]",
         "Selection: Normal 0–44 end-active · Tracking · Revisions 0 · Undo —"
@@ -215,18 +229,32 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft",
             "ReviewTrackChanges"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 202,
+        "open.add": 61,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 115,
+        "options": 3,
+        "steps": 155,
+        "observe": 518,
+        "reset": 28,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-01[at=P1:4-P1:9]": {
       "DefinitionHash": "c11917e4a2e0deba",
@@ -238,8 +266,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1269,
-      "RunAt": "2026-10-25T18:50:03.7935074+11:00",
+      "DurationMs": 929,
+      "RunAt": "2026-11-07T12:47:57.5490345+11:00",
       "Lines": [
         "[The ⟦quick‸⟧ brown fox jumps over the lazy dog.]",
         "Selection: Normal 4–9 end-active · Undo —"
@@ -325,17 +353,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 215,
+        "open.add": 66,
+        "open.view": 59,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 0,
+        "steps": 140,
+        "observe": 507,
+        "reset": 28,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-01[at=P1:4-P1:9]~tracked": {
       "DefinitionHash": "e6539d09e9e178b7",
@@ -347,8 +389,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1304,
-      "RunAt": "2026-10-25T18:50:05.1015508+11:00",
+      "DurationMs": 957,
+      "RunAt": "2026-11-07T12:47:58.511378+11:00",
       "Lines": [
         "[The ⟦quick‸⟧ brown fox jumps over the lazy dog.]",
         "Selection: Normal 4–9 end-active · Tracking · Revisions 0 · Undo —"
@@ -434,18 +476,32 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft",
             "ReviewTrackChanges"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 205,
+        "open.add": 63,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 3,
+        "steps": 155,
+        "observe": 526,
+        "reset": 28,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-01[at=P1:5]": {
       "DefinitionHash": "5891960206a3835e",
@@ -457,8 +513,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2057,
-      "RunAt": "2026-10-25T18:50:01.15109+11:00",
+      "DurationMs": 1123,
+      "RunAt": "2026-11-07T12:47:55.6633035+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo —"
@@ -545,17 +601,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 397,
+        "open.add": 266,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 106,
+        "options": 0,
+        "steps": 141,
+        "observe": 522,
+        "reset": 27,
+        "close": 36
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-01[at=P1:5]~tracked": {
       "DefinitionHash": "3a66fd945ae3c858",
@@ -567,8 +637,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1344,
-      "RunAt": "2026-10-25T18:50:02.5192524+11:00",
+      "DurationMs": 947,
+      "RunAt": "2026-11-07T12:47:56.6146605+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Tracking · Revisions 0 · Undo —"
@@ -655,18 +725,32 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft",
             "ReviewTrackChanges"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 58,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 104,
+        "options": 3,
+        "steps": 138,
+        "observe": 534,
+        "reset": 33,
+        "close": 49
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-01[at=P2:0]": {
       "DefinitionHash": "0efb841e0012f6ad",
@@ -678,13 +762,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 576,
-      "RunAt": "2026-10-25T18:50:08.2508766+11:00",
+      "DurationMs": 273,
+      "RunAt": "2026-11-07T12:48:00.6582328+11:00",
       "Lines": [],
       "Remarks": [
         "select(P2:0): The requested member of the collection does not exist."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 205,
+        "open.add": 63,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 112,
+        "options": 0,
+        "reset": 33,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-01[at=P2:0]~tracked": {
       "DefinitionHash": "c41c469ad11068c2",
@@ -696,13 +791,24 @@
       "Options": {},
       "Tracked": true,
       "Status": "not-applicable",
-      "DurationMs": 579,
-      "RunAt": "2026-10-25T18:50:08.8347969+11:00",
+      "DurationMs": 900,
+      "RunAt": "2026-11-07T12:48:05.3385697+11:00",
       "Lines": [],
       "Remarks": [
         "select(P2:0): The requested member of the collection does not exist."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 820,
+        "open.add": 116,
+        "open.view": 45,
+        "open.front": 546,
+        "open.park": 111,
+        "options": 4,
+        "reset": 36,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-02[at=P1:0-P1:end]": {
       "DefinitionHash": "dceb922016ae5704",
@@ -714,8 +820,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1255,
-      "RunAt": "2026-10-25T18:50:16.3757048+11:00",
+      "DurationMs": 863,
+      "RunAt": "2026-11-07T12:48:10.6069888+11:00",
       "Lines": [
         "[⟦Plain bold italic under big end.‸⟧]",
         "Selection: Normal 0–32 end-active · Undo —"
@@ -801,17 +907,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 178,
+        "open.add": 61,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 0,
+        "steps": 140,
+        "observe": 493,
+        "reset": 28,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-02[at=P1:13]": {
       "DefinitionHash": "a1b31a1fd035df53",
@@ -823,8 +943,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1226,
-      "RunAt": "2026-10-25T18:50:11.3514188+11:00",
+      "DurationMs": 860,
+      "RunAt": "2026-11-07T12:48:07.1080282+11:00",
       "Lines": [
         "[Plain bold it‸alic under big end.]",
         "Selection: IP 13–13 · Undo —"
@@ -911,18 +1031,32 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "Italic",
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 177,
+        "open.add": 59,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 0,
+        "steps": 141,
+        "observe": 492,
+        "reset": 27,
+        "close": 23
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-02[at=P1:21]": {
       "DefinitionHash": "79f5c02844d5a0fa",
@@ -934,8 +1068,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1242,
-      "RunAt": "2026-10-25T18:50:12.5978978+11:00",
+      "DurationMs": 880,
+      "RunAt": "2026-11-07T12:48:07.9920392+11:00",
       "Lines": [
         "[Plain bold italic und‸er big end.]",
         "Selection: IP 21–21 · Undo —"
@@ -1022,17 +1156,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 187,
+        "open.add": 62,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 101,
+        "options": 0,
+        "steps": 141,
+        "observe": 501,
+        "reset": 27,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-02[at=P1:3-P1:8]": {
       "DefinitionHash": "0323b1fc3a0624e1",
@@ -1044,8 +1192,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1262,
-      "RunAt": "2026-10-25T18:50:15.1159875+11:00",
+      "DurationMs": 878,
+      "RunAt": "2026-11-07T12:48:09.7399507+11:00",
       "Lines": [
         "[Pla⟦in bo‸⟧ld italic under big end.]",
         "Selection: Normal 3–8 end-active · Undo —"
@@ -1131,17 +1279,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 187,
+        "open.add": 63,
+        "open.view": 28,
+        "open.front": 1,
+        "open.park": 92,
+        "options": 0,
+        "steps": 141,
+        "observe": 498,
+        "reset": 28,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-02[at=P1:6-P1:10]": {
       "DefinitionHash": "ac1eaafdfd38804a",
@@ -1153,8 +1315,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1247,
-      "RunAt": "2026-10-25T18:50:13.8495167+11:00",
+      "DurationMs": 862,
+      "RunAt": "2026-11-07T12:48:08.8576786+11:00",
       "Lines": [
         "[Plain ⟦bold‸⟧ italic under big end.]",
         "Selection: Normal 6–10 end-active · Undo —"
@@ -1240,18 +1402,32 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "Bold",
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 179,
+        "open.add": 59,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 0,
+        "steps": 141,
+        "observe": 488,
+        "reset": 28,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-02[at=P1:7]": {
       "DefinitionHash": "fd5f0dccb240da24",
@@ -1263,8 +1439,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1280,
-      "RunAt": "2026-10-25T18:50:10.1188732+11:00",
+      "DurationMs": 902,
+      "RunAt": "2026-11-07T12:48:06.2442811+11:00",
       "Lines": [
         "[Plain b‸old italic under big end.]",
         "Selection: IP 7–7 · Undo —"
@@ -1351,18 +1527,32 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "Bold",
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 74,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 0,
+        "steps": 142,
+        "observe": 510,
+        "reset": 27,
+        "close": 23
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-03[fixture=bullets-nested]": {
       "DefinitionHash": "66ee0bf2448bc6ff",
@@ -1374,8 +1564,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1340,
-      "RunAt": "2026-10-25T18:50:19.0857616+11:00",
+      "DurationMs": 946,
+      "RunAt": "2026-11-07T12:48:12.5125973+11:00",
       "Lines": [
         "[Alpha] #ListParagraph •1.0 ● ⇥36,-18",
         "[Be‸ta] #ListParagraph •1.0 ● ⇥54,-18",
@@ -1525,17 +1715,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 61,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 0,
+        "steps": 141,
+        "observe": 568,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-03[fixture=bullets]": {
       "DefinitionHash": "00820b0329ef73b2",
@@ -1547,8 +1751,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1358,
-      "RunAt": "2026-10-25T18:50:17.7404457+11:00",
+      "DurationMs": 952,
+      "RunAt": "2026-11-07T12:48:11.5626175+11:00",
       "Lines": [
         "[Alpha] #ListParagraph •1.0 ● ⇥36,-18",
         "[Be‸ta] #ListParagraph •1.0 ● ⇥36,-18",
@@ -1698,17 +1902,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 78,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 0,
+        "steps": 141,
+        "observe": 555,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-03[fixture=headings]": {
       "DefinitionHash": "4c875dbbe4a14e12",
@@ -1720,8 +1938,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1405,
-      "RunAt": "2026-10-25T18:50:23.2785509+11:00",
+      "DurationMs": 934,
+      "RunAt": "2026-11-07T12:48:15.3393091+11:00",
       "Lines": [
         "[Level one] #Heading1",
         "[Le‸vel two] #Heading2",
@@ -1889,17 +2107,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 188,
+        "open.add": 72,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "steps": 141,
+        "observe": 552,
+        "reset": 28,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-03[fixture=kinds]": {
       "DefinitionHash": "9f5058ffd8eb3b7f",
@@ -1911,8 +2143,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1593,
-      "RunAt": "2026-10-25T18:50:24.8765594+11:00",
+      "DurationMs": 1053,
+      "RunAt": "2026-11-07T12:48:16.3953447+11:00",
       "Lines": [
         "[Normal kind.]",
         "[He‸ading kind] #Heading1",
@@ -2218,17 +2450,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 172,
+        "open.add": 63,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 0,
+        "steps": 141,
+        "observe": 686,
+        "reset": 28,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-03[fixture=numbers-nested]": {
       "DefinitionHash": "e01f97cc2e660e0e",
@@ -2240,8 +2486,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1413,
-      "RunAt": "2026-10-25T18:50:21.86918+11:00",
+      "DurationMs": 954,
+      "RunAt": "2026-11-07T12:48:14.4019307+11:00",
       "Lines": [
         "[One] #ListParagraph •1.0 1. ⇥36,-18",
         "[Tw‸o] #ListParagraph •1.0 2. ⇥36,-18",
@@ -2418,17 +2664,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 62,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 0,
+        "steps": 141,
+        "observe": 569,
+        "reset": 28,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-03[fixture=numbers]": {
       "DefinitionHash": "39328bf5091b9432",
@@ -2440,8 +2700,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1346,
-      "RunAt": "2026-10-25T18:50:20.4357422+11:00",
+      "DurationMs": 928,
+      "RunAt": "2026-11-07T12:48:13.4443556+11:00",
       "Lines": [
         "[One] #ListParagraph •1.0 1. ⇥36,-18",
         "[Tw‸o] #ListParagraph •1.0 2. ⇥36,-18",
@@ -2591,17 +2851,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 183,
+        "open.add": 61,
+        "open.view": 33,
+        "open.front": 0,
+        "open.park": 87,
+        "options": 0,
+        "steps": 141,
+        "observe": 550,
+        "reset": 28,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-3x3,at=C(1,1)-C(2,2)]": {
       "DefinitionHash": "b25a5d91268c6fbe",
@@ -2613,8 +2887,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2084,
-      "RunAt": "2026-10-25T18:50:28.8697543+11:00",
+      "DurationMs": 1301,
+      "RunAt": "2026-11-07T12:48:18.9626186+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
@@ -3034,17 +3308,31 @@
             "TableInsertGallery",
             "HyperlinkInsert",
             "DateAndTimeInsert",
-            "TextWrapGallery",
-            "Thumbnails"
+            "TextWrapGallery"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 183,
+        "open.add": 66,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "steps": 141,
+        "observe": 922,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-3x3,at=C(2,2):0]": {
       "DefinitionHash": "059867b56f7d9e0c",
@@ -3056,8 +3344,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1899,
-      "RunAt": "2026-10-25T18:50:26.7798902+11:00",
+      "DurationMs": 1259,
+      "RunAt": "2026-11-07T12:48:17.6581192+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤",
@@ -3477,17 +3765,31 @@
             "Cut",
             "Copy",
             "TextWrapGallery",
-            "MergeCells",
-            "Thumbnails"
+            "MergeCells"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 194,
+        "open.add": 71,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 0,
+        "steps": 140,
+        "observe": 868,
+        "reset": 30,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-3x3,at=COL1]": {
       "DefinitionHash": "81fb83c86785369f",
@@ -3499,8 +3801,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1846,
-      "RunAt": "2026-10-25T18:50:30.72039+11:00",
+      "DurationMs": 1331,
+      "RunAt": "2026-11-07T12:48:20.2974113+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
@@ -3920,17 +4222,31 @@
             "TableInsertGallery",
             "HyperlinkInsert",
             "DateAndTimeInsert",
-            "TextWrapGallery",
-            "Thumbnails"
+            "TextWrapGallery"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 71,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 0,
+        "steps": 141,
+        "observe": 939,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-3x3,at=P1:0]": {
       "DefinitionHash": "92a37a568f381114",
@@ -3942,8 +4258,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1810,
-      "RunAt": "2026-10-25T18:50:36.2990576+11:00",
+      "DurationMs": 1271,
+      "RunAt": "2026-11-07T12:48:24.2833095+11:00",
       "Lines": [
         "[‸Before the table.]",
         "T1 R1 ║[a1¤]║[b1¤]║[c1¤]║¤",
@@ -4369,17 +4685,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 189,
+        "open.add": 67,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 0,
+        "steps": 141,
+        "observe": 886,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-3x3,at=R1]": {
       "DefinitionHash": "3f1ab82adac3f46c",
@@ -4391,8 +4721,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1854,
-      "RunAt": "2026-10-25T18:50:32.5783937+11:00",
+      "DurationMs": 1334,
+      "RunAt": "2026-11-07T12:48:21.6356533+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤‸⟧",
@@ -4812,17 +5142,31 @@
             "TableInsertGallery",
             "HyperlinkInsert",
             "DateAndTimeInsert",
-            "TextWrapGallery",
-            "Thumbnails"
+            "TextWrapGallery"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 64,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 0,
+        "steps": 141,
+        "observe": 941,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-3x3,at=T1]": {
       "DefinitionHash": "315d2c039c28a827",
@@ -4834,8 +5178,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1898,
-      "RunAt": "2026-10-25T18:50:34.4821979+11:00",
+      "DurationMs": 1369,
+      "RunAt": "2026-11-07T12:48:23.0081261+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
@@ -5255,17 +5599,31 @@
             "TableInsertGallery",
             "HyperlinkInsert",
             "DateAndTimeInsert",
-            "TextWrapGallery",
-            "Thumbnails"
+            "TextWrapGallery"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 195,
+        "open.add": 68,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 0,
+        "steps": 142,
+        "observe": 976,
+        "reset": 29,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-merged,at=C(1,1)-C(2,2)]": {
       "DefinitionHash": "5be3eadb10ef5d85",
@@ -5277,8 +5635,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1847,
-      "RunAt": "2026-10-25T18:50:40.0326855+11:00",
+      "DurationMs": 1348,
+      "RunAt": "2026-11-07T12:48:26.9454235+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
@@ -5684,17 +6042,31 @@
             "TableInsertGallery",
             "HyperlinkInsert",
             "DateAndTimeInsert",
-            "TextWrapGallery",
-            "Thumbnails"
+            "TextWrapGallery"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 194,
+        "open.add": 67,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 0,
+        "steps": 142,
+        "observe": 956,
+        "reset": 29,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-merged,at=C(2,2):0]": {
       "DefinitionHash": "fe73497b655d10e4",
@@ -5706,8 +6078,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1878,
-      "RunAt": "2026-10-25T18:50:38.1815039+11:00",
+      "DurationMs": 1306,
+      "RunAt": "2026-11-07T12:48:25.5941693+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤",
@@ -6113,17 +6485,31 @@
             "Cut",
             "Copy",
             "TextWrapGallery",
-            "MergeCells",
-            "Thumbnails"
+            "MergeCells"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 70,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 101,
+        "options": 0,
+        "steps": 142,
+        "observe": 908,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-merged,at=COL1]": {
       "DefinitionHash": "83c25a9d3f505dd1",
@@ -6135,13 +6521,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 586,
-      "RunAt": "2026-10-25T18:50:40.6230984+11:00",
+      "DurationMs": 260,
+      "RunAt": "2026-11-07T12:48:27.208922+11:00",
       "Lines": [],
       "Remarks": [
         "select(COL1): Cannot access individual columns in this collection because the table has mixed cell widths."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 193,
+        "open.add": 66,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 0,
+        "reset": 40,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-merged,at=P1:0]": {
       "DefinitionHash": "1584bb9223d166bb",
@@ -6153,8 +6550,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1744,
-      "RunAt": "2026-10-25T18:50:44.9150281+11:00",
+      "DurationMs": 1266,
+      "RunAt": "2026-11-07T12:48:30.1879458+11:00",
       "Lines": [
         "[‸Before the table.]",
         "T1 R1 ║[a1] ¶ [b1¤]║[c1¤]║¤",
@@ -6566,17 +6963,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 65,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 103,
+        "options": 0,
+        "steps": 141,
+        "observe": 872,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-merged,at=R1]": {
       "DefinitionHash": "5df55130cf9ed28d",
@@ -6588,13 +6999,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 615,
-      "RunAt": "2026-10-25T18:50:41.2447789+11:00",
+      "DurationMs": 266,
+      "RunAt": "2026-11-07T12:48:27.479516+11:00",
       "Lines": [],
       "Remarks": [
         "select(R1): Cannot access individual rows in this collection because the table has vertically merged cells."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 69,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 99,
+        "options": 0,
+        "reset": 41,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-04[fixture=table-merged,at=T1]": {
       "DefinitionHash": "163ba890e1099363",
@@ -6606,8 +7028,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1913,
-      "RunAt": "2026-10-25T18:50:43.1656727+11:00",
+      "DurationMs": 1434,
+      "RunAt": "2026-11-07T12:48:28.918478+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║[⟦a1¶⟧] ¶ ⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
@@ -7013,17 +7435,31 @@
             "TableInsertGallery",
             "HyperlinkInsert",
             "DateAndTimeInsert",
-            "TextWrapGallery",
-            "Thumbnails"
+            "TextWrapGallery"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 214,
+        "open.add": 74,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 0,
+        "steps": 150,
+        "observe": 1014,
+        "reset": 29,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-05[fixture=image-floating,at=IMG1]": {
       "DefinitionHash": "be5129cb25e5bb04",
@@ -7035,13 +7471,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 658,
-      "RunAt": "2026-10-25T18:50:48.8464665+11:00",
+      "DurationMs": 239,
+      "RunAt": "2026-11-07T12:48:32.5424647+11:00",
       "Lines": [],
       "Remarks": [
         "select(IMG1): The requested member of the collection does not exist."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 180,
+        "open.add": 62,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 0,
+        "reset": 32,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-05[fixture=image-floating,at=P1:0]": {
       "DefinitionHash": "e44424895c402eb9",
@@ -7053,8 +7500,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1358,
-      "RunAt": "2026-10-25T18:50:51.7167986+11:00",
+      "DurationMs": 966,
+      "RunAt": "2026-11-07T12:48:34.5755042+11:00",
       "Lines": [
         "[‸⚓1First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
@@ -7210,17 +7657,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 166,
+        "open.add": 66,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 74,
+        "options": 0,
+        "steps": 148,
+        "observe": 596,
+        "reset": 30,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-05[fixture=image-floating,at=SHP1]": {
       "DefinitionHash": "224d2019dde01a93",
@@ -7232,8 +7693,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1502,
-      "RunAt": "2026-10-25T18:50:50.3532533+11:00",
+      "DurationMs": 1059,
+      "RunAt": "2026-11-07T12:48:33.6052242+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
@@ -7414,15 +7875,29 @@
             "SplitCells",
             "TableColumnsDistribute",
             "TableAutoFitMenu",
-            "ReviewRejectAllChangesInDocument",
-            "Thumbnails"
+            "ReviewRejectAllChangesInDocument"
           ],
           "Pressed": [],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 206,
+        "open.add": 70,
+        "open.view": 34,
+        "open.front": 0,
+        "open.park": 100,
+        "options": 0,
+        "steps": 142,
+        "observe": 655,
+        "reset": 28,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-05[fixture=image-inline,at=IMG1]": {
       "DefinitionHash": "824ee50e6947a85a",
@@ -7434,8 +7909,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1375,
-      "RunAt": "2026-10-25T18:50:46.2955194+11:00",
+      "DurationMs": 945,
+      "RunAt": "2026-11-07T12:48:31.1377203+11:00",
       "Lines": [
         "[Text before ⟦▣‸⟧ after end.]",
         "[Second paragraph.]",
@@ -7551,17 +8026,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 67,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 100,
+        "options": 0,
+        "steps": 140,
+        "observe": 552,
+        "reset": 28,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-05[fixture=image-inline,at=P1:0]": {
       "DefinitionHash": "e72a7ab2440d7835",
@@ -7573,8 +8062,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1284,
-      "RunAt": "2026-10-25T18:50:48.1822582+11:00",
+      "DurationMs": 914,
+      "RunAt": "2026-11-07T12:48:32.2998263+11:00",
       "Lines": [
         "[‸Text before ▣ after end.]",
         "[Second paragraph.]",
@@ -7690,17 +8179,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 193,
+        "open.add": 66,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 0,
+        "steps": 141,
+        "observe": 527,
+        "reset": 28,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-05[fixture=image-inline,at=SHP1]": {
       "DefinitionHash": "b0cac3ba8f79eb56",
@@ -7712,13 +8215,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 591,
-      "RunAt": "2026-10-25T18:50:46.8927376+11:00",
+      "DurationMs": 241,
+      "RunAt": "2026-11-07T12:48:31.3818564+11:00",
       "Lines": [],
       "Remarks": [
         "select(SHP1): The index into the specified collection is out of bounds."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 183,
+        "open.add": 62,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "reset": 32,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06[at=FTR:P1:0]": {
       "DefinitionHash": "e6bed124f06d9eb3",
@@ -7730,8 +8244,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1475,
-      "RunAt": "2026-10-25T18:50:54.6707876+11:00",
+      "DurationMs": 1011,
+      "RunAt": "2026-11-07T12:48:36.6128583+11:00",
       "Lines": [
         "[Body paragraph.]",
         "[Second body paragraph.]",
@@ -7887,17 +8401,31 @@
             "SplitCells",
             "TableColumnsDistribute",
             "TableAutoFitMenu",
-            "ReviewNewComment",
-            "Thumbnails"
+            "ReviewNewComment"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 70,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 0,
+        "steps": 172,
+        "observe": 591,
+        "reset": 27,
+        "close": 31
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06[at=HDR:P1:2]": {
       "DefinitionHash": "0e1cfdb4bfed0fc6",
@@ -7909,8 +8437,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1469,
-      "RunAt": "2026-10-25T18:50:53.1908092+11:00",
+      "DurationMs": 1019,
+      "RunAt": "2026-11-07T12:48:35.5980857+11:00",
       "Lines": [
         "[Body paragraph.]",
         "[Second body paragraph.]",
@@ -8066,17 +8594,31 @@
             "SplitCells",
             "TableColumnsDistribute",
             "TableAutoFitMenu",
-            "ReviewNewComment",
-            "Thumbnails"
+            "ReviewNewComment"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 75,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "steps": 173,
+        "observe": 590,
+        "reset": 28,
+        "close": 31
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06b[at=EN1:P1:2]": {
       "DefinitionHash": "a25f57af1cf877ec",
@@ -8088,8 +8630,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1463,
-      "RunAt": "2026-10-25T18:50:57.6615357+11:00",
+      "DurationMs": 1028,
+      "RunAt": "2026-11-07T12:48:38.6805557+11:00",
       "Lines": [
         "[Text†1 more words.]",
         "[Second with an end note.‡1]",
@@ -8260,17 +8802,31 @@
             "TableColumnsDistribute",
             "TableAutoFitMenu",
             "ReviewNewComment",
-            "Thumbnails",
             "ViewRulerWord"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 71,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 100,
+        "options": 0,
+        "steps": 140,
+        "observe": 638,
+        "reset": 29,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06b[at=FN1:P1:2]": {
       "DefinitionHash": "037bb4654f5b5072",
@@ -8282,8 +8838,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1516,
-      "RunAt": "2026-10-25T18:50:56.1939438+11:00",
+      "DurationMs": 1032,
+      "RunAt": "2026-11-07T12:48:37.6484283+11:00",
       "Lines": [
         "[Text†1 more words.]",
         "[Second with an end note.‡1]",
@@ -8454,17 +9010,31 @@
             "TableColumnsDistribute",
             "TableAutoFitMenu",
             "ReviewNewComment",
-            "Thumbnails",
             "ViewRulerWord"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 204,
+        "open.add": 69,
+        "open.view": 34,
+        "open.front": 0,
+        "open.park": 99,
+        "options": 0,
+        "steps": 140,
+        "observe": 635,
+        "reset": 29,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06c[fixture=comment,at=CMT1:P1:0]": {
       "DefinitionHash": "782d6f717ab845e6",
@@ -8476,8 +9046,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1565,
-      "RunAt": "2026-10-25T18:50:59.2319895+11:00",
+      "DurationMs": 1059,
+      "RunAt": "2026-11-07T12:48:39.7443938+11:00",
       "Lines": [
         "[The quick ⟪brown fox⟫1 jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -8511,12 +9081,12 @@
           {
             "Index": 1,
             "Start": 0,
-            "End": 46,
-            "Text": "The quick brown fox\u0005 jumps over the lazy dog.\r",
+            "End": 45,
+            "Text": "The quick brown fox jumps over the lazy dog.\r",
             "Runs": [
               {
                 "Start": 0,
-                "End": 46,
+                "End": 45,
                 "Marks": ""
               }
             ],
@@ -8536,13 +9106,13 @@
           },
           {
             "Index": 2,
-            "Start": 46,
-            "End": 64,
+            "Start": 45,
+            "End": 63,
             "Text": "Second paragraph.\r",
             "Runs": [
               {
-                "Start": 46,
-                "End": 64,
+                "Start": 45,
+                "End": 63,
                 "Marks": ""
               }
             ],
@@ -8618,10 +9188,15 @@
           "Disabled": [
             "Undo",
             "Redo",
+            "Paste",
             "Cut",
             "Copy",
+            "ClearFormatting",
             "PageBreakInsertWord",
+            "TableInsertGallery",
+            "HyperlinkInsert",
             "HeaderFooterPageNumberInsert",
+            "DateAndTimeInsert",
             "PageMarginsGallery",
             "PageOrientationGallery",
             "PageSizeGallery",
@@ -8643,16 +9218,31 @@
             "SplitCells",
             "TableColumnsDistribute",
             "TableAutoFitMenu",
-            "Thumbnails"
+            "ReviewNewComment"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 65,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 0,
+        "steps": 158,
+        "observe": 664,
+        "reset": 30,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06c[fixture=comment,at=TB1:P1:2]": {
       "DefinitionHash": "98ad6a62efa889f6",
@@ -8664,13 +9254,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 604,
-      "RunAt": "2026-10-25T18:50:59.8433902+11:00",
+      "DurationMs": 247,
+      "RunAt": "2026-11-07T12:48:39.9950378+11:00",
       "Lines": [],
       "Remarks": [
         "select(TB1:P1:2): The index into the specified collection is out of bounds."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 189,
+        "open.add": 67,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 0,
+        "reset": 32,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06c[fixture=text-box,at=CMT1:P1:0]": {
       "DefinitionHash": "dccd648163f06c33",
@@ -8682,13 +9283,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 654,
-      "RunAt": "2026-10-25T18:51:00.5021065+11:00",
+      "DurationMs": 261,
+      "RunAt": "2026-11-07T12:48:40.2605343+11:00",
       "Lines": [],
       "Remarks": [
         "select(CMT1:P1:0): The requested member of the collection does not exist."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 206,
+        "open.add": 73,
+        "open.view": 36,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 0,
+        "reset": 30,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-06c[fixture=text-box,at=TB1:P1:2]": {
       "DefinitionHash": "0c5e05dd89cb1a79",
@@ -8700,8 +9312,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1627,
-      "RunAt": "2026-10-25T18:51:02.1340247+11:00",
+      "DurationMs": 1094,
+      "RunAt": "2026-11-07T12:48:41.3586212+11:00",
       "Lines": [
         "[⚓1First paragraph of text here.]",
         "[Second paragraph of text here.]",
@@ -8925,17 +9537,31 @@
             "SplitCells",
             "TableColumnsDistribute",
             "TableAutoFitMenu",
-            "ReviewNewComment",
-            "Thumbnails"
+            "ReviewNewComment"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 178,
+        "open.add": 64,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 0,
+        "steps": 142,
+        "observe": 718,
+        "reset": 29,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=contents,at=6]": {
       "DefinitionHash": "460148e848c7ba54",
@@ -8947,8 +9573,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1690,
-      "RunAt": "2026-10-25T18:51:10.6174534+11:00",
+      "DurationMs": 1194,
+      "RunAt": "2026-11-07T12:48:46.6569412+11:00",
       "Lines": [
         "[«][ TOC ‸\\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[Beta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -9195,17 +9821,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 227,
+        "open.add": 65,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 132,
+        "options": 0,
+        "steps": 141,
+        "observe": 774,
+        "reset": 27,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=contents,at=find(\"added\")]": {
       "DefinitionHash": "e316a8ee0f5c33d3",
@@ -9217,13 +9857,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 695,
-      "RunAt": "2026-10-25T18:51:11.3176359+11:00",
+      "DurationMs": 284,
+      "RunAt": "2026-11-07T12:48:46.9454777+11:00",
       "Lines": [],
       "Remarks": [
         "select(P1:find(\"added\")): 'added' is not in \"\u0013 TOC \\o \"1-3\" \u0000Alpha heading\t\u0013 PAGEREF _Toc243828883 \\h \u0000\u00001\u0015\r\"."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 66,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 110,
+        "options": 0,
+        "reset": 59,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=contents,at=find(\"site\")]": {
       "DefinitionHash": "063fba4bc16e0b35",
@@ -9235,13 +9886,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 726,
-      "RunAt": "2026-10-25T18:51:08.9227121+11:00",
+      "DurationMs": 305,
+      "RunAt": "2026-11-07T12:48:45.4584338+11:00",
       "Lines": [],
       "Remarks": [
         "select(P1:find(\"site\")): 'site' is not in \"\u0013 TOC \\o \"1-3\" \u0000Alpha heading\t\u0013 PAGEREF _Toc243828883 \\h \u0000\u00001\u0015\r\"."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 219,
+        "open.add": 73,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 0,
+        "reset": 60,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=field-page,at=6]": {
       "DefinitionHash": "0140b76a0f7f39f7",
@@ -9253,11 +9915,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1390,
-      "RunAt": "2026-10-25T18:51:07.5485467+11:00",
+      "DurationMs": 1000,
+      "RunAt": "2026-11-07T12:48:44.8698816+11:00",
       "Lines": [
         "[Page ][«][‸ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
         "Selection: IP 6–6 · Undo —"
       ],
       "Observation": {
@@ -9313,12 +9975,12 @@
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -9361,7 +10023,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -9393,17 +10055,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 216,
+        "open.add": 67,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 119,
+        "options": 0,
+        "steps": 141,
+        "observe": 591,
+        "reset": 27,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=field-page,at=find(\"added\")]": {
       "DefinitionHash": "f15a583ee8e26b12",
@@ -9415,13 +10091,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 638,
-      "RunAt": "2026-10-25T18:51:08.1910815+11:00",
+      "DurationMs": 276,
+      "RunAt": "2026-11-07T12:48:45.1494465+11:00",
       "Lines": [],
       "Remarks": [
         "select(P1:find(\"added\")): 'added' is not in \"Page \u0013 PAGE \u00001\u0015 of \u0013 NUMPAGES \u00001\u0015 end.\r\"."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 65,
+        "open.view": 20,
+        "open.front": 0,
+        "open.park": 110,
+        "options": 0,
+        "reset": 54,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=field-page,at=find(\"site\")]": {
       "DefinitionHash": "dedb02b92ff834f8",
@@ -9433,13 +10120,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 667,
-      "RunAt": "2026-10-25T18:51:06.1522304+11:00",
+      "DurationMs": 311,
+      "RunAt": "2026-11-07T12:48:43.8659711+11:00",
       "Lines": [],
       "Remarks": [
         "select(P1:find(\"site\")): 'site' is not in \"Page \u0013 PAGE \u00001\u0015 of \u0013 NUMPAGES \u00001\u0015 end.\r\"."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 230,
+        "open.add": 80,
+        "open.view": 34,
+        "open.front": 0,
+        "open.park": 115,
+        "options": 0,
+        "reset": 57,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=hyperlink,at=6]": {
       "DefinitionHash": "7b7770a4d229ad96",
@@ -9451,8 +10149,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1309,
-      "RunAt": "2026-10-25T18:51:04.7977283+11:00",
+      "DurationMs": 942,
+      "RunAt": "2026-11-07T12:48:43.2740931+11:00",
       "Lines": [
         "[See ]<‸[the site]>[ today.]",
         "[Second paragraph.]",
@@ -9575,17 +10273,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 187,
+        "open.add": 66,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 0,
+        "steps": 139,
+        "observe": 563,
+        "reset": 27,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=hyperlink,at=find(\"added\")]": {
       "DefinitionHash": "d9042bdbd70013b3",
@@ -9597,13 +10309,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 676,
-      "RunAt": "2026-10-25T18:51:05.4796537+11:00",
+      "DurationMs": 272,
+      "RunAt": "2026-11-07T12:48:43.550126+11:00",
       "Lines": [],
       "Remarks": [
         "select(P1:find(\"added\")): 'added' is not in \"See \u0013HYPERLINK \"https://example.com/\"\u0000\u0000the site\u0015 today.\r\"."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 65,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 101,
+        "options": 0,
+        "reset": 57,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=hyperlink,at=find(\"site\")]": {
       "DefinitionHash": "22885f1ab24d44eb",
@@ -9615,8 +10338,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1326,
-      "RunAt": "2026-10-25T18:51:03.4810271+11:00",
+      "DurationMs": 966,
+      "RunAt": "2026-11-07T12:48:42.3285401+11:00",
       "Lines": [
         "[See ]<[the ‸site]>[ today.]",
         "[Second paragraph.]",
@@ -9739,18 +10462,32 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "Bold",
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 176,
+        "open.add": 61,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 0,
+        "steps": 172,
+        "observe": 565,
+        "reset": 27,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=tracked,at=6]": {
       "DefinitionHash": "4120e6bcb0814d5d",
@@ -9762,8 +10499,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1357,
-      "RunAt": "2026-10-25T18:51:13.3194777+11:00",
+      "DurationMs": 1008,
+      "RunAt": "2026-11-07T12:48:48.2080542+11:00",
       "Lines": [
         "[Kept ]{+[a‸dded ]+}{-[gone ]-}[text stays.]",
         "[Second paragraph.]",
@@ -9890,17 +10627,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 202,
+        "open.add": 68,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 104,
+        "options": 0,
+        "steps": 141,
+        "observe": 613,
+        "reset": 28,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=tracked,at=find(\"added\")]": {
       "DefinitionHash": "178ceb05c6895e4f",
@@ -9912,8 +10663,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1372,
-      "RunAt": "2026-10-25T18:51:14.698759+11:00",
+      "DurationMs": 982,
+      "RunAt": "2026-11-07T12:48:49.1940892+11:00",
       "Lines": [
         "[Kept ]{+[‸added ]+}{-[gone ]-}[text stays.]",
         "[Second paragraph.]",
@@ -10040,17 +10791,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 187,
+        "open.add": 65,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 0,
+        "steps": 140,
+        "observe": 601,
+        "reset": 27,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-07[fixture=tracked,at=find(\"site\")]": {
       "DefinitionHash": "74de732d8cd46c31",
@@ -10062,13 +10827,24 @@
       "Options": {},
       "Tracked": false,
       "Status": "not-applicable",
-      "DurationMs": 617,
-      "RunAt": "2026-10-25T18:51:11.9412696+11:00",
+      "DurationMs": 245,
+      "RunAt": "2026-11-07T12:48:47.1943954+11:00",
       "Lines": [],
       "Remarks": [
         "select(P1:find(\"site\")): 'site' is not in \"Kept added gone text stays.\r\"."
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 183,
+        "open.add": 65,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "reset": 37,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-08": {
       "DefinitionHash": "80b274d432962bb3",
@@ -10081,8 +10857,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1427,
-      "RunAt": "2026-10-25T18:51:16.1320711+11:00",
+      "DurationMs": 1050,
+      "RunAt": "2026-11-07T12:48:50.2494073+11:00",
       "Lines": [
         "[The qx‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 6–6 · Undo: Typing \"x\""
@@ -10170,17 +10946,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 184,
+        "open.add": 66,
+        "open.view": 33,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 0,
+        "steps": 316,
+        "observe": 495,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-09": {
       "DefinitionHash": "7f6eb729159ca5ff",
@@ -10194,8 +10984,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1542,
-      "RunAt": "2026-10-25T18:51:17.6805756+11:00",
+      "DurationMs": 1144,
+      "RunAt": "2026-11-07T12:48:51.3971443+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo —"
@@ -10281,17 +11071,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 177,
+        "open.add": 65,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 0,
+        "steps": 413,
+        "observe": 501,
+        "reset": 27,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "B-10": {
       "DefinitionHash": "36eb69c1b1476677",
@@ -10306,8 +11110,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1586,
-      "RunAt": "2026-10-25T18:51:19.271434+11:00",
+      "DurationMs": 1230,
+      "RunAt": "2026-11-07T12:48:52.6314432+11:00",
       "Lines": [
         "[The qx‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 6–6 · Undo: Typing \"x\""
@@ -10395,17 +11199,31 @@
             "MergeCells",
             "SplitCells",
             "TableColumnsDistribute",
-            "TableAutoFitMenu",
-            "Thumbnails"
+            "TableAutoFitMenu"
           ],
           "Pressed": [
             "AlignLeft"
           ],
-          "Unreadable": []
+          "Unreadable": [
+            "Thumbnails"
+          ]
         }
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 61,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 0,
+        "steps": 506,
+        "observe": 495,
+        "reset": 27,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     }
   }
 }

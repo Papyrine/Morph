@@ -1,12 +1,12 @@
 {
   "Family": "misc",
-  "Generated": "2026-10-25T16:35:06.1160299+11:00",
+  "Generated": "2026-11-07T13:03:43.5380369+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20527.20150"
   },
   "Cases": {
     "X-01[side=centre]{Options.AllowClickAndTypeMouse=false}": {
@@ -21,8 +21,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1538,
-      "RunAt": "2026-10-25T16:34:18.2276408+11:00",
+      "DurationMs": 1220,
+      "RunAt": "2026-11-07T12:45:51.7317777+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog⟦‸.⟧]",
         "Selection: Normal 43–44 start-active · Undo — · dblclick(below P1, side=centre) → Range 43-43, IBeam"
@@ -102,7 +102,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 188,
+        "open.add": 60,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 34,
+        "steps": 770,
+        "observe": 149,
+        "reset": 40,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=centre]{Options.AllowClickAndTypeMouse=false}~tracked": {
       "DefinitionHash": "534b7cd2da886f3c",
@@ -116,8 +129,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1528,
-      "RunAt": "2026-10-25T16:34:19.7606409+11:00",
+      "DurationMs": 1235,
+      "RunAt": "2026-11-07T12:45:52.9709034+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog⟦‸.⟧]",
         "Selection: Normal 43–44 start-active · Tracking · Revisions 0 · Undo — · dblclick(below P1, side=centre) → Range 43-43, IBeam"
@@ -197,7 +210,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 59,
+        "open.view": 44,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 37,
+        "steps": 764,
+        "observe": 153,
+        "reset": 40,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=centre]{Options.AllowClickAndTypeMouse=true}": {
       "DefinitionHash": "8cc430a4c249e023",
@@ -211,8 +237,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1755,
-      "RunAt": "2026-10-25T16:34:14.8661615+11:00",
+      "DurationMs": 1468,
+      "RunAt": "2026-11-07T12:45:49.0016084+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]",
         "",
@@ -403,7 +429,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 59,
+        "open.view": 45,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 34,
+        "steps": 757,
+        "observe": 409,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=centre]{Options.AllowClickAndTypeMouse=true}~tracked": {
       "DefinitionHash": "f70d8c09ea43dcb9",
@@ -417,8 +456,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1813,
-      "RunAt": "2026-10-25T16:34:16.6844521+11:00",
+      "DurationMs": 1503,
+      "RunAt": "2026-11-07T12:45:50.5080597+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]{+",
         "",
@@ -622,7 +661,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 61,
+        "open.view": 47,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 37,
+        "steps": 756,
+        "observe": 438,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=left]{Options.AllowClickAndTypeMouse=false}": {
       "DefinitionHash": "0d2cbb4ac2d07cc0",
@@ -636,8 +688,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1539,
-      "RunAt": "2026-10-25T16:34:11.56108+11:00",
+      "DurationMs": 1243,
+      "RunAt": "2026-11-07T12:45:46.3123952+11:00",
       "Lines": [
         "[⟦The ‸⟧quick brown fox jumps over the lazy dog.]",
         "Selection: Normal 0–4 end-active · Undo — · dblclick(below P1, side=left) → Range 2-2, IBeam"
@@ -717,7 +769,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 191,
+        "open.add": 61,
+        "open.view": 44,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 34,
+        "steps": 787,
+        "observe": 153,
+        "reset": 40,
+        "close": 38
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=left]{Options.AllowClickAndTypeMouse=false}~tracked": {
       "DefinitionHash": "8bf66204a9ba122d",
@@ -731,8 +796,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1538,
-      "RunAt": "2026-10-25T16:34:13.1059491+11:00",
+      "DurationMs": 1214,
+      "RunAt": "2026-11-07T12:45:47.5300483+11:00",
       "Lines": [
         "[⟦The ‸⟧quick brown fox jumps over the lazy dog.]",
         "Selection: Normal 0–4 end-active · Tracking · Revisions 0 · Undo — · dblclick(below P1, side=left) → Range 2-2, IBeam"
@@ -812,7 +877,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 63,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 108,
+        "options": 37,
+        "steps": 754,
+        "observe": 146,
+        "reset": 38,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=left]{Options.AllowClickAndTypeMouse=true}": {
       "DefinitionHash": "1e556f571aac59e3",
@@ -826,8 +904,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2573,
-      "RunAt": "2026-10-25T16:34:08.1712609+11:00",
+      "DurationMs": 1447,
+      "RunAt": "2026-11-07T12:45:43.5528975+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]",
         "",
@@ -1018,7 +1096,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 227,
+        "open.add": 99,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 35,
+        "steps": 755,
+        "observe": 361,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=left]{Options.AllowClickAndTypeMouse=true}~tracked": {
       "DefinitionHash": "b342b5e56a64eabb",
@@ -1032,8 +1123,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1819,
-      "RunAt": "2026-10-25T16:34:10.0153916+11:00",
+      "DurationMs": 1508,
+      "RunAt": "2026-11-07T12:45:45.0650235+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]{+",
         "",
@@ -1231,7 +1322,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 58,
+        "open.view": 45,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 36,
+        "steps": 756,
+        "observe": 444,
+        "reset": 32,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=right]{Options.AllowClickAndTypeMouse=false}": {
       "DefinitionHash": "dfd91dca427c7556",
@@ -1245,8 +1349,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1529,
-      "RunAt": "2026-10-25T16:34:24.9195374+11:00",
+      "DurationMs": 1219,
+      "RunAt": "2026-11-07T12:45:57.1508274+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.⟦‸¶⟧]",
         "Selection: Normal 44–45 start-active · Undo — · dblclick(below P1, side=right) → Range 44-44, IBeam"
@@ -1326,7 +1430,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 61,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 108,
+        "options": 34,
+        "steps": 757,
+        "observe": 154,
+        "reset": 39,
+        "close": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=right]{Options.AllowClickAndTypeMouse=false}~tracked": {
       "DefinitionHash": "3e475bf9e7bdfd3a",
@@ -1340,8 +1457,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1466,
-      "RunAt": "2026-10-25T16:34:26.3897056+11:00",
+      "DurationMs": 1217,
+      "RunAt": "2026-11-07T12:45:58.3713498+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.⟦‸¶⟧]",
         "Selection: Normal 44–45 start-active · Tracking · Revisions 0 · Undo — · dblclick(below P1, side=right) → Range 44-44, IBeam"
@@ -1421,7 +1538,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 195,
+        "open.add": 61,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 37,
+        "steps": 754,
+        "observe": 149,
+        "reset": 39,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=right]{Options.AllowClickAndTypeMouse=true}": {
       "DefinitionHash": "da5d21f159a20107",
@@ -1435,8 +1565,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1730,
-      "RunAt": "2026-10-25T16:34:21.4963947+11:00",
+      "DurationMs": 1432,
+      "RunAt": "2026-11-07T12:45:54.4074126+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]",
         "",
@@ -1627,7 +1757,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 205,
+        "open.add": 64,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 33,
+        "steps": 756,
+        "observe": 369,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-01[side=right]{Options.AllowClickAndTypeMouse=true}~tracked": {
       "DefinitionHash": "e1adfe9ad51463e2",
@@ -1641,8 +1784,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1883,
-      "RunAt": "2026-10-25T16:34:23.3849569+11:00",
+      "DurationMs": 1516,
+      "RunAt": "2026-11-07T12:45:55.9274635+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]{+",
         "",
@@ -1846,7 +1989,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 58,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 36,
+        "steps": 771,
+        "observe": 443,
+        "reset": 29,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-02": {
       "DefinitionHash": "674890661c76afb8",
@@ -1862,8 +2018,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1321,
-      "RunAt": "2026-10-25T16:34:27.7149157+11:00",
+      "DurationMs": 1049,
+      "RunAt": "2026-11-07T12:45:59.4239712+11:00",
       "Lines": [
         "[alpha xyta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.z‸]",
         "Selection: IP 59–59 · overtype · Undo: Typing \"z\", Typing y, Typing x"
@@ -1939,7 +2095,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 195,
+        "open.add": 65,
+        "open.view": 44,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 0,
+        "steps": 677,
+        "observe": 93,
+        "reset": 43,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-02~tracked": {
       "DefinitionHash": "5310742dcce0412b",
@@ -1955,8 +2124,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1470,
-      "RunAt": "2026-10-25T16:34:29.1904414+11:00",
+      "DurationMs": 1202,
+      "RunAt": "2026-11-07T12:46:00.6300191+11:00",
       "Lines": [
         "[24:alpha ]{+[24:xy]+}[24:beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]{+[24:z]+}‸",
         "Selection: IP 61–61 · overtype · Tracking · Revisions 2 · Undo: Typing \"z\", Typing \"xy\""
@@ -2044,7 +2213,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 202,
+        "open.add": 63,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 111,
+        "options": 3,
+        "steps": 693,
+        "observe": 221,
+        "reset": 41,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03": {
       "DefinitionHash": "1bdb87278b465448",
@@ -2057,8 +2239,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 943,
-      "RunAt": "2026-10-25T16:34:30.1381543+11:00",
+      "DurationMs": 640,
+      "RunAt": "2026-11-07T12:46:01.2734669+11:00",
       "Lines": [
         "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
         "Selection: Normal 6–10 end-active · Undo —"
@@ -2158,7 +2340,20 @@
           },
           "Line": "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 202,
+        "open.add": 59,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 0,
+        "steps": 268,
+        "observe": 104,
+        "reset": 27,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03b": {
       "DefinitionHash": "65e707815ba5a080",
@@ -2173,8 +2368,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1193,
-      "RunAt": "2026-10-25T16:34:31.3353723+11:00",
+      "DurationMs": 896,
+      "RunAt": "2026-11-07T12:46:02.1733919+11:00",
       "Lines": [
         "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
         "Selection: Normal 6–10 end-active · Undo —"
@@ -2326,7 +2521,20 @@
           },
           "Line": "[alpha ⟦beta‸⟧,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 195,
+        "open.add": 62,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 106,
+        "options": 0,
+        "steps": 537,
+        "observe": 99,
+        "reset": 27,
+        "close": 38
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03c": {
       "DefinitionHash": "81bc966f4957b71f",
@@ -2341,8 +2549,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1167,
-      "RunAt": "2026-10-25T16:34:32.507603+11:00",
+      "DurationMs": 886,
+      "RunAt": "2026-11-07T12:46:03.0631949+11:00",
       "Lines": [
         "[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]",
         "Selection: IP 6–6 · Undo —"
@@ -2494,7 +2702,20 @@
           },
           "Line": "[alpha ‸beta,  gamma-delta 3.14 don't (eps) 1,000 10:30 end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 199,
+        "open.add": 61,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 108,
+        "options": 0,
+        "steps": 521,
+        "observe": 98,
+        "reset": 28,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03d": {
       "DefinitionHash": "23dd0b9f820f4a78",
@@ -2507,8 +2728,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1541,
-      "RunAt": "2026-10-25T16:34:34.0547281+11:00",
+      "DurationMs": 1172,
+      "RunAt": "2026-11-07T12:46:04.2390014+11:00",
       "Lines": [
         "[Text before ‸▣ after end.]",
         "[Second paragraph.]",
@@ -2671,7 +2892,20 @@
           },
           "Line": "[Text before ‸▣ after end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 197,
+        "open.add": 64,
+        "open.view": 47,
+        "open.front": 0,
+        "open.park": 83,
+        "options": 0,
+        "steps": 760,
+        "observe": 148,
+        "reset": 28,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03e": {
       "DefinitionHash": "3b101aa8e8ab3e0c",
@@ -2684,8 +2918,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1524,
-      "RunAt": "2026-10-25T16:34:35.5830313+11:00",
+      "DurationMs": 1193,
+      "RunAt": "2026-11-07T12:46:05.4359101+11:00",
       "Lines": [
         "[‸⚓1First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
@@ -2888,7 +3122,20 @@
           },
           "Line": "[‸First paragraph of text here.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 210,
+        "open.add": 68,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 115,
+        "options": 0,
+        "steps": 697,
+        "observe": 218,
+        "reset": 29,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03f": {
       "DefinitionHash": "021b76bd7028056c",
@@ -2902,8 +3149,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1767,
-      "RunAt": "2026-10-25T16:34:37.3539451+11:00",
+      "DurationMs": 1416,
+      "RunAt": "2026-11-07T12:46:06.8556605+11:00",
       "Lines": [
         "[‸⚓1First paragraph of text here.]",
         "[Second paragraph of text here.]",
@@ -3132,7 +3379,20 @@
           },
           "Line": "[‸First paragraph of text here.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 204,
+        "open.add": 67,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 0,
+        "steps": 921,
+        "observe": 221,
+        "reset": 30,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03g": {
       "DefinitionHash": "ac81faa24870584c",
@@ -3145,8 +3405,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1655,
-      "RunAt": "2026-10-25T16:34:39.0135309+11:00",
+      "DurationMs": 1316,
+      "RunAt": "2026-11-07T12:46:08.1762373+11:00",
       "Lines": [
         "[B‸ody paragraph.]",
         "[Second body paragraph.]",
@@ -3307,7 +3567,20 @@
           },
           "Line": "[B‸ody paragraph.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 215,
+        "open.add": 69,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 0,
+        "steps": 886,
+        "observe": 144,
+        "reset": 27,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-03h": {
       "DefinitionHash": "ed10ddd760763a13",
@@ -3320,8 +3593,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1060,
-      "RunAt": "2026-10-25T16:34:40.0783311+11:00",
+      "DurationMs": 795,
+      "RunAt": "2026-11-07T12:46:08.9767512+11:00",
       "Lines": [
         "[The quick ⟪⟦brown fox‸⟧⟫1 jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -3456,7 +3729,20 @@
           },
           "Line": "[The quick ⟦brown fox‸⟧ jumps over the lazy dog.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 209,
+        "open.add": 69,
+        "open.view": 45,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 0,
+        "steps": 316,
+        "observe": 200,
+        "reset": 29,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07": {
       "DefinitionHash": "fa401e57ae948c31",
@@ -3468,8 +3754,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1445,
-      "RunAt": "2026-10-25T16:34:41.5275925+11:00",
+      "DurationMs": 1118,
+      "RunAt": "2026-11-07T12:46:10.0986454+11:00",
       "Lines": [
         "[⟦Normal kind.¶⟧]",
         "⟦[Heading kind¶⟧] #Heading1",
@@ -3760,7 +4046,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 218,
+        "open.add": 81,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 23,
+        "steps": 180,
+        "observe": 628,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07/delete": {
       "DefinitionHash": "8484038ede40cc94",
@@ -3773,8 +4072,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1030,
-      "RunAt": "2026-10-25T16:34:44.0598491+11:00",
+      "DurationMs": 750,
+      "RunAt": "2026-11-07T12:46:11.9429965+11:00",
       "Lines": [
         "‸",
         "Selection: IP 0–0 · Undo: Clear"
@@ -3849,7 +4148,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 207,
+        "open.add": 67,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 112,
+        "options": 24,
+        "steps": 306,
+        "observe": 144,
+        "reset": 28,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07/delete~tracked": {
       "DefinitionHash": "7698bd19a536df36",
@@ -3862,8 +4174,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1677,
-      "RunAt": "2026-10-25T16:34:45.7412369+11:00",
+      "DurationMs": 1324,
+      "RunAt": "2026-11-07T12:46:13.2704774+11:00",
       "Lines": [
         "{-[Normal kind.]",
         "[Heading kind] #Heading1",
@@ -4164,7 +4476,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 65,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 105,
+        "options": 29,
+        "steps": 316,
+        "observe": 709,
+        "reset": 28,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07/type": {
       "DefinitionHash": "05cbd30ee8952ae2",
@@ -4177,8 +4502,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1049,
-      "RunAt": "2026-10-25T16:34:46.7960578+11:00",
+      "DurationMs": 779,
+      "RunAt": "2026-11-07T12:46:14.0536761+11:00",
       "Lines": [
         "[x‸]",
         "Selection: IP 1–1 · Undo: Typing \"x\""
@@ -4253,7 +4578,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 64,
+        "open.view": 27,
+        "open.front": 1,
+        "open.park": 107,
+        "options": 24,
+        "steps": 340,
+        "observe": 143,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07/type~tracked": {
       "DefinitionHash": "c8d30bcfbe78d453",
@@ -4266,8 +4604,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1771,
-      "RunAt": "2026-10-25T16:34:48.5715657+11:00",
+      "DurationMs": 1396,
+      "RunAt": "2026-11-07T12:46:15.4537142+11:00",
       "Lines": [
         "{-[Normal kind.]",
         "[Heading kind] #Heading1",
@@ -4574,7 +4912,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 63,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 30,
+        "steps": 333,
+        "observe": 763,
+        "reset": 29,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07b": {
       "DefinitionHash": "1cf22713a15b2933",
@@ -4587,8 +4938,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1038,
-      "RunAt": "2026-10-25T16:34:49.6143828+11:00",
+      "DurationMs": 751,
+      "RunAt": "2026-11-07T12:46:16.2089203+11:00",
       "Lines": [
         "‸",
         "Selection: IP 0–0 · Undo: Clear"
@@ -4663,7 +5014,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 211,
+        "open.add": 66,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 23,
+        "steps": 306,
+        "observe": 144,
+        "reset": 27,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07b~tracked": {
       "DefinitionHash": "1b31b71d6e0357ea",
@@ -4676,8 +5040,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1324,
-      "RunAt": "2026-10-25T16:34:50.9433971+11:00",
+      "DurationMs": 964,
+      "RunAt": "2026-11-07T12:46:17.1772736+11:00",
       "Lines": [
         "{-[⚓1First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
@@ -4828,7 +5192,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 62,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 26,
+        "steps": 304,
+        "observe": 365,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-07~tracked": {
       "DefinitionHash": "e93b1a86198a5b2e",
@@ -4840,8 +5217,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1492,
-      "RunAt": "2026-10-25T16:34:43.024338+11:00",
+      "DurationMs": 1087,
+      "RunAt": "2026-11-07T12:46:11.1893434+11:00",
       "Lines": [
         "[⟦Normal kind.¶⟧]",
         "⟦[Heading kind¶⟧] #Heading1",
@@ -5132,7 +5509,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 203,
+        "open.add": 66,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 29,
+        "steps": 159,
+        "observe": 626,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-08": {
       "DefinitionHash": "9b10c6753ee3771a",
@@ -5144,8 +5534,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1302,
-      "RunAt": "2026-10-25T16:34:52.2504906+11:00",
+      "DurationMs": 1956,
+      "RunAt": "2026-11-07T13:03:17.1590069+11:00",
       "Lines": [
         "[⟦a⍽‸⟧b soft⁃hyphen hidden words dash—end.]",
         "Selection: Normal 0–2 end-active · Undo — · dblclick(P1:0) → Range 1-1, IBeam"
@@ -5225,7 +5615,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 942,
+        "open.add": 151,
+        "open.view": 106,
+        "open.front": 556,
+        "open.park": 125,
+        "options": 0,
+        "steps": 680,
+        "observe": 257,
+        "reset": 30,
+        "close": 47
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-08b": {
       "DefinitionHash": "f4af21ff68682e5f",
@@ -5239,8 +5642,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1098,
-      "RunAt": "2026-10-25T16:34:54.7514285+11:00",
+      "DurationMs": 798,
+      "RunAt": "2026-11-07T13:03:19.0662209+11:00",
       "Lines": [
         "[a⍽b ‸soft⁃hyphen hidden words dash—end.]",
         "Selection: IP 4–4 · Undo —"
@@ -5366,7 +5769,20 @@
           },
           "Line": "[a⍽b ‸soft⁃hyphen hidden words dash—end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 206,
+        "open.add": 61,
+        "open.view": 52,
+        "open.front": 0,
+        "open.park": 91,
+        "options": 0,
+        "steps": 418,
+        "observe": 103,
+        "reset": 32,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-08c": {
       "DefinitionHash": "c6f2f6fd1c8f78aa",
@@ -5379,8 +5795,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 932,
-      "RunAt": "2026-10-25T16:34:55.6883372+11:00",
+      "DurationMs": 676,
+      "RunAt": "2026-11-07T13:03:19.7459703+11:00",
       "Lines": [
         "[a‸b soft⁃hyphen hidden words dash—end.]",
         "Selection: IP 1–1 · Undo: Clear"
@@ -5454,7 +5870,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 215,
+        "open.add": 65,
+        "open.view": 32,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 0,
+        "steps": 292,
+        "observe": 100,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-08c~tracked": {
       "DefinitionHash": "5dfc71b63a2f6353",
@@ -5467,8 +5896,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1066,
-      "RunAt": "2026-10-25T16:34:56.7586704+11:00",
+      "DurationMs": 846,
+      "RunAt": "2026-11-07T13:03:20.5963889+11:00",
       "Lines": [
         "[a]{-[⍽]-}[‸b soft⁃hyphen ][h:hidden ][words dash—end.]",
         "Selection: IP 2–2 · Tracking · Revisions 1 · Undo: Clear"
@@ -5559,7 +5988,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 207,
+        "open.add": 62,
+        "open.view": 54,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 3,
+        "steps": 307,
+        "observe": 258,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-08~tracked": {
       "DefinitionHash": "7bd31a6b8d75606e",
@@ -5571,8 +6013,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1392,
-      "RunAt": "2026-10-25T16:34:53.6475578+11:00",
+      "DurationMs": 1100,
+      "RunAt": "2026-11-07T13:03:18.2643823+11:00",
       "Lines": [
         "[⟦a⍽‸⟧b soft⁃hyphen ][h:hidden ][words dash—end.]",
         "Selection: Normal 0–2 end-active · Tracking · Revisions 0 · Undo — · dblclick(P1:0) → Range 1-1, IBeam"
@@ -5662,7 +6104,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 214,
+        "open.add": 62,
+        "open.view": 52,
+        "open.front": 1,
+        "open.park": 96,
+        "options": 3,
+        "steps": 632,
+        "observe": 180,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09": {
       "DefinitionHash": "396faf0c98db556c",
@@ -5675,8 +6130,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1109,
-      "RunAt": "2026-10-25T16:34:57.872893+11:00",
+      "DurationMs": 805,
+      "RunAt": "2026-11-07T12:46:22.3257119+11:00",
       "Lines": [
         "[Section one text.‸§]",
         "[Section two text.]",
@@ -5780,7 +6235,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 62,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 23,
+        "steps": 290,
+        "observe": 224,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09b": {
       "DefinitionHash": "0eb5051fcf97bf27",
@@ -5793,8 +6261,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1090,
-      "RunAt": "2026-10-25T16:35:00.1574514+11:00",
+      "DurationMs": 815,
+      "RunAt": "2026-11-07T12:46:24.3848626+11:00",
       "Lines": [
         "[Section one text.‸§]",
         "[Section two text.]",
@@ -5898,7 +6366,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 218,
+        "open.add": 74,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 22,
+        "steps": 293,
+        "observe": 213,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09b~tracked": {
       "DefinitionHash": "502a7835672e8595",
@@ -5911,8 +6392,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1183,
-      "RunAt": "2026-10-25T16:35:01.3444757+11:00",
+      "DurationMs": 892,
+      "RunAt": "2026-11-07T12:46:25.2813584+11:00",
       "Lines": [
         "[Section one text.]{--}",
         "[‸§]",
@@ -6050,7 +6531,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 63,
+        "open.view": 20,
+        "open.front": 0,
+        "open.park": 105,
+        "options": 25,
+        "steps": 292,
+        "observe": 316,
+        "reset": 28,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09c": {
       "DefinitionHash": "083e1a76714b6fae",
@@ -6063,8 +6557,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1085,
-      "RunAt": "2026-10-25T16:35:02.4341543+11:00",
+      "DurationMs": 805,
+      "RunAt": "2026-11-07T12:46:26.0902281+11:00",
       "Lines": [
         "[Section one text.‸§]",
         "[Section two text.]",
@@ -6168,7 +6662,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 62,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 22,
+        "steps": 293,
+        "observe": 220,
+        "reset": 29,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09c~tracked": {
       "DefinitionHash": "0f405efa5be3d349",
@@ -6181,8 +6688,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1228,
-      "RunAt": "2026-10-25T16:35:03.6669684+11:00",
+      "DurationMs": 937,
+      "RunAt": "2026-11-07T12:46:27.0308962+11:00",
       "Lines": [
         "[Section one text.]{--}",
         "[‸§]",
@@ -6320,7 +6827,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 62,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 26,
+        "steps": 305,
+        "observe": 338,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09d": {
       "DefinitionHash": "0e33ab100292ce95",
@@ -6333,8 +6853,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1205,
-      "RunAt": "2026-10-25T16:35:04.8776928+11:00",
+      "DurationMs": 892,
+      "RunAt": "2026-11-07T12:46:27.9280541+11:00",
       "Lines": [
         "[Section one text.]",
         "‸",
@@ -6492,7 +7012,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 62,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 83,
+        "options": 23,
+        "steps": 292,
+        "observe": 319,
+        "reset": 28,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09d~tracked": {
       "DefinitionHash": "156af48b3d462b50",
@@ -6505,8 +7038,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1231,
-      "RunAt": "2026-10-25T16:35:06.1123865+11:00",
+      "DurationMs": 947,
+      "RunAt": "2026-11-07T12:46:28.8796032+11:00",
       "Lines": [
         "[Section one text.]{++}",
         "‸",
@@ -6671,7 +7204,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 62,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 25,
+        "steps": 289,
+        "observe": 366,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-09~tracked": {
       "DefinitionHash": "44db2c3d46795818",
@@ -6684,8 +7230,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1185,
-      "RunAt": "2026-10-25T16:34:59.0626256+11:00",
+      "DurationMs": 1236,
+      "RunAt": "2026-11-07T12:46:23.5658849+11:00",
       "Lines": [
         "[Section one text.]{-‸-}",
         "[§]",
@@ -6823,7 +7369,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 195,
+        "open.add": 67,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 28,
+        "steps": 587,
+        "observe": 348,
+        "reset": 33,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10": {
       "DefinitionHash": "775147c4340459d9",
@@ -6836,12 +7395,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 853,
-      "RunAt": "2026-10-25T15:20:23.939335+11:00",
+      "DurationMs": 757,
+      "RunAt": "2026-11-07T12:46:29.6410461+11:00",
       "Lines": [
         "[Before the break.‸⤓]",
         "[After the break.]",
-        "Selection: IP 17–17 · Undo depth 1"
+        "Selection: IP 17–17 · Undo: Clear"
       ],
       "Observation": {
         "Selection": {
@@ -6889,7 +7448,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -6915,7 +7474,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -6930,16 +7489,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 194,
+        "open.add": 62,
+        "open.view": 47,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 21,
+        "steps": 296,
+        "observe": 178,
+        "reset": 29,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10b": {
       "DefinitionHash": "aa51740cfb53676c",
@@ -6952,13 +7524,13 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 868,
-      "RunAt": "2026-10-25T15:20:25.757656+11:00",
+      "DurationMs": 795,
+      "RunAt": "2026-11-07T12:46:31.364028+11:00",
       "Lines": [
         "[Before the break.]",
         "‸",
         "[After the break.]",
-        "Selection: IP 18–18 · Undo depth 1"
+        "Selection: IP 18–18 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -7006,7 +7578,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7032,7 +7604,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7058,7 +7630,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -7073,16 +7645,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10b.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 194,
+        "open.add": 59,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 22,
+        "steps": 309,
+        "observe": 201,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10b~tracked": {
       "DefinitionHash": "647646ff06b0bd36",
@@ -7095,13 +7680,13 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 927,
-      "RunAt": "2026-10-25T15:20:26.6887852+11:00",
+      "DurationMs": 893,
+      "RunAt": "2026-11-07T12:46:32.2613868+11:00",
       "Lines": [
         "[Before the break.]",
         "{-[‸⤓]-}",
         "[After the break.]",
-        "Selection: IP 18–18 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 18–18 · Tracking · Revisions 1 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -7149,7 +7734,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7175,7 +7760,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7201,7 +7786,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -7223,16 +7808,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10b_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 189,
+        "open.add": 59,
+        "open.view": 44,
+        "open.front": 0,
+        "open.park": 83,
+        "options": 25,
+        "steps": 290,
+        "observe": 320,
+        "reset": 28,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10c": {
       "DefinitionHash": "3eca06051a295b7a",
@@ -7245,13 +7843,13 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1031,
-      "RunAt": "2026-10-25T15:20:27.7237303+11:00",
+      "DurationMs": 789,
+      "RunAt": "2026-11-07T12:46:33.0550259+11:00",
       "Lines": [
         "[Before the break.]",
         "‸",
         "[After the break.]",
-        "Selection: IP 18–18 · Undo depth 1"
+        "Selection: IP 18–18 · Undo: Clear"
       ],
       "Observation": {
         "Selection": {
@@ -7299,7 +7897,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7325,7 +7923,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7351,7 +7949,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -7366,16 +7964,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10c.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 194,
+        "open.add": 64,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 105,
+        "options": 22,
+        "steps": 293,
+        "observe": 210,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10c~tracked": {
       "DefinitionHash": "4821b8748f42ae45",
@@ -7388,13 +7999,13 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 960,
-      "RunAt": "2026-10-25T15:20:28.6894933+11:00",
+      "DurationMs": 907,
+      "RunAt": "2026-11-07T12:46:33.9665703+11:00",
       "Lines": [
         "[Before the break.]",
         "{-[⤓]-}‸",
         "[After the break.]",
-        "Selection: IP 19–19 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 19–19 · Tracking · Revisions 1 · Undo: Clear"
       ],
       "Observation": {
         "Selection": {
@@ -7442,7 +8053,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7468,7 +8079,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7494,7 +8105,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -7516,16 +8127,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10c_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 191,
+        "open.add": 61,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 105,
+        "options": 25,
+        "steps": 306,
+        "observe": 315,
+        "reset": 29,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10d": {
       "DefinitionHash": "66f4228f11ea5dda",
@@ -7538,13 +8162,13 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 882,
-      "RunAt": "2026-10-25T15:20:29.5750709+11:00",
+      "DurationMs": 818,
+      "RunAt": "2026-11-07T12:46:34.7884439+11:00",
       "Lines": [
         "[Before the break.]",
         "[⤓x‸]",
         "[After the break.]",
-        "Selection: IP 20–20 · Undo depth 1"
+        "Selection: IP 20–20 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -7592,7 +8216,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7618,7 +8242,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7644,7 +8268,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -7659,16 +8283,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10d.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 65,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 107,
+        "options": 22,
+        "steps": 325,
+        "observe": 205,
+        "reset": 28,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10d~tracked": {
       "DefinitionHash": "9344c0e1520d4b5d",
@@ -7681,13 +8318,13 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 947,
-      "RunAt": "2026-10-25T15:20:30.525663+11:00",
+      "DurationMs": 960,
+      "RunAt": "2026-11-07T12:46:35.7527202+11:00",
       "Lines": [
         "[Before the break.]",
         "[⤓]{+[x]+}‸",
         "[After the break.]",
-        "Selection: IP 20–20 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 20–20 · Tracking · Revisions 1 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -7735,7 +8372,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7761,7 +8398,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7787,7 +8424,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -7809,16 +8446,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10d_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 63,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 26,
+        "steps": 321,
+        "observe": 343,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-10~tracked": {
       "DefinitionHash": "d9b41a5db75297b2",
@@ -7831,13 +8481,13 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 943,
-      "RunAt": "2026-10-25T15:20:24.8858689+11:00",
+      "DurationMs": 919,
+      "RunAt": "2026-11-07T12:46:30.5646011+11:00",
       "Lines": [
         "[Before the break.]{--}",
         "[‸⤓]",
         "[After the break.]",
-        "Selection: IP 18–18 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 18–18 · Tracking · Revisions 1 · Undo: Clear"
       ],
       "Observation": {
         "Selection": {
@@ -7885,7 +8535,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7911,7 +8561,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -7937,7 +8587,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -7959,16 +8609,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/X-10_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 195,
+        "open.add": 65,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 104,
+        "options": 25,
+        "steps": 291,
+        "observe": 339,
+        "reset": 27,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-11": {
       "DefinitionHash": "08f0b333cef0a439",
@@ -7981,14 +8644,14 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 937,
-      "RunAt": "2026-10-25T15:20:31.4683465+11:00",
+      "DurationMs": 890,
+      "RunAt": "2026-11-07T12:46:36.6474682+11:00",
       "Lines": [
         "[First paragraph here.]",
         "[Seco] (center)",
         "[\\u000E‸nd bold one.] (center)",
         "[Third and last.]",
-        "Selection: IP 28–28 · Undo depth 1"
+        "Selection: IP 28–28 · Undo: Column Break"
       ],
       "Observation": {
         "Selection": {
@@ -8036,7 +8699,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8062,7 +8725,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8088,7 +8751,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8114,7 +8777,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -8129,16 +8792,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Column Break"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/X-11.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 204,
+        "open.add": 64,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 22,
+        "steps": 322,
+        "observe": 274,
+        "reset": 28,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-11~tracked": {
       "DefinitionHash": "aa8cefbc4da192ff",
@@ -8151,14 +8827,14 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 822,
-      "RunAt": "2026-10-25T15:20:32.293911+11:00",
+      "DurationMs": 1034,
+      "RunAt": "2026-11-07T12:46:37.685705+11:00",
       "Lines": [
         "[First paragraph here.]",
         "[Seco]{+ (center)",
         "[\\u000E]+}[‸nd ][b:bold ][one.] (center)",
         "[Third and last.]",
-        "Selection: IP 28–28 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 28–28 · Tracking · Revisions 1 · Undo: Column Break"
       ],
       "Observation": {
         "Selection": {
@@ -8206,7 +8882,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8232,7 +8908,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8268,7 +8944,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8294,7 +8970,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -8316,16 +8992,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Column Break"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/X-11_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 193,
+        "open.add": 63,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 26,
+        "steps": 305,
+        "observe": 440,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-12": {
       "DefinitionHash": "8d94b367097eda9e",
@@ -8339,14 +9028,14 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1085,
-      "RunAt": "2026-10-25T15:20:33.3823936+11:00",
+      "DurationMs": 987,
+      "RunAt": "2026-11-07T12:46:38.677082+11:00",
       "Lines": [
         "[One] #ListParagraph •1.0 1. ⇥36,-18",
         "[Two] #ListParagraph •1.0 2. ⇥36,-18",
         "[Three] #ListParagraph •1.0 3. ⇥36,-18",
         "‸",
-        "Selection: IP 14–14 · Undo depth 3"
+        "Selection: IP 14–14 · Undo: AutoFormat, Typing"
       ],
       "Observation": {
         "Selection": {
@@ -8397,7 +9086,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8426,7 +9115,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8455,7 +9144,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8481,7 +9170,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -8496,11 +9185,10 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?",
-          "?"
+          "AutoFormat",
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "Remarks": []
@@ -8560,7 +9248,20 @@
           },
           "Line": "‸"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 197,
+        "open.add": 63,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 105,
+        "options": 0,
+        "steps": 488,
+        "observe": 234,
+        "reset": 28,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-12~tracked": {
       "DefinitionHash": "45eeadb06b3d5d5c",
@@ -8574,14 +9275,14 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1173,
-      "RunAt": "2026-10-25T15:20:34.5600197+11:00",
+      "DurationMs": 1165,
+      "RunAt": "2026-11-07T12:46:39.8460411+11:00",
       "Lines": [
         "[One] #ListParagraph •1.0 1. ⇥36,-18",
         "[Two] #ListParagraph •1.0 2. ⇥36,-18",
         "[Three]{++} #ListParagraph •1.0 3. ⇥36,-18",
-        "{+‸+}",
-        "Selection: IP 14–14 · Tracking · Revisions 2 · Undo depth 3"
+        "{~‸~}",
+        "Selection: IP 14–14 · Tracking · Revisions 2 · Undo: AutoFormat, Typing"
       ],
       "Observation": {
         "Selection": {
@@ -8632,7 +9333,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8661,7 +9362,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8690,7 +9391,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8716,7 +9417,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -8744,11 +9445,10 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?",
-          "?"
+          "AutoFormat",
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "Remarks": []
@@ -8808,7 +9508,20 @@
           },
           "Line": "‸"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 204,
+        "open.add": 63,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 115,
+        "options": 4,
+        "steps": 487,
+        "observe": 400,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-16{Options.SmartCursoring=false}": {
       "DefinitionHash": "399c54403c74501f",
@@ -8825,8 +9538,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1725,
-      "RunAt": "2026-10-25T15:20:39.9775277+11:00",
+      "DurationMs": 2323,
+      "RunAt": "2026-11-07T12:46:47.464331+11:00",
       "Lines": [
         "[Paragraph 1 of thirty on one of three pages.]",
         "[Paragraph 2 of thirty on one of three pages.]",
@@ -8860,7 +9573,7 @@
         "[Paragraph 28 of thirty on one of three pages.]",
         "[Paragraph 29 of thirty on one of three pages.]",
         "[Paragraph 30 of thirty on one of three pages.]",
-        "Selection: IP 919–919 · Undo depth 1"
+        "Selection: IP 919–919 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -8908,7 +9621,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8934,7 +9647,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8960,7 +9673,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -8986,7 +9699,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9012,7 +9725,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9038,7 +9751,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9064,7 +9777,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9090,7 +9803,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9116,7 +9829,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9142,7 +9855,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9168,7 +9881,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9194,7 +9907,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9220,7 +9933,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9246,7 +9959,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9272,7 +9985,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9298,7 +10011,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9324,7 +10037,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9350,7 +10063,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9376,7 +10089,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9402,7 +10115,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9428,7 +10141,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9454,7 +10167,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9480,7 +10193,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9506,7 +10219,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9532,7 +10245,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9558,7 +10271,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9584,7 +10297,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9610,7 +10323,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9636,7 +10349,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9662,7 +10375,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9688,7 +10401,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9714,7 +10427,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -9729,15 +10442,28 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 211,
+        "open.add": 67,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 12,
+        "steps": 511,
+        "observe": 1503,
+        "reset": 44,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-16{Options.SmartCursoring=false}~tracked": {
       "DefinitionHash": "593e805e627cf976",
@@ -9754,8 +10480,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1913,
-      "RunAt": "2026-10-25T15:20:41.8952799+11:00",
+      "DurationMs": 3295,
+      "RunAt": "2026-11-07T12:46:50.7629715+11:00",
       "Lines": [
         "[Paragraph 1 of thirty on one of three pages.]",
         "[Paragraph 2 of thirty on one of three pages.]",
@@ -9789,7 +10515,7 @@
         "[Paragraph 28 of thirty on one of three pages.]",
         "[Paragraph 29 of thirty on one of three pages.]",
         "[Paragraph 30 of thirty on one of three pages.]",
-        "Selection: IP 919–919 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 919–919 · Tracking · Revisions 1 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -9837,7 +10563,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9863,7 +10589,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9889,7 +10615,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9915,7 +10641,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9941,7 +10667,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9967,7 +10693,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -9993,7 +10719,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10019,7 +10745,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10045,7 +10771,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10071,7 +10797,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10097,7 +10823,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10123,7 +10849,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10149,7 +10875,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10175,7 +10901,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10201,7 +10927,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10227,7 +10953,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10253,7 +10979,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10279,7 +11005,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10305,7 +11031,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10331,7 +11057,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10357,7 +11083,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10383,7 +11109,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10409,7 +11135,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10435,7 +11161,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10461,7 +11187,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10487,7 +11213,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10513,7 +11239,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10539,7 +11265,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10565,7 +11291,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10591,7 +11317,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10617,7 +11343,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10643,7 +11369,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -10665,15 +11391,28 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 69,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 15,
+        "steps": 505,
+        "observe": 2201,
+        "reset": 331,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-16{Options.SmartCursoring=true}": {
       "DefinitionHash": "d320ad6727026fb3",
@@ -10690,8 +11429,8 @@
       },
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1776,
-      "RunAt": "2026-10-25T15:20:36.3398379+11:00",
+      "DurationMs": 2273,
+      "RunAt": "2026-11-07T12:46:42.1230448+11:00",
       "Lines": [
         "[Paragraph 1 of thirty on one of three pages.]",
         "[Paragraph 2 of thirty on one of three pages.]",
@@ -10725,7 +11464,7 @@
         "[Paragraph 28 of thirty on one of three pages.]",
         "[Paragraph 29 of thirty on one of three pages.]",
         "[Paragraph 30 of thirty on one of three pages.]",
-        "Selection: IP 919–919 · Undo depth 1"
+        "Selection: IP 919–919 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -10773,7 +11512,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10799,7 +11538,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10825,7 +11564,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10851,7 +11590,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10877,7 +11616,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10903,7 +11642,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10929,7 +11668,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10955,7 +11694,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -10981,7 +11720,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11007,7 +11746,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11033,7 +11772,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11059,7 +11798,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11085,7 +11824,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11111,7 +11850,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11137,7 +11876,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11163,7 +11902,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11189,7 +11928,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11215,7 +11954,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11241,7 +11980,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11267,7 +12006,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11293,7 +12032,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11319,7 +12058,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11345,7 +12084,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11371,7 +12110,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11397,7 +12136,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11423,7 +12162,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11449,7 +12188,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11475,7 +12214,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11501,7 +12240,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11527,7 +12266,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11553,7 +12292,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11579,7 +12318,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -11594,15 +12333,28 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 210,
+        "open.add": 70,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 111,
+        "options": 12,
+        "steps": 509,
+        "observe": 1470,
+        "reset": 30,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-16{Options.SmartCursoring=true}~tracked": {
       "DefinitionHash": "2696d48d45989072",
@@ -11619,8 +12371,8 @@
       },
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1904,
-      "RunAt": "2026-10-25T15:20:38.2478957+11:00",
+      "DurationMs": 3010,
+      "RunAt": "2026-11-07T12:46:45.1373121+11:00",
       "Lines": [
         "[Paragraph 1 of thirty on one of three pages.]",
         "[Paragraph 2 of thirty on one of three pages.]",
@@ -11654,7 +12406,7 @@
         "[Paragraph 28 of thirty on one of three pages.]",
         "[Paragraph 29 of thirty on one of three pages.]",
         "[Paragraph 30 of thirty on one of three pages.]",
-        "Selection: IP 919–919 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 919–919 · Tracking · Revisions 1 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -11702,7 +12454,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11728,7 +12480,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11754,7 +12506,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11780,7 +12532,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11806,7 +12558,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11832,7 +12584,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11858,7 +12610,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11884,7 +12636,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11910,7 +12662,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11936,7 +12688,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11962,7 +12714,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -11988,7 +12740,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12014,7 +12766,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12040,7 +12792,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12066,7 +12818,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12092,7 +12844,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12118,7 +12870,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12144,7 +12896,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12170,7 +12922,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12196,7 +12948,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12222,7 +12974,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12248,7 +13000,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12274,7 +13026,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12300,7 +13052,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12326,7 +13078,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12352,7 +13104,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12378,7 +13130,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12404,7 +13156,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12430,7 +13182,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12456,7 +13208,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12482,7 +13234,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12508,7 +13260,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -12530,15 +13282,28 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 211,
+        "open.add": 68,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 15,
+        "steps": 506,
+        "observe": 2207,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-17": {
       "DefinitionHash": "0eafdf4e363800e9",
@@ -12551,14 +13316,14 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 969,
-      "RunAt": "2026-10-25T15:20:42.8699101+11:00",
+      "DurationMs": 889,
+      "RunAt": "2026-11-07T12:46:51.6564852+11:00",
       "Lines": [
         "[Column text one with enough words to fill a few lines of a narrow column so the break lands inside it.]",
         "[\\u000E‸]",
         "[Column text two with enough words to fill a few more lines of a narrow column and run on further.]",
         "[Column text three closes the section with a final short line.]",
-        "Selection: IP 104–104 · Undo depth 1"
+        "Selection: IP 104–104 · Undo: Column Break"
       ],
       "Observation": {
         "Selection": {
@@ -12606,7 +13371,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12632,7 +13397,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12658,7 +13423,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12684,7 +13449,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -12699,16 +13464,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Column Break"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/X-17.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 209,
+        "open.add": 65,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 22,
+        "steps": 309,
+        "observe": 279,
+        "reset": 29,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "X-17~tracked": {
       "DefinitionHash": "f2647f1538154421",
@@ -12721,14 +13499,14 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 803,
-      "RunAt": "2026-10-25T15:20:43.6775431+11:00",
+      "DurationMs": 1013,
+      "RunAt": "2026-11-07T12:46:52.6733341+11:00",
       "Lines": [
         "[Column text one with enough words to fill a few lines of a narrow column so the break lands inside it.]{+",
         "[\\u000E]+}‸",
         "[Column text two with enough words to fill a few more lines of a narrow column and run on further.]",
         "[Column text three closes the section with a final short line.]",
-        "Selection: IP 104–104 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 104–104 · Tracking · Revisions 1 · Undo: Column Break"
       ],
       "Observation": {
         "Selection": {
@@ -12776,7 +13554,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12802,7 +13580,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12828,7 +13606,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -12854,7 +13632,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -12876,16 +13654,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Column Break"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/X-17_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 204,
+        "open.add": 63,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 27,
+        "steps": 305,
+        "observe": 404,
+        "reset": 29,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     }
   }
 }

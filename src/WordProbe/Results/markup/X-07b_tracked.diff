@@ -1,9 +1,9 @@
 -     <w:r>
 +     <w:pPr>
 -         <w:noProof />
-+         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-11-07T12:46:00Z" w16du:dateUtc="2026-11-07T01:46:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
 -       <w:drawing>
--         <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="75B49E62" wp14:editId="2D2CFD3B" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+-         <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="0366EA6B" wp14:editId="1E3BC3F8" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
 -           <wp:simplePos x="0" y="0" />
 -           <wp:positionH relativeFrom="column">
 -             <wp:posOffset>3810000</wp:posOffset>
@@ -60,13 +60,13 @@
 -       <w:t>First paragraph of text here.</w:t>
 -     </w:r>
 +     </w:pPr>
-+     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-11-07T12:46:00Z" w16du:dateUtc="2026-11-07T01:46:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:rPr>
 +           <w:noProof />
 +         </w:rPr>
 +         <w:drawing>
-+           <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="2FDE3566" wp14:editId="7AB35E32" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
++           <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="159DD45C" wp14:editId="62E88F6F" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
 +             <wp:simplePos x="0" y="0" />
 +             <wp:positionH relativeFrom="column">
 +               <wp:posOffset>3810000</wp:posOffset>
@@ -128,10 +128,10 @@
 -     </w:r>
 +     <w:pPr>
 +       <w:rPr>
-+         <w:del w:id="2" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++         <w:del w:id="2" w:author="Simon Cropp" w:date="2026-11-07T12:46:00Z" w16du:dateUtc="2026-11-07T01:46:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
 +       </w:rPr>
 +     </w:pPr>
-+     <w:del w:id="3" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:del w:id="3" w:author="Simon Cropp" w:date="2026-11-07T12:46:00Z" w16du:dateUtc="2026-11-07T01:46:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:delText>Second paragraph carries the anchor of the picture.</w:delText>
 +       </w:r>
@@ -139,7 +139,7 @@
 -     <w:r>
 -       <w:t>Third paragraph after it.</w:t>
 -     </w:r>
-+     <w:del w:id="4" w:author="Simon Cropp" w:date="2026-10-25T16:34:00Z" w16du:dateUtc="2026-10-25T05:34:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:del w:id="4" w:author="Simon Cropp" w:date="2026-11-07T12:46:00Z" w16du:dateUtc="2026-11-07T01:46:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:delText>Third paragraph after it.</w:delText>
 +       </w:r>

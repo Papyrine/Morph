@@ -1,12 +1,12 @@
 -   <w:p>
-+   <w:p w14:paraId="1D1E986F" w14:textId="16ECE113" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
++   <w:p w14:paraId="43D3A1FC" w14:textId="259A1AF0" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml">
 -       <w:t>The quick brown fox jumps over the lazy dog.</w:t>
 +       <w:t xml:space="preserve">The </w:t>
 +     <w:commentRangeStart w:id="0" />
 +     <w:r>
 +       <w:t>quic</w:t>
 +     </w:r>
-+     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T17:19:00Z" w16du:dateUtc="2026-10-25T06:19:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-11-07T12:44:00Z" w16du:dateUtc="2026-11-07T01:44:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:delText>k</w:delText>
 +       </w:r>

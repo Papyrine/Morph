@@ -1,12 +1,12 @@
 {
   "Family": "dialogs",
-  "Generated": "2026-10-25T16:18:16.6193445+11:00",
+  "Generated": "2026-11-07T13:03:44.051163+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20527.20150"
   },
   "Cases": {
     "K-01[key=Alt+F3]": {
@@ -20,8 +20,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3505,
-      "RunAt": "2026-10-25T16:17:28.1117774+11:00",
+      "DurationMs": 3247,
+      "RunAt": "2026-11-07T12:54:45.6302078+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -92,7 +92,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:27.4955754+11:00"
+          "SeenAt": "2026-11-07T12:54:45.2222141+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -102,7 +102,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 192,
+        "open.add": 61,
+        "open.view": 36,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 0,
+        "steps": 2922,
+        "observe": 75,
+        "reset": 29,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Alt+Shift+I]": {
       "DefinitionHash": "b403e5d32230ce1f",
@@ -115,8 +128,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1354,
-      "RunAt": "2026-10-25T16:17:29.4701017+11:00",
+      "DurationMs": 1120,
+      "RunAt": "2026-11-07T12:47:13.5181629+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"Mark Citation\" (bosa_sdm_msword)"
@@ -187,13 +200,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Mark Citation",
-          "SeenAt": "2026-10-25T16:17:28.571655+11:00"
+          "SeenAt": "2026-11-07T12:47:12.7719036+11:00",
+          "Text": ""
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 60,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 75,
+        "options": 0,
+        "steps": 760,
+        "observe": 99,
+        "reset": 29,
+        "close": 46
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Alt+Shift+O]": {
       "DefinitionHash": "5ddd60f26388003e",
@@ -206,11 +233,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1330,
-      "RunAt": "2026-10-25T16:17:32.1533691+11:00",
+      "DurationMs": 1146,
+      "RunAt": "2026-11-07T12:47:15.8313528+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Mark Table of Contents Entry\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Mark Table of Contents Entry\" (bosa_sdm_msword): 1"
       ],
       "Observation": {
         "Selection": {
@@ -278,13 +305,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Mark Table of Contents Entry",
-          "SeenAt": "2026-10-25T16:17:31.2741503+11:00"
+          "SeenAt": "2026-11-07T12:47:15.074898+11:00",
+          "Text": "1"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 62,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 111,
+        "options": 0,
+        "steps": 776,
+        "observe": 98,
+        "reset": 28,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Alt+Shift+X]": {
       "DefinitionHash": "402e7114df6cf883",
@@ -297,11 +338,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1347,
-      "RunAt": "2026-10-25T16:17:30.8200109+11:00",
+      "DurationMs": 1160,
+      "RunAt": "2026-11-07T12:47:14.6816307+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Mark Index Entry\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Mark Index Entry\" (bosa_sdm_msword): See"
       ],
       "Observation": {
         "Selection": {
@@ -369,13 +410,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Mark Index Entry",
-          "SeenAt": "2026-10-25T16:17:29.9353858+11:00"
+          "SeenAt": "2026-11-07T12:47:13.9143357+11:00",
+          "Text": "See"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 205,
+        "open.add": 66,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 0,
+        "steps": 776,
+        "observe": 108,
+        "reset": 27,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+Alt+V]": {
       "DefinitionHash": "1f1f13acc0ca422d",
@@ -388,8 +443,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3485,
-      "RunAt": "2026-10-25T16:17:23.2372658+11:00",
+      "DurationMs": 3261,
+      "RunAt": "2026-11-07T12:54:42.3801873+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -460,7 +515,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:22.643011+11:00"
+          "SeenAt": "2026-11-07T12:54:41.9708283+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -470,7 +525,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 188,
+        "open.add": 64,
+        "open.view": 20,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 0,
+        "steps": 2934,
+        "observe": 81,
+        "reset": 28,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+D]": {
       "DefinitionHash": "804b302f93a3d320",
@@ -483,11 +551,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1355,
-      "RunAt": "2026-10-25T16:17:15.6757834+11:00",
+      "DurationMs": 1153,
+      "RunAt": "2026-11-07T12:47:01.1269367+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword): +Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
       ],
       "Observation": {
         "Selection": {
@@ -555,13 +623,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T16:17:14.7700682+11:00"
+          "SeenAt": "2026-11-07T12:47:00.3638478+11:00",
+          "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 203,
+        "open.add": 65,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 108,
+        "options": 0,
+        "steps": 775,
+        "observe": 104,
+        "reset": 27,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+F]": {
       "DefinitionHash": "1c65bf6c40690813",
@@ -574,8 +656,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 4257,
-      "RunAt": "2026-10-25T16:17:10.1936753+11:00",
+      "DurationMs": 3274,
+      "RunAt": "2026-11-07T12:54:39.1158629+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -646,7 +728,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:09.4228223+11:00"
+          "SeenAt": "2026-11-07T12:54:38.6969107+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -656,7 +738,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 76,
+        "open.view": 33,
+        "open.front": 0,
+        "open.park": 83,
+        "options": 0,
+        "steps": 2932,
+        "observe": 75,
+        "reset": 28,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+G]": {
       "DefinitionHash": "e2c66c0796f899a8",
@@ -669,11 +764,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1358,
-      "RunAt": "2026-10-25T16:17:12.9534689+11:00",
+      "DurationMs": 1140,
+      "RunAt": "2026-11-07T12:46:58.7976787+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword): MSO Generic Control Container"
       ],
       "Observation": {
         "Selection": {
@@ -741,13 +836,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Find and Replace",
-          "SeenAt": "2026-10-25T16:17:12.0399138+11:00"
+          "SeenAt": "2026-11-07T12:46:58.0536414+11:00",
+          "Text": "MSO Generic Control Container"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 209,
+        "open.add": 61,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 119,
+        "options": 0,
+        "steps": 771,
+        "observe": 100,
+        "reset": 28,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+H]": {
       "DefinitionHash": "e1fc2ca0ec739786",
@@ -760,11 +869,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1364,
-      "RunAt": "2026-10-25T16:17:11.5922131+11:00",
+      "DurationMs": 1144,
+      "RunAt": "2026-11-07T12:46:57.6541632+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword): MSO Generic Control Container"
       ],
       "Observation": {
         "Selection": {
@@ -832,13 +941,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Find and Replace",
-          "SeenAt": "2026-10-25T16:17:10.6735725+11:00"
+          "SeenAt": "2026-11-07T12:46:56.8994423+11:00",
+          "Text": "MSO Generic Control Container"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 202,
+        "open.add": 60,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 91,
+        "options": 0,
+        "steps": 772,
+        "observe": 100,
+        "reset": 26,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+K]": {
       "DefinitionHash": "ccf342afb846a40e",
@@ -851,11 +974,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1322,
-      "RunAt": "2026-10-25T16:17:19.7489859+11:00",
+      "DurationMs": 1146,
+      "RunAt": "2026-11-07T12:47:04.5751126+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Insert Hyperlink\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Insert Hyperlink\" (bosa_sdm_msword): MSO Generic Control Container | quick | C&urrent Folder | Or select a pla&ce in this document:"
       ],
       "Observation": {
         "Selection": {
@@ -923,13 +1046,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Insert Hyperlink",
-          "SeenAt": "2026-10-25T16:17:18.8670824+11:00"
+          "SeenAt": "2026-11-07T12:47:03.8178702+11:00",
+          "Text": "MSO Generic Control Container | quick | C&urrent Folder | Or select a pla&ce in this document:"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 61,
+        "open.view": 50,
+        "open.front": 0,
+        "open.park": 87,
+        "options": 0,
+        "steps": 777,
+        "observe": 97,
+        "reset": 28,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+Shift+F5]": {
       "DefinitionHash": "ea671eecbb9e054a",
@@ -942,8 +1079,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1346,
-      "RunAt": "2026-10-25T16:17:33.5061043+11:00",
+      "DurationMs": 1165,
+      "RunAt": "2026-11-07T12:47:17.0000941+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"Bookmark\" (bosa_sdm_msword)"
@@ -1014,13 +1151,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Bookmark",
-          "SeenAt": "2026-10-25T16:17:32.6032082+11:00"
+          "SeenAt": "2026-11-07T12:47:16.2336123+11:00",
+          "Text": ""
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 212,
+        "open.add": 62,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 121,
+        "options": 0,
+        "steps": 777,
+        "observe": 106,
+        "reset": 27,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+Shift+F]": {
       "DefinitionHash": "71cf2118c9400460",
@@ -1033,11 +1184,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1387,
-      "RunAt": "2026-10-25T16:17:17.0660888+11:00",
+      "DurationMs": 1146,
+      "RunAt": "2026-11-07T12:47:02.2760802+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword): +Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
       ],
       "Observation": {
         "Selection": {
@@ -1105,13 +1256,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T16:17:16.1400244+11:00"
+          "SeenAt": "2026-11-07T12:47:01.5209954+11:00",
+          "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 204,
+        "open.add": 64,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 0,
+        "steps": 773,
+        "observe": 97,
+        "reset": 28,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+Shift+G]": {
       "DefinitionHash": "b1d06b0f2f8694e0",
@@ -1124,8 +1289,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1358,
-      "RunAt": "2026-10-25T16:17:24.5994375+11:00",
+      "DurationMs": 1154,
+      "RunAt": "2026-11-07T12:47:09.082816+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"Word Count\" (bosa_sdm_msword)"
@@ -1196,13 +1361,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Word Count",
-          "SeenAt": "2026-10-25T16:17:23.6973035+11:00"
+          "SeenAt": "2026-11-07T12:47:08.3249908+11:00",
+          "Text": ""
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 208,
+        "open.add": 59,
+        "open.view": 51,
+        "open.front": 1,
+        "open.park": 94,
+        "options": 0,
+        "steps": 760,
+        "observe": 113,
+        "reset": 28,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Ctrl+Shift+P]": {
       "DefinitionHash": "70d68a1a482bccc3",
@@ -1215,11 +1394,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1353,
-      "RunAt": "2026-10-25T16:17:18.4227135+11:00",
+      "DurationMs": 1147,
+      "RunAt": "2026-11-07T12:47:03.4261285+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Font\" (bosa_sdm_msword): +Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
       ],
       "Observation": {
         "Selection": {
@@ -1287,13 +1466,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T16:17:17.5168894+11:00"
+          "SeenAt": "2026-11-07T12:47:02.6624503+11:00",
+          "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 59,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 0,
+        "steps": 773,
+        "observe": 107,
+        "reset": 27,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=F5]": {
       "DefinitionHash": "ba0f37ee64cae7ce",
@@ -1306,11 +1499,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1361,
-      "RunAt": "2026-10-25T16:17:14.317804+11:00",
+      "DurationMs": 1155,
+      "RunAt": "2026-11-07T12:46:59.9706938+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Find and Replace\" (bosa_sdm_msword): MSO Generic Control Container"
       ],
       "Observation": {
         "Selection": {
@@ -1378,13 +1571,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Find and Replace",
-          "SeenAt": "2026-10-25T16:17:13.4079068+11:00"
+          "SeenAt": "2026-11-07T12:46:59.2079244+11:00",
+          "Text": "MSO Generic Control Container"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 204,
+        "open.add": 64,
+        "open.view": 54,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 0,
+        "steps": 774,
+        "observe": 108,
+        "reset": 27,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=F7]": {
       "DefinitionHash": "c00b48de61819fc2",
@@ -1397,8 +1604,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3477,
-      "RunAt": "2026-10-25T16:17:36.9870171+11:00",
+      "DurationMs": 3238,
+      "RunAt": "2026-11-07T12:54:48.8709936+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -1469,7 +1676,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:36.3855353+11:00"
+          "SeenAt": "2026-11-07T12:54:48.4544679+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -1479,7 +1686,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 181,
+        "open.add": 61,
+        "open.view": 32,
+        "open.front": 0,
+        "open.park": 87,
+        "options": 0,
+        "steps": 2917,
+        "observe": 76,
+        "reset": 28,
+        "close": 36
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-01[key=Shift+F7]": {
       "DefinitionHash": "ba4c75e228e8a423",
@@ -1492,8 +1712,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3450,
-      "RunAt": "2026-10-25T16:17:40.4404512+11:00",
+      "DurationMs": 3224,
+      "RunAt": "2026-11-07T12:54:52.0982568+11:00",
       "Lines": [
         "[The ⟦quick‸⟧ brown fox jumps over the lazy dog.]",
         "Selection: Normal 4–9 end-active · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -1564,7 +1784,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:39.864826+11:00"
+          "SeenAt": "2026-11-07T12:54:51.7000793+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -1574,7 +1794,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 185,
+        "open.add": 60,
+        "open.view": 33,
+        "open.front": 1,
+        "open.park": 88,
+        "options": 0,
+        "steps": 2917,
+        "observe": 63,
+        "reset": 29,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-02[key=Ctrl+F12]": {
       "DefinitionHash": "9a4527b79cd3f59d",
@@ -1587,11 +1820,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1739,
-      "RunAt": "2026-10-25T16:17:45.6904941+11:00",
+      "DurationMs": 1540,
+      "RunAt": "2026-11-07T12:47:28.402222+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Open\" (#32770)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Open\" (#32770): File &name: | Files of &type: | All Word Documents (*.docx;*.docm;*.dotx;*.dotm;*.doc;*.dot;*.htm;*.html;*.rtf;*.mht;*.mhtml;*.xml;*.odt;*.pdf) | &Open | Cancel | &Help | Too&ls"
       ],
       "Observation": {
         "Selection": {
@@ -1659,13 +1892,27 @@
         "Dialog": {
           "ClassName": "#32770",
           "Title": "Open",
-          "SeenAt": "2026-10-25T16:17:44.4032026+11:00"
+          "SeenAt": "2026-11-07T12:47:27.2530999+11:00",
+          "Text": "File &name: | Files of &type: | All Word Documents (*.docx;*.docm;*.dotx;*.dotm;*.doc;*.dot;*.htm;*.html;*.rtf;*.mht;*.mhtml;*.xml;*.odt;*.pdf) | &Open | Cancel | &Help | Too&ls"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 203,
+        "open.add": 61,
+        "open.view": 50,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 0,
+        "steps": 1172,
+        "observe": 92,
+        "reset": 28,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-02[key=Ctrl+F2]": {
       "DefinitionHash": "15eb64a36335d204",
@@ -1678,8 +1925,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3625,
-      "RunAt": "2026-10-25T16:17:55.7312428+11:00",
+      "DurationMs": 3384,
+      "RunAt": "2026-11-07T12:55:02.0780153+11:00",
       "Lines": [
         "[‸The quick brown fox jumps over the lazy dog.]",
         "Selection: IP 0–0 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -1750,7 +1997,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:55.0591759+11:00"
+          "SeenAt": "2026-11-07T12:55:01.6080064+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -1762,7 +2009,19 @@
         "no dialog appeared",
         "cleanup: Command failed"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 252,
+        "open.add": 130,
+        "open.view": 35,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 2934,
+        "observe": 64,
+        "reset": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-02[key=Ctrl+O]": {
       "DefinitionHash": "dfb780ea95d23697",
@@ -1775,8 +2034,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3502,
-      "RunAt": "2026-10-25T16:17:43.9458145+11:00",
+      "DurationMs": 3264,
+      "RunAt": "2026-11-07T12:54:55.3656609+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -1847,7 +2106,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:43.3413767+11:00"
+          "SeenAt": "2026-11-07T12:54:54.9305819+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -1857,7 +2116,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 178,
+        "open.add": 59,
+        "open.view": 36,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 0,
+        "steps": 2924,
+        "observe": 71,
+        "reset": 27,
+        "close": 64
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-02[key=Ctrl+P]": {
       "DefinitionHash": "222d82af8992ad3c",
@@ -1870,8 +2142,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3574,
-      "RunAt": "2026-10-25T16:17:52.0995519+11:00",
+      "DurationMs": 3319,
+      "RunAt": "2026-11-07T12:54:58.6892325+11:00",
       "Lines": [
         "[‸The quick brown fox jumps over the lazy dog.]",
         "Selection: IP 0–0 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -1942,7 +2214,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:17:51.4264947+11:00"
+          "SeenAt": "2026-11-07T12:54:58.2064442+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -1954,7 +2226,19 @@
         "no dialog appeared",
         "cleanup: Command failed"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 64,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "steps": 2926,
+        "observe": 76,
+        "reset": 36
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-02[key=Ctrl+S]": {
       "DefinitionHash": "b17dc35e28503978",
@@ -1967,11 +2251,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1365,
-      "RunAt": "2026-10-25T16:17:48.5223547+11:00",
+      "DurationMs": 1129,
+      "RunAt": "2026-11-07T12:47:30.9680199+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"\" (NUIDialog)"
+        "Selection: IP 5–5 · Undo — · Dialog \"\" (NUIDialog): The quick brown fox jumps over the lazy dog"
       ],
       "Observation": {
         "Selection": {
@@ -2039,13 +2323,27 @@
         "Dialog": {
           "ClassName": "NUIDialog",
           "Title": "",
-          "SeenAt": "2026-10-25T16:17:47.6084663+11:00"
+          "SeenAt": "2026-11-07T12:47:30.2297004+11:00",
+          "Text": "The quick brown fox jumps over the lazy dog"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 204,
+        "open.add": 63,
+        "open.view": 52,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 762,
+        "observe": 92,
+        "reset": 28,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-02[key=F12]": {
       "DefinitionHash": "24012435d5f9dcc1",
@@ -2058,11 +2356,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1460,
-      "RunAt": "2026-10-25T16:17:47.1535659+11:00",
+      "DurationMs": 1430,
+      "RunAt": "2026-11-07T12:47:29.8353122+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Save As\" (#32770)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Save As\" (#32770): The quick brown fox jumps over the lazy dog.docx | Namespace Tree Control | Navigation Pane | ShellView | Word Document (*.docx) | St&andard (publishing online and printing) | &Minimum size (publishing online) | &Options... | Maintain compatibility with previous versions of Word | Save Thumbnail | &Change Title... | Too&ls | &Save | Cancel | &Help | Navigation buttons | Up band | Address: Documents | Address band"
       ],
       "Observation": {
         "Selection": {
@@ -2130,13 +2428,27 @@
         "Dialog": {
           "ClassName": "#32770",
           "Title": "Save As",
-          "SeenAt": "2026-10-25T16:17:46.2466927+11:00"
+          "SeenAt": "2026-11-07T12:47:28.9006172+11:00",
+          "Text": "The quick brown fox jumps over the lazy dog.docx | Namespace Tree Control | Navigation Pane | ShellView | Word Document (*.docx) | St&andard (publishing online and printing) | &Minimum size (publishing online) | &Options... | Maintain compatibility with previous versions of Word | Save Thumbnail | &Change Title... | Too&ls | &Save | Cancel | &Help | Navigation buttons | Up band | Address: Documents | Address band"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 59,
+        "open.view": 50,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 1058,
+        "observe": 103,
+        "reset": 27,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-03[key=Alt+F8]": {
       "DefinitionHash": "26f886e5badc2c70",
@@ -2149,11 +2461,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1289,
-      "RunAt": "2026-10-25T16:17:59.851418+11:00",
+      "DurationMs": 1325,
+      "RunAt": "2026-11-07T12:47:41.6670108+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Macros\" (bosa_sdm_msword)"
       ],
       "Observation": {
         "Selection": {
@@ -2219,15 +2531,29 @@
         "UndoSource": "undo-redo-count",
         "Tracking": false,
         "Dialog": {
-          "ClassName": "MsoCommandBar",
-          "Title": "Apply Styles",
-          "SeenAt": "2026-10-25T16:17:58.9084446+11:00"
+          "ClassName": "bosa_sdm_msword",
+          "Title": "Macros",
+          "SeenAt": "2026-11-07T12:47:40.8917384+11:00",
+          "Text": ""
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 363,
+        "open.add": 63,
+        "open.view": 24,
+        "open.front": 194,
+        "open.park": 79,
+        "options": 0,
+        "steps": 773,
+        "observe": 110,
+        "reset": 28,
+        "close": 51
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-03[key=Ctrl+Alt+Shift+S]": {
       "DefinitionHash": "efab806e082c711f",
@@ -2240,11 +2566,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1308,
-      "RunAt": "2026-10-25T16:17:58.5574155+11:00",
+      "DurationMs": 1315,
+      "RunAt": "2026-11-07T12:47:40.3373334+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Styles\" (MsoCommandBar): Styles"
       ],
       "Observation": {
         "Selection": {
@@ -2311,14 +2637,28 @@
         "Tracking": false,
         "Dialog": {
           "ClassName": "MsoCommandBar",
-          "Title": "Apply Styles",
-          "SeenAt": "2026-10-25T16:17:57.5883835+11:00"
+          "Title": "Styles",
+          "SeenAt": "2026-11-07T12:47:39.5779356+11:00",
+          "Text": "Styles"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 367,
+        "open.add": 58,
+        "open.view": 49,
+        "open.front": 178,
+        "open.park": 79,
+        "options": 0,
+        "steps": 760,
+        "observe": 104,
+        "reset": 28,
+        "close": 56
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-03[key=Ctrl+F1]": {
       "DefinitionHash": "c0248b7d4539cf45",
@@ -2331,8 +2671,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3633,
-      "RunAt": "2026-10-25T16:18:08.5856849+11:00",
+      "DurationMs": 3277,
+      "RunAt": "2026-11-07T12:55:08.6483874+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -2403,7 +2743,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:18:07.8574221+11:00"
+          "SeenAt": "2026-11-07T12:55:08.2073149+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -2413,7 +2753,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 62,
+        "open.view": 37,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 2925,
+        "observe": 92,
+        "reset": 29,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-03[key=Ctrl+Shift+S]": {
       "DefinitionHash": "db778307024e5cb3",
@@ -2426,11 +2779,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1506,
-      "RunAt": "2026-10-25T16:17:57.2438842+11:00",
+      "DurationMs": 1258,
+      "RunAt": "2026-11-07T12:47:39.0183742+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar): Apply Styles | Normal"
       ],
       "Observation": {
         "Selection": {
@@ -2498,13 +2851,27 @@
         "Dialog": {
           "ClassName": "MsoCommandBar",
           "Title": "Apply Styles",
-          "SeenAt": "2026-10-25T16:17:56.2655885+11:00"
+          "SeenAt": "2026-11-07T12:47:38.2476428+11:00",
+          "Text": "Apply Styles | Normal"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 299,
+        "open.add": 173,
+        "open.view": 33,
+        "open.front": 0,
+        "open.park": 91,
+        "options": 0,
+        "steps": 773,
+        "observe": 106,
+        "reset": 27,
+        "close": 53
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-03[key=F1]": {
       "DefinitionHash": "dd2f6a2320a5f7ef",
@@ -2517,8 +2884,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "dialog-missing",
-      "DurationMs": 3514,
-      "RunAt": "2026-10-25T16:18:04.9431107+11:00",
+      "DurationMs": 3278,
+      "RunAt": "2026-11-07T12:55:05.362061+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
         "Selection: IP 5–5 · Undo — · Dialog \"(no dialog appeared)\" ((none))"
@@ -2589,7 +2956,7 @@
         "Dialog": {
           "ClassName": "(none)",
           "Title": "(no dialog appeared)",
-          "SeenAt": "2026-10-25T16:18:04.3172208+11:00"
+          "SeenAt": "2026-11-07T12:55:04.9467212+11:00"
         },
         "Hotspots": [],
         "Remarks": [
@@ -2599,7 +2966,20 @@
       "Remarks": [
         "no dialog appeared"
       ],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 248,
+        "open.add": 131,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 78,
+        "options": 0,
+        "steps": 2881,
+        "observe": 64,
+        "reset": 27,
+        "close": 58
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-03[key=Shift+F10]": {
       "DefinitionHash": "0f82639ebff00247",
@@ -2612,11 +2992,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1570,
-      "RunAt": "2026-10-25T16:18:01.4258067+11:00",
+      "DurationMs": 1181,
+      "RunAt": "2026-11-07T12:47:42.8526111+11:00",
       "Lines": [
         "[The q‸uick brown fox jumps over the lazy dog.]",
-        "Selection: IP 5–5 · Undo — · Dialog \"Apply Styles\" (MsoCommandBar)"
+        "Selection: IP 5–5 · Undo — · Dialog \"\" (Net UI Tool Window)"
       ],
       "Observation": {
         "Selection": {
@@ -2682,19 +3062,29 @@
         "UndoSource": "undo-redo-count",
         "Tracking": false,
         "Dialog": {
-          "ClassName": "MsoCommandBar",
-          "Title": "Apply Styles",
-          "SeenAt": "2026-10-25T16:18:00.207207+11:00"
+          "ClassName": "Net UI Tool Window",
+          "Title": "",
+          "SeenAt": "2026-11-07T12:47:42.0798567+11:00",
+          "Text": ""
         },
         "Hotspots": [],
-        "Remarks": [
-          "dialog during step: MsoCommandBar \"Apply Styles\" (dismissed)"
-        ]
+        "Remarks": []
       },
-      "Remarks": [
-        "dialog during step: MsoCommandBar \"Apply Styles\" (dismissed)"
-      ],
-      "Tests": []
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 221,
+        "open.add": 59,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 131,
+        "options": 0,
+        "steps": 772,
+        "observe": 108,
+        "reset": 28,
+        "close": 52
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-04[key=Ctrl+Alt+Y]": {
       "DefinitionHash": "2eaf9f7de32de69c",
@@ -2708,8 +3098,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2997,
-      "RunAt": "2026-10-25T16:18:11.5919347+11:00",
+      "DurationMs": 1530,
+      "RunAt": "2026-11-07T12:47:50.9956226+11:00",
       "Lines": [
         "[Paragraph 1 of thirty on one of three pages.]",
         "[Paragraph 2 of thirty on one of three pages.]",
@@ -3672,7 +4062,20 @@
           },
           "Line": "[‸Paragraph 11 of thirty on one of three pages.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 214,
+        "open.add": 72,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 0,
+        "steps": 397,
+        "observe": 853,
+        "reset": 28,
+        "close": 38
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-04[key=Ctrl+PgDn]": {
       "DefinitionHash": "1cd3bd16e1df260a",
@@ -3686,8 +4089,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2524,
-      "RunAt": "2026-10-25T16:18:14.1346983+11:00",
+      "DurationMs": 1507,
+      "RunAt": "2026-11-07T12:47:52.5079126+11:00",
       "Lines": [
         "[Paragraph 1 of thirty on one of three pages.]",
         "[Paragraph 2 of thirty on one of three pages.]",
@@ -4650,7 +5053,20 @@
           },
           "Line": "[‸Paragraph 21 of thirty on one of three pages.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 203,
+        "open.add": 69,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 0,
+        "steps": 394,
+        "observe": 845,
+        "reset": 27,
+        "close": 38
+      },
+      "Build": "16.0.20527.20150"
     },
     "K-04[key=Ctrl+PgUp]": {
       "DefinitionHash": "a7ba1f8626fd366e",
@@ -4664,8 +5080,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2477,
-      "RunAt": "2026-10-25T16:18:16.6162428+11:00",
+      "DurationMs": 1520,
+      "RunAt": "2026-11-07T12:47:54.0321807+11:00",
       "Lines": [
         "[‸Paragraph 1 of thirty on one of three pages.]",
         "[Paragraph 2 of thirty on one of three pages.]",
@@ -5628,7 +6044,20 @@
           },
           "Line": "[‸Paragraph 1 of thirty on one of three pages.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 218,
+        "open.add": 79,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 0,
+        "steps": 395,
+        "observe": 850,
+        "reset": 28,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     }
   }
 }

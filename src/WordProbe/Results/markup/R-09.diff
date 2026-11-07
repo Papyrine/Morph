@@ -3,7 +3,7 @@
 -         <w:noProof />
 -       </w:rPr>
 -       <w:drawing>
--         <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="4B4EB3FF" wp14:editId="255C129B" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+-         <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="731DF549" wp14:editId="5F57DC24" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
 -           <wp:extent cx="914400" cy="914400" />
 -           <wp:effectExtent l="0" t="0" r="0" b="0" />
 -           <wp:docPr id="2027270503" name="Picture 1" />
@@ -42,13 +42,13 @@
 -         </wp:inline>
 -       </w:drawing>
 -     </w:r>
-+     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T15:17:00Z" w16du:dateUtc="2026-10-25T04:17:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-11-07T12:40:00Z" w16du:dateUtc="2026-11-07T01:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:rPr>
 +           <w:noProof />
 +         </w:rPr>
 +         <w:drawing>
-+           <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="2C4697C3" wp14:editId="2B38DDF2" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
++           <wp:inline distT="0" distB="0" distL="0" distR="0" wp14:anchorId="2447BB9F" wp14:editId="6EF58C90" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
 +             <wp:extent cx="914400" cy="914400" />
 +             <wp:effectExtent l="0" t="0" r="0" b="0" />
 +             <wp:docPr id="2027270503" name="Picture 1" />

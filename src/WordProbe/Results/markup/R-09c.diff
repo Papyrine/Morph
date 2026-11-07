@@ -3,7 +3,7 @@
 -         <w:noProof />
 -       </w:rPr>
 -       <w:drawing>
--         <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="05BCBEC6" wp14:editId="34EF68B4" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
+-         <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="6D4D6F4A" wp14:editId="4EB36CC8" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
 -           <wp:simplePos x="0" y="0" />
 -           <wp:positionH relativeFrom="column">
 -             <wp:posOffset>3810000</wp:posOffset>
@@ -56,13 +56,13 @@
 -         </wp:anchor>
 -       </w:drawing>
 -     </w:r>
-+     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T15:17:00Z" w16du:dateUtc="2026-10-25T04:17:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-11-07T12:40:00Z" w16du:dateUtc="2026-11-07T01:40:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:rPr>
 +           <w:noProof />
 +         </w:rPr>
 +         <w:drawing>
-+           <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="7370B9F1" wp14:editId="469A44F7" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
++           <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="5DEE1C99" wp14:editId="12CC13F1" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
 +             <wp:simplePos x="0" y="0" />
 +             <wp:positionH relativeFrom="column">
 +               <wp:posOffset>3810000</wp:posOffset>
