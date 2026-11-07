@@ -66,11 +66,18 @@ static class SamplePages
     /// </summary>
     public static async Task<IResult> Open(string fileId, string action, HttpRequest request, OfficeLauncher launcher)
     {
-        // an application decides the access from its own users and permissions
+        // an application decides the access from its own users and permissions; here the user comes from
+        // ?user=, so that two people can edit a file at once
         var canWrite = action == "edit";
-        var access = new OfficeAccess(fileId, "demo")
+        string? user = request.Query["user"];
+        if (string.IsNullOrEmpty(user))
         {
-            UserName = "Demo User",
+            user = "demo";
+        }
+
+        var access = new OfficeAccess(fileId, user)
+        {
+            UserName = $"{char.ToUpperInvariant(user[0])}{user[1..]} User",
             CanWrite = canWrite
         };
         try

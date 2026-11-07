@@ -95,6 +95,16 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     public ValueTask<int[]> EditTargetAsync() =>
         controller.InvokeAsync<int[]>("editTarget");
 
+    // How long the paragraph being typed has been left alone, in milliseconds: -1 while an input method
+    // composes, and a large number when none is open. Coauthoring shows others' edits once it is a while.
+    public ValueTask<double> EditIdleAsync() =>
+        controller.InvokeAsync<double>("editIdle");
+
+    // Where the others in a coauthoring session are, as JSON: for each paragraph one of them has open, its
+    // page, x, y and height in points, the name and the colour. Drawn again after every layout.
+    public ValueTask SetPresenceAsync(int documentId, string marks) =>
+        controller.InvokeVoidAsync("setPresence", documentId, marks);
+
     // The editor's draft (morph-draft.js): whether the page asks before it is left, the file kept in
     // the browser's storage, and the draft read back.
     // Word's ruler over the pages, from the model MorphEditor.RulerModel writes; null takes it away.

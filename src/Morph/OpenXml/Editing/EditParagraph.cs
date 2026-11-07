@@ -4,6 +4,12 @@
 /// </summary>
 sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
 {
+    /// <summary>
+    /// The paragraph's <c>w14:paraId</c>, or null where it has none: what coauthoring names it by, since
+    /// <see cref="Ordinal"/> moves with every paragraph added above it (<see cref="ParagraphIds"/>).
+    /// </summary>
+    public string? Id { get; init; }
+
     /// <summary>Whether the block after this paragraph is a paragraph it can be joined to.</summary>
     public bool HasNext { get; init; }
 

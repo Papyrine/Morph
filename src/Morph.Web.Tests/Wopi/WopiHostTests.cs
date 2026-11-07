@@ -8,7 +8,7 @@ using OfficeHost;
 // Morph http://morph; the test server answers both.
 public class WopiHostTests
 {
-    sealed class Server(WebApplication app, FileSystemStorage storage, string folder) : IAsyncDisposable
+    internal sealed class Server(WebApplication app, FileSystemStorage storage, string folder) : IAsyncDisposable
     {
         public WebApplication App => app;
         public FileSystemStorage Storage => storage;
@@ -23,12 +23,12 @@ public class WopiHostTests
 
         public string Id => storage.GetFileId("Report.docx");
 
-        public Task<OfficeLaunch> LaunchAsync(string action = "edit", string file = "Report.docx") =>
+        public Task<OfficeLaunch> LaunchAsync(string action = "edit", string file = "Report.docx", string user = "ann") =>
             app.Services.GetRequiredService<OfficeLauncher>()
                 .Launch(
-                    new(storage.GetFileId(file), "ann")
+                    new(storage.GetFileId(file), user)
                     {
-                        UserName = "Ann",
+                        UserName = $"{char.ToUpperInvariant(user[0])}{user[1..]}",
                         CanWrite = action == "edit"
                     },
                     action);
@@ -44,7 +44,7 @@ public class WopiHostTests
     // build output, as an application run outside Development from its build has the files of its editor.
     // With a basePath, the editor app is served under it: its page is in that folder of the web root, and
     // Morph.Blazor's assets are at the root, as an application serves every library's.
-    static async Task<Server> StartAsync(bool pageInBuildOutput = false, string? basePath = null)
+    internal static async Task<Server> StartAsync(bool pageInBuildOutput = false, string? basePath = null, Action<IServiceCollection>? configure = null)
     {
         var folder = Path.Combine(Path.GetTempPath(), $"morph-wopi-{Guid.NewGuid():N}");
         var files = Path.Combine(folder, "files");
@@ -130,6 +130,7 @@ public class WopiHostTests
         // Both sides' requests go to the test server: the host's for the discovery, Morph's to the host.
         services.AddHttpClient(OfficeHostOptions.HttpClientName).ConfigurePrimaryHttpMessageHandler(() => server!.CreateHandler());
         services.AddHttpClient(WopiProxy.ClientName).ConfigurePrimaryHttpMessageHandler(() => server!.CreateHandler());
+        configure?.Invoke(services);
 
         var app = builder.Build();
         app.MapOfficeHost();
@@ -140,7 +141,7 @@ public class WopiHostTests
     }
 
     // What the action URL answers with: the editor's page, the launch written into it for MorphWopi.
-    static async Task<(HttpResponseMessage Response, WopiLaunchInfo? Launch)> PostAsync(HttpClient client, OfficeLaunch launch)
+    internal static async Task<(HttpResponseMessage Response, WopiLaunchInfo? Launch)> PostAsync(HttpClient client, OfficeLaunch launch)
     {
         var response = await client.PostAsync(
             launch.Url,

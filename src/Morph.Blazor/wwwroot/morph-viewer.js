@@ -76,6 +76,8 @@ export function attachViewer(root, dotNet, maxDpi, maxPagePixels) {
         selectText: (firstPage, start, lastPage, end) => viewer.selectText(firstPage, start, lastPage, end),
         beginEdit: (documentId, session) => viewer.beginEdit(documentId, session),
         editTarget: () => viewer.editTarget(),
+        editIdle: () => viewer.editIdle(),
+        setPresence: (documentId, marks) => viewer.setPresence(documentId, marks),
         setUnsaved: unsaved => viewer.drafts().setUnsaved(unsaved),
         keepDraft: (name, bytes) => viewer.drafts().keep(name, bytes),
         dropDraft: () => viewer.drafts().drop(),
@@ -586,6 +588,7 @@ class Viewer {
         }
 
         this.drawRuler();
+        this.drawPresence();
         this.markCurrent();
         this.notifyState();
         this.scheduleQueue(0);
@@ -2743,6 +2746,57 @@ class Viewer {
         // The command it is handed to may lay the document out again, which leaves it where it was.
         this.targetHanded = Boolean(this.lastTarget);
         return this.lastTarget ?? [];
+    }
+
+    // How long the paragraph being typed has been left alone, in milliseconds: -1 while an input method
+    // composes, and a large number with none open. Coauthoring shows the others' edits only once the
+    // reader has paused, handing the paragraph in and opening it again (MorphViewer.Coauthoring.cs).
+    editIdle() {
+        const editor = this.editor;
+        if (!editor || editor.closed || editor.pending) {
+            return 1e9;
+        }
+
+        if (editor.composing) {
+            return -1;
+        }
+
+        return performance.now() - editor.lastInput;
+    }
+
+    // Coauthoring: a bar beside each paragraph someone else has open, in their colour, with their name
+    // over it. In points, as the pictures are; .NET sends them again after every layout.
+    setPresence(documentId, marks) {
+        this.presence = { documentId, marks: JSON.parse(marks) };
+        this.drawPresence();
+    }
+
+    drawPresence() {
+        for (const bar of this.root.querySelectorAll('.viewer-presence')) {
+            bar.remove();
+        }
+
+        const presence = this.presence;
+        if (!presence || presence.documentId !== this.documentId) {
+            return;
+        }
+
+        for (const mark of presence.marks) {
+            const page = this.pages[mark.page];
+            if (!page) {
+                continue;
+            }
+
+            const bar = document.createElement('div');
+            bar.className = `viewer-presence viewer-presence-${mark.color % 8}`;
+            bar.style.left = `${Math.max(0, mark.x - 6) / page.width * 100}%`;
+            bar.style.top = `${mark.y / page.height * 100}%`;
+            bar.style.height = `${mark.height / page.height * 100}%`;
+            bar.dataset.name = mark.name;
+            bar.setAttribute('role', 'note');
+            bar.setAttribute('aria-label', `${mark.name} is editing here`);
+            page.element.appendChild(bar);
+        }
     }
 
     // The editor stays where it is, showing what was typed, until the page under it shows the same.

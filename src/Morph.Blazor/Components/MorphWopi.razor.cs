@@ -5,10 +5,12 @@ namespace Morph;
 /// of the WebAssembly app that an ASP.NET Core application serves with Morph.Wopi: the host posts an access
 /// token to the action URL, Morph.Wopi writes the file to open into the editor's page, and this reads it.
 ///
-/// A Word document opened to edit is locked while it is open, the lock refreshed as WOPI asks, and Save
-/// puts it back over itself; a file the user may not save, or that someone else has locked, opens read
-/// only, as do a workbook and a deck, and a file opened to view. The host's breadcrumb and its Close link
-/// go over the editor. Everything goes through Morph.Wopi's proxy, which signs it for the host.
+/// A Word document opened where Morph.Wopi coauthors (<see cref="Coauthor"/>) joins the file's session, and
+/// is edited with everyone else in it: the session holds the file's lock and saves it, and the bar shows who
+/// else is in. Elsewhere, a Word document opened to edit is locked while it is open, the lock refreshed as
+/// WOPI asks, and Save puts it back over itself. A file the user may not save, or that someone else has
+/// locked, opens read only, as do a workbook and a deck, and a file opened to view. The host's breadcrumb
+/// and its Close link go over the editor. Everything goes through Morph.Wopi, which signs it for the host.
 /// </summary>
 public partial class MorphWopi : IAsyncDisposable
 {
@@ -37,6 +39,10 @@ public partial class MorphWopi : IAsyncDisposable
 
     readonly CancelSource lifetime = new();
     WopiSession? session;
+    Coauthor? coauthor;
+    bool coauthorAttached;
+    MorphEditor? editorComponent;
+    MorphViewer? viewerComponent;
     WopiFileInfo? info;
     byte[]? bytes;
     bool editing;
@@ -49,6 +55,11 @@ public partial class MorphWopi : IAsyncDisposable
     {
         get
         {
+            if (coauthor is {Joined.CanWrite: true})
+            {
+                return EventCallback.Factory.Create<byte[]>(this, SaveCoauthoredAsync);
+            }
+
             if (lockId is null)
             {
                 return default;
@@ -58,15 +69,27 @@ public partial class MorphWopi : IAsyncDisposable
         }
     }
 
+    // The others in the session, for the bar: everyone but this page.
+    IEnumerable<CoauthorPresence> Others =>
+        coauthor?.State?.Users.Where(_ => _.Connection != coauthor.Joined?.Connection) ?? [];
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender)
+        if (firstRender)
         {
+            await OpenAsync();
+            StateHasChanged();
             return;
         }
 
-        await OpenAsync();
-        StateHasChanged();
+        // The editor or viewer showing the session's document edits through the session from here on.
+        if (coauthor != null &&
+            !coauthorAttached &&
+            ((MorphViewer?) editorComponent ?? viewerComponent) is { } shown)
+        {
+            coauthorAttached = true;
+            shown.Coauthor(coauthor);
+        }
     }
 
     async Task OpenAsync()
@@ -84,9 +107,17 @@ public partial class MorphWopi : IAsyncDisposable
         {
             var file = await opened.CheckFileInfoAsync(lifetime.Token);
             info = file;
-            var content = await opened.GetFileAsync(lifetime.Token);
+            var word = ConversionService.Detect(file.BaseFileName)?.Format == InputFormat.Docx;
             editing = launch.Action == "edit" &&
-                      ConversionService.Detect(file.BaseFileName)?.Format == InputFormat.Docx;
+                      word;
+            if (word &&
+                await JoinAsync(launch) is { } shared)
+            {
+                bytes = shared;
+                return;
+            }
+
+            var content = await opened.GetFileAsync(lifetime.Token);
             if (editing)
             {
                 await LockAsync(opened, file);
@@ -98,6 +129,56 @@ public partial class MorphWopi : IAsyncDisposable
         {
             problem = exception.Message;
         }
+    }
+
+    // The file's coauthoring session, joined: its document, or null where Morph.Wopi has no sessions and the
+    // page edits the file on its own.
+    async Task<byte[]?> JoinAsync(WopiLaunchInfo launch)
+    {
+        var joining = new Coauthor(new(Http, launch), TimeProvider.System);
+        var document = await joining.StartAsync(lifetime.Token);
+        if (document == null)
+        {
+            await joining.DisposeAsync();
+            return null;
+        }
+
+        coauthor = joining;
+        coauthor.StateChanged += OnSessionChanged;
+        readOnly = !joining.Joined!.CanWrite;
+        if (readOnly &&
+            editing)
+        {
+            status = "Read-only";
+        }
+
+        // The page leaving leaves the session at once, rather than once its events have stopped a while.
+        await Interop.UnlockOnLeaveAsync(joining.LeaveUrl, []);
+        return document;
+    }
+
+    void OnSessionChanged()
+    {
+        if (coauthor?.State is { } state)
+        {
+            status = state.Problem ?? state.Saved;
+        }
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    // Save, coauthoring: the session saves the document as everyone in it has left it.
+    async Task SaveCoauthoredAsync(byte[] _)
+    {
+        status = "Saving…";
+        StateHasChanged();
+        if (await coauthor!.SaveAsync() is { } problem)
+        {
+            status = "Not saved";
+            throw new InvalidOperationException(problem);
+        }
+
+        status = "Saved";
     }
 
     // Takes the file's lock, without which it opens read only: the user may not save it, or someone else
@@ -220,10 +301,28 @@ public partial class MorphWopi : IAsyncDisposable
         return Task.CompletedTask;
     }
 
-    /// <summary>Stops refreshing the lock, and unlocks the file.</summary>
+    /// <summary>Leaves the session, or stops refreshing the lock and unlocks the file.</summary>
     public async ValueTask DisposeAsync()
     {
         await lifetime.CancelAsync();
+        if (coauthor is { } joined)
+        {
+            coauthor = null;
+            joined.StateChanged -= OnSessionChanged;
+            try
+            {
+                await Interop.ForgetLeaveAsync();
+            }
+            catch (Exception exception)
+                when (exception is
+                          JSException or
+                          JSDisconnectedException)
+            {
+            }
+
+            await joined.DisposeAsync();
+        }
+
         if (session is { } opened &&
             lockId is { } id)
         {

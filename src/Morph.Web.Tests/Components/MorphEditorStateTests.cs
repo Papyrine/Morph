@@ -82,12 +82,11 @@ public class MorphEditorStateTests : BunitTestContext
         var cut = await Open(
             tracked,
             _ => _.Add(
-                _ => _.OnDocumentChanged,
-                async _ =>
+                _ => _.OnDocumentChanged, _ =>
                 {
                     reported = _;
                     heard.TrySetResult();
-                    await release.Task;
+                    return release.Task;
                 }));
         var (block, offset) = Place(tracked, 2, "Third");
         await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
