@@ -66,12 +66,15 @@ shapes with their anchor, revisions, fields, notes, comments, content controls, 
 entry names** from the hidden Undo dropdown of Word's legacy command bars (`CommandBars.FindControl(Id:
 128, Visible: false)`, a split dropdown whose `List` is the stack). A scenario marked `Trace` also reads
 the selection after every step. A scenario that asks for `Markup` saves a WordprocessingML diff of the
-body under `src/WordProbe/Results/markup/`.
+body under `src/WordProbe/Results/markup/`, one file per case named for its id; ids that would share a
+file name (A-11's leaders `* `, `- `, `> `) add a short hash of the whole id, a case that changed nothing
+leaves no file, and a run deletes the diffs no case names.
 
 **Options.** Word persists its options when it quits, so the harness snapshots every known
 `Options`/`AutoCorrect` member to `%LOCALAPPDATA%\WordProbe\options-snapshot.json` before changing
 anything, forces off only UI noise (mini toolbar, paste options button, live preview, spelling marks,
-AutoRecover), and restores the snapshot before quitting; `-- restore-options` repeats the restore after a
+AutoRecover) and hidden text shown (`View.ShowHiddenText`, kept in the snapshot from the first window),
+and restores the snapshot before quitting; `-- restore-options` repeats the restore after a
 crash. Behaviour-bearing options are **recorded** (the table below) and changed only by a scenario's own
 toggle, so every result states the value it was measured under.
 
@@ -23962,7 +23965,7 @@ steps `select(P2:0)` · `type("{text}")`
 
 | text | options | tracked | selection | observed |
 | --- | --- | --- | --- | --- |
-| www.example.com  | AutoFormatAsYouTypeReplaceHyperlinks=true | off | IP 59–59 · Undo: AutoFormat, Typing "www.example.com " | `[Above]<br><[u:www.example.com]>[ ‸]<br><br>[Below]` |
+| www.example.com  | AutoFormatAsYouTypeReplaceHyperlinks=true | off | IP 59–59 · Revisions 2 · Undo: AutoFormat, Typing "www.example.com " | `[Above]<br><{++}{++}[u:www.example.com]>[ ‸]<br><br>[Below]` |
 | www.example.com  | AutoFormatAsYouTypeReplaceHyperlinks=true | on | IP 59–59 · Tracking · Revisions 1 · Undo: AutoFormat, Typing "www.example.com " | `[Above]<br>{+<[u:www.example.com]>[ ]+}‸<br><br>[Below]` |
 | www.example.com  | AutoFormatAsYouTypeReplaceHyperlinks=false | off | IP 22–22 · Undo: Typing "www.example.com " | `[Above]<br>[www.example.com ‸]<br><br>[Below]` |
 | www.example.com  | AutoFormatAsYouTypeReplaceHyperlinks=false | on | IP 22–22 · Tracking · Revisions 1 · Undo: Typing "www.example.com " | `[Above]<br>{+[www.example.com ]+}‸<br><br>[Below]` |

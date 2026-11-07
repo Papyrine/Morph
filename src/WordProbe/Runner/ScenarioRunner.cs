@@ -46,7 +46,8 @@ static class ScenarioRunner
         try
         {
             session = WordSession.Start();
-            foreach (var (family, results, cases, pending) in planned)
+            // A family with nothing to run is left as it is: saving it would only move its Generated stamp.
+            foreach (var (family, results, cases, pending) in planned.Where(_ => _.Pending.Count > 0))
             {
                 Log.Info($"Family {family.Id}: {cases.Count} cases, {pending.Count} to run");
                 var inFamily = 0;
@@ -138,6 +139,8 @@ static class ScenarioRunner
                 SaveEnvironment(session, calibration);
                 MarkdownRenderer.Render();
             }
+
+            MarkupFiles.Prune();
         }
         finally
         {
@@ -371,15 +374,10 @@ static class ScenarioRunner
                 Log.Detail(line);
             }
 
-            if (observation.MarkupDiff != null)
+            observation = observation with
             {
-                Directory.CreateDirectory(Paths.Markup);
-                File.WriteAllText(Path.Combine(Paths.Markup, $"{Safe(probeCase.Id)}.diff"), observation.MarkupDiff);
-                observation = observation with
-                {
-                    MarkupDiff = $"markup/{Safe(probeCase.Id)}.diff"
-                };
-            }
+                MarkupDiff = MarkupFiles.Write(probeCase.Id, observation.MarkupDiff)
+            };
 
             Lap("observe");
             if (executor.Dialog is {ClassName: "(none)"})
@@ -467,7 +465,4 @@ static class ScenarioRunner
             phases,
             ClickToRunVersion());
     }
-
-    static string Safe(string id) =>
-        Regex.Replace(id, "[^A-Za-z0-9._-]+", "_");
 }
