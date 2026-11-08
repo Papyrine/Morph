@@ -222,6 +222,31 @@ public class Samples
         #endregion
     }
 
+    public static void PdfProgress()
+    {
+        #region PdfProgress
+
+        var pdf = PdfDocumentConverter.ConvertToPdf(
+            "document.docx",
+            new()
+            {
+                // Runs on the converting thread between pages: keep it cheap.
+                OnProgress = _ =>
+                {
+                    if (_.Total is { } total)
+                    {
+                        Console.WriteLine($"Drawing page {_.Page} of {total}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Laid out {_.Page} pages");
+                    }
+                }
+            });
+
+        #endregion
+    }
+
     public static async Task HtmlToImages()
     {
         #region HtmlToImages

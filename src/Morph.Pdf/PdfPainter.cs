@@ -59,8 +59,11 @@ static class PdfPainter
         bool rasterizeWordArt = true,
         Action<ExportWarning>? onWarning = null,
         PageRange? pages = null,
-        Cancel cancel = default)
+        Cancel cancel = default,
+        Action<PdfExportProgress>? onProgress = null)
     {
+        var total = PagesToDraw(document.Pages.Count, pages);
+        var drawn = 0;
         for (var index = 0; index < document.Pages.Count; index++)
         {
             var number = index + 1;
@@ -102,7 +105,20 @@ static class PdfPainter
             }
 
             context.Surface = null;
+            drawn++;
+            onProgress?.Invoke(new(PdfExportStage.Paint, drawn, total));
         }
+    }
+
+    // How many pages Paint draws: every page, or those of them inside the range.
+    static int PagesToDraw(int count, PageRange? pages)
+    {
+        if (pages is not { } range)
+        {
+            return count;
+        }
+
+        return Math.Max(0, Math.Min(range.End, count) - Math.Max(range.Start, 1) + 1);
     }
 
     static void PaintItem(PdfRenderContext context, Surface surface, PlacedItem item, bool rasterizeWordArt = true, Action<ExportWarning>? onWarning = null)

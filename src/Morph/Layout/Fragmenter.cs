@@ -47,9 +47,27 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         HeaderFooterContent? evenPageHeader = null,
         HeaderFooterContent? evenPageFooter = null,
         DocumentNotes? notes = null,
-        IReadOnlyList<Bookmark>? bookmarks = null)
+        IReadOnlyList<Bookmark>? bookmarks = null,
+        Action<int>? onPage = null)
     {
-        var flow = new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes);
+        // onPage hears the number of each page as the flow finishes it, for a host showing progress.
+        // A body page field lays the document out twice; the second pass stays quiet until it passes
+        // the first's count, so the number a host shows never runs backwards.
+        var reached = 0;
+        var report = onPage == null
+            ? null
+            : new Action<int>(_ =>
+            {
+                if (_ > reached)
+                {
+                    reached = _;
+                    onPage(_);
+                }
+            });
+        var flow = new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes)
+        {
+            OnPage = report
+        };
         var laidOut = flow.Run(elements);
 
         // A PAGE, NUMPAGES or SECTIONPAGES field in the body reads the page it lands on, which only the
@@ -63,6 +81,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         }
 
         return new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes)
+            {
+                OnPage = report
+            }
             .Run(Flow.MapPageFields(elements, _ => texts.TryGetValue(_, out var value) ? _.WithText(value) : _));
     }
 
@@ -183,6 +204,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         float columnWidth = (float) page.ColumnWidth;
         float columnSpacing = (float) page.ColumnSpacing;
         readonly List<LaidOutPage> pages = [];
+
+        // Told the count of finished pages each time one is kept (Fragmenter.Layout's onPage).
+        public Action<int>? OnPage { get; init; }
 
         List<PlacedItem> items = [];
 
@@ -1461,6 +1485,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 bodies.Add((items, current, pageStartsSection &&
                                             !currentPageFiller, currentPageFiller));
                 pageStartsSection = false;
+                OnPage?.Invoke(bodies.Count);
             }
 
             currentPageFiller = false;

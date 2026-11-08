@@ -236,7 +236,7 @@ public class PageTextTests
     }
 
     // A complex field whose cached result, "9", is stale, so a live result tells itself apart.
-    static W.Paragraph Field(string instruction) =>
+    internal static W.Paragraph Field(string instruction) =>
     [
         with(
             new W.Run(
@@ -262,7 +262,7 @@ public class PageTextTests
                 }))
     ];
 
-    static MemoryStream BuildDocument(params OpenXmlElement[] content)
+    internal static MemoryStream BuildDocument(params OpenXmlElement[] content)
     {
         var stream = new MemoryStream();
         using (var doc = WordprocessingDocument.Create(stream, WordprocessingDocumentType.Document))
@@ -278,10 +278,10 @@ public class PageTextTests
         return stream;
     }
 
-    static W.Paragraph Paragraph(string text) =>
+    internal static W.Paragraph Paragraph(string text) =>
         [with(new W.Run(new W.Text(text)))];
 
-    static W.Paragraph PageBreak() =>
+    internal static W.Paragraph PageBreak() =>
     [
         with(new W.Run(
             new W.Break

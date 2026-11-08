@@ -33,4 +33,22 @@ public sealed record PdfExportOptions : ExportOptions
     /// text occupying the shape's box.
     /// </summary>
     public bool RasterizeWordArt { get; init; } = true;
+
+    /// <summary>
+    /// Invoked as the export makes progress, for a host showing "Page x of y" while a long document
+    /// converts. Applies to every PDF export — Word, Excel, PowerPoint and HTML alike. Null (the
+    /// default) reports nothing.
+    /// <para>
+    /// The sequence is: <see cref="PdfExportStage.Layout"/> once per page laid out (page 1, 2, … with
+    /// no total), then <see cref="PdfExportStage.Paint"/> once per page drawn (page 1 of N up to N of N).
+    /// Parsing the source comes before the first call and reports nothing. Page numbers never go
+    /// backwards within a stage.
+    /// </para>
+    /// <para>
+    /// It runs synchronously on the converting thread, between pages, so the conversion waits for it:
+    /// keep it cheap. A host that writes progress somewhere slow — a database, a message queue — should
+    /// throttle or hand off itself. An exception it throws ends the conversion.
+    /// </para>
+    /// </summary>
+    public Action<PdfExportProgress>? OnProgress { get; init; }
 }

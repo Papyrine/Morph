@@ -1557,6 +1557,18 @@ own. Word, production and the engine now all start band 0 within 1px of each oth
 shared line-pitch tail plus a single ~3px gap the engine loses higher up. Nothing here is a regression the
 space-before fix introduced.
 
+## Progress reporting
+
+`Fragmenter.Layout` takes an optional `onPage`, told the count of finished pages each time `Flow` keeps a
+page body (`bodies.Add`). The total is not known until the flow ends, so layout reports carry none. When a
+body PAGE/NUMPAGES/SECTIONPAGES field forces the second pass, the second pass stays quiet until it passes
+the first pass's count, so the number never runs backwards. `PdfRenderer` turns it into
+`PdfExportOptions.OnProgress` reports (`PdfExportStage.Layout`, page, no total), and `PdfPainter.Paint`
+reports each page drawn as page x of the pages the export draws (`PdfExportStage.Paint`), the
+range-clipped count when `Pages` is set. Both run on the converting thread. `PdfProgressTests` pins the
+sequence for Word, Excel, PowerPoint, a page range and the two-pass case. The raster backends do not
+report progress yet.
+
 ## Testing strategy (a large secondary win)
 
 The current suite infers layout from rasterized PNGs (the entire struggle behind `src/page_counts.md`).

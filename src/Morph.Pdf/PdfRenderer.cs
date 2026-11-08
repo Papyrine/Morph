@@ -17,6 +17,10 @@ static class PdfRenderer
         var options = optionsOrNull ?? new PdfExportOptions();
         using var fontResolver = LayoutFonts.CreateResolver(options.FontDirectory, options.FontFallback);
         var measurer = new CanonicalParagraphMeasurer(LayoutFonts.ToDelegate(fontResolver), options.FontWidthScale, document.Compatibility, LayoutFonts.Covers(fontResolver));
+        var onProgress = options.OnProgress;
+        var onPage = onProgress == null
+            ? null
+            : new Action<int>(_ => onProgress(new(PdfExportStage.Layout, _, null)));
         var laidOut = new Fragmenter(measurer, document.Compatibility)
             .Layout(
                 document.Elements,
@@ -28,7 +32,8 @@ static class PdfRenderer
                 document.EvenPageHeader,
                 document.EvenPageFooter,
                 DocumentNotes.From(document),
-                document.Bookmarks)
+                document.Bookmarks,
+                onPage)
             .WithComments(document, measurer, options.ShowComments);
         cancel.ThrowIfCancellationRequested();
 
@@ -38,7 +43,7 @@ static class PdfRenderer
         // face would put text off its measured line.
         // A page range draws only the pages in it; the page numbers in the PDF run 1..N over them.
         using var context = PdfPainter.NewContext(laidOut, document.Compatibility, options.FontWidthScale, options.FontFallback, options.FontDirectory);
-        PdfPainter.Paint(laidOut, context, options.RasterizeWordArt, options.OnWarning, options.Pages, cancel);
+        PdfPainter.Paint(laidOut, context, options.RasterizeWordArt, options.OnWarning, options.Pages, cancel, onProgress);
         return context.Document.Finish();
     }
 }

@@ -371,6 +371,36 @@ File.WriteAllBytes("document-preview.pdf", firstThreePages);
 <sup><a href='/src/Tests/ReadmeSamples.cs#L210-L222' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
+#### PDF progress
+
+A long document can take a while to convert. Pass `OnProgress` to show "Page x of y" as it goes. It is called once per page as the layout finishes it (`Stage` is `Layout` and `Total` is null, because the page count is not known yet), then once per page as it is drawn (`Stage` is `Paint`, with `Page` running 1 to `Total`). Parsing the source happens before the first call and is not reported. It works for every PDF export: Word, Excel, PowerPoint, HTML and a parsed document's `ExportToPdf`.
+
+The callback runs synchronously on the converting thread, between pages, so the conversion waits for it. Keep it cheap. A host writing progress somewhere slow, such as a database, should throttle it itself.
+
+<!-- snippet: PdfProgress -->
+<a id='snippet-PdfProgress'></a>
+```cs
+var pdf = PdfDocumentConverter.ConvertToPdf(
+    "document.docx",
+    new()
+    {
+        // Runs on the converting thread between pages: keep it cheap.
+        OnProgress = _ =>
+        {
+            if (_.Total is { } total)
+            {
+                Console.WriteLine($"Drawing page {_.Page} of {total}");
+            }
+            else
+            {
+                Console.WriteLine($"Laid out {_.Page} pages");
+            }
+        }
+    });
+```
+<sup><a href='/src/Tests/ReadmeSamples.cs#L227-L247' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfProgress' title='Start of snippet'>anchor</a></sup>
+<!-- endSnippet -->
+
 
 ### HTML to PNG
 
@@ -394,7 +424,7 @@ foreach (var path in result.ImagePaths)
     Console.WriteLine($"Created: {path}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L227-L241' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L252-L266' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -412,7 +442,7 @@ foreach (var pngBytes in imageData)
     // Use the PNG byte array as needed
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L246-L257' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImageData' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L271-L282' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToImageData' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -429,7 +459,7 @@ The same exporters are available for an HTML source: `HtmlConverter.ConvertToHtm
 var markdown = await HtmlConverter.ConvertToMarkdown("<h1>Hello</h1><p>World</p>");
 await File.WriteAllTextAsync("page.md", markdown);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L262-L267' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToMarkdown' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L287-L292' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToMarkdown' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -441,7 +471,7 @@ await File.WriteAllTextAsync("page.md", markdown);
 var pdf = await PdfHtmlConverter.ConvertToPdf("<h1>Hello</h1><p>World</p>");
 await File.WriteAllBytesAsync("page.pdf", pdf);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L272-L277' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToPdf' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L297-L302' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlToPdf' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -461,7 +491,7 @@ await File.WriteAllTextAsync("page.md", document.ExportToMarkdown());
 // extension method from Morph.Pdf
 document.ExportToPdf("page.pdf");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L282-L293' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L307-L318' title='Snippet source file'>snippet source</a> | <a href='#snippet-HtmlParseOnceExportMany' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 
@@ -496,7 +526,7 @@ foreach (var (bookmark, page) in pages)
     Console.WriteLine($"{bookmark} is on page {page}");
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L381-L392' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L406-L417' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetBookmarkPages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 It costs a layout pass and nothing more — the answer is read off the layout engine's placed items, so no page is drawn and no rendering backend is involved. Bookmarks that cannot be placed, such as one sitting between paragraphs at body level (`ParagraphIndex == null`), are absent from the result rather than reported at a guessed page.
@@ -523,7 +553,7 @@ for (var index = 0; index < pages.Count; index++)
     Console.WriteLine(pages[index]);
 }
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L397-L409' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetPageTexts' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L422-L434' title='Snippet source file'>snippet source</a> | <a href='#snippet-GetPageTexts' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 There is one entry for every page, in page order, so the count is the number of pages and a page with no text has an empty entry.
@@ -599,7 +629,7 @@ var removed = DocumentCleaner.Remove("document.docx");
 
 Console.WriteLine($"Removed: {removed}");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L298-L307' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocx' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L323-L332' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocx' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 `DocumentParts` is a `[Flags]` enum, so a subset can be selected, and `Find` reports what a package holds without touching it:
@@ -622,7 +652,7 @@ using var source = File.OpenRead("document.docx");
 using var target = File.Create("document-clean.docx");
 DocumentCleaner.Remove(source, target, DocumentParts.Thumbnail | DocumentParts.Glossary);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L312-L329' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocxSelectively' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L337-L354' title='Snippet source file'>snippet source</a> | <a href='#snippet-ShrinkDocxSelectively' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 One caveat on `CustomXml`: a content control can carry a `w:dataBinding` into a data island. The bound value is also cached inline in `word/document.xml` — which is what Morph, and Word until it refreshes, actually reads — but if the island and the cache have drifted apart, removing the island changes what Word eventually shows.
@@ -646,7 +676,7 @@ var result = ImageCompressor.Compress("document.docx");
 
 Console.WriteLine($"Saved {result.Saved} bytes across {result.Images.Count} images");
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L334-L343' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImages' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L359-L368' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImages' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 Formats that cannot survive a raster round trip are copied across untouched: SVG, EMF and WMF metafiles, JPEG XR (`.wdp`), GIF, TIFF and BMP. Nothing keys off the file extension either — image parts are found through `[Content_Types].xml` and sized through DrawingML, so `.xlsx` and `.pptx` are handled by the same walk.
@@ -680,7 +710,7 @@ using var source = File.OpenRead("document.docx");
 using var target = File.Create("document-small.docx");
 ImageCompressor.Compress(source, target);
 ```
-<sup><a href='/src/Tests/ReadmeSamples.cs#L348-L376' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImagesSelectively' title='Start of snippet'>anchor</a></sup>
+<sup><a href='/src/Tests/ReadmeSamples.cs#L373-L401' title='Snippet source file'>snippet source</a> | <a href='#snippet-CompressImagesSelectively' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
 The encoding is done by an `ImageCodec`, because the core `Morph` package has no imaging dependency. Referencing `Morph.ImageSharp` or `Morph.Skia` is enough for one to be found — ImageSharp is preferred, since SkiaSharp's PNG encoder exposes no compression level. Set `ImageCompressionOptions.Codec` to supply a different one.
