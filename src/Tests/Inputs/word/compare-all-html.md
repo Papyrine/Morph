@@ -975,7 +975,7 @@ The Word reference render (left) beside the HTML exporter's output, rendered to 
 
 | Expected (Word) | Morph HTML |
 | --- | --- |
-| <img src="explicit_break_blank_page/expected_0001.png" width="500"><br><img src="explicit_break_blank_page/expected_0002.png" width="500"> | <img src="explicit_break_blank_page/html_result.verified.png" width="500"> |
+| <img src="explicit_break_blank_page/expected_0001.png" width="500"> | <img src="explicit_break_blank_page/html_result.verified.png" width="500"> |
 
 ## feature_capture/01
 

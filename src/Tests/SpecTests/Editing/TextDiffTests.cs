@@ -43,6 +43,16 @@ public class TextDiffTests
     public async Task ALetterAddedToAWord_IsALetterAdded(string before, string after, string expected) =>
         await Assert.That(Changes(before, after)).IsEqualTo(expected);
 
+    // A stretch only typed or only deleted, beside text that repeats it, stands where its edges fall on
+    // a sentence's end, a space or the text's end: " More words." typed after "text.", with "and " gone
+    // from the start so the two texts share no start, is not ". More words" typed before the full stop.
+    [Test]
+    [Arguments("and final. Added text.", "final. Added text. More words.", "0: 'and ' → ''; 22: '' → ' More words.'")]
+    [Arguments("Go. Stop. Wait.", "Go. Wait.", "4: 'Stop. ' → ''")]
+    [Arguments("Go. Wait.", "Go. Stop. Wait.", "4: '' → 'Stop. '")]
+    public async Task AnInsertionOrADeletion_StandsOnTheCleanestEdges(string before, string after, string expected) =>
+        await Assert.That(Changes(before, after)).IsEqualTo(expected);
+
     [Test]
     public async Task TheTextGivenBack_IsTheNewText()
     {

@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 595.280029296875,
+          "Height": 841.8900146484375
+        },
+        "Text": "To Do List\nPrinted on 10/08/2026 1\nMy List\nColumn 1 Column 2 Column 3 Column 4 Column 5\nItem 1\nItem 2\nItem 3"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 595.280029296875,
+          "Height": 841.8900146484375
+        },
+        "Text": "To Do List\nTo Do Assigned To Due Date Done (Yes or No)\nTask 1\nTask 2\nTask 3\nShopping List\nProduct Brand Store Area Purchased (Yes or No)\nProduct 1\nProduct 2\nProduct 3\nContact List\nName Address City State\nSydney Mattos 4567 Main St Buffalo NY\nNathan Rigby\nMateo Gomez\nWesley Brooks\nOlivia Wilson\nMaria Sullivan"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0598,
+      "Ssim": 0.869,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.2053,
+      "Ssim": 0.7096,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

@@ -1,12 +1,12 @@
 {
   "Family": "keep",
-  "Generated": "2026-10-25T21:39:41.0466429+11:00",
+  "Generated": "2026-11-07T13:03:45.0426531+11:00",
   "Word": {
     "Version": "16.0",
-    "Build": "16.0.19127",
+    "Build": "16.0.20527",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.19127.20860"
+    "ClickToRun": "16.0.20527.20150"
   },
   "Cases": {
     "P-01[how=Ctrl+Alt+1]": {
@@ -20,8 +20,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1056,
-      "RunAt": "2026-10-25T21:38:54.6878477+11:00",
+      "DurationMs": 696,
+      "RunAt": "2026-11-07T12:49:04.1015362+11:00",
       "Lines": [
         "[First ][20 Aptos Display:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -169,7 +169,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 60,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "steps": 251,
+        "observe": 217,
+        "reset": 26,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+Alt+1]~tracked": {
       "DefinitionHash": "bbf02f7f93a36eaa",
@@ -182,8 +195,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1137,
-      "RunAt": "2026-10-25T21:38:55.8298595+11:00",
+      "DurationMs": 747,
+      "RunAt": "2026-11-07T12:49:04.8519031+11:00",
       "Lines": [
         "[First ]{~[20 Aptos Display:⟦paragraph‸⟧]~}[20 Aptos Display: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -338,7 +351,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 171,
+        "open.add": 64,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 4,
+        "steps": 264,
+        "observe": 251,
+        "reset": 28,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+B]": {
       "DefinitionHash": "25bb65908b4113f9",
@@ -351,8 +377,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1886,
-      "RunAt": "2026-10-25T21:38:39.0152717+11:00",
+      "DurationMs": 1144,
+      "RunAt": "2026-11-07T12:48:54.2554414+11:00",
       "Lines": [
         "[First ][b:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -500,7 +526,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 608,
+        "open.add": 494,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 236,
+        "observe": 237,
+        "reset": 36,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+B]~tracked": {
       "DefinitionHash": "bc1a9127523ad47d",
@@ -513,8 +552,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1152,
-      "RunAt": "2026-10-25T21:38:40.1931277+11:00",
+      "DurationMs": 719,
+      "RunAt": "2026-11-07T12:48:54.9779605+11:00",
       "Lines": [
         "[First ]{~[b:⟦paragraph‸⟧]~}[b: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -669,7 +708,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 173,
+        "open.add": 64,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 81,
+        "options": 3,
+        "steps": 249,
+        "observe": 239,
+        "reset": 26,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+E]": {
       "DefinitionHash": "4ffc9c467b84313a",
@@ -682,8 +734,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1048,
-      "RunAt": "2026-10-25T21:38:52.4810376+11:00",
+      "DurationMs": 658,
+      "RunAt": "2026-11-07T12:49:02.7000097+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.] (center)",
         "[Second ][b:bold ][one.] (center)",
@@ -821,7 +873,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 191,
+        "open.add": 64,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 0,
+        "steps": 235,
+        "observe": 177,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+E]~tracked": {
       "DefinitionHash": "39ca1f0feac5c1dd",
@@ -834,8 +899,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1139,
-      "RunAt": "2026-10-25T21:38:53.625557+11:00",
+      "DurationMs": 697,
+      "RunAt": "2026-11-07T12:49:03.4015551+11:00",
       "Lines": [
         "{~[First ⟦paragraph‸⟧ here.]~} (center)",
         "[Second ][b:bold ][one.] (center)",
@@ -980,7 +1045,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 179,
+        "open.add": 63,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 3,
+        "steps": 249,
+        "observe": 210,
+        "reset": 27,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+I]": {
       "DefinitionHash": "c05b3b66ada90d2c",
@@ -993,8 +1071,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1102,
-      "RunAt": "2026-10-25T21:38:41.3000303+11:00",
+      "DurationMs": 676,
+      "RunAt": "2026-11-07T12:48:55.6570525+11:00",
       "Lines": [
         "[First ][i:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -1142,7 +1220,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 180,
+        "open.add": 59,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 0,
+        "steps": 237,
+        "observe": 203,
+        "reset": 27,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+I]~tracked": {
       "DefinitionHash": "221fdd55c99b857e",
@@ -1155,8 +1246,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1161,
-      "RunAt": "2026-10-25T21:38:42.4668034+11:00",
+      "DurationMs": 714,
+      "RunAt": "2026-11-07T12:48:56.3751909+11:00",
       "Lines": [
         "[First ]{~[i:⟦paragraph‸⟧]~}[i: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -1311,7 +1402,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 167,
+        "open.add": 62,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 3,
+        "steps": 248,
+        "observe": 241,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+Shift+>]": {
       "DefinitionHash": "0f4210e0b50f4b75",
@@ -1324,8 +1428,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1113,
-      "RunAt": "2026-10-25T21:38:45.8994721+11:00",
+      "DurationMs": 686,
+      "RunAt": "2026-11-07T12:48:58.5100258+11:00",
       "Lines": [
         "[First ][14:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -1473,7 +1577,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 174,
+        "open.add": 64,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 251,
+        "observe": 205,
+        "reset": 27,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+Shift+>]~tracked": {
       "DefinitionHash": "b340dccb1c466b0a",
@@ -1486,8 +1603,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1111,
-      "RunAt": "2026-10-25T21:38:47.0162948+11:00",
+      "DurationMs": 774,
+      "RunAt": "2026-11-07T12:48:59.2879991+11:00",
       "Lines": [
         "[First ]{~[14:⟦paragraph‸⟧]~}[14: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -1642,7 +1759,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 69,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 3,
+        "steps": 265,
+        "observe": 245,
+        "reset": 28,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+Space]": {
       "DefinitionHash": "028ea2cf0e9bffc4",
@@ -1655,8 +1785,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1118,
-      "RunAt": "2026-10-25T21:38:48.1400251+11:00",
+      "DurationMs": 706,
+      "RunAt": "2026-11-07T12:48:59.9968861+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -1794,7 +1924,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 67,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 0,
+        "steps": 284,
+        "observe": 185,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+Space]~tracked": {
       "DefinitionHash": "0175d28e9a3b990e",
@@ -1807,8 +1950,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1128,
-      "RunAt": "2026-10-25T21:38:49.2721378+11:00",
+      "DurationMs": 721,
+      "RunAt": "2026-11-07T12:49:00.7213652+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -1946,7 +2089,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 66,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 91,
+        "options": 3,
+        "steps": 297,
+        "observe": 180,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+]]": {
       "DefinitionHash": "c1ec8afe8e893366",
@@ -1959,8 +2115,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1167,
-      "RunAt": "2026-10-25T21:38:43.63988+11:00",
+      "DurationMs": 684,
+      "RunAt": "2026-11-07T12:48:57.0632768+11:00",
       "Lines": [
         "[First ][13:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -2108,7 +2264,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 176,
+        "open.add": 63,
+        "open.view": 21,
+        "open.front": 1,
+        "open.park": 89,
+        "options": 0,
+        "steps": 236,
+        "observe": 217,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Ctrl+]]~tracked": {
       "DefinitionHash": "b25b77bfca2344d6",
@@ -2121,8 +2290,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1137,
-      "RunAt": "2026-10-25T21:38:44.7811424+11:00",
+      "DurationMs": 754,
+      "RunAt": "2026-11-07T12:48:57.8203845+11:00",
       "Lines": [
         "[First ]{~[13:⟦paragraph‸⟧]~}[13: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -2277,7 +2446,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 62,
+        "open.view": 20,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 3,
+        "steps": 249,
+        "observe": 260,
+        "reset": 28,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Shift+F3]": {
       "DefinitionHash": "990837b826857d12",
@@ -2290,8 +2472,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1088,
-      "RunAt": "2026-10-25T21:38:50.3653942+11:00",
+      "DurationMs": 640,
+      "RunAt": "2026-11-07T12:49:01.3655694+11:00",
       "Lines": [
         "[First ⟦Paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -2429,7 +2611,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 176,
+        "open.add": 64,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 0,
+        "steps": 236,
+        "observe": 174,
+        "reset": 27,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=Shift+F3]~tracked": {
       "DefinitionHash": "e28819dd2851e6ea",
@@ -2442,8 +2637,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1058,
-      "RunAt": "2026-10-25T21:38:51.4282964+11:00",
+      "DurationMs": 669,
+      "RunAt": "2026-11-07T12:49:02.0384904+11:00",
       "Lines": [
         "[First ⟦Paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -2581,7 +2776,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 63,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 3,
+        "steps": 249,
+        "observe": 178,
+        "reset": 28,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=dialog(Ctrl+D, ok)]": {
       "DefinitionHash": "34cae38832a24d3c",
@@ -2594,8 +2802,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1871,
-      "RunAt": "2026-10-25T21:39:13.5683047+11:00",
+      "DurationMs": 1395,
+      "RunAt": "2026-11-07T12:49:16.0759651+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -2730,14 +2938,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T21:39:12.1848769+11:00",
+          "SeenAt": "2026-11-07T12:49:15.0402261+11:00",
           "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 169,
+        "open.add": 63,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 80,
+        "options": 0,
+        "steps": 982,
+        "observe": 188,
+        "reset": 29,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=dialog(Ctrl+D, ok)]~tracked": {
       "DefinitionHash": "2afbce443cc67d46",
@@ -2750,8 +2971,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1804,
-      "RunAt": "2026-10-25T21:39:15.3781722+11:00",
+      "DurationMs": 1417,
+      "RunAt": "2026-11-07T12:49:17.4964807+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -2886,14 +3107,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T21:39:14.0626409+11:00",
+          "SeenAt": "2026-11-07T12:49:16.4690775+11:00",
           "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 184,
+        "open.add": 64,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 3,
+        "steps": 980,
+        "observe": 192,
+        "reset": 28,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(AlignCenter)]": {
       "DefinitionHash": "04e87473c1ef762a",
@@ -2906,8 +3140,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1059,
-      "RunAt": "2026-10-25T21:39:06.1193364+11:00",
+      "DurationMs": 665,
+      "RunAt": "2026-11-07T12:49:11.1760633+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.] (center)",
         "[Second ][b:bold ][one.] (center)",
@@ -3045,7 +3279,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 63,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 100,
+        "options": 0,
+        "steps": 235,
+        "observe": 190,
+        "reset": 27,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(AlignCenter)]~tracked": {
       "DefinitionHash": "d2b511d5578580f8",
@@ -3058,8 +3305,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1086,
-      "RunAt": "2026-10-25T21:39:07.2113396+11:00",
+      "DurationMs": 713,
+      "RunAt": "2026-11-07T12:49:11.8924831+11:00",
       "Lines": [
         "{~[First ⟦paragraph‸⟧ here.]~} (center)",
         "[Second ][b:bold ][one.] (center)",
@@ -3204,7 +3451,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 62,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 4,
+        "steps": 247,
+        "observe": 224,
+        "reset": 27,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(Bold)]": {
       "DefinitionHash": "691ce48200d89f0d",
@@ -3217,8 +3477,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1110,
-      "RunAt": "2026-10-25T21:38:56.9447357+11:00",
+      "DurationMs": 693,
+      "RunAt": "2026-11-07T12:49:05.548626+11:00",
       "Lines": [
         "[First ][b:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -3366,7 +3626,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 63,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 0,
+        "steps": 236,
+        "observe": 221,
+        "reset": 27,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(Bold)]~tracked": {
       "DefinitionHash": "a8b00b5a8ddf6df0",
@@ -3379,8 +3652,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1134,
-      "RunAt": "2026-10-25T21:38:58.0837456+11:00",
+      "DurationMs": 733,
+      "RunAt": "2026-11-07T12:49:06.2855895+11:00",
       "Lines": [
         "[First ]{~[b:⟦paragraph‸⟧]~}[b: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -3535,7 +3808,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 167,
+        "open.add": 62,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 80,
+        "options": 4,
+        "steps": 263,
+        "observe": 243,
+        "reset": 28,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(BulletsGalleryWord)]": {
       "DefinitionHash": "6c02293cd50ddad9",
@@ -3548,8 +3834,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1093,
-      "RunAt": "2026-10-25T21:39:08.3109398+11:00",
+      "DurationMs": 672,
+      "RunAt": "2026-11-07T12:49:12.5682304+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.] #ListParagraph •1.0 ● ⇥36,-18",
         "[Second ][b:bold ][one.] (center)",
@@ -3690,7 +3976,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 180,
+        "open.add": 62,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 0,
+        "steps": 237,
+        "observe": 200,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(BulletsGalleryWord)]~tracked": {
       "DefinitionHash": "fc21e71cdc883e57",
@@ -3703,8 +4002,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1129,
-      "RunAt": "2026-10-25T21:39:09.4446022+11:00",
+      "DurationMs": 731,
+      "RunAt": "2026-11-07T12:49:13.3029491+11:00",
       "Lines": [
         "{~[First ⟦paragraph‸⟧ here.]~} #ListParagraph •1.0 ● ⇥36,-18",
         "[Second ][b:bold ][one.] (center)",
@@ -3852,7 +4151,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 187,
+        "open.add": 62,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 3,
+        "steps": 249,
+        "observe": 235,
+        "reset": 29,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(ClearFormatting)]": {
       "DefinitionHash": "6e53b0461f91eded",
@@ -3865,8 +4177,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1046,
-      "RunAt": "2026-10-25T21:39:03.8858479+11:00",
+      "DurationMs": 654,
+      "RunAt": "2026-11-07T12:49:09.818701+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -4004,7 +4316,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 170,
+        "open.add": 62,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 252,
+        "observe": 178,
+        "reset": 27,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(ClearFormatting)]~tracked": {
       "DefinitionHash": "5d7272d869072715",
@@ -4017,8 +4342,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1165,
-      "RunAt": "2026-10-25T21:39:05.0550517+11:00",
+      "DurationMs": 685,
+      "RunAt": "2026-11-07T12:49:10.5072952+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -4156,7 +4481,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 178,
+        "open.add": 61,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 3,
+        "steps": 264,
+        "observe": 185,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(FontSizeIncreaseWord)]": {
       "DefinitionHash": "0c664c08d0e19178",
@@ -4169,8 +4507,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1097,
-      "RunAt": "2026-10-25T21:39:01.3966144+11:00",
+      "DurationMs": 693,
+      "RunAt": "2026-11-07T12:49:08.3984293+11:00",
       "Lines": [
         "[First ][14:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -4318,7 +4656,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 188,
+        "open.add": 64,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 101,
+        "options": 0,
+        "steps": 236,
+        "observe": 216,
+        "reset": 27,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(FontSizeIncreaseWord)]~tracked": {
       "DefinitionHash": "9668c43602353491",
@@ -4331,8 +4682,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1428,
-      "RunAt": "2026-10-25T21:39:02.8345975+11:00",
+      "DurationMs": 759,
+      "RunAt": "2026-11-07T12:49:09.1618129+11:00",
       "Lines": [
         "[First ]{~[14:⟦paragraph‸⟧]~}[14: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -4487,7 +4838,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 188,
+        "open.add": 64,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 95,
+        "options": 4,
+        "steps": 249,
+        "observe": 262,
+        "reset": 28,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(IndentIncreaseWord)]": {
       "DefinitionHash": "37b09d1e5586239d",
@@ -4500,8 +4864,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1043,
-      "RunAt": "2026-10-25T21:39:10.4928009+11:00",
+      "DurationMs": 666,
+      "RunAt": "2026-11-07T12:49:13.9730157+11:00",
       "Lines": [
         "[First ⟦paragraph‸⟧ here.] ⇥36,0",
         "[Second ][b:bold ][one.] (center)",
@@ -4639,7 +5003,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 61,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 0,
+        "steps": 250,
+        "observe": 179,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(IndentIncreaseWord)]~tracked": {
       "DefinitionHash": "55f110076ffe48c5",
@@ -4652,8 +5029,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1192,
-      "RunAt": "2026-10-25T21:39:11.6925975+11:00",
+      "DurationMs": 701,
+      "RunAt": "2026-11-07T12:49:14.6779596+11:00",
       "Lines": [
         "{~[First ⟦paragraph‸⟧ here.]~} ⇥36,0",
         "[Second ][b:bold ][one.] (center)",
@@ -4798,7 +5175,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 177,
+        "open.add": 65,
+        "open.view": 19,
+        "open.front": 0,
+        "open.park": 91,
+        "options": 3,
+        "steps": 248,
+        "observe": 218,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(Italic)]": {
       "DefinitionHash": "d6b44ea2856fe7e7",
@@ -4811,8 +5201,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1065,
-      "RunAt": "2026-10-25T21:38:59.1530696+11:00",
+      "DurationMs": 677,
+      "RunAt": "2026-11-07T12:49:06.9663543+11:00",
       "Lines": [
         "[First ][i:⟦paragraph‸⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -4960,7 +5350,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 63,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 0,
+        "steps": 236,
+        "observe": 211,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-01[how=ribbon(Italic)]~tracked": {
       "DefinitionHash": "e8373dfd024ea7ae",
@@ -4973,8 +5376,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1138,
-      "RunAt": "2026-10-25T21:39:00.2951838+11:00",
+      "DurationMs": 731,
+      "RunAt": "2026-11-07T12:49:07.7011152+11:00",
       "Lines": [
         "[First ]{~[i:⟦paragraph‸⟧]~}[i: ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -5129,7 +5532,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 174,
+        "open.add": 64,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 3,
+        "steps": 249,
+        "observe": 249,
+        "reset": 27,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-02[how=Ctrl+B]": {
       "DefinitionHash": "06539f6a63afc17a",
@@ -5143,8 +5559,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1567,
-      "RunAt": "2026-10-25T21:39:16.9496294+11:00",
+      "DurationMs": 1159,
+      "RunAt": "2026-11-07T12:49:18.6586418+11:00",
       "Lines": [
         "[First ][b:⟦‸paragraph⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -5292,7 +5708,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 64,
+        "open.view": 20,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 0,
+        "steps": 714,
+        "observe": 216,
+        "reset": 27,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-02[how=Ctrl+E]": {
       "DefinitionHash": "633b38380574136d",
@@ -5306,8 +5735,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1566,
-      "RunAt": "2026-10-25T21:39:20.0784854+11:00",
+      "DurationMs": 1133,
+      "RunAt": "2026-11-07T12:49:20.9642778+11:00",
       "Lines": [
         "[First ⟦‸paragraph⟧ here.] (center)",
         "[Second ][b:bold ][one.] (center)",
@@ -5445,7 +5874,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 64,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 0,
+        "steps": 714,
+        "observe": 188,
+        "reset": 28,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-02[how=dialog(Ctrl+D, ok)]": {
       "DefinitionHash": "2c0f647711943220",
@@ -5459,8 +5901,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2280,
-      "RunAt": "2026-10-25T21:39:23.8820493+11:00",
+      "DurationMs": 1860,
+      "RunAt": "2026-11-07T12:49:23.9624806+11:00",
       "Lines": [
         "[First ⟦‸paragraph⟧ here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -5595,14 +6037,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T21:39:22.5667121+11:00",
+          "SeenAt": "2026-11-07T12:49:22.9414466+11:00",
           "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 64,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 0,
+        "steps": 1444,
+        "observe": 187,
+        "reset": 29,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-02[how=ribbon(AlignCenter)]": {
       "DefinitionHash": "e0598e1cfccba447",
@@ -5616,8 +6071,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1502,
-      "RunAt": "2026-10-25T21:39:21.5969351+11:00",
+      "DurationMs": 1131,
+      "RunAt": "2026-11-07T12:49:22.0991521+11:00",
       "Lines": [
         "[First ⟦‸paragraph⟧ here.] (center)",
         "[Second ][b:bold ][one.] (center)",
@@ -5755,7 +6210,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 66,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 0,
+        "steps": 713,
+        "observe": 183,
+        "reset": 27,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-02[how=ribbon(Bold)]": {
       "DefinitionHash": "8450380563ff5e90",
@@ -5769,8 +6237,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1550,
-      "RunAt": "2026-10-25T21:39:18.5061802+11:00",
+      "DurationMs": 1165,
+      "RunAt": "2026-11-07T12:49:19.8275183+11:00",
       "Lines": [
         "[First ][b:⟦‸paragraph⟧ ][here.]",
         "[Second ][b:bold ][one.] (center)",
@@ -5918,7 +6386,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 64,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 99,
+        "options": 0,
+        "steps": 712,
+        "observe": 212,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=Ctrl+B]": {
       "DefinitionHash": "72ba092d5a4cd3db",
@@ -5931,8 +6412,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1086,
-      "RunAt": "2026-10-25T21:39:24.9728897+11:00",
+      "DurationMs": 668,
+      "RunAt": "2026-11-07T12:49:24.6342013+11:00",
       "Lines": [
         "[First ][b:⟦paragraph here.¶⟧]",
         "⟦[b:Second‸⟧ bold ][one.] (center)",
@@ -6070,7 +6551,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 185,
+        "open.add": 62,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 0,
+        "steps": 235,
+        "observe": 193,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=Ctrl+B]~tracked": {
       "DefinitionHash": "abcd50fca9d4dee4",
@@ -6083,8 +6577,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1118,
-      "RunAt": "2026-10-25T21:39:26.0959299+11:00",
+      "DurationMs": 723,
+      "RunAt": "2026-11-07T12:49:25.360711+11:00",
       "Lines": [
         "[First ]{~[b:⟦paragraph here.¶⟧]",
         "⟦[b:Second‸⟧]~}[b: bold ][one.] (center)",
@@ -6229,7 +6723,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 180,
+        "open.add": 63,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 3,
+        "steps": 249,
+        "observe": 232,
+        "reset": 27,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=Ctrl+E]": {
       "DefinitionHash": "5adb581c0b69a015",
@@ -6242,8 +6749,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1182,
-      "RunAt": "2026-10-25T21:39:33.9797008+11:00",
+      "DurationMs": 712,
+      "RunAt": "2026-11-07T12:49:30.3712468+11:00",
       "Lines": [
         "[First ⟦paragraph here.¶⟧] (center)",
         "⟦[Second‸⟧ ][b:bold ][one.] (center)",
@@ -6381,7 +6888,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 204,
+        "open.add": 67,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 0,
+        "steps": 260,
+        "observe": 193,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=Ctrl+E]~tracked": {
       "DefinitionHash": "0437c5c6e0c43f67",
@@ -6394,8 +6914,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1134,
-      "RunAt": "2026-10-25T21:39:35.1192088+11:00",
+      "DurationMs": 719,
+      "RunAt": "2026-11-07T12:49:31.0942589+11:00",
       "Lines": [
         "{~[First ⟦paragraph here.¶]~}⟧ (center)",
         "⟦[Second‸⟧ ][b:bold ][one.] (center)",
@@ -6540,7 +7060,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 180,
+        "open.add": 62,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 3,
+        "steps": 249,
+        "observe": 227,
+        "reset": 31,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=Ctrl+]]": {
       "DefinitionHash": "d1ea5d3b41268370",
@@ -6553,8 +7086,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1105,
-      "RunAt": "2026-10-25T21:39:29.4891468+11:00",
+      "DurationMs": 683,
+      "RunAt": "2026-11-07T12:49:27.4428814+11:00",
       "Lines": [
         "[First ][13:⟦paragraph here.¶⟧]",
         "⟦[13:Second‸⟧ ][b:bold ][one.] (center)",
@@ -6697,7 +7230,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 180,
+        "open.add": 62,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 0,
+        "steps": 236,
+        "observe": 210,
+        "reset": 29,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=Ctrl+]]~tracked": {
       "DefinitionHash": "a678464bd221778d",
@@ -6710,8 +7256,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1109,
-      "RunAt": "2026-10-25T21:39:30.6037+11:00",
+      "DurationMs": 732,
+      "RunAt": "2026-11-07T12:49:28.1780138+11:00",
       "Lines": [
         "[First ]{~[13:⟦paragraph here.¶⟧]",
         "⟦[13:Second‸⟧]~}[13: ][b:bold ][one.] (center)",
@@ -6861,7 +7407,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 176,
+        "open.add": 63,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 3,
+        "steps": 249,
+        "observe": 247,
+        "reset": 27,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=dialog(Ctrl+D, ok)]": {
       "DefinitionHash": "d94fa4c5fa30715e",
@@ -6874,8 +7433,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1829,
-      "RunAt": "2026-10-25T21:39:39.1691275+11:00",
+      "DurationMs": 1371,
+      "RunAt": "2026-11-07T12:49:34.3963539+11:00",
       "Lines": [
         "[First ⟦paragraph here.¶⟧]",
         "⟦[Second‸⟧ ][b:bold ][one.] (center)",
@@ -7010,14 +7569,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T21:39:37.8312743+11:00",
+          "SeenAt": "2026-11-07T12:49:33.3859877+11:00",
           "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 173,
+        "open.add": 61,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 79,
+        "options": 0,
+        "steps": 966,
+        "observe": 179,
+        "reset": 28,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=dialog(Ctrl+D, ok)]~tracked": {
       "DefinitionHash": "2687f15b0a29c997",
@@ -7030,8 +7602,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1857,
-      "RunAt": "2026-10-25T21:39:41.0316723+11:00",
+      "DurationMs": 1406,
+      "RunAt": "2026-11-07T12:49:35.8055606+11:00",
       "Lines": [
         "[First ⟦paragraph here.¶⟧]",
         "⟦[Second‸⟧ ][b:bold ][one.] (center)",
@@ -7166,14 +7738,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Font",
-          "SeenAt": "2026-10-25T21:39:39.724558+11:00",
+          "SeenAt": "2026-11-07T12:49:34.7800461+11:00",
           "Text": "+Body | Times New Roman | +Body CS | Regular | 12 | 100% | 1 | -16777216 | 0"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 176,
+        "open.add": 64,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 4,
+        "steps": 975,
+        "observe": 193,
+        "reset": 28,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=ribbon(AlignCenter)]": {
       "DefinitionHash": "fcc8c97e2dcdc605",
@@ -7186,8 +7771,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1102,
-      "RunAt": "2026-10-25T21:39:36.2259421+11:00",
+      "DurationMs": 672,
+      "RunAt": "2026-11-07T12:49:31.7701679+11:00",
       "Lines": [
         "[First ⟦paragraph here.¶⟧] (center)",
         "⟦[Second‸⟧ ][b:bold ][one.] (center)",
@@ -7325,7 +7910,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 185,
+        "open.add": 67,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 0,
+        "steps": 237,
+        "observe": 195,
+        "reset": 27,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=ribbon(AlignCenter)]~tracked": {
       "DefinitionHash": "fcb96ef9b1a94b53",
@@ -7338,8 +7936,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1104,
-      "RunAt": "2026-10-25T21:39:37.3351824+11:00",
+      "DurationMs": 1247,
+      "RunAt": "2026-11-07T12:49:33.021092+11:00",
       "Lines": [
         "{~[First ⟦paragraph here.¶]~}⟧ (center)",
         "⟦[Second‸⟧ ][b:bold ][one.] (center)",
@@ -7484,7 +8082,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 712,
+        "open.add": 619,
+        "open.view": 10,
+        "open.front": 0,
+        "open.park": 81,
+        "options": 3,
+        "steps": 249,
+        "observe": 226,
+        "reset": 27,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=ribbon(Bold)]": {
       "DefinitionHash": "a409e92c88dc6115",
@@ -7497,8 +8108,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1077,
-      "RunAt": "2026-10-25T21:39:27.1778996+11:00",
+      "DurationMs": 675,
+      "RunAt": "2026-11-07T12:49:26.0393389+11:00",
       "Lines": [
         "[First ][b:⟦paragraph here.¶⟧]",
         "⟦[b:Second‸⟧ bold ][one.] (center)",
@@ -7636,7 +8247,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 182,
+        "open.add": 62,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 0,
+        "steps": 236,
+        "observe": 199,
+        "reset": 30,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=ribbon(Bold)]~tracked": {
       "DefinitionHash": "8aeb852302732d56",
@@ -7649,8 +8273,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1197,
-      "RunAt": "2026-10-25T21:39:28.3796556+11:00",
+      "DurationMs": 714,
+      "RunAt": "2026-11-07T12:49:26.7564506+11:00",
       "Lines": [
         "[First ]{~[b:⟦paragraph here.¶⟧]",
         "⟦[b:Second‸⟧]~}[b: bold ][one.] (center)",
@@ -7795,7 +8419,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 184,
+        "open.add": 62,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 4,
+        "steps": 248,
+        "observe": 221,
+        "reset": 28,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=ribbon(FontSizeIncreaseWord)]": {
       "DefinitionHash": "688d42303d6e0846",
@@ -7808,8 +8445,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1071,
-      "RunAt": "2026-10-25T21:39:31.6796769+11:00",
+      "DurationMs": 702,
+      "RunAt": "2026-11-07T12:49:28.883346+11:00",
       "Lines": [
         "[First ][14:⟦paragraph here.¶⟧]",
         "⟦[14:Second‸⟧ ][b:bold ][one.] (center)",
@@ -7952,7 +8589,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 185,
+        "open.add": 63,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 99,
+        "options": 0,
+        "steps": 236,
+        "observe": 226,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "P-03[how=ribbon(FontSizeIncreaseWord)]~tracked": {
       "DefinitionHash": "04a28ed1a1cfacd4",
@@ -7965,8 +8615,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1106,
-      "RunAt": "2026-10-25T21:39:32.7907677+11:00",
+      "DurationMs": 769,
+      "RunAt": "2026-11-07T12:49:29.6554799+11:00",
       "Lines": [
         "[First ]{~[14:⟦paragraph here.¶⟧]",
         "⟦[14:Second‸⟧]~}[14: ][b:bold ][one.] (center)",
@@ -8116,7 +8766,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 177,
+        "open.add": 64,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 3,
+        "steps": 264,
+        "observe": 259,
+        "reset": 34,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     }
   }
 }

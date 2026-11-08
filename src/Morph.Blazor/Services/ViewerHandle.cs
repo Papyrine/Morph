@@ -120,6 +120,18 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
         controller.InvokeVoidAsync("setAbilities", save, print);
 
     // Text selected on the pages again, from an offset into one page's text to one into another's.
+    // A link's address opened in a new tab, if it is a web or mail address (followLink).
+    public ValueTask OpenLinkAsync(string address) =>
+        controller.InvokeVoidAsync("openLink", address);
+
+    // Text put on the clipboard, as a copy puts it there.
+    public ValueTask CopyTextAsync(string text) =>
+        controller.InvokeVoidAsync("copyText", text);
+
+    // The find box focused with its text selected.
+    public ValueTask SelectFindAsync() =>
+        controller.InvokeVoidAsync("selectFind");
+
     public ValueTask SelectTextAsync(int firstPage, int start, int lastPage, int end) =>
         controller.InvokeVoidAsync("selectText", firstPage, start, lastPage, end);
 
@@ -132,6 +144,11 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     // to size it — unless it is behind text and the click is on the text.
     public ValueTask SetPicturesAsync(int documentId, double[] pictures) =>
         controller.InvokeVoidAsync("setPictures", documentId, pictures);
+
+    // Every line of a document's paragraphs, five numbers each: page, left, top, right, bottom (in
+    // points), as wide as the paragraph's box (EditMap.LineBoxes). What Up and Down choose among.
+    public ValueTask SetLinesAsync(int documentId, double[] lines) =>
+        controller.InvokeVoidAsync("setLines", documentId, lines);
 
     // Format Painter on or off: while on, the next text selected on the pages is handed to OnPaint.
     public ValueTask SetPaintingAsync(bool on) =>
@@ -155,6 +172,9 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
     // The reader's time zone, in minutes east of UTC.
     public ValueTask<int> ZoneOffsetAsync() =>
         controller.InvokeAsync<int>("zoneOffset");
+
+    public ValueTask<ReaderDates?> ReaderDatesAsync() =>
+        controller.InvokeAsync<ReaderDates?>("readerDates");
 
     public ValueTask BeginPrintAsync(double[] sizesPoints) =>
         controller.InvokeVoidAsync("beginPrint", sizesPoints);

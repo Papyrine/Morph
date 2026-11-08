@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Menu\nHome cook name or event name\nAppetizer\nDescribe your Appetizer, don’t hold back\nwith the description\nMain Course\nDescribe your Main Course, don’t hold back\nwith the description\nDessert\nDescribe your Dessert, don’t hold back\nwith the description"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1186,
+      "Ssim": 0.8893,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

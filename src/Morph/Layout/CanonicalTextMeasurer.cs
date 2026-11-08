@@ -156,6 +156,18 @@ sealed class CanonicalTextMeasurer
     public static double EmPixels(double sizePoints) =>
         sizePoints * ReferenceDpi / 72.0;
 
+    /// <summary>
+    /// The size Word DRAWS glyphs of <paramref name="sizePoints"/> at: the em rounded to a whole pixel of
+    /// its 120-dpi grid. Read off the em sizes its XPS declares (2026-11-08, the <c>_probe_kerndraw_*</c>
+    /// fixtures and four templates): 10pt at 10.2, 11pt at 10.8, 13pt at 13.2, 14pt at 13.8, 16pt at
+    /// 16.2, 20pt at 19.8, 22pt at 22.2, 4pt at 4.2, and 9 and 12pt as written. From 22pt up Word adds
+    /// a further 0.025pt (24pt at 24.025, 60pt at 60.05), a tenth of a percent, left out here. It is the
+    /// size of the glyphs' outlines only — where each stands comes from the pen (<see cref="PlacedRun.GlyphX"/>),
+    /// and the line was laid out on the size as written. Never under a pixel.
+    /// </summary>
+    public static double DrawnEmPoints(double sizePoints) =>
+        Math.Max(1, Math.Round(sizePoints * ReferenceDpi / 72.0, MidpointRounding.AwayFromZero)) * 72.0 / ReferenceDpi;
+
     static long AdvanceUnits(FontMetrics metrics, string text)
     {
         long units = 0;

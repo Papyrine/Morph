@@ -46,7 +46,8 @@ static class ScenarioRunner
         try
         {
             session = WordSession.Start();
-            foreach (var (family, results, cases, pending) in planned)
+            // A family with nothing to run is left as it is: saving it would only move its Generated stamp.
+            foreach (var (family, results, cases, pending) in planned.Where(_ => _.Pending.Count > 0))
             {
                 Log.Info($"Family {family.Id}: {cases.Count} cases, {pending.Count} to run");
                 var inFamily = 0;
@@ -138,6 +139,8 @@ static class ScenarioRunner
                 SaveEnvironment(session, calibration);
                 MarkdownRenderer.Render();
             }
+
+            MarkupFiles.Prune();
         }
         finally
         {
@@ -228,12 +231,14 @@ static class ScenarioRunner
     }
 
     // Done when it ran cleanly, to the scenario as it is now, on this build of Word. A case recorded before
-    // results carried their build takes its family's.
+    // results carried their build is never done: the family's own stamp moves to the new build with the
+    // first case recorded on it, so it cannot say which build the family's older cases ran on (on
+    // 16.0.20527.20150 it passed 104 selection and 75 field cases recorded on 20088 as already run).
     static bool IsDone(FamilyResults results, ProbeCase probeCase, string build) =>
         results.Cases.TryGetValue(probeCase.Id, out var existing) &&
         existing.Status is "ok" or "not-applicable" &&
         existing.DefinitionHash == probeCase.DefinitionHash &&
-        (existing.Build ?? results.Word?.ClickToRun) == build;
+        existing.Build == build;
 
     public static WordInfo WordInformation(WordSession session) =>
         new(session.Version, session.Build, UiLanguage(session), (int) NativeMethods.GetDpiForWindow(session.Window), ClickToRunVersion());
@@ -369,15 +374,10 @@ static class ScenarioRunner
                 Log.Detail(line);
             }
 
-            if (observation.MarkupDiff != null)
+            observation = observation with
             {
-                Directory.CreateDirectory(Paths.Markup);
-                File.WriteAllText(Path.Combine(Paths.Markup, $"{Safe(probeCase.Id)}.diff"), observation.MarkupDiff);
-                observation = observation with
-                {
-                    MarkupDiff = $"markup/{Safe(probeCase.Id)}.diff"
-                };
-            }
+                MarkupDiff = MarkupFiles.Write(probeCase.Id, observation.MarkupDiff)
+            };
 
             Lap("observe");
             if (executor.Dialog is {ClassName: "(none)"})
@@ -465,7 +465,4 @@ static class ScenarioRunner
             phases,
             ClickToRunVersion());
     }
-
-    static string Safe(string id) =>
-        Regex.Replace(id, "[^A-Za-z0-9._-]+", "_");
 }

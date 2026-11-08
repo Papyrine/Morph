@@ -74,6 +74,9 @@ public partial class MorphViewer
         editNote = null;
         floatingPicture = null;
         inlinePicture = false;
+        typedSelection = false;
+        boxUndo = false;
+        boxRedo = false;
         readerPage = -1;
         targetDocument = -1;
         handedIn = null;
@@ -116,8 +119,9 @@ public partial class MorphViewer
                 StateHasChanged();
             });
 
-    // Which paragraph a click or a selection is in, and where in it.
-    (EditParagraph Paragraph, EditBlock Block, int From, int To)? Locate(int page, double x, double y, int start, int end)
+    // Which paragraph a click or a selection is in, and where in it. On blank paper a click finds the
+    // nearest paragraph (blank); a probe (OnEditProbe) asks only what is at the point.
+    (EditParagraph Paragraph, EditBlock Block, int From, int To)? Locate(int page, double x, double y, int start, int end, bool blank = true)
     {
         var under = editMap.At(page, x, y);
         if (start >= 0 &&
@@ -142,15 +146,37 @@ public partial class MorphViewer
         // A click: the paragraph whose box it is in, at the character it was nearest — if that is
         // one of the paragraph's. Blank paper beside a short line is still the line's paragraph.
         var near = Nearest(page, start);
+        if (under == null &&
+            !blank)
+        {
+            return near is var (atPoint, offsetAtPoint) && Block(atPoint.Ordinal, page) is { } found
+                ? (atPoint, found, offsetAtPoint, offsetAtPoint)
+                : null;
+        }
+
         if (under == null)
         {
-            if (near is not var (paragraph, offset) ||
-                Block(paragraph.Ordinal, page) is not { } found)
+            // Blank paper in no paragraph's box: the body's nearest paragraph, as Word's caret goes to
+            // the nearest line. The browser's nearest character cannot say which that is — below the
+            // last paragraph Chrome named the end of the first line — so it counts only in that
+            // paragraph. A header's or a footer's character it names keeps its paragraph.
+            if (near is var (named, inStoryOffset) &&
+                named.Part != ReviewPart.Body &&
+                Block(named.Ordinal, page) is { } inStory)
+            {
+                return (named, inStory, inStoryOffset, inStoryOffset);
+            }
+
+            if (editMap.Nearest(page, x, y, _ => _.Paragraph < outline.Paragraphs.Count && outline.Paragraphs[_.Paragraph].Part == ReviewPart.Body) is not { } closest)
             {
                 return null;
             }
 
-            return (paragraph, found, offset, offset);
+            var paragraph = outline.Paragraphs[closest.Paragraph];
+            var offset = near is var (inParagraph, at) && inParagraph.Ordinal == paragraph.Ordinal
+                ? at
+                : y < closest.Top + closest.Height / 2 ? 0 : paragraph.Length;
+            return (paragraph, closest, offset, offset);
         }
 
         if (under.Paragraph >= outline.Paragraphs.Count)
@@ -271,7 +297,7 @@ public partial class MorphViewer
 
         try
         {
-            await viewer.BeginEditAsync(documentId, session.Json(from, to, Tracking));
+            await viewer.BeginEditAsync(documentId, session.Json(from, to, Tracking, Signature));
         }
         catch (JSDisconnectedException)
         {
@@ -401,11 +427,6 @@ public partial class MorphViewer
         {
             // The paragraph handed in is now as many paragraphs as Enter split it into.
             await CrossAsync(then == 3 ? ordinal : ordinal + content.Count - 1, then == 3 ? -1 : 1);
-        }
-        else if (then == 5)
-        {
-            // Ctrl+Enter: handed in, and typing goes on where the caret was.
-            await ResumeAsync(after.EndParagraph, after.EndOffset);
         }
     }
 
@@ -562,7 +583,10 @@ public partial class MorphViewer
         return ResumeAsync(to, direction < 0 ? outline.Paragraphs[to].Length : 0);
     }
 
-    /// <summary>Called from JavaScript when the reader abandons what they were typing.</summary>
+    /// <summary>
+    /// Called from JavaScript when the reader leaves a paragraph with nothing to hand in — left as it was,
+    /// or a box the page replaced before it was handed in.
+    /// </summary>
     [JSInvokable]
     public Task OnEditCancel(int id) =>
         InvokeAsync(
@@ -706,11 +730,110 @@ public partial class MorphViewer
     [JSInvokable]
     public Task OnMenuEscape() =>
         InvokeAsync(
+            async () =>
+            {
+                // A menu leaves the paragraph open under it; a dialog took the reader away from it.
+                var dialog = EscapeCancelsDialog;
+                CloseMenus();
+                StateHasChanged();
+                if (dialog)
+                {
+                    await ReturnToDocumentAsync();
+                }
+            });
+
+    // MorphEditor's: whether Escape now closes a dialog rather than a menu. The viewer has neither.
+    internal virtual bool EscapeCancelsDialog => false;
+
+    /// <summary>
+    /// Called from JavaScript for a Ctrl+click on a page while editing, which follows a link as Word's
+    /// does rather than opening the paragraph: the address of the link the character at an offset of the
+    /// page's text is, "#name" for one to a bookmark; null where there is none.
+    /// </summary>
+    [JSInvokable]
+    public async Task<string?> OnEditLinkAt(int page, int offset)
+    {
+        string? address = null;
+        await InvokeAsync(
             () =>
+            {
+                if (editOpen &&
+                    reviewMap.RunAt(page, offset) is { } run)
+                {
+                    address = editMap.Link(run);
+                }
+            });
+        return address;
+    }
+
+    /// <summary>
+    /// Called from JavaScript for a link to a bookmark followed (a table of contents' entry): the paragraph
+    /// being typed is handed in, and the caret goes to where the bookmark starts.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditGoToBookmark(string name) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen)
+                {
+                    return;
+                }
+
+                await FollowLinkAsync($"#{name}");
+                StateHasChanged();
+            });
+
+    /// <summary>
+    /// Called from JavaScript when Escape is pressed in the ribbon's Font or Size box, which has put
+    /// back what it showed: its list closes, and the reader goes back to where they were — the
+    /// paragraph open again with the caret or the text selected, or the text selected on the pages —
+    /// as a command run from the ribbon leaves them.
+    /// </summary>
+    [JSInvokable]
+    public Task OnRibbonEscape() =>
+        InvokeAsync(
+            async () =>
             {
                 CloseMenus();
                 StateHasChanged();
+                await ReturnToDocumentAsync();
             });
+
+    // Back where the reader left the document, once something that took them away from it is done
+    // with — Escape in the ribbon's boxes, a dialog cancelled — as a command run from the ribbon
+    // leaves them: the paragraph open again with the caret or the text selected, or the text selected
+    // on the pages again. Without it the focus is nowhere, and what is typed reaches nothing.
+    internal async Task ReturnToDocumentAsync()
+    {
+        if (!editOpen)
+        {
+            return;
+        }
+
+        await SettledAsync();
+        if (await TargetAsync() is not { } target)
+        {
+            return;
+        }
+
+        if (!target.Typing)
+        {
+            await ReselectAsync(target);
+            return;
+        }
+
+        if (target.HasSelection &&
+            target.StartParagraph == target.Paragraph)
+        {
+            var from = Math.Min(target.StartOffset, target.Offset);
+            var to = Math.Max(target.StartOffset, target.Offset);
+            await ResumeAsync(target.Paragraph, from, to, target.Page);
+            return;
+        }
+
+        await ResumeAsync(target.Paragraph, target.Offset, page: target.Page);
+    }
 
     // MorphEditor's: the viewer has no right-click menu, and no menus of its own to close.
     internal virtual void OpenContextMenu(double x, double y)

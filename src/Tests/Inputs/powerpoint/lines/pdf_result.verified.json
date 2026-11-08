@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "Presentation\nTitle\nPresenter Name"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "Agenda\nTopic one\nTopic two\nTopic three\nTopic four\nTopic five\nS A M P L E F O O T E R T E X T\n2"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.5576,
+      "Ssim": 0.9185,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.9488,
+      "Ssim": 0.7923,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

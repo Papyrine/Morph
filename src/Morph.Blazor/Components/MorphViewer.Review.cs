@@ -44,6 +44,15 @@ public partial class MorphViewer
     public EventCallback<byte[]> OnDocumentChanged { get; set; }
 
     /// <summary>
+    /// Called with true when the paragraph open for typing comes to hold typing of its own, which is not
+    /// in the file until the paragraph is handed in, and with false when it stops: handed in, closed, or
+    /// typed back to what it was. Only then, never per keystroke. A host's "saved" mark is not true
+    /// while it is.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnTypingChanged { get; set; }
+
+    /// <summary>
     /// Saves the file where it came from, as a WOPI host's storage (<see cref="MorphWopi"/>). Given one,
     /// Save and Ctrl+S hand it the file instead of downloading it, and the file counts as saved once it
     /// returns; a failure it throws is shown, and the file stays edited. Download still saves a copy.
@@ -648,11 +657,41 @@ public partial class MorphViewer
         await SelectEntryAsync(changes[index]);
     }
 
-    // What the editor's Undo and Redo are greyed out by (EditorState.CanUndo): the file's history, or a
-    // paragraph open for typing, whose own history is the script's.
-    internal bool CanUndo => undo.Count > 0 || session != null;
+    // What the editor's Undo and Redo are greyed out by (EditorState.CanUndo): the file's history, or
+    // the history of the paragraph open for typing, which is the script's and which it reports only
+    // when it comes to have a step or stops having one (OnEditHistory). An open paragraph with nothing
+    // typed in it falls through to the file's.
+    internal bool CanUndo => undo.Count > 0 || session != null && boxUndo;
 
-    internal bool CanRedo => redo.Count > 0 || session != null;
+    internal bool CanRedo => redo.Count > 0 || session != null && boxRedo;
+
+    bool boxUndo;
+    bool boxRedo;
+
+    /// <summary>
+    /// Called from JavaScript when the paragraph being typed comes to have a step of its own to undo or
+    /// redo, or stops having one: only then, never per keystroke.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditHistory(bool undoable, bool redoable) =>
+        InvokeAsync(async () =>
+        {
+            if (boxUndo == undoable &&
+                boxRedo == redoable)
+            {
+                return;
+            }
+
+            var typed = boxUndo != undoable;
+            boxUndo = undoable;
+            boxRedo = redoable;
+            StateHasChanged();
+            // A step of its own to undo is typing the file does not have yet.
+            if (typed)
+            {
+                await OnTypingChanged.InvokeAsync(undoable);
+            }
+        });
 
     // Text is selected across the pages.
     internal bool PagesSelected => selection.Length == 4;
@@ -912,6 +951,11 @@ public partial class MorphViewer
                 {
                     await viewer.ReloadAsync(opening, pageSizes, opened.Json);
                     await viewer.SetPicturesAsync(opening, opened.Pictures);
+                    if (Editing)
+                    {
+                        await viewer.SetLinesAsync(opening, opened.Edits.LineBoxes());
+                    }
+
                     if (findOpen &&
                         findQuery.Trim().Length > 0)
                     {

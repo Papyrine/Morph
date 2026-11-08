@@ -36,8 +36,9 @@ sealed record RunProperties
     public bool? DirectDoubleStrikethrough { get; init; }
 
     /// <summary>
-    /// Whether the run carries a tracked change (insertion or deletion). Word's markup view
-    /// draws a vertical change bar in the left margin beside any line containing one.
+    /// Whether the run carries a tracked change: an insertion or a deletion, which also recolour it,
+    /// or a change of its formatting, which does not. Word's markup view draws a vertical change bar
+    /// in the left margin beside any line containing one (<see cref="PlacedLine.ChangeBar"/>).
     /// </summary>
     public bool IsRevisionMark { get; init; }
 

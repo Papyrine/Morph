@@ -175,15 +175,11 @@ static class SvgPainter
 
         void Line(PlacedLine line)
         {
-            // Word's change bar beside a line that carries a tracked change (ImageSharpPainter.PaintLine).
-            foreach (var run in line.Runs)
+            // Word's change bar beside a revised line (ImageSharpPainter.PaintLine).
+            if (line.ChangeBar is var (barTop, barBottom))
             {
-                if (run.Properties.IsRevisionMark)
-                {
-                    var barX = context.PageSettings.MarginLeft / 2;
-                    Stroke(barX, line.Y, barX, line.Y + line.Height, Color.Black, 0.75, null);
-                    break;
-                }
+                var barX = context.PageSettings.MarginLeft / 2;
+                Stroke(barX, barTop, barX, barBottom, Color.Black, 0.75, null);
             }
 
             var ascent = line.Baseline - line.Y;
@@ -208,7 +204,7 @@ static class SvgPainter
                 }
 
                 var baseline = line.Baseline - run.BaselineShift;
-                Text(run.Text, properties, run.X, baseline);
+                Text(run.Text, properties, run.X, baseline, run.GlyphX);
 
                 if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
                 {
@@ -246,7 +242,7 @@ static class SvgPainter
         // browser does not keep them: Chromium drops a run's leading space even under white-space:pre, and
         // the x list then shifts onto the characters before their own — a space's width left for the
         // rest of the run.
-        void Text(string text, RunProperties properties, double penX, double baseline)
+        void Text(string text, RunProperties properties, double penX, double baseline, IReadOnlyList<float>? glyphX)
         {
             if (!HasInk(text))
             {
@@ -258,22 +254,26 @@ static class SvgPainter
             {
                 var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
                 var shadowColor = ImageSharpRenderContext.ParseColor(shadow.ColorHex).WithAlpha(TextEffectGeometry.ShadowAlpha(shadow) / 255f);
-                TextElement(text, properties, penX + offsetX, baseline + offsetY, shadowColor, null);
+                TextElement(text, properties, penX + offsetX, baseline + offsetY, shadowColor, null, glyphX);
             }
 
-            TextElement(text, properties, penX, baseline, null, null);
+            TextElement(text, properties, penX, baseline, null, null, glyphX);
             if (properties.Outline is { } outline)
             {
-                TextElement(text, properties, penX, baseline, null, outline);
+                TextElement(text, properties, penX, baseline, null, outline, glyphX);
             }
         }
 
-        void TextElement(string text, RunProperties properties, double penX, double baseline, Color? fillOverride, TextOutline? outlineOnly)
+        void TextElement(string text, RunProperties properties, double penX, double baseline, Color? fillOverride, TextOutline? outlineOnly, IReadOnlyList<float>? glyphX)
         {
-            var font = context.GetFont(properties);
-            var positions = properties.CharacterSpacingPoints == 0 || text.Length <= 1
-                ? GlyphPositions.Of(font, TextShaping.ResolveKerningMode(properties), text)
-                : Tracked(font, text, (float) properties.CharacterSpacingPoints);
+            // A run drawn at Word's pen (PlacedRun.GlyphX) puts each character where the layout says, at the
+            // size Word draws it (PlacedRun.GlyphFont), as ImageSharpPainter.DrawTracked does.
+            var placed = PlacedRun.Positions(glyphX, text);
+            var font = context.GetFont(placed == null ? properties : PlacedRun.GlyphFont(properties));
+            var positions = placed ??
+                            (properties.CharacterSpacingPoints == 0 || text.Length <= 1
+                                ? GlyphPositions.Of(font, TextShaping.ResolveKerningMode(properties), text)
+                                : Tracked(font, text, (float) properties.CharacterSpacingPoints));
 
             svg.Append("<text x=\"");
             var first = true;
@@ -404,7 +404,7 @@ static class SvgPainter
             var rules = new List<TextDecorations.Rule>();
             var waves = new List<TextDecorations.Wave>();
             var font = context.GetFont(properties);
-            TextDecorations.Collect(properties, run.Text, run.X, run.Width, (float) baseline, (float) ascent, _ => (float) (context.MeasureText(font, _) + properties.CharacterSpacingPoints * _.Length), rules, waves);
+            TextDecorations.Collect(properties, run.Text, run.X, run.Width, (float) baseline, (float) ascent, _ => run.PrefixWidth(_, prefix => (float) (context.MeasureText(font, prefix) + properties.CharacterSpacingPoints * prefix.Length)), rules, waves);
             foreach (var rule in rules)
             {
                 Stroke(rule.X0, rule.Y, rule.X1, rule.Y, rule.IsStrike ? color : underlineColor, rule.Thickness, null);
@@ -1526,19 +1526,34 @@ static class SvgPainter
                 }
             }
 
-            // A character no glyph starts at — a ligature's tail, a pair's second half — stands where the
-            // one before it does.
-            var last = 0f;
+            // A character no glyph starts at. A surrogate pair's second half stands where its first does. A
+            // ligature's tail (bold Aptos's "fi") stands after the character before it, at that character's
+            // own advance: the page's style turns ligatures off, so the browser draws each character of the
+            // ligature apart, and the tail at the head's x would be drawn over it and leave a gap after.
             for (var index = 0; index < positions.Length; index++)
             {
-                if (float.IsNaN(positions[index]))
+                if (!float.IsNaN(positions[index]))
                 {
-                    positions[index] = last;
+                    continue;
                 }
-                else
+
+                if (index == 0)
                 {
-                    last = positions[index];
+                    positions[index] = 0;
+                    continue;
                 }
+
+                var previous = positions[index - 1];
+                if (char.IsLowSurrogate(text[index]))
+                {
+                    positions[index] = previous;
+                    continue;
+                }
+
+                var head = char.IsLowSurrogate(text[index - 1]) && index >= 2
+                    ? text.Substring(index - 2, 2)
+                    : text.Substring(index - 1, 1);
+                positions[index] = previous + TextMeasurer.MeasureAdvance(head, options).Width;
             }
 
             return positions;

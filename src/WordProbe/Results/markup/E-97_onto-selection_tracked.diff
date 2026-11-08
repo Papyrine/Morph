@@ -1,15 +1,34 @@
++     <w:pPr>
++       <w:rPr>
++         <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-11-07T11:52:00Z" w16du:dateUtc="2026-11-07T00:52:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
 -       <w:t xml:space="preserve"> plain words.</w:t>
 +       <w:t xml:space="preserve"> </w:t>
-+     <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:pPr>
++       <w:rPr>
++         <w:ins w:id="1" w:author="Simon Cropp" w:date="2026-11-07T11:52:00Z" w16du:dateUtc="2026-11-07T00:52:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++       </w:rPr>
++     </w:pPr>
++     <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-11-07T11:52:00Z" w16du:dateUtc="2026-11-07T00:52:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
-+         <w:t>word-behavior.md</w:t>
++         <w:t>t paragraph here.</w:t>
 +       </w:r>
 +     </w:ins>
-+     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-10-25T14:36:00Z" w16du:dateUtc="2026-10-25T03:36:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++   </w:p>
++   <w:p>
++     <w:ins w:id="3" w:author="Simon Cropp" w:date="2026-11-07T11:52:00Z" w16du:dateUtc="2026-11-07T00:52:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>Secon</w:t>
++       </w:r>
++     </w:ins>
++     <w:del w:id="4" w:author="Simon Cropp" w:date="2026-11-07T11:52:00Z" w16du:dateUtc="2026-11-07T00:52:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:delText>plain</w:delText>
 +       </w:r>
 +     </w:del>
-+     <w:r>
 +       <w:t xml:space="preserve"> words.</w:t>
 +     </w:r>
++   </w:p>
++   <w:p>
++     <w:r>

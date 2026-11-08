@@ -9,24 +9,9 @@ what those fixes stopped short of.
 
 ## Residues
 
-- **Undo/Redo stay enabled while a paragraph is open**, whether or not anything was typed in it:
-  `EditorState.CanUndo`/`CanRedo` count an open session as undoable, because the box's own stack is
-  known only to the script and reading it would cross to .NET per keystroke. Undo with nothing typed
-  falls through to the file's history.
-- **Insert > Table's greying inside the open paragraph is CSS only** (`markClipboard` marks
-  `.editor-caret-only` with `data-selected`), and a button on a freshly shown Insert tab is only marked
-  at the next selection change.
-- **Escape in the ribbon's Font and Size boxes does not put the shown value back**; they apply on Enter
-  or on leaving the box.
-- **A click in F8 extend mode ends the mode.** Word may extend the selection to the click instead;
-  settle it with a Word probe.
-- **Date & time formats follow `CultureInfo.CurrentCulture`**, but Morph.Web runs with
-  `InvariantGlobalization`, so the deployed app still offers Word's invariant list. The component
-  takes no `ExportOptions.Culture`.
-- **A submenu opened from a menu that scrolls** (`placeMenu` caps a tall menu's height) is clipped by
-  it.
-- **A drag that would reorder a paragraph's fields, pictures or notes is undone** with a status note:
-  `Rewrite` requires them to keep their order.
+- **A click on another paragraph in F8 extend mode ends the mode.** Word extends the selection to
+  the click and keeps the mode on (WordProbe S-10d), which the editor now does within the open
+  paragraph; a click elsewhere closes that paragraph, and a selection across paragraphs is the pages'.
 - Touch pinch-zoom is untested on a real touch device.
 
 ## Missing features

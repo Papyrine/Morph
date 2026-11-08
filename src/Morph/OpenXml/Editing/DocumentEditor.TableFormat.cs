@@ -1,3 +1,4 @@
+using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using OoxmlTable = DocumentFormat.OpenXml.Wordprocessing.Table;
 using OoxmlTableBorders = DocumentFormat.OpenXml.Wordprocessing.TableBorders;
 using OoxmlTableCell = DocumentFormat.OpenXml.Wordprocessing.TableCell;
@@ -224,9 +225,11 @@ static partial class DocumentEditor
         // The cells of a table between those two paragraphs are in, as a rectangle, as Word selects
         // cells from one to another: the rows from the one's to the other's, and in each the cells
         // across the grid columns from the leftmost of the two to the rightmost.
-        (OoxmlTable Table, List<(OoxmlTableRow Row, List<OoxmlTableCell> Cells)> Rows, int Start, int End) Rectangle(int first, int last)
+        (OoxmlTable Table, List<(OoxmlTableRow Row, List<OoxmlTableCell> Cells)> Rows, int Start, int End) Rectangle(int first, int last) =>
+            Rectangle(FindAll([first, Math.Max(first, last)]));
+
+        static (OoxmlTable Table, List<(OoxmlTableRow Row, List<OoxmlTableCell> Cells)> Rows, int Start, int End) Rectangle(List<Paragraph> paragraphs)
         {
-            var paragraphs = FindAll([first, Math.Max(first, last)]);
             var table = CellOf(paragraphs[0]).Ancestors<OoxmlTable>().First();
             var rows = Rows(table);
             int top = int.MaxValue, bottom = -1, start = int.MaxValue, end = -1;
@@ -263,6 +266,99 @@ static partial class DocumentEditor
             }
 
             return (table, block, start, end);
+        }
+
+        // Clearing
+
+        // The cells between one paragraph's and another's, as Word selects text dragged from one cell into
+        // another of the same table: the rectangle of cells between them (WordProbe T-07, M-36). Null for
+        // two paragraphs of one cell, or of no one table.
+        static List<OoxmlTableCell>? CellsApart(Paragraph first, Paragraph last)
+        {
+            if (first.Ancestors<OoxmlTableCell>().FirstOrDefault() is not { } from ||
+                last.Ancestors<OoxmlTableCell>().FirstOrDefault() is not { } to ||
+                ReferenceEquals(from, to) ||
+                !ReferenceEquals(from.Ancestors<OoxmlTable>().First(), to.Ancestors<OoxmlTable>().First()))
+            {
+                return null;
+            }
+
+            return [.. Rectangle([first, last]).Rows.SelectMany(_ => _.Cells)];
+        }
+
+        // The paragraph a place is in; null for a place in no run there is.
+        Paragraph? ParagraphAt(SourcePosition place)
+        {
+            var ordinal = 0;
+            foreach (var run in Stories().SelectMany(_ => _.Descendants<OoxmlRun>()))
+            {
+                if (ordinal++ == place.Run)
+                {
+                    return run.Ancestors<Paragraph>().FirstOrDefault();
+                }
+            }
+
+            return null;
+        }
+
+        // Delete with cells selected clears what they hold and keeps the cells (WordProbe R-T-4, T-05):
+        // each cell's content goes as a deletion within it would, tracked or not, the last cell first so
+        // that the places of those before it stand. A cell with a table in it has each of its own
+        // paragraphs cleared apart, a deletion running across paragraphs only where they follow one
+        // another. The caret is left at the first cell's start.
+        (Paragraph Paragraph, int Offset) Clear(List<OoxmlTableCell> cells)
+        {
+            foreach (var cell in Enumerable.Reverse(cells))
+            {
+                var paragraphs = cell.Elements<Paragraph>().ToList();
+                List<List<Paragraph>> spans = cell.Elements<OoxmlTable>().Any()
+                    ? [.. paragraphs.Select(_ => (List<Paragraph>) [_])]
+                    : [paragraphs];
+                foreach (var span in Enumerable.Reverse(spans))
+                {
+                    if (Span(span) is var (start, end))
+                    {
+                        Delete(start, end);
+                    }
+                }
+            }
+
+            return (cells[0].Elements<Paragraph>().First(), 0);
+        }
+
+        // From the first to the last of the paragraphs' text and the things in it that can go; null for
+        // paragraphs that hold neither.
+        (SourcePosition Start, SourcePosition End)? Span(List<Paragraph> paragraphs)
+        {
+            var ordinals = SourceRuns.IndexAll(Stories());
+            SourcePosition? start = null;
+            SourcePosition? end = null;
+            foreach (var paragraph in paragraphs)
+            {
+                foreach (var unit in Units(paragraph))
+                {
+                    if (!(unit.Editable || Removable(unit)) ||
+                        !ordinals.TryGetValue(unit.Run, out var run))
+                    {
+                        continue;
+                    }
+
+                    start ??= new(run, unit.Start);
+                    end = unit.Editable &&
+                          unit.Cells.Count > 0 &&
+                          ordinals.TryGetValue(unit.Cells[^1].Source, out var last)
+                        ? new(last, unit.Cells[^1].Position + 1)
+                        : new(run, unit.Start + 1);
+                }
+            }
+
+            if (start is { } from &&
+                end is { } to)
+            {
+                return (from, to);
+            }
+
+            return null;
         }
 
         // Merging and splitting

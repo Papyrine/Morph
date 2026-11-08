@@ -128,6 +128,72 @@ sealed class EditMap
         return found;
     }
 
+    /// <summary>
+    /// The block nearest a point of a page that is in none, of those <paramref name="accept"/> takes: as
+    /// Word puts the caret on the nearest line of a click on blank paper — below the last paragraph, in
+    /// the gap a paragraph's spacing leaves. A block across whose width the point stands comes first,
+    /// so a click under a column's last line is that column's, then the one nearest up or down.
+    /// </summary>
+    public EditBlock? Nearest(int page, double x, double y, Func<EditBlock, bool> accept)
+    {
+        if (page < 0 ||
+            page >= pages.Length)
+        {
+            return null;
+        }
+
+        EditBlock? found = null;
+        (bool Across, double Distance) best = default;
+        foreach (var block in pages[page])
+        {
+            if (!accept(block))
+            {
+                continue;
+            }
+
+            var across = x >= block.Left && x <= block.Right;
+            var down = y < block.Top ? block.Top - y : y > block.Bottom ? y - block.Bottom : 0;
+            var aside = x < block.Left ? block.Left - x : x > block.Right ? x - block.Right : 0;
+            var distance = across ? down : Math.Sqrt(down * down + aside * aside);
+            if (found == null ||
+                across && !best.Across ||
+                across == best.Across && distance < best.Distance)
+            {
+                found = block;
+                best = (across, distance);
+            }
+        }
+
+        return found;
+    }
+
+    /// <summary>
+    /// Every line of every paragraph, five numbers each — page, left, top, right, bottom, in points —
+    /// each as wide as its paragraph's box (a cell's, in a table) rather than its text. What Up and Down
+    /// out of the paragraph being typed choose among (morph-viewer.js, setLines): the pages' text layer
+    /// has no line for an empty paragraph or an empty cell, so those could not be reached by them.
+    /// </summary>
+    public double[] LineBoxes()
+    {
+        var numbers = new List<double>();
+        for (var page = 0; page < pages.Length; page++)
+        {
+            foreach (var block in pages[page])
+            {
+                foreach (var line in block.Lines)
+                {
+                    numbers.Add(page);
+                    numbers.Add(Math.Round(block.Left, 2));
+                    numbers.Add(Math.Round(line.Y, 2));
+                    numbers.Add(Math.Round(block.Right, 2));
+                    numbers.Add(Math.Round(line.Y + line.Height, 2));
+                }
+            }
+        }
+
+        return [.. numbers];
+    }
+
     void Add(EditBlock block)
     {
         pages[block.Page].Add(block);

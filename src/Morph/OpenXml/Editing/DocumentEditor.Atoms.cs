@@ -92,33 +92,13 @@ static partial class DocumentEditor
                 return;
             }
 
-            if (unit.First.Parent is not OoxmlRun first ||
+            if (unit.First.Parent is not OoxmlRun ||
                 unit.Last.Parent is not OoxmlRun)
             {
                 return;
             }
 
-            // The runs that hold it, divided off from what is either side of it.
-            Ahead(first, unit.First, 0);
-            Ahead((OoxmlRun) unit.Last.Parent!, unit.Last, int.MaxValue);
-            var opening = (OoxmlRun) unit.First.Parent!;
-            var closing = (OoxmlRun) unit.Last.Parent!;
-            var runs = new List<OoxmlRun>();
-            var inside = false;
-            foreach (var run in opening.Ancestors<Paragraph>().First().Descendants<OoxmlRun>())
-            {
-                inside |= ReferenceEquals(run, opening);
-                if (inside)
-                {
-                    runs.Add(run);
-                }
-
-                if (ReferenceEquals(run, closing))
-                {
-                    break;
-                }
-            }
-
+            var runs = RunsOf(unit);
             if (!options.Track &&
                 unit.Kind == EditUnitKind.Note)
             {
@@ -140,6 +120,33 @@ static partial class DocumentEditor
                     Vacate(holder);
                 }
             }
+        }
+
+        // The runs that hold a unit that begins and ends in runs, divided off from what is either side
+        // of it.
+        List<OoxmlRun> RunsOf(Unit unit)
+        {
+            Ahead((OoxmlRun) unit.First.Parent!, unit.First, 0);
+            Ahead((OoxmlRun) unit.Last.Parent!, unit.Last, int.MaxValue);
+            var opening = (OoxmlRun) unit.First.Parent!;
+            var closing = (OoxmlRun) unit.Last.Parent!;
+            var runs = new List<OoxmlRun>();
+            var inside = false;
+            foreach (var run in opening.Ancestors<Paragraph>().First().Descendants<OoxmlRun>())
+            {
+                inside |= ReferenceEquals(run, opening);
+                if (inside)
+                {
+                    runs.Add(run);
+                }
+
+                if (ReferenceEquals(run, closing))
+                {
+                    break;
+                }
+            }
+
+            return runs;
         }
 
         // A run marked deleted, its text and field code struck out. One the same author inserted

@@ -47,6 +47,21 @@ sealed class ParagraphElement : DocumentElement
     public ParagraphElement Parsed => RebuiltFrom ?? this;
 
     /// <summary>
+    /// Whether a tracked change altered the paragraph's properties (<c>w:pPrChange</c>,
+    /// <c>w:numberingChange</c>): Word's change bar stands beside its first line. Of a <c>w:p</c> split
+    /// around a break, the first paragraph. Settable because the parser stamps it once the paragraph is
+    /// built.
+    /// </summary>
+    public bool PropertiesRevised { get; set; }
+
+    /// <summary>
+    /// Whether a tracked change inserted, deleted, moved or reformatted the paragraph's mark: Word's
+    /// change bar stands beside its last line. Of a <c>w:p</c> split around a break, the last
+    /// paragraph. Settable as <see cref="PropertiesRevised"/> is.
+    /// </summary>
+    public bool MarkRevised { get; set; }
+
+    /// <summary>
     /// The ordinal of the <c>w:p</c> this paragraph was read from, among the main document part's
     /// paragraphs in document order, when the parser was asked to record it (<c>captureSources</c>);
     /// null otherwise. One <c>w:p</c> split around a break is several paragraphs with one ordinal.

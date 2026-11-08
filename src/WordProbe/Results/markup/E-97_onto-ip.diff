@@ -1,10 +1,25 @@
++     <w:pPr>
++       <w:rPr>
++         <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" />
++         <w:sz w:val="28" />
++       </w:rPr>
++     </w:pPr>
 -       <w:t>Serif face</w:t>
 +       <w:t>Ser</w:t>
 +       <w:rPr>
 +         <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" />
 +         <w:sz w:val="28" />
 +       </w:rPr>
-+       <w:t>word-behavior.md</w:t>
++       <w:t>t paragraph here.</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:r>
++       <w:rPr>
++         <w:rFonts w:ascii="Times New Roman" w:hAnsi="Times New Roman" w:cs="Times New Roman" />
++         <w:sz w:val="28" />
++       </w:rPr>
++       <w:t>Secon</w:t>
 +     </w:r>
 +     <w:r>
 +       <w:rPr>

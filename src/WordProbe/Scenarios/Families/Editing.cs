@@ -686,6 +686,42 @@ static class EditingFamily
             .Hypotheses("E-50 found Backspace left two paragraphs (`Firs` and `d bold one.`) where E-10c found typing merged them into one. (a) only typing merges, every deleting key keeps the mark; (b) Backspace alone keeps it; (c) the first run was a settle artefact and every key merges.")
             .Morph("PARTIAL");
 
+        yield return Probe("E-50c", "Backspace and Delete on a whole selected word: smart cut's space")
+            .In("plain")
+            .Steps("select({range})", "{key}")
+            .Axis("range", "P1:10-P1:15", "P1:4-P1:9", "P1:0-P1:3", "P1:40-P1:43", "P1:40-P1:44")
+            .Axis("key", "Backspace", "Delete")
+            .Observing(Observe.Default | Observe.Revisions)
+            .Tracked()
+            .Notes("P1:10-15 is 'brown' between two spaces; P1:4-9 'quick'; P1:0-3 'The' at the start; P1:40-43 'dog' before the full stop; P1:40-44 'dog.' before the mark.")
+            .Hypotheses("R-21 struck 'brown ' under tracking where C-16's cut took the space before the word. (a) Backspace and Delete take the space after a word with a space after it, and the space before one that ends at punctuation or the mark, tracked or not; (b) untracked, nothing but the word goes; (c) they follow the cut exactly.")
+            .Morph("DONE");
+
+        yield return Probe("E-50d", "Backspace and Delete on a selected word before punctuation and before two spaces")
+            .In("words")
+            .Steps("select({range})", "{key}")
+            .Axis("range", "P1:6-P1:10", "P1:6-P1:11")
+            .Axis("key", "Backspace", "Delete")
+            .Observing(Observe.Default | Observe.Revisions)
+            .Tracked()
+            .Notes("P1:6-10 is 'beta' before the comma; P1:6-11 is 'beta,' before two spaces (C-16's ranges).")
+            .Hypotheses("(a) as C-16's cut: the space before the word goes in both; (b) before the comma the space before goes, before the two spaces one of them.")
+            .Morph("DONE");
+
+        yield return Probe("E-70e", "Ctrl+Backspace and Ctrl+Delete on a word between two spaces")
+            .In("plain")
+            .Steps("select(P1:0)")
+            .Branch("back-after-word", S("select(P1:15)", "Ctrl+Backspace"))
+            .Branch("back-after-space", S("select(P1:16)", "Ctrl+Backspace"))
+            .Branch("back-before-stop", S("select(P1:43)", "Ctrl+Backspace"))
+            .Branch("delete-at-word", S("select(P1:10)", "Ctrl+Delete"))
+            .Branch("delete-at-start", S("select(P1:0)", "Ctrl+Delete"))
+            .Observing(Observe.Default | Observe.Revisions)
+            .Tracked()
+            .Notes("P1:15 is after 'brown', P1:16 after the space after it, P1:43 after 'dog' before the full stop, P1:10 before 'brown'.")
+            .Hypotheses("R-21 struck ' brown' for Ctrl+Backspace after 'brown' under tracking. (a) Ctrl+Backspace after a word that a space follows takes the space before it too, tracked or not; (b) only under tracking; (c) after the space (P1:16) it takes 'brown ' with nothing more.")
+            .Morph("DONE");
+
         yield return Probe("E-51", "Backspace at the end of a commented and of a bookmarked span")
             .In("{fixture}")
             .Steps("select(P1:find(\"brown fox\"):end)", "Backspace")

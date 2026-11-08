@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Table with vMerge AND Explicit Heights\nMerged\n(150pt total)\nRow 1 Right (150pt)\nRow 2 Right (100pt)\nRow 3 Right (50pt)\nTotal merged cell height should be 300pt (150+100+50)"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0105,
+      "Ssim": 0.9834,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

@@ -218,7 +218,7 @@ static class CommentMarkup
                 }
 
                 var placed = line.Runs
-                    .Select(_ => new PlacedRun(left + _.X, _.Width, _.Text, _.Properties))
+                    .Select(_ => new PlacedRun(left + _.X, _.Width, _.Text, _.Properties, GlyphX: _.GlyphX))
                     .ToList();
                 result.Add(new(left, baseline - line.Ascent, line.Width, line.Height, baseline, paragraph, lineIndex, placed, []));
             }

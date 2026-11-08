@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Basic HTML text formatting:\nBold text using b tag\nStrong text using strong tag\nItalic text using i tag\nEmphasized text using em tag\nUnderlined text using u tag\nStrikethrough text using s tag\nStrike text using strike tag\nText with subscript using sub tag\nText with superscript using sup tag\nBold and italic combined\nBold and underlined combined\nItalic and underlined combined\nBold, italic, and underlined all combined"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0205,
+      "Ssim": 0.9804,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

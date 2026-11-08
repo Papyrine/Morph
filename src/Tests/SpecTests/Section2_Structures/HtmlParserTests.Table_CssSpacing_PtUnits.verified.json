@@ -1,0 +1,143 @@
+﻿[
+  {
+    "Rows": [
+      {
+        "Cells": [
+          {
+            "Content": [
+              {
+                "Runs": [
+                  {
+                    "Text": "cell",
+                    "Properties": {
+                      "FontFamily": "Times New Roman",
+                      "FontSizePoints": 12.0,
+                      "Bold": false,
+                      "Italic": false,
+                      "Underline": false,
+                      "DoubleUnderline": false,
+                      "IsRevisionMark": false,
+                      "Strikethrough": false,
+                      "DoubleStrikethrough": false,
+                      "AllCaps": false,
+                      "SmallCaps": false,
+                      "CharacterScalePercent": 100.0,
+                      "IsRightToLeft": false,
+                      "HasReflection": false,
+                      "Hidden": false,
+                      "Emboss": false,
+                      "Imprint": false,
+                      "OutlineOnly": false
+                    },
+                    "InlineImageFlipHorizontal": false,
+                    "InlineImageFlipVertical": false,
+                    "InlineImageOpacity": 1.0,
+                    "InlineImageClipToEllipse": false,
+                    "IsTab": false
+                  }
+                ],
+                "Properties": {
+                  "SpacingAfterPoints": 8.0,
+                  "LineSpacingMultiplier": 1.1583333333333334,
+                  "SnapToGrid": true,
+                  "ContextualSpacing": false,
+                  "SuppressLineNumbers": false,
+                  "SuppressAutoHyphens": false,
+                  "KeepLines": false,
+                  "KeepNext": false,
+                  "WidowControl": true,
+                  "PageBreakBefore": false,
+                  "BorderBetween": {
+                    "IsVisible": false,
+                    "WidthPoints": 0.5,
+                    "ColorHex": "000000",
+                    "HoldsSpace": false
+                  },
+                  "DefaultTabStopPoints": 36.0,
+                  "IsRightToLeft": false,
+                  "MirrorIndents": false
+                },
+                "IsAnchorOnlyMark": false,
+                "IsSectionBreakMark": false,
+                "IsCollapsedCellMark": false,
+                "PropertiesRevised": false,
+                "MarkRevised": false
+              }
+            ],
+            "Properties": {
+              "Padding": {
+                "Top": 12.0,
+                "Right": 12.0,
+                "Bottom": 12.0,
+                "Left": 12.0,
+                "Horizontal": 24.0,
+                "Vertical": 24.0
+              },
+              "GridSpan": 1,
+              "VerticalAlignment": "Center",
+              "HideMark": false,
+              "NoWrap": false,
+              "SingleLine": false,
+              "ClipOverflow": false
+            }
+          }
+        ],
+        "IsExactHeight": false,
+        "IsHeader": false,
+        "CannotSplit": false
+      }
+    ],
+    "Properties": {
+      "IsFloating": false,
+      "IsSheetGrid": false,
+      "DefaultBorders": {
+        "Top": {
+          "IsVisible": false,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000",
+          "HoldsSpace": false
+        },
+        "Right": {
+          "IsVisible": false,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000",
+          "HoldsSpace": false
+        },
+        "Bottom": {
+          "IsVisible": false,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000",
+          "HoldsSpace": false
+        },
+        "Left": {
+          "IsVisible": false,
+          "WidthPoints": 0.5,
+          "ColorHex": "000000",
+          "HoldsSpace": false
+        },
+        "Declared": "All",
+        "HasAnyBorder": false
+      },
+      "DefaultCellPadding": {
+        "Top": 0.75,
+        "Right": 0.75,
+        "Bottom": 0.75,
+        "Left": 0.75,
+        "Horizontal": 1.5,
+        "Vertical": 1.5
+      },
+      "DefaultCellPaddingDeclared": false,
+      "DefaultCellMargin": {},
+      "IndentPoints": -13.5,
+      "FillContainer": false,
+      "IsAutoFit": true,
+      "CellSpacingPoints": 0.75,
+      "DetachedCellRule": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000",
+        "HoldsSpace": false
+      }
+    }
+  }
+]

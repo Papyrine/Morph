@@ -312,12 +312,34 @@ public partial class MorphEditor
         linkTarget = null;
     }
 
-    void OnDialogKeyDown(KeyboardEventArgs args)
+    // Cancel, Escape or a press beside the dialog: it closes, and the reader is back where they were
+    // when it opened — the paragraph open again, or the text selected again — as OK leaves them, rather
+    // than with the focus nowhere and nothing to type in. Opening the dialog handed the paragraph in.
+    Task CancelDialogAsync()
+    {
+        if (dialog is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        CloseDialog();
+        StateHasChanged();
+        return ReturnToDocumentAsync();
+    }
+
+    // What Escape closes at the document (OnMenuEscape) is a dialog, with no menu over it.
+    internal override bool EscapeCancelsDialog =>
+        menu is null &&
+        dialog is not null;
+
+    Task OnDialogKeyDown(KeyboardEventArgs args)
     {
         if (args.Key == "Escape")
         {
-            CloseDialog();
+            return CancelDialogAsync();
         }
+
+        return Task.CompletedTask;
     }
 
     // Menus close before what was chosen runs, so the pages are what the reader sees while it does.
@@ -429,7 +451,7 @@ public partial class MorphEditor
             return;
         }
 
-        OnDialogKeyDown(args);
+        await OnDialogKeyDown(args);
     }
 
     // Tables
@@ -566,7 +588,7 @@ public partial class MorphEditor
             return;
         }
 
-        OnDialogKeyDown(args);
+        await OnDialogKeyDown(args);
     }
 
     Task FontFromMenuAsync(string font)
@@ -995,8 +1017,7 @@ public partial class MorphEditor
     {
         if (args.Key == "Escape")
         {
-            CloseDialog();
-            return Task.CompletedTask;
+            return CancelDialogAsync();
         }
 
         if (args.Key == "Enter" &&
@@ -1012,8 +1033,7 @@ public partial class MorphEditor
     {
         if (args.Key == "Escape")
         {
-            CloseDialog();
-            return Task.CompletedTask;
+            return CancelDialogAsync();
         }
 
         if (args.Key == "Enter" &&

@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "CSS text alignment:\nLeft aligned text (default)\nCenter aligned text\nRight aligned text\nJustified text - this paragraph has enough content to demonstrate how text is stretched to fill the\nentire line width from left to right margins creating even edges on both sides.\nTable cell vertical alignment:\nTop aligned Middle aligned Bottom aligned"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0216,
+      "Ssim": 0.9708,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

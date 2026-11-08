@@ -67,7 +67,118 @@ static class TextDiff
             Search(was.AsSpan(start, lengthBefore), now.AsSpan(start, lengthAfter), start, hunks);
         }
 
-        return Tidy(hunks, before, after);
+        return Tidy(Slid(hunks, was, now, before, after), before, after);
+    }
+
+    // A stretch only typed, or only deleted, can stand in more than one place where the text beside it
+    // repeats it: " More words." typed after "text." — with an edit earlier in the paragraph, so the two
+    // texts share no start — reads to the search as ". More words" typed before the full stop. Each is
+    // moved to where its edges fall on the cleanest boundaries (a sentence's end, a space, the text's
+    // ends) rather than between the letters of a word, as the edit a person made; where nowhere is
+    // better it stays where the search put it.
+    static List<TextHunk> Slid(List<TextHunk> hunks, long[] was, long[] now, string before, string after)
+    {
+        for (var index = 0; index < hunks.Count; index++)
+        {
+            var hunk = hunks[index];
+            var previous = index > 0 ? hunks[index - 1] : default(TextHunk?);
+            var next = index + 1 < hunks.Count ? hunks[index + 1] : default(TextHunk?);
+            if (hunk.OldLength == 0 &&
+                hunk.NewLength > 0)
+            {
+                var floor = previous is { } earlier ? earlier.NewStart + earlier.NewLength : 0;
+                var ceiling = next?.NewStart ?? now.Length;
+                var shift = Shift(now, after, hunk.NewStart, hunk.NewLength, floor, ceiling);
+                hunks[index] = hunk with
+                {
+                    OldStart = hunk.OldStart + shift,
+                    NewStart = hunk.NewStart + shift
+                };
+            }
+            else if (hunk.NewLength == 0 &&
+                     hunk.OldLength > 0)
+            {
+                var floor = previous is { } earlier ? earlier.OldStart + earlier.OldLength : 0;
+                var ceiling = next?.OldStart ?? was.Length;
+                var shift = Shift(was, before, hunk.OldStart, hunk.OldLength, floor, ceiling);
+                hunks[index] = hunk with
+                {
+                    OldStart = hunk.OldStart + shift,
+                    NewStart = hunk.NewStart + shift
+                };
+            }
+        }
+
+        return hunks;
+    }
+
+    // How far a stretch of a text, from start for length, is best moved within the room between floor
+    // and ceiling: it moves a character left where the one before it is its own last, and right where
+    // the one after it is its own first, which leaves the text it stands in as it was.
+    static int Shift(long[] symbols, string text, int start, int length, int floor, int ceiling)
+    {
+        var leftmost = start;
+        while (leftmost > floor &&
+               symbols[leftmost - 1] == symbols[leftmost + length - 1])
+        {
+            leftmost--;
+        }
+
+        var best = start;
+        var bestScore = Edges(text, start, length);
+        for (var candidate = leftmost; candidate + length <= ceiling; candidate++)
+        {
+            if (candidate > leftmost &&
+                symbols[candidate - 1] != symbols[candidate + length - 1])
+            {
+                break;
+            }
+
+            var score = Edges(text, candidate, length);
+            if (score > bestScore)
+            {
+                best = candidate;
+                bestScore = score;
+            }
+        }
+
+        return best - start;
+    }
+
+    // How clean the two edges of a stretch are: a boundary at the text's end or start scores best, then
+    // a line's end, a word's start after a space (so "Stop. " goes with its trailing space, as Word
+    // selects a sentence), any other space, punctuation, and least of all the inside of a word.
+    static int Edges(string text, int start, int length) =>
+        Boundary(start > 0 ? text[start - 1] : null, text[start]) +
+        Boundary(text[start + length - 1], start + length < text.Length ? text[start + length] : null);
+
+    static int Boundary(char? left, char? right)
+    {
+        if (left is not { } a ||
+            right is not { } b)
+        {
+            return 6;
+        }
+
+        if (a == '\n' ||
+            b == '\n')
+        {
+            return 5;
+        }
+
+        if (char.IsWhiteSpace(a) &&
+            !char.IsWhiteSpace(b))
+        {
+            return 4;
+        }
+
+        if (char.IsWhiteSpace(a) ||
+            char.IsWhiteSpace(b))
+        {
+            return 3;
+        }
+
+        return IsWord(a) && IsWord(b) ? 0 : 1;
     }
 
     // A character and its kind as one number.

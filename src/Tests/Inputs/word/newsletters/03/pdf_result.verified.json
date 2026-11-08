@@ -1,0 +1,76 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 4,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "ARCHITECTURE\nNEWSLETTER\nINSIDE\nTHIS\nISSUE\nPG. 2\nGive us a blurb about a story on\npage 2. Tell us what to expect and\nwhat the headline is.\nINDUSTRY NEWS\nWHAT YOU NEED TO KNOW\nThis is a place to put either a headline story, introduction to your newsletter, or anything else\nyou would like to highlight. This is a spot for a newsletter top story worthy of the first page.\nThroughout this template example, you will find various tips about how to make this\ndocument your own, from changing images, to updating text and colors. Create!\nPG. 3\nGive us a blurb about a story on\npage 3. Give a quote from the story\nto get interest.\nPG. 4\nGive us a blurb about a story on\npage 4. Make this your own!"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "REAL ESTATE\nTOP US MARKETS\nWe think the design of this newsletter is great as is! But, if you do not\nagree, you are able to make it yours by making a few minor design\ntweaks! Tips on updating specific features are available throughout this\nexample text.\nTo change any of the text in this document, just click on the block of text\nyou want to update! The formatting has already been programmed for\nease of formatting.\nDESIGN TRENDS\nLEARN THE LATEST IN NEW DESIGN\nHave other images you wish to use? It is simple to replace any of the\npictures in this newsletter. Click on the image you wish to change, then\ngo to Insert > Picture."
+      },
+      {
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "PRACTICAL\nAND STYLISH\nEXAMPLES OF LIVING SIMPLY\nTo change any of the text in this document, just click\non the block of text you want to update! The\nformatting has already been programmed for ease of\nformatting.\nIn this panel, you can highlight even more\ninformation about your organization! Tell the\naudience why you are the best! Don’t be shy! Share,\nexplain, and tell us what makes your company so\ngreat!\nPlenty of text will fit in any of these panels. Simply\nclick on the placeholders and add your own text.\nHARNESSING NATURAL LIGHT\nCHOOSING THE RIGHT LOCATION FOR YOUR SKYLIGHTS\nTo change any of the text in this document, just click on the block of text you want to update! The formatting has already been programmed\nfor ease of formatting.\nHave other images you wish to use? It is simple to replace any of the pictures in this newsletter. Click on the image you wish to change.\nOnce the image you wish to replace is selected, select Insert > Picture."
+      },
+      {
+        "Number": 4,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "RISING STARS IN ARCHITECTURE\nMEET THE TOP 20 ENGINEERS IN THEIR FIELD\nSome of the sample text in this document indicates the name of the style applied, so that you can easily apply the same formatting again.\nFor example, this is the Normal style."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3826,
+      "Ssim": 0.9239,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.3055,
+      "Ssim": 0.9402,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.2698,
+      "Ssim": 0.9112,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    },
+    {
+      "Page": 4,
+      "ErrorMetric": 0.4081,
+      "Ssim": 0.949,
+      "ExpectedFile": "expected_0004.png",
+      "VerifiedFile": "pdf_result#page_0004.verified.png",
+      "ReceivedFile": "pdf_result#page_0004.received.png"
+    }
+  ]
+}

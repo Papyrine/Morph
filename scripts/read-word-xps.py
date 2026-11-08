@@ -12,9 +12,10 @@ runs(path).
 
 WHAT THE NUMBERS ARE. These are the positions Word DRAWS glyphs at. They are not the widths it
 lays text out with. Word draws on an em rounded to whole pixels at 120 dpi (8pt Calibri is
-declared 7.8pt), gives each glyph a whole-pixel advance there, lets the pen fall about 5px
-behind its linear position inside a run before widening a glyph, catches it up at a space, and
-squeezes a line that drew wider than its measure. It BREAKS lines and SIZES autofit columns on
+declared 7.8pt), gives each glyph a whole-pixel advance there (plus its pair's kern, rounded
+to a whole pixel, in a run that kerns), lets the pen fall about 5px behind its linear position
+inside a run before widening a glyph, catches it up at a space once it trails by more than
+0.6px, and squeezes a line that drew wider than its measure. It BREAKS lines and SIZES autofit columns on
 the font's plain linear advances at the size as authored (docs/layout-engine.md, "The crux").
 Per-glyph advance tables read from this file - the .wordadvances sidecars the engine measured
 with from 2026-08-30 until 2026-10-02 - came out 1.6% under to 4.2% over the width Word breaks

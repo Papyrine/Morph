@@ -49,8 +49,9 @@ sealed record EditorState
     public ReviewPart Story { get; init; }
 
     /// <summary>
-    /// Text is selected across the pages. Text selected in the paragraph open for typing is the script's
-    /// alone to know as the caret moves, and the buttons that turn on it are marked by the script too.
+    /// Text is selected rather than a caret: across the pages, or in the paragraph open for typing,
+    /// whose selection the script reports when one is made or let go (<c>OnEditSelected</c>), never as
+    /// it grows. Cut and Copy, which the script carries out, are still marked by the script.
     /// </summary>
     public bool Selected { get; init; }
 
@@ -58,14 +59,14 @@ sealed record EditorState
     public bool SpansParagraphs { get; init; }
 
     /// <summary>
-    /// There is a step to undo: an edit in the file's history, or a paragraph open for typing. What was
-    /// typed into that paragraph is the script's own history, kept as the reader types; asking after it
-    /// would cost a crossing to .NET for every key, so an open paragraph counts as having something to
-    /// undo, and an Undo with nothing typed falls through to the file's history, which may be empty.
+    /// There is a step to undo: an edit in the file's history, or something typed into the paragraph
+    /// open for typing. That paragraph's history is the script's own, which tells .NET only when it
+    /// comes to have a step or stops having one (<c>OnEditHistory</c>), never per keystroke; an Undo in
+    /// a paragraph with nothing typed falls through to the file's history.
     /// </summary>
     public bool CanUndo { get; init; }
 
-    /// <summary>There is a step to redo, as <see cref="CanUndo"/> counts one: an open paragraph has its own.</summary>
+    /// <summary>There is a step to redo, in the file's history or the open paragraph's, as <see cref="CanUndo"/> counts one.</summary>
     public bool CanRedo { get; init; }
 
     public bool Tracking { get; init; }

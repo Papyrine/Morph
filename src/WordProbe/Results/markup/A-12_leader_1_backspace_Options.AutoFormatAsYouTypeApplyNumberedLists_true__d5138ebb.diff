@@ -1,0 +1,18 @@
+-   <w:p />
++   <w:p>
++     <w:pPr>
++       <w:pStyle w:val="ListParagraph" />
++       <w:numPr>
++         <w:ilvl w:val="0" />
++         <w:numId w:val="1" />
++       </w:numPr>
++     </w:pPr>
++     <w:r>
++       <w:t>Item</w:t>
++     </w:r>
++   </w:p>
++   <w:p>
++     <w:pPr>
++       <w:pStyle w:val="ListParagraph" />
++     </w:pPr>
++   </w:p>

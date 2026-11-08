@@ -359,6 +359,11 @@
                                             <span class="review-text">@text</span>
                                         }
                                     </p>
+                                    @* What a formatting change did, in Word's words: "Font: Bold", "Centered". *@
+                                    @if (change.Description is { Length: > 0 } detail)
+                                    {
+                                        <p class="review-detail">@detail</p>
+                                    }
                                     @if (PartLabel(change) is { } where)
                                     {
                                         <p class="review-where">@where</p>

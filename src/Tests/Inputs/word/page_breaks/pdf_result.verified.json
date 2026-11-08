@@ -1,0 +1,60 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 3,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Content on page 1.\nMore content on page 1."
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "This is page 2 after an explicit page break."
+      },
+      {
+        "Number": 3,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "This is page 3."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.002,
+      "Ssim": 0.998,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0021,
+      "Ssim": 0.9979,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    },
+    {
+      "Page": 3,
+      "ErrorMetric": 0.0007,
+      "Ssim": 0.9994,
+      "ExpectedFile": "expected_0003.png",
+      "VerifiedFile": "pdf_result#page_0003.verified.png",
+      "ReceivedFile": "pdf_result#page_0003.received.png"
+    }
+  ]
+}

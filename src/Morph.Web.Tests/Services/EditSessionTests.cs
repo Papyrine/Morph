@@ -34,6 +34,33 @@ public class EditSessionTests
         await Assert.That(string.Join(" | ", units)).IsEqualTo("0 'Second ' 0 | 0 'bold' 1 | 0 ' one.' 0");
     }
 
+    // Under tracking the script is told which text the tracking author inserted, which deleting takes
+    // out rather than strikes (WordProbe R-R-1, R-R-6): not another author's, and nothing untracked.
+    [Test]
+    public async Task UnderTracking_TheAuthorsOwnInsertion_IsMarked()
+    {
+        var docx = Build(
+            P(
+                "",
+                R("Kept "),
+                "<w:ins w:id=\"1\" w:author=\"Ann Lee\" w:date=\"2026-01-01T00:00:00Z\">", R("mine"), "</w:ins>",
+                R(" and "),
+                "<w:ins w:id=\"2\" w:author=\"Bob\" w:date=\"2026-01-01T00:00:00Z\">", R("his"), "</w:ins>"));
+        var session = Open(docx, 0);
+
+        static string Owned(string json)
+        {
+            using var parsed = JsonDocument.Parse(json);
+            return string.Join(
+                " | ",
+                parsed.RootElement.GetProperty("u").EnumerateArray()
+                    .Select(_ => $"{_.GetProperty("t").GetString()}{(_.EnumerateObject().Any(property => property.Name == "o") ? " o" : "")}"));
+        }
+
+        await Assert.That(Owned(session.Json(0, 0, true, "Ann Lee"))).IsEqualTo("Kept  | mine o |  and  | his");
+        await Assert.That(Owned(session.Json(0, 0, false, "Ann Lee"))).IsEqualTo("Kept  | mine |  and  | his");
+    }
+
     // A paragraph that runs over a page break is a block on each page. Opened on the second, the
     // editor shows the lines that are there, the ones before them scrolled out of sight.
     [Test]
@@ -96,6 +123,34 @@ public class EditSessionTests
         // Hidden text is text still: typed over and handed back as text, so that the script and the file
         // count the same places; it is only marked as text the page did not draw.
         await Assert.That(string.Join(" | ", units)).IsEqualTo("0 | 1 note | 1 deleted | 0 | 0 hidden");
+    }
+
+    // A footer's page number reads, in the open box, what the page drew: the file holds what the field
+    // read when it was put in (1), and a footer opened on the second page once showed that.
+    [Test]
+    public async Task APageField_ShowsThePagesOwnNumber()
+    {
+        var plain = new EditOptions("", DateTimeOffset.MinValue, false);
+        var docx = Build(P("", R("One")) + P("", "<w:r><w:br w:type=\"page\"/></w:r>", R("Two")));
+        var footer = DocumentEditor.EditHeader(docx, 0, true, plain);
+        var typed = DocumentEditor.Rewrite(footer.Document, footer.Paragraph, [new([new(-1, "Page  of ")])], plain).Document;
+        var numbered = DocumentEditor.InsertPageNumber(typed, footer.Paragraph, 5, false, plain).Document;
+        var counted = DocumentEditor.InsertPageNumber(numbered, footer.Paragraph, 10, true, plain).Document;
+
+        using var document = PagedDocument.Open(counted, InputFormat.Docx, Sample.FontDirectory, traceSources: true);
+        var outline = DocumentOutline.Read(counted);
+        var map = document.Edits(outline);
+        var blocks = map.Blocks(footer.Paragraph);
+        await Assert.That(blocks.Count).IsEqualTo(2);
+
+        string Shown(EditBlock block)
+        {
+            using var json = JsonDocument.Parse(new EditSession(1, outline.Paragraphs[footer.Paragraph], block, map).Json(0, 0));
+            return string.Concat(json.RootElement.GetProperty("u").EnumerateArray().Select(_ => _.GetProperty("t").GetString()));
+        }
+
+        await Assert.That(Shown(blocks[0])).IsEqualTo("Page 1 of 2");
+        await Assert.That(Shown(blocks[1])).IsEqualTo("Page 2 of 2");
     }
 
     // Hidden text was once handed to the script as a thing that is not text, which the script handed

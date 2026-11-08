@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Name\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code\nName\nStreet Address\nCity, ST ZIP Code"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0971,
+      "Ssim": 0.9354,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

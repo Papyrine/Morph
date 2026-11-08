@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
+        "Text": "KAYLA + JACOB\nWEDDING PARTY\nKAYLA + JACOB\nTIE THE KNOT\nPARENTS OF THE BRIDE\nMirjam Lewis & Victoria Lewis\nPARENTS OF THE GROOM\nAugust Hancock & Alexander Hancock\nMATRON OF HONOR\nAngelica Astrom\nBEST MAN\nAllan Mattsson\nBRIDESMAIDS\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nGROOMSMEN\nFlora Berggren, Ian Hansson,\nMirjam Nilsson, Victoria Lindqvist,\nAugust Bergqvist\nSATURDAY\n10.25.20XX\nPrelude\nProcessional\nWedding message\nExchange of rings\nRecessional"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 792.0,
+          "Height": 612.0
+        },
+        "Text": "KAYLA + JACOB\nMENU\nKAYLA + JACOB\nTABLE\n1\nJuan Morgan\nRowan Murphy\nMirjam Nilsson\nVictoria Lindqvist\nAugust Bergqvist\nSanjay Trivedi\nENTRÉE\nBacon wrapped dates\nPolenta fritters with mango salsa\nCarb puffs with sweet pepper sauce\nMAIN COURSE\nGrilled New York steak\nHazelnut encrusted halibut\nVegetable pesto lasagna\nDESSERT\nLemon poppy seed cake\nMini chocolate Bundt cakes\nCoffee, tea, and soft drinks"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1546,
+      "Ssim": 0.9479,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.1566,
+      "Ssim": 0.9633,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

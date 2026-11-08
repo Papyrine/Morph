@@ -1,12 +1,12 @@
 {
   "Family": "fields",
-  "Generated": "2026-10-25T17:27:03.133486+11:00",
+  "Generated": "2026-11-07T13:03:41.9756125+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
     "Ui": "unknown",
     "Dpi": 120,
-    "ClickToRun": "16.0.20527.20088"
+    "ClickToRun": "16.0.20527.20150"
   },
   "Cases": {
     "F-01[from=P1:4]": {
@@ -22,11 +22,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1872,
-      "RunAt": "2026-10-25T15:16:08.2008505+11:00",
+      "DurationMs": 1205,
+      "RunAt": "2026-11-07T12:37:34.8873337+11:00",
       "Lines": [
         "[Page ][«][ PAGE ][|][1][»][ ‸of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
         "Selection: IP 16–16 · Undo —"
       ],
       "Observation": {
@@ -75,19 +75,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -101,7 +101,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -130,7 +130,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -173,7 +173,7 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Right",
@@ -199,7 +199,7 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page « PAGE 1»‸ of « NUMPAGES 1» end.]"
+          "Line": "[Page ][«][ PAGE ][|][1][»][‸ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Right",
@@ -225,9 +225,22 @@
             "Text": "o",
             "IsCollapsed": true
           },
-          "Line": "[Page « PAGE 1» ‸of « NUMPAGES 1» end.]"
+          "Line": "[Page ][«][ PAGE ][|][1][»][ ‸of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 232,
+        "open.add": 77,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 131,
+        "options": 25,
+        "steps": 639,
+        "observe": 234,
+        "reset": 30,
+        "close": 45
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01[from=P1:find(\" of\"):end]": {
       "DefinitionHash": "1466f5d0633f6d7b",
@@ -242,11 +255,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1087,
-      "RunAt": "2026-10-25T15:16:09.3225893+11:00",
+      "DurationMs": 1196,
+      "RunAt": "2026-11-07T12:37:36.0876868+11:00",
       "Lines": [
         "[Page ][«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ ‸end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
         "Selection: IP 34–34 · Undo —"
       ],
       "Observation": {
@@ -295,19 +308,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -321,7 +334,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -350,7 +363,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -393,7 +406,7 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page « PAGE 1» of ‸« NUMPAGES 1» end.]"
+          "Line": "[Page ][«][ PAGE ][|][1][»][ of ][‸«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Right",
@@ -419,7 +432,7 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page « PAGE 1» of « NUMPAGES 1»‸ end.]"
+          "Line": "[Page ][«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][‸ end.]"
         },
         {
           "Step": "Right",
@@ -445,9 +458,22 @@
             "Text": "e",
             "IsCollapsed": true
           },
-          "Line": "[Page « PAGE 1» of « NUMPAGES 1» ‸end.]"
+          "Line": "[Page ][«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ ‸end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 228,
+        "open.add": 64,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 131,
+        "options": 25,
+        "steps": 641,
+        "observe": 247,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01b": {
       "DefinitionHash": "dbe2e7b0fb772e98",
@@ -462,11 +488,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1063,
-      "RunAt": "2026-10-25T15:16:10.3893182+11:00",
+      "DurationMs": 1171,
+      "RunAt": "2026-11-07T12:37:37.2769643+11:00",
       "Lines": [
         "[Page⟦ ][«][ PAGE ][|][1][»][ ‸⟧of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
         "Selection: Normal 4–16 end-active · Undo —"
       ],
       "Observation": {
@@ -515,19 +541,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -541,7 +567,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -570,7 +596,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -613,7 +639,7 @@
             "Text": " ",
             "IsCollapsed": false
           },
-          "Line": "[Page⟦ ‸⟧« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page⟦ ‸⟧][«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Shift+Right",
@@ -639,7 +665,7 @@
             "Text": " 1",
             "IsCollapsed": false
           },
-          "Line": "[Page⟦ « PAGE 1»‸⟧ of « NUMPAGES 1» end.]"
+          "Line": "[Page⟦ ][«][ PAGE ][|][1][»‸⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Shift+Right",
@@ -665,9 +691,22 @@
             "Text": " 1 ",
             "IsCollapsed": false
           },
-          "Line": "[Page⟦ « PAGE 1» ‸⟧of « NUMPAGES 1» end.]"
+          "Line": "[Page⟦ ][«][ PAGE ][|][1][»][ ‸⟧of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 222,
+        "open.add": 66,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 125,
+        "options": 24,
+        "steps": 626,
+        "observe": 231,
+        "reset": 29,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01c": {
       "DefinitionHash": "2ddf10506b4c7789",
@@ -681,12 +720,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1037,
-      "RunAt": "2026-10-25T15:16:11.4305041+11:00",
+      "DurationMs": 1094,
+      "RunAt": "2026-11-07T12:37:38.3758973+11:00",
       "Lines": [
         "[Page ‸ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 5–5 · Undo depth 1"
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 5–5 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -734,19 +773,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 29,
-            "End": 75,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 74,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 29,
-                "End": 75,
+                "End": 74,
                 "Marks": ""
               }
             ],
@@ -760,7 +799,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -781,7 +820,7 @@
             "TypeName": "Date",
             "Begin": 35,
             "Separator": 57,
-            "End": 68,
+            "End": 67,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -792,9 +831,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01c.diff",
@@ -827,7 +866,7 @@
             "Text": "1",
             "IsCollapsed": false
           },
-          "Line": "[Page ⟦‸« PAGE 1»⟧ of « NUMPAGES 1» end.]"
+          "Line": "[Page ][⟦‸«][ PAGE ][|][1][»⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Backspace",
@@ -853,9 +892,22 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸ of « NUMPAGES 1» end.]"
+          "Line": "[Page ‸ of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 221,
+        "open.add": 68,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 127,
+        "options": 24,
+        "steps": 559,
+        "observe": 221,
+        "reset": 29,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01c/esc": {
       "DefinitionHash": "f7f3eac788382717",
@@ -870,12 +922,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1169,
-      "RunAt": "2026-10-25T15:16:13.7504601+11:00",
+      "DurationMs": 1276,
+      "RunAt": "2026-11-07T12:37:40.9754279+11:00",
       "Lines": [
         "[Page ‸ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 5–5 · Undo depth 1"
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 5–5 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -923,19 +975,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 29,
-            "End": 75,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 74,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 29,
-                "End": 75,
+                "End": 74,
                 "Marks": ""
               }
             ],
@@ -949,7 +1001,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -970,7 +1022,7 @@
             "TypeName": "Date",
             "Begin": 35,
             "Separator": 57,
-            "End": 68,
+            "End": 67,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -981,9 +1033,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01c_esc.diff",
@@ -1016,7 +1068,7 @@
             "Text": "1",
             "IsCollapsed": false
           },
-          "Line": "[Page ⟦‸« PAGE 1»⟧ of « NUMPAGES 1» end.]"
+          "Line": "[Page ][⟦‸«][ PAGE ][|][1][»⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Backspace",
@@ -1042,7 +1094,7 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸ of « NUMPAGES 1» end.]"
+          "Line": "[Page ‸ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Esc",
@@ -1068,9 +1120,22 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸ of « NUMPAGES 1» end.]"
+          "Line": "[Page ‸ of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 231,
+        "open.add": 66,
+        "open.view": 47,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 25,
+        "steps": 719,
+        "observe": 231,
+        "reset": 30,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01c/esc~tracked": {
       "DefinitionHash": "ff2cafc50c574af1",
@@ -1085,12 +1150,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1264,
-      "RunAt": "2026-10-25T15:16:15.018271+11:00",
+      "DurationMs": 1462,
+      "RunAt": "2026-11-07T12:37:42.4419929+11:00",
       "Lines": [
         "[Page ]{-[‸«][ PAGE ][|][1][»]-}[ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 5–5 · Tracking · Revisions 1 · Undo depth 1"
+        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 5–5 · Tracking · Revisions 1 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -1138,15 +1203,15 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
@@ -1155,7 +1220,7 @@
               },
               {
                 "Start": 45,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -1169,7 +1234,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -1198,7 +1263,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -1216,9 +1281,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01c_esc_tracked.diff",
@@ -1251,7 +1316,7 @@
             "Text": "1",
             "IsCollapsed": false
           },
-          "Line": "[Page ⟦‸« PAGE 1»⟧ of « NUMPAGES 1» end.]"
+          "Line": "[Page ][⟦‸«][ PAGE ][|][1][»⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Backspace",
@@ -1277,7 +1342,7 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Esc",
@@ -1303,9 +1368,22 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 221,
+        "open.add": 66,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 128,
+        "options": 28,
+        "steps": 766,
+        "observe": 376,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01c/type": {
       "DefinitionHash": "8d7d9dfe1b4da33d",
@@ -1320,12 +1398,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1268,
-      "RunAt": "2026-10-25T15:16:16.290366+11:00",
+      "DurationMs": 1335,
+      "RunAt": "2026-11-07T12:37:43.7811945+11:00",
       "Lines": [
         "[Page y‸ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 6–6 · Undo depth 2"
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 6–6 · Undo: Typing \"y\", Typing"
       ],
       "Observation": {
         "Selection": {
@@ -1373,19 +1451,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 30,
-            "End": 76,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 75,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 30,
-                "End": 76,
+                "End": 75,
                 "Marks": ""
               }
             ],
@@ -1399,7 +1477,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -1420,7 +1498,7 @@
             "TypeName": "Date",
             "Begin": 36,
             "Separator": 58,
-            "End": 69,
+            "End": 68,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -1431,10 +1509,10 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?"
+          "Typing \"y\"",
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01c_type.diff",
@@ -1467,7 +1545,7 @@
             "Text": "1",
             "IsCollapsed": false
           },
-          "Line": "[Page ⟦‸« PAGE 1»⟧ of « NUMPAGES 1» end.]"
+          "Line": "[Page ][⟦‸«][ PAGE ][|][1][»⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Backspace",
@@ -1493,7 +1571,7 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸ of « NUMPAGES 1» end.]"
+          "Line": "[Page ‸ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "type(\"y\")",
@@ -1519,9 +1597,22 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page y‸ of « NUMPAGES 1» end.]"
+          "Line": "[Page y‸ of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 215,
+        "open.add": 63,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 121,
+        "options": 24,
+        "steps": 800,
+        "observe": 225,
+        "reset": 30,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01c/type~tracked": {
       "DefinitionHash": "9cd15ef9088c2bc9",
@@ -1536,12 +1627,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1850,
-      "RunAt": "2026-10-25T15:16:18.1443908+11:00",
+      "DurationMs": 1601,
+      "RunAt": "2026-11-07T12:37:45.3868909+11:00",
       "Lines": [
         "[Page ]{+[y]+}{-[‸«][ PAGE ][|][1][»]-}[ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 6–6 · Tracking · Revisions 2 · Undo depth 2"
+        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 6–6 · Tracking · Revisions 2 · Undo: Typing \"y\", Typing"
       ],
       "Observation": {
         "Selection": {
@@ -1589,15 +1680,15 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 40,
-            "End": 86,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 85,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 40,
@@ -1606,7 +1697,7 @@
               },
               {
                 "Start": 46,
-                "End": 86,
+                "End": 85,
                 "Marks": ""
               }
             ],
@@ -1620,7 +1711,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -1649,7 +1740,7 @@
             "TypeName": "Date",
             "Begin": 46,
             "Separator": 68,
-            "End": 79,
+            "End": 78,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -1673,10 +1764,10 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?"
+          "Typing \"y\"",
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01c_type_tracked.diff",
@@ -1709,7 +1800,7 @@
             "Text": "1",
             "IsCollapsed": false
           },
-          "Line": "[Page ⟦‸« PAGE 1»⟧ of « NUMPAGES 1» end.]"
+          "Line": "[Page ][⟦‸«][ PAGE ][|][1][»⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Backspace",
@@ -1735,7 +1826,7 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "type(\"y\")",
@@ -1761,9 +1852,22 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page y‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page y][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 226,
+        "open.add": 68,
+        "open.view": 24,
+        "open.front": 1,
+        "open.park": 130,
+        "options": 27,
+        "steps": 846,
+        "observe": 431,
+        "reset": 29,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01c~tracked": {
       "DefinitionHash": "b1fa8880231f40b7",
@@ -1777,12 +1881,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1144,
-      "RunAt": "2026-10-25T15:16:12.5777583+11:00",
+      "DurationMs": 1315,
+      "RunAt": "2026-11-07T12:37:39.6948204+11:00",
       "Lines": [
         "[Page ]{-[‸«][ PAGE ][|][1][»]-}[ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 5–5 · Tracking · Revisions 1 · Undo depth 1"
+        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 5–5 · Tracking · Revisions 1 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -1830,15 +1934,15 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
@@ -1847,7 +1951,7 @@
               },
               {
                 "Start": 45,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -1861,7 +1965,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -1890,7 +1994,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -1908,9 +2012,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01c_tracked.diff",
@@ -1943,7 +2047,7 @@
             "Text": "1",
             "IsCollapsed": false
           },
-          "Line": "[Page ⟦‸« PAGE 1»⟧ of « NUMPAGES 1» end.]"
+          "Line": "[Page ][⟦‸«][ PAGE ][|][1][»⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Backspace",
@@ -1969,9 +2073,22 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 215,
+        "open.add": 63,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 121,
+        "options": 28,
+        "steps": 606,
+        "observe": 395,
+        "reset": 28,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01d": {
       "DefinitionHash": "08638b933ffbde0e",
@@ -1984,11 +2101,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 946,
-      "RunAt": "2026-10-25T15:16:19.0935986+11:00",
+      "DurationMs": 959,
+      "RunAt": "2026-11-07T12:37:46.3500013+11:00",
       "Lines": [
         "[Page ][⟦«][ PAGE ][|][1][»‸⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
         "Selection: Normal 5–15 end-active · Undo —"
       ],
       "Observation": {
@@ -2037,19 +2154,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -2063,7 +2180,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -2092,7 +2209,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -2109,7 +2226,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 210,
+        "open.add": 64,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 122,
+        "options": 24,
+        "steps": 436,
+        "observe": 234,
+        "reset": 30,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01d~tracked": {
       "DefinitionHash": "99b499f9ee57fd7f",
@@ -2122,11 +2252,11 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1110,
-      "RunAt": "2026-10-25T15:16:20.2116089+11:00",
+      "DurationMs": 937,
+      "RunAt": "2026-11-07T12:37:47.3055334+11:00",
       "Lines": [
         "[Page ][⟦«][ PAGE ][|][1][»‸⟧][ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
+        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
         "Selection: Normal 5–15 end-active · Tracking · Revisions 0 · Undo —"
       ],
       "Observation": {
@@ -2175,15 +2305,15 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
@@ -2192,7 +2322,7 @@
               },
               {
                 "Start": 45,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -2206,7 +2336,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -2235,7 +2365,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -2252,7 +2382,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 220,
+        "open.add": 63,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 124,
+        "options": 27,
+        "steps": 303,
+        "observe": 299,
+        "reset": 45,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01e": {
       "DefinitionHash": "135104d1078a4182",
@@ -2265,12 +2408,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1049,
-      "RunAt": "2026-10-25T15:16:21.2646372+11:00",
+      "DurationMs": 949,
+      "RunAt": "2026-11-07T12:37:48.2584993+11:00",
       "Lines": [
         "[Page ][«][ PAGE ][|][1][»][x‸ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 16–16 · Undo depth 1"
+        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 16–16 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -2318,15 +2461,15 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 40,
-            "End": 86,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 85,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 40,
@@ -2335,7 +2478,7 @@
               },
               {
                 "Start": 46,
-                "End": 86,
+                "End": 85,
                 "Marks": ""
               }
             ],
@@ -2349,7 +2492,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -2378,7 +2521,7 @@
             "TypeName": "Date",
             "Begin": 46,
             "Separator": 68,
-            "End": 79,
+            "End": 78,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -2389,16 +2532,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01e.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 216,
+        "open.add": 62,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 125,
+        "options": 24,
+        "steps": 340,
+        "observe": 314,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01e~tracked": {
       "DefinitionHash": "64355cf46ce11caa",
@@ -2411,12 +2567,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1062,
-      "RunAt": "2026-10-25T15:16:22.3296493+11:00",
+      "DurationMs": 1033,
+      "RunAt": "2026-11-07T12:37:49.310641+11:00",
       "Lines": [
         "[Page ][«][ PAGE ][|][1][»]{+[x]+}[‸ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
-        "Selection: IP 16–16 · Tracking · Revisions 1 · Undo depth 1"
+        "[b:Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
+        "Selection: IP 16–16 · Tracking · Revisions 1 · Undo: Typing \"x\""
       ],
       "Observation": {
         "Selection": {
@@ -2464,15 +2620,15 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 40,
-            "End": 86,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 85,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 40,
@@ -2481,7 +2637,7 @@
               },
               {
                 "Start": 46,
-                "End": 86,
+                "End": 85,
                 "Marks": ""
               }
             ],
@@ -2495,7 +2651,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -2524,7 +2680,7 @@
             "TypeName": "Date",
             "Begin": 46,
             "Separator": 68,
-            "End": 79,
+            "End": 78,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -2542,16 +2698,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing \"x\""
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01e_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 217,
+        "open.add": 64,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 127,
+        "options": 27,
+        "steps": 335,
+        "observe": 384,
+        "reset": 28,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01f": {
       "DefinitionHash": "322431da9d7604c3",
@@ -2567,11 +2736,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1365,
-      "RunAt": "2026-10-25T15:16:23.6979647+11:00",
+      "DurationMs": 1353,
+      "RunAt": "2026-11-07T12:37:50.6679322+11:00",
       "Lines": [
         "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]",
-        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][25/10/2026][»][ end.]",
+        "[Date: ][«][ DATE \\@ \"d/MM/yyyy\" ][|][7/11/2026][»][ end.]",
         "Selection: IP 5–5 · Undo —"
       ],
       "Observation": {
@@ -2620,19 +2789,19 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
           {
             "Index": 2,
             "Start": 39,
-            "End": 85,
-            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u000025/10/2026\u0015 end.\r",
+            "End": 84,
+            "Text": "Date: \u0013 DATE \\@ \"d/MM/yyyy\" \u00007/11/2026\u0015 end.\r",
             "Runs": [
               {
                 "Start": 39,
-                "End": 85,
+                "End": 84,
                 "Marks": ""
               }
             ],
@@ -2646,7 +2815,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -2675,7 +2844,7 @@
             "TypeName": "Date",
             "Begin": 45,
             "Separator": 67,
-            "End": 78,
+            "End": 77,
             "Code": "DATE \\@ \"d/MM/yyyy\""
           }
         ],
@@ -2718,7 +2887,7 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page‸ « PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page‸ ][«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Right",
@@ -2744,7 +2913,7 @@
             "Text": "\u0013",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Right",
@@ -2770,7 +2939,7 @@
             "Text": " ",
             "IsCollapsed": true
           },
-          "Line": "[Page «‸ PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][«][‸ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         },
         {
           "Step": "Alt+F9",
@@ -2796,9 +2965,22 @@
             "Text": "1",
             "IsCollapsed": true
           },
-          "Line": "[Page ‸« PAGE 1» of « NUMPAGES 1» end.]"
+          "Line": "[Page ][‸«][ PAGE ][|][1][»][ of ][«][ NUMPAGES ][|][1][»][ end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 225,
+        "open.add": 68,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 112,
+        "options": 24,
+        "steps": 800,
+        "observe": 236,
+        "reset": 30,
+        "close": 38
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01g": {
       "DefinitionHash": "f21b846c0eff3c64",
@@ -2813,8 +2995,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1407,
-      "RunAt": "2026-10-25T15:16:25.1093338+11:00",
+      "DurationMs": 1535,
+      "RunAt": "2026-11-07T12:37:52.2071216+11:00",
       "Lines": [
         "[«][ TOC \\o \"1-3\" ][|][A‸pha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[Beta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -2822,7 +3004,7 @@
         "[Alpha body text.]",
         "[Beta heading] #Heading1",
         "[Beta body text.]",
-        "Selection: IP 17–17 · Undo depth 1"
+        "Selection: IP 17–17 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -2870,7 +3052,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -2896,7 +3078,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -2921,10 +3103,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 4,
@@ -2948,7 +3130,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -2973,10 +3155,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 6,
@@ -3000,7 +3182,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -3040,9 +3222,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01g.diff",
@@ -3075,7 +3257,7 @@
             "Text": "l",
             "IsCollapsed": true
           },
-          "Line": "[« TOC \\o \"1-3\" A‸lpha heading\\t« PAGEREF _Toc243828883 \\h 1»]"
+          "Line": "[«][ TOC \\o \"1-3\" ][|][A‸lpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»]"
         },
         {
           "Step": "Right",
@@ -3101,7 +3283,7 @@
             "Text": "p",
             "IsCollapsed": true
           },
-          "Line": "[« TOC \\o \"1-3\" Al‸pha heading\\t« PAGEREF _Toc243828883 \\h 1»]"
+          "Line": "[«][ TOC \\o \"1-3\" ][|][Al‸pha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»]"
         },
         {
           "Step": "Backspace",
@@ -3127,9 +3309,22 @@
             "Text": "p",
             "IsCollapsed": true
           },
-          "Line": "[« TOC \\o \"1-3\" A‸pha heading\\t« PAGEREF _Toc243828883 \\h 1»]"
+          "Line": "[«][ TOC \\o \"1-3\" ][|][A‸pha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 234,
+        "open.add": 69,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 26,
+        "steps": 733,
+        "observe": 470,
+        "reset": 30,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01g~tracked": {
       "DefinitionHash": "92c9b4c4f2081ee0",
@@ -3144,8 +3339,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1539,
-      "RunAt": "2026-10-25T15:16:26.651097+11:00",
+      "DurationMs": 1659,
+      "RunAt": "2026-11-07T12:37:53.8708457+11:00",
       "Lines": [
         "[«][ TOC \\o \"1-3\" ][|][A]{-[‸l]-}[pha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[Beta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -3153,7 +3348,7 @@
         "[Alpha body text.]",
         "[Beta heading] #Heading1",
         "[Beta body text.]",
-        "Selection: IP 17–17 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 17–17 · Tracking · Revisions 1 · Undo: Typing"
       ],
       "Observation": {
         "Selection": {
@@ -3201,7 +3396,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3227,7 +3422,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3252,10 +3447,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 4,
@@ -3279,7 +3474,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3304,10 +3499,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 6,
@@ -3331,7 +3526,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -3378,9 +3573,9 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Typing"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01g_tracked.diff",
@@ -3413,7 +3608,7 @@
             "Text": "l",
             "IsCollapsed": true
           },
-          "Line": "[« TOC \\o \"1-3\" A‸lpha heading\\t« PAGEREF _Toc243828883 \\h 1»]"
+          "Line": "[«][ TOC \\o \"1-3\" ][|][A‸lpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»]"
         },
         {
           "Step": "Right",
@@ -3439,7 +3634,7 @@
             "Text": "p",
             "IsCollapsed": true
           },
-          "Line": "[« TOC \\o \"1-3\" Al‸pha heading\\t« PAGEREF _Toc243828883 \\h 1»]"
+          "Line": "[«][ TOC \\o \"1-3\" ][|][Al‸pha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»]"
         },
         {
           "Step": "Backspace",
@@ -3465,9 +3660,22 @@
             "Text": "l",
             "IsCollapsed": true
           },
-          "Line": "[« TOC \\o \"1-3\" A‸lpha heading\\t« PAGEREF _Toc243828883 \\h 1»]"
+          "Line": "[«][ TOC \\o \"1-3\" ][|][A‸lpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 219,
+        "open.add": 63,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 125,
+        "options": 28,
+        "steps": 717,
+        "observe": 624,
+        "reset": 30,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01h": {
       "DefinitionHash": "5c75a15e8650c861",
@@ -3480,8 +3688,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1084,
-      "RunAt": "2026-10-25T15:16:27.7378601+11:00",
+      "DurationMs": 1078,
+      "RunAt": "2026-11-07T12:37:54.9540721+11:00",
       "Lines": [
         "[«][ TOC \\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[‸eta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -3489,7 +3697,7 @@
         "[Alpha body text.]",
         "[Beta heading] #Heading1",
         "[Beta body text.]",
-        "Selection: IP 62–62 · Undo depth 1"
+        "Selection: IP 62–62 · Undo: Clear"
       ],
       "Observation": {
         "Selection": {
@@ -3537,7 +3745,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3563,7 +3771,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3588,10 +3796,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 4,
@@ -3615,7 +3823,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3640,10 +3848,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 6,
@@ -3667,7 +3875,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -3707,16 +3915,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01h.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 237,
+        "open.add": 68,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 119,
+        "options": 25,
+        "steps": 304,
+        "observe": 457,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-01h~tracked": {
       "DefinitionHash": "a9765bec18fb1437",
@@ -3729,8 +3950,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 981,
-      "RunAt": "2026-10-25T15:16:28.721747+11:00",
+      "DurationMs": 1232,
+      "RunAt": "2026-11-07T12:37:56.2053145+11:00",
       "Lines": [
         "[«][ TOC \\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "{-[B]-}[‸eta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -3738,7 +3959,7 @@
         "[Alpha body text.]",
         "[Beta heading] #Heading1",
         "[Beta body text.]",
-        "Selection: IP 63–63 · Tracking · Revisions 1 · Undo depth 1"
+        "Selection: IP 63–63 · Tracking · Revisions 1 · Undo: Clear"
       ],
       "Observation": {
         "Selection": {
@@ -3786,7 +4007,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3812,7 +4033,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 5,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3837,10 +4058,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 4,
@@ -3864,7 +4085,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -3889,10 +4110,10 @@
             "Column": 0,
             "NestingLevel": 0,
             "LengthMismatch": false,
-            "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceBefore": 18,
+            "SpaceAfter": 4,
             "Bordered": false,
-            "KeepWithNext": false
+            "KeepWithNext": true
           },
           {
             "Index": 6,
@@ -3916,7 +4137,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -3963,16 +4184,29 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?"
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-01h_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 232,
+        "open.add": 70,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 130,
+        "options": 29,
+        "steps": 303,
+        "observe": 610,
+        "reset": 29,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02": {
       "DefinitionHash": "beb8695b048c2db0",
@@ -3986,12 +4220,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1068,
-      "RunAt": "2026-10-25T15:16:29.7933008+11:00",
+      "DurationMs": 1141,
+      "RunAt": "2026-11-07T12:37:57.3659689+11:00",
       "Lines": [
         "[See ]<[bu:‸e site]>[ today.]",
         "[Second paragraph.]",
-        "Selection: IP 39–39 · Undo depth 2"
+        "Selection: IP 39–39 · Undo: Clear, Clear"
       ],
       "Observation": {
         "Selection": {
@@ -4049,7 +4283,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -4075,7 +4309,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -4099,10 +4333,10 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?"
+          "Clear",
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-02.diff",
@@ -4135,7 +4369,7 @@
             "Text": "h",
             "IsCollapsed": true
           },
-          "Line": "[See «HYPERLINK \"https://example.com/\"‸he site» today.]"
+          "Line": "[See ]<[‸he site]>[ today.]"
         },
         {
           "Step": "Delete",
@@ -4161,9 +4395,22 @@
             "Text": "e",
             "IsCollapsed": true
           },
-          "Line": "[See «HYPERLINK \"https://example.com/\"‸e site» today.]"
+          "Line": "[See ]<[‸e site]>[ today.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 203,
+        "open.add": 62,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 23,
+        "steps": 578,
+        "observe": 283,
+        "reset": 28,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02b": {
       "DefinitionHash": "afb61b3cf393caa0",
@@ -4184,12 +4431,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2274,
-      "RunAt": "2026-10-25T15:16:33.1980802+11:00",
+      "DurationMs": 2230,
+      "RunAt": "2026-11-07T12:38:00.9064348+11:00",
       "Lines": [
         "[See ‸ today.]",
         "[Second paragraph.]",
-        "Selection: IP 4–4 · Undo depth 9"
+        "Selection: IP 4–4 · Undo: Typing, Typing, Typing, Typing, Typing, Typing, Typing, Typing, Automatic Change"
       ],
       "Observation": {
         "Selection": {
@@ -4237,7 +4484,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -4263,7 +4510,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -4278,17 +4525,17 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?"
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Automatic Change"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [],
         "MarkupDiff": "markup/F-02b.diff",
@@ -4531,7 +4778,20 @@
           },
           "Line": "[See ‸ today.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 196,
+        "open.add": 66,
+        "open.view": 23,
+        "open.front": 1,
+        "open.park": 104,
+        "options": 23,
+        "steps": 1737,
+        "observe": 207,
+        "reset": 28,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02b~tracked": {
       "DefinitionHash": "19920680b48821e0",
@@ -4552,12 +4812,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 2347,
-      "RunAt": "2026-10-25T15:16:35.5481441+11:00",
+      "DurationMs": 2407,
+      "RunAt": "2026-11-07T12:38:03.3173493+11:00",
       "Lines": [
-        "[See ]{-{+[b:‸the site]-}+}[b: ][today.]",
+        "[See ]{-{~[b:‸the site]-}~}[b: ][today.]",
         "[Second paragraph.]",
-        "Selection: IP 4–4 · Tracking · Revisions 2 · Undo depth 9"
+        "Selection: IP 4–4 · Tracking · Revisions 2 · Undo: Typing, Typing, Typing, Typing, Typing, Typing, Typing, Typing, Automatic Change"
       ],
       "Observation": {
         "Selection": {
@@ -4615,7 +4875,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -4641,7 +4901,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -4669,17 +4929,17 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?",
-          "?"
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Typing",
+          "Automatic Change"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-02b_tracked.diff",
@@ -4922,7 +5182,20 @@
           },
           "Line": "[See ‸the site today.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 199,
+        "open.add": 65,
+        "open.view": 46,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 26,
+        "steps": 1752,
+        "observe": 358,
+        "reset": 28,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02c": {
       "DefinitionHash": "90c5e9c51dedd08c",
@@ -4935,8 +5208,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 859,
-      "RunAt": "2026-10-25T15:16:36.410877+11:00",
+      "DurationMs": 974,
+      "RunAt": "2026-11-07T12:38:04.2957982+11:00",
       "Lines": [
         "[See ]<[bu:the ‸site]>[ today.]",
         "[Second paragraph.]",
@@ -4998,7 +5271,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -5024,7 +5297,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -5054,7 +5327,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 203,
+        "open.add": 62,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 108,
+        "options": 22,
+        "steps": 319,
+        "observe": 362,
+        "reset": 32,
+        "close": 36
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02c/backspace": {
       "DefinitionHash": "eefb53121df709c4",
@@ -5068,8 +5354,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2123,
-      "RunAt": "2026-10-25T16:17:00.3628504+11:00",
+      "DurationMs": 1155,
+      "RunAt": "2026-11-07T12:53:08.1884928+11:00",
       "Lines": [
         "[See ]<[bu:the‸site]>[ today.]",
         "[Second paragraph.]",
@@ -5190,7 +5476,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 185,
+        "open.add": 70,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 24,
+        "steps": 464,
+        "observe": 396,
+        "reset": 49,
+        "close": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02c/backspace~tracked": {
       "DefinitionHash": "20727601b6f4d6f5",
@@ -5223,8 +5522,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 860,
-      "RunAt": "2026-10-25T15:16:37.2738864+11:00",
+      "DurationMs": 1323,
+      "RunAt": "2026-11-07T12:38:05.6241917+11:00",
       "Lines": [
         "[See ]<[bu:the ‸site]>[ today.]",
         "[Second paragraph.]",
@@ -5286,7 +5585,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -5312,7 +5611,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -5343,7 +5642,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 513,
+        "open.add": 327,
+        "open.view": 11,
+        "open.front": 95,
+        "open.park": 78,
+        "options": 27,
+        "steps": 345,
+        "observe": 365,
+        "reset": 31,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02d": {
       "DefinitionHash": "836b4747972fb1ac",
@@ -5356,8 +5668,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2088,
-      "RunAt": "2026-10-25T16:37:21.6936557+11:00",
+      "DurationMs": 1045,
+      "RunAt": "2026-11-07T12:53:09.2402761+11:00",
       "Lines": [
         "[See ]<[bu:the \\n‸site]>[ today.]",
         "[Second paragraph.]",
@@ -5478,7 +5790,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 247,
+        "open.add": 85,
+        "open.view": 53,
+        "open.front": 0,
+        "open.park": 107,
+        "options": 29,
+        "steps": 347,
+        "observe": 355,
+        "reset": 36,
+        "close": 31
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02d~tracked": {
       "DefinitionHash": "50e56c7ca0bcb0ed",
@@ -5491,8 +5816,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1324,
-      "RunAt": "2026-10-25T16:37:23.0360569+11:00",
+      "DurationMs": 946,
+      "RunAt": "2026-11-07T12:53:10.1906953+11:00",
       "Lines": [
         "[See ]<[bu:the ]{+[bu:\\n]+}[bu:‸site]>[ today.]",
         "[Second paragraph.]",
@@ -5620,7 +5945,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 212,
+        "open.add": 76,
+        "open.view": 32,
+        "open.front": 0,
+        "open.park": 103,
+        "options": 29,
+        "steps": 334,
+        "observe": 313,
+        "reset": 29,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02e": {
       "DefinitionHash": "4a9ebcf8a05ae38c",
@@ -5633,8 +5971,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1240,
-      "RunAt": "2026-10-25T16:37:24.2808182+11:00",
+      "DurationMs": 789,
+      "RunAt": "2026-11-07T12:53:10.9841531+11:00",
       "Lines": [
         "[See ]<[⟦the site‸⟧]>[ today.]",
         "[Second paragraph.]",
@@ -5745,7 +6083,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 184,
+        "open.add": 63,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 23,
+        "steps": 338,
+        "observe": 186,
+        "reset": 31,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02e~tracked": {
       "DefinitionHash": "e6e516c57313ae96",
@@ -5758,8 +6109,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1265,
-      "RunAt": "2026-10-25T16:37:25.5497992+11:00",
+      "DurationMs": 831,
+      "RunAt": "2026-11-07T12:53:11.8194668+11:00",
       "Lines": [
         "[See ]<[]{~⟦the site‸⟧~}>[ today.]",
         "[Second paragraph.]",
@@ -5877,7 +6228,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 185,
+        "open.add": 66,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 27,
+        "steps": 349,
+        "observe": 212,
+        "reset": 30,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02f": {
       "DefinitionHash": "565acb4700705885",
@@ -5890,8 +6254,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1172,
-      "RunAt": "2026-10-25T16:37:26.7257475+11:00",
+      "DurationMs": 790,
+      "RunAt": "2026-11-07T12:53:12.6141818+11:00",
       "Lines": [
         "[See x‸.]",
         "[Second paragraph.]",
@@ -5993,7 +6357,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 63,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 101,
+        "options": 25,
+        "steps": 385,
+        "observe": 135,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02f~tracked": {
       "DefinitionHash": "9d4eb238398a7a1d",
@@ -6006,8 +6383,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1430,
-      "RunAt": "2026-10-25T16:37:28.1603501+11:00",
+      "DurationMs": 965,
+      "RunAt": "2026-11-07T12:53:13.5835568+11:00",
       "Lines": [
         "[See ]{-<[bu:the site]>[ today]-}{+[x]+}[‸.]",
         "[Second paragraph.]",
@@ -6141,7 +6518,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 187,
+        "open.add": 62,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 26,
+        "steps": 374,
+        "observe": 319,
+        "reset": 29,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-02~tracked": {
       "DefinitionHash": "896a2c3d4bd1dda6",
@@ -6155,12 +6545,12 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1123,
-      "RunAt": "2026-10-25T15:16:30.9202554+11:00",
+      "DurationMs": 1287,
+      "RunAt": "2026-11-07T12:37:58.6719748+11:00",
       "Lines": [
         "[See ]<[bu:]{-th-}[bu:‸e site]>[ today.]",
         "[Second paragraph.]",
-        "Selection: IP 41–41 · Tracking · Revisions 1 · Undo depth 2"
+        "Selection: IP 41–41 · Tracking · Revisions 1 · Undo: Clear, Clear"
       ],
       "Observation": {
         "Selection": {
@@ -6218,7 +6608,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           },
@@ -6244,7 +6634,7 @@
             "NestingLevel": 0,
             "LengthMismatch": false,
             "SpaceBefore": 0,
-            "SpaceAfter": 0,
+            "SpaceAfter": 8,
             "Bordered": false,
             "KeepWithNext": false
           }
@@ -6275,10 +6665,10 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [
-          "?",
-          "?"
+          "Clear",
+          "Clear"
         ],
-        "UndoSource": "undo-redo-count",
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [],
         "MarkupDiff": "markup/F-02_tracked.diff",
@@ -6311,7 +6701,7 @@
             "Text": "h",
             "IsCollapsed": true
           },
-          "Line": "[See «HYPERLINK \"https://example.com/\"t‸he site» today.]"
+          "Line": "[See ]<[t‸he site]>[ today.]"
         },
         {
           "Step": "Delete",
@@ -6337,9 +6727,22 @@
             "Text": "e",
             "IsCollapsed": true
           },
-          "Line": "[See «HYPERLINK \"https://example.com/\"th‸e site» today.]"
+          "Line": "[See ]<[th‸e site]>[ today.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 202,
+        "open.add": 64,
+        "open.view": 29,
+        "open.front": 1,
+        "open.park": 105,
+        "options": 26,
+        "steps": 590,
+        "observe": 397,
+        "reset": 29,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03": {
       "DefinitionHash": "1f630ed29d65a3bf",
@@ -6352,8 +6755,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1107,
-      "RunAt": "2026-10-25T16:37:29.2721727+11:00",
+      "DurationMs": 694,
+      "RunAt": "2026-11-07T12:53:14.2823386+11:00",
       "Lines": [
         "[The quick ‸jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -6455,7 +6858,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 65,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 23,
+        "steps": 310,
+        "observe": 119,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03b": {
       "DefinitionHash": "a1ccfd3b67f9edef",
@@ -6470,8 +6886,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1181,
-      "RunAt": "2026-10-25T16:37:31.6410774+11:00",
+      "DurationMs": 824,
+      "RunAt": "2026-11-07T12:53:15.8890583+11:00",
       "Lines": [
         "[The quick jumps over the lazy dog.]",
         "[brown fox ‸Second paragraph.]",
@@ -6574,7 +6990,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 76,
+        "open.view": 30,
+        "open.front": 1,
+        "open.park": 91,
+        "options": 25,
+        "steps": 424,
+        "observe": 114,
+        "reset": 28,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03b~tracked": {
       "DefinitionHash": "7794bd3edd3e56e0",
@@ -6589,8 +7018,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1339,
-      "RunAt": "2026-10-25T16:37:32.9843254+11:00",
+      "DurationMs": 894,
+      "RunAt": "2026-11-07T12:53:16.7897645+11:00",
       "Lines": [
         "[The quick ]{-[brown fox ]-}[jumps over the lazy dog.]",
         "{+[brown fox ]+}[‸Second paragraph.]",
@@ -6706,7 +7135,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 184,
+        "open.add": 65,
+        "open.view": 20,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 26,
+        "steps": 432,
+        "observe": 187,
+        "reset": 30,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03c": {
       "DefinitionHash": "d23fe26829482427",
@@ -6721,8 +7163,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1226,
-      "RunAt": "2026-10-25T16:37:34.2140592+11:00",
+      "DurationMs": 958,
+      "RunAt": "2026-11-07T12:53:17.7547195+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]",
         "[brown fox ‸Second paragraph.]",
@@ -6824,7 +7266,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 314,
+        "open.add": 208,
+        "open.view": 12,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 23,
+        "steps": 435,
+        "observe": 123,
+        "reset": 29,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03c~tracked": {
       "DefinitionHash": "9671c4a5df02a27a",
@@ -6839,8 +7294,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1291,
-      "RunAt": "2026-10-25T16:37:35.508523+11:00",
+      "DurationMs": 883,
+      "RunAt": "2026-11-07T12:53:18.6479885+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]",
         "{+[brown fox ]+}[‸Second paragraph.]",
@@ -6949,7 +7404,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 187,
+        "open.add": 65,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 26,
+        "steps": 435,
+        "observe": 173,
+        "reset": 28,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03d": {
       "DefinitionHash": "9a8d28b1bb373b01",
@@ -6962,8 +7430,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1071,
-      "RunAt": "2026-10-25T16:37:36.5843867+11:00",
+      "DurationMs": 713,
+      "RunAt": "2026-11-07T12:53:19.3709539+11:00",
       "Lines": [
         "[The quick brown]",
         "[‸ fox jumps over the lazy dog.]",
@@ -7092,7 +7560,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 184,
+        "open.add": 65,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 23,
+        "steps": 294,
+        "observe": 151,
+        "reset": 29,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03d~tracked": {
       "DefinitionHash": "7e55725c5dca73c2",
@@ -7105,8 +7586,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1271,
-      "RunAt": "2026-10-25T16:37:37.859694+11:00",
+      "DurationMs": 751,
+      "RunAt": "2026-11-07T12:53:20.1317274+11:00",
       "Lines": [
         "[The quick brown]{++}",
         "[‸ fox jumps over the lazy dog.]",
@@ -7242,7 +7723,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 65,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 26,
+        "steps": 290,
+        "observe": 197,
+        "reset": 29,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03e[at=P1:10]": {
       "DefinitionHash": "09eb804e2d7b9621",
@@ -7255,8 +7749,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1071,
-      "RunAt": "2026-10-25T16:37:38.9345935+11:00",
+      "DurationMs": 687,
+      "RunAt": "2026-11-07T12:53:20.8286543+11:00",
       "Lines": [
         "[The quick x‸brown fox jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -7358,7 +7852,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 177,
+        "open.add": 65,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 23,
+        "steps": 309,
+        "observe": 116,
+        "reset": 30,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03e[at=P1:10]~tracked": {
       "DefinitionHash": "dbdf3cf7b61917c3",
@@ -7371,8 +7878,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1197,
-      "RunAt": "2026-10-25T16:37:40.1359601+11:00",
+      "DurationMs": 780,
+      "RunAt": "2026-11-07T12:53:21.6159307+11:00",
       "Lines": [
         "[The quick ]{+[x]+}[‸brown fox jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -7481,7 +7988,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 64,
+        "open.view": 32,
+        "open.front": 0,
+        "open.park": 100,
+        "options": 27,
+        "steps": 318,
+        "observe": 173,
+        "reset": 28,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03e[at=P1:19]": {
       "DefinitionHash": "7eba623d40dcb134",
@@ -7494,8 +8014,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1081,
-      "RunAt": "2026-10-25T16:37:41.2208104+11:00",
+      "DurationMs": 686,
+      "RunAt": "2026-11-07T12:53:22.3115843+11:00",
       "Lines": [
         "[The quick brown foxx‸ jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -7597,7 +8117,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 170,
+        "open.add": 62,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 23,
+        "steps": 310,
+        "observe": 121,
+        "reset": 29,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03e[at=P1:19]~tracked": {
       "DefinitionHash": "ad47b42d08587a3e",
@@ -7610,8 +8143,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1206,
-      "RunAt": "2026-10-25T16:37:42.4314549+11:00",
+      "DurationMs": 768,
+      "RunAt": "2026-11-07T12:53:23.0887126+11:00",
       "Lines": [
         "[The quick brown fox]{+[x]+}[‸ jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -7720,7 +8253,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 189,
+        "open.add": 61,
+        "open.view": 28,
+        "open.front": 1,
+        "open.park": 97,
+        "options": 27,
+        "steps": 320,
+        "observe": 167,
+        "reset": 30,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03f": {
       "DefinitionHash": "94797049a98604b9",
@@ -7733,8 +8279,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 998,
-      "RunAt": "2026-10-25T16:37:43.4334866+11:00",
+      "DurationMs": 642,
+      "RunAt": "2026-11-07T12:53:23.738107+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.‸Second paragraph.]",
         "Selection: IP 44–44 · Undo: Typing"
@@ -7809,7 +8355,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 192,
+        "open.add": 66,
+        "open.view": 27,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 23,
+        "steps": 278,
+        "observe": 87,
+        "reset": 29,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03f~tracked": {
       "DefinitionHash": "6156045521f81060",
@@ -7822,8 +8381,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1161,
-      "RunAt": "2026-10-25T16:37:44.598095+11:00",
+      "DurationMs": 719,
+      "RunAt": "2026-11-07T12:53:24.4673474+11:00",
       "Lines": [
         "[The quick brown fox jumps over the lazy dog.]{-‸-}",
         "[Second paragraph.]",
@@ -7932,7 +8491,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 175,
+        "open.add": 63,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 26,
+        "steps": 292,
+        "observe": 163,
+        "reset": 29,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-03~tracked": {
       "DefinitionHash": "984eb86eb31d217a",
@@ -7945,8 +8517,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1180,
-      "RunAt": "2026-10-25T16:37:30.4560396+11:00",
+      "DurationMs": 771,
+      "RunAt": "2026-11-07T12:53:15.0584957+11:00",
       "Lines": [
         "[The quick ]{-[brown fox ]-}[‸jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -8055,7 +8627,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 63,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 26,
+        "steps": 291,
+        "observe": 205,
+        "reset": 33,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04[from=P1:18]": {
       "DefinitionHash": "f32b69e7528e8846",
@@ -8070,8 +8655,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1650,
-      "RunAt": "2026-10-25T16:37:48.1302099+11:00",
+      "DurationMs": 1126,
+      "RunAt": "2026-11-07T12:53:26.7462685+11:00",
       "Lines": [
         "[Rich: (|content here|) ‸end.]",
         "[Plain: (|plain here|) end.]",
@@ -8330,7 +8915,20 @@
           },
           "Line": "[Rich: content here ‸end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 191,
+        "open.add": 73,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 41,
+        "steps": 579,
+        "observe": 252,
+        "reset": 30,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04[from=P1:5]": {
       "DefinitionHash": "29d5e1b5ecccd07c",
@@ -8345,8 +8943,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1874,
-      "RunAt": "2026-10-25T16:37:46.4760377+11:00",
+      "DurationMs": 1136,
+      "RunAt": "2026-11-07T12:53:25.6104172+11:00",
       "Lines": [
         "[Rich: (|c‸ontent here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -8605,7 +9203,20 @@
           },
           "Line": "[Rich: c‸ontent here end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 196,
+        "open.add": 77,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 91,
+        "options": 42,
+        "steps": 592,
+        "observe": 242,
+        "reset": 29,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04b": {
       "DefinitionHash": "12e51a311d369ca0",
@@ -8620,8 +9231,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1619,
-      "RunAt": "2026-10-25T16:37:49.753726+11:00",
+      "DurationMs": 1104,
+      "RunAt": "2026-11-07T12:53:27.8598228+11:00",
       "Lines": [
         "[Rich:⟦ (|c‸⟧ontent here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -8880,7 +9491,20 @@
           },
           "Line": "[Rich:⟦ c‸⟧ontent here end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 199,
+        "open.add": 75,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 42,
+        "steps": 561,
+        "observe": 240,
+        "reset": 29,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04c[key=Delete]": {
       "DefinitionHash": "98797a7c9fc9a7a4",
@@ -8893,8 +9517,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1526,
-      "RunAt": "2026-10-25T16:37:51.2844525+11:00",
+      "DurationMs": 839,
+      "RunAt": "2026-11-07T12:53:28.7078158+11:00",
       "Lines": [
         "[Rich: (|‸e|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -9075,7 +9699,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 75,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 41,
+        "steps": 289,
+        "observe": 245,
+        "reset": 28,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04c[key=Delete]~tracked": {
       "DefinitionHash": "5358928ad651ea55",
@@ -9088,8 +9725,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1678,
-      "RunAt": "2026-10-25T16:37:52.9662609+11:00",
+      "DurationMs": 1107,
+      "RunAt": "2026-11-07T12:53:29.8244671+11:00",
       "Lines": [
         "[Rich: (|]{-[content her]-}[‸e|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -9287,7 +9924,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 338,
+        "open.add": 227,
+        "open.view": 12,
+        "open.front": 0,
+        "open.park": 95,
+        "options": 48,
+        "steps": 296,
+        "observe": 359,
+        "reset": 29,
+        "close": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04c[key=type(\"x\")]": {
       "DefinitionHash": "77f9595c2d682dc7",
@@ -9300,8 +9950,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1509,
-      "RunAt": "2026-10-25T16:37:54.4792553+11:00",
+      "DurationMs": 879,
+      "RunAt": "2026-11-07T12:53:30.7129332+11:00",
       "Lines": [
         "[Rich: (|x‸e|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -9482,7 +10132,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 205,
+        "open.add": 74,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 106,
+        "options": 42,
+        "steps": 319,
+        "observe": 249,
+        "reset": 29,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04c[key=type(\"x\")]~tracked": {
       "DefinitionHash": "709e85e7f791d9d9",
@@ -9495,8 +10158,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1799,
-      "RunAt": "2026-10-25T16:37:56.2832066+11:00",
+      "DurationMs": 1049,
+      "RunAt": "2026-11-07T12:53:31.7724768+11:00",
       "Lines": [
         "[Rich: (|]{-[content her]-}{+[x]+}[‸e|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -9700,7 +10363,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 72,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 99,
+        "options": 50,
+        "steps": 319,
+        "observe": 380,
+        "reset": 65,
+        "close": 36
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04d[from=P1:18]": {
       "DefinitionHash": "c0ffa698e795bb91",
@@ -9713,8 +10389,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1461,
-      "RunAt": "2026-10-25T16:37:57.7482256+11:00",
+      "DurationMs": 831,
+      "RunAt": "2026-11-07T12:53:32.6122347+11:00",
       "Lines": [
         "[Rich: (|content he‸e|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -9895,7 +10571,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 193,
+        "open.add": 73,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 42,
+        "steps": 289,
+        "observe": 244,
+        "reset": 29,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04d[from=P1:18]~tracked": {
       "DefinitionHash": "858b61355249ee58",
@@ -9908,8 +10597,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1684,
-      "RunAt": "2026-10-25T16:37:59.436928+11:00",
+      "DurationMs": 958,
+      "RunAt": "2026-11-07T12:53:33.5802153+11:00",
       "Lines": [
         "[Rich: (|content he]{-[‸r]-}[e|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -10107,7 +10796,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 192,
+        "open.add": 72,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 48,
+        "steps": 288,
+        "observe": 365,
+        "reset": 28,
+        "close": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04d[from=P1:find(\" end\")]": {
       "DefinitionHash": "783fdb7c62e48c8b",
@@ -10120,8 +10822,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1490,
-      "RunAt": "2026-10-25T16:38:00.9312512+11:00",
+      "DurationMs": 860,
+      "RunAt": "2026-11-07T12:53:34.4481429+11:00",
       "Lines": [
         "[Rich: (|⟦content here‸⟧|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -10300,7 +11002,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 75,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 41,
+        "steps": 309,
+        "observe": 250,
+        "reset": 29,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04d[from=P1:find(\" end\")]~tracked": {
       "DefinitionHash": "95b1442680b3b06f",
@@ -10313,8 +11028,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1603,
-      "RunAt": "2026-10-25T16:38:02.538924+11:00",
+      "DurationMs": 930,
+      "RunAt": "2026-11-07T12:53:35.3890303+11:00",
       "Lines": [
         "[Rich: (|⟦content here‸⟧|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -10503,7 +11218,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 73,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 95,
+        "options": 48,
+        "steps": 301,
+        "observe": 316,
+        "reset": 30,
+        "close": 36
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04e[key=Enter]": {
       "DefinitionHash": "368ea34710d9fddd",
@@ -10516,8 +11244,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1545,
-      "RunAt": "2026-10-25T16:38:07.3089076+11:00",
+      "DurationMs": 843,
+      "RunAt": "2026-11-07T12:53:38.0736396+11:00",
       "Lines": [
         "[Rich: (|con‸tent here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -10696,7 +11424,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 192,
+        "open.add": 72,
+        "open.view": 29,
+        "open.front": 1,
+        "open.park": 88,
+        "options": 43,
+        "steps": 287,
+        "observe": 255,
+        "reset": 32,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04e[key=Enter]~tracked": {
       "DefinitionHash": "b1d35d1a81bf6732",
@@ -10709,8 +11450,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1597,
-      "RunAt": "2026-10-25T16:38:08.9104126+11:00",
+      "DurationMs": 930,
+      "RunAt": "2026-11-07T12:53:39.0097327+11:00",
       "Lines": [
         "[Rich: (|con‸tent here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -10899,7 +11640,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 71,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 104,
+        "options": 49,
+        "steps": 298,
+        "observe": 318,
+        "reset": 29,
+        "close": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04e[key=Tab]": {
       "DefinitionHash": "5216ea54aadf9dc7",
@@ -10912,8 +11666,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1508,
-      "RunAt": "2026-10-25T16:38:04.0519127+11:00",
+      "DurationMs": 851,
+      "RunAt": "2026-11-07T12:53:36.2473799+11:00",
       "Lines": [
         "[Rich: (|con\\t‸tent here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -11094,7 +11848,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 74,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 42,
+        "steps": 289,
+        "observe": 261,
+        "reset": 30,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04e[key=Tab]~tracked": {
       "DefinitionHash": "b1bd21a31f805305",
@@ -11107,8 +11874,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1703,
-      "RunAt": "2026-10-25T16:38:05.7593648+11:00",
+      "DurationMs": 966,
+      "RunAt": "2026-11-07T12:53:37.2209734+11:00",
       "Lines": [
         "[Rich: (|con]{+[\\t]+}[‸tent here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -11306,7 +12073,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 197,
+        "open.add": 73,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 101,
+        "options": 52,
+        "steps": 279,
+        "observe": 373,
+        "reset": 29,
+        "close": 36
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04f": {
       "DefinitionHash": "fb2e2ffc91b73d21",
@@ -11319,8 +12099,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1510,
-      "RunAt": "2026-10-25T16:38:10.4253769+11:00",
+      "DurationMs": 848,
+      "RunAt": "2026-11-07T12:53:39.8672897+11:00",
       "Lines": [
         "[Rich: (|content here|) end.]",
         "[Plain: (|p‸lain here|) end.]",
@@ -11499,7 +12279,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 77,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 41,
+        "steps": 291,
+        "observe": 257,
+        "reset": 29,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04f~tracked": {
       "DefinitionHash": "3e3fa882c39745ca",
@@ -11512,8 +12305,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1581,
-      "RunAt": "2026-10-25T16:38:12.0105097+11:00",
+      "DurationMs": 918,
+      "RunAt": "2026-11-07T12:53:40.7947248+11:00",
       "Lines": [
         "[Rich: (|content here|) end.]",
         "[Plain: (|p‸lain here|) end.]",
@@ -11702,7 +12495,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 78,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 49,
+        "steps": 283,
+        "observe": 324,
+        "reset": 28,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04g": {
       "DefinitionHash": "f7b658c3bd366c12",
@@ -11715,8 +12521,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1359,
-      "RunAt": "2026-10-25T16:38:13.3740884+11:00",
+      "DurationMs": 843,
+      "RunAt": "2026-11-07T12:53:41.6445447+11:00",
       "Lines": [
         "[Rich: (|content here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -11897,7 +12703,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 193,
+        "open.add": 74,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 92,
+        "options": 43,
+        "steps": 290,
+        "observe": 256,
+        "reset": 28,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04g~tracked": {
       "DefinitionHash": "9e0a9760aa728ea1",
@@ -11910,8 +12729,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1516,
-      "RunAt": "2026-10-25T16:38:14.8949366+11:00",
+      "DurationMs": 970,
+      "RunAt": "2026-11-07T12:53:42.6214539+11:00",
       "Lines": [
         "[Rich: (|content here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -12109,7 +12928,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 73,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 49,
+        "steps": 288,
+        "observe": 368,
+        "reset": 30,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04h": {
       "DefinitionHash": "cf5196ab2f470da4",
@@ -12122,8 +12954,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1497,
-      "RunAt": "2026-10-25T16:38:16.3966615+11:00",
+      "DurationMs": 907,
+      "RunAt": "2026-11-07T12:53:43.5383773+11:00",
       "Lines": [
         "[Rich: (|content here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -12302,7 +13134,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 193,
+        "open.add": 72,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 95,
+        "options": 42,
+        "steps": 239,
+        "observe": 371,
+        "reset": 29,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04h~tracked": {
       "DefinitionHash": "f8989814762f95be",
@@ -12315,8 +13160,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1570,
-      "RunAt": "2026-10-25T16:38:17.9713238+11:00",
+      "DurationMs": 833,
+      "RunAt": "2026-11-07T12:53:44.3824113+11:00",
       "Lines": [
         "[Rich: (|content here|) end.]",
         "[Plain: (|plain here|) end.]",
@@ -12505,7 +13350,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 192,
+        "open.add": 73,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 50,
+        "steps": 237,
+        "observe": 291,
+        "reset": 28,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04i": {
       "DefinitionHash": "16545613e79996d7",
@@ -12518,8 +13376,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1285,
-      "RunAt": "2026-10-25T16:38:19.2606924+11:00",
+      "DurationMs": 792,
+      "RunAt": "2026-11-07T12:53:45.1845633+11:00",
       "Lines": [
         "[⟦Rich: (|content here|) end.¶⟧]",
         "⟦[Plain: (|plain here|) end.¶⟧]",
@@ -12698,7 +13556,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 191,
+        "open.add": 73,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 89,
+        "options": 43,
+        "steps": 241,
+        "observe": 257,
+        "reset": 28,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04j": {
       "DefinitionHash": "657634b4ba029e88",
@@ -12713,8 +13584,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1438,
-      "RunAt": "2026-10-25T16:38:20.7036407+11:00",
+      "DurationMs": 1005,
+      "RunAt": "2026-11-07T12:53:46.1998125+11:00",
       "Lines": [
         "",
         "[Plain: (|plain here|) end.]",
@@ -12896,7 +13767,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 73,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 100,
+        "options": 42,
+        "steps": 418,
+        "observe": 274,
+        "reset": 33,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-04j~tracked": {
       "DefinitionHash": "fbf77ee5aa3b381e",
@@ -12911,8 +13795,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1761,
-      "RunAt": "2026-10-25T16:38:22.4684628+11:00",
+      "DurationMs": 1149,
+      "RunAt": "2026-11-07T12:53:47.355871+11:00",
       "Lines": [
         "{<[Rich: (|content here|) end.]<}",
         "[Plain: (|plain here|) end.]",
@@ -13129,7 +14013,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 207,
+        "open.add": 79,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 48,
+        "steps": 414,
+        "observe": 413,
+        "reset": 30,
+        "close": 37
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05[at=P1:10]": {
       "DefinitionHash": "af9cf8df21c47550",
@@ -13142,8 +14039,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1139,
-      "RunAt": "2026-10-25T16:38:23.6122726+11:00",
+      "DurationMs": 1409,
+      "RunAt": "2026-11-07T12:53:52.5031149+11:00",
       "Lines": [
         "[The quick x⟪‸brown fox⟫1 jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -13253,7 +14150,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 843,
+        "open.add": 134,
+        "open.view": 28,
+        "open.front": 550,
+        "open.park": 130,
+        "options": 26,
+        "steps": 322,
+        "observe": 152,
+        "reset": 28,
+        "close": 38
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05[at=P1:10]~tracked": {
       "DefinitionHash": "308d1800f81ed672",
@@ -13266,8 +14176,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1277,
-      "RunAt": "2026-10-25T16:38:24.9090809+11:00",
+      "DurationMs": 792,
+      "RunAt": "2026-11-07T12:53:53.2991211+11:00",
       "Lines": [
         "[The quick ]{+[x]+}⟪[‸brown fox⟫1 jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -13384,7 +14294,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 191,
+        "open.add": 67,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 30,
+        "steps": 318,
+        "observe": 193,
+        "reset": 28,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05[at=P1:19]": {
       "DefinitionHash": "765fa5a4fb46e3ab",
@@ -13397,8 +14320,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1094,
-      "RunAt": "2026-10-25T16:38:26.0219722+11:00",
+      "DurationMs": 726,
+      "RunAt": "2026-11-07T12:53:54.0306441+11:00",
       "Lines": [
         "[The quick ⟪brown fox⟫1x‸ jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -13508,7 +14431,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 188,
+        "open.add": 67,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 26,
+        "steps": 321,
+        "observe": 134,
+        "reset": 28,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05[at=P1:19]~tracked": {
       "DefinitionHash": "8dc6725244173938",
@@ -13521,8 +14457,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1250,
-      "RunAt": "2026-10-25T16:38:27.290529+11:00",
+      "DurationMs": 754,
+      "RunAt": "2026-11-07T12:53:54.7902963+11:00",
       "Lines": [
         "[The quick ⟪brown fox⟫1]{+[x]+}[‸ jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -13639,7 +14575,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 172,
+        "open.add": 63,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 29,
+        "steps": 318,
+        "observe": 171,
+        "reset": 29,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05b": {
       "DefinitionHash": "9e3e4fa1de8c1cec",
@@ -13652,8 +14601,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1058,
-      "RunAt": "2026-10-25T16:38:28.3525969+11:00",
+      "DurationMs": 666,
+      "RunAt": "2026-11-07T12:53:55.4606225+11:00",
       "Lines": [
         "[The quick ‸jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -13755,7 +14704,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 190,
+        "open.add": 70,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 27,
+        "steps": 288,
+        "observe": 107,
+        "reset": 28,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05b~tracked": {
       "DefinitionHash": "c6101fed1cc077c5",
@@ -13768,8 +14730,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1216,
-      "RunAt": "2026-10-25T16:38:29.5732481+11:00",
+      "DurationMs": 747,
+      "RunAt": "2026-11-07T12:53:56.2123694+11:00",
       "Lines": [
         "[The quick ]{-⟪[brown fox⟫1 ]-}[‸jumps over the lazy dog.]",
         "[Second paragraph.]",
@@ -13886,7 +14848,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 183,
+        "open.add": 62,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 28,
+        "steps": 291,
+        "observe": 180,
+        "reset": 30,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05c": {
       "DefinitionHash": "3f05138c971125a5",
@@ -13899,8 +14874,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1150,
-      "RunAt": "2026-10-25T16:38:30.7419325+11:00",
+      "DurationMs": 727,
+      "RunAt": "2026-11-07T12:53:56.9435988+11:00",
       "Lines": [
         "[The quick ⟪br]",
         "[‸own fox⟫1 jumps over the lazy dog.]",
@@ -14037,7 +15012,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 179,
+        "open.add": 63,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 26,
+        "steps": 290,
+        "observe": 172,
+        "reset": 29,
+        "close": 31
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-05c~tracked": {
       "DefinitionHash": "66f17170ce19f1c4",
@@ -14050,8 +15038,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1338,
-      "RunAt": "2026-10-25T16:38:32.0837586+11:00",
+      "DurationMs": 802,
+      "RunAt": "2026-11-07T12:53:57.7504135+11:00",
       "Lines": [
         "[The quick ⟪br]{++}",
         "[‸own fox⟫1 jumps over the lazy dog.]",
@@ -14195,7 +15183,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 181,
+        "open.add": 64,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 85,
+        "options": 30,
+        "steps": 285,
+        "observe": 245,
+        "reset": 29,
+        "close": 32
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-06": {
       "DefinitionHash": "51783d8bd7c62efc",
@@ -14210,8 +15211,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1484,
-      "RunAt": "2026-10-25T16:38:33.5855517+11:00",
+      "DurationMs": 1141,
+      "RunAt": "2026-11-07T12:53:58.8964809+11:00",
       "Lines": [
         "[Body paragraph.]",
         "[Second body paragraph.]",
@@ -14424,7 +15425,20 @@
           },
           "Line": "[Page ‸]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 182,
+        "open.add": 67,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 29,
+        "steps": 732,
+        "observe": 143,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-06~tracked": {
       "DefinitionHash": "d3683fae27abb67f",
@@ -14439,8 +15453,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1681,
-      "RunAt": "2026-10-25T16:38:35.2727843+11:00",
+      "DurationMs": 1282,
+      "RunAt": "2026-11-07T12:54:00.1833125+11:00",
       "Lines": [
         "[Body paragraph.]",
         "[Second body paragraph.]",
@@ -14467,7 +15481,7 @@
           "InlineShapes": 0,
           "Shapes": 0,
           "Overtype": false,
-          "Text": "0",
+          "Text": "1",
           "IsCollapsed": true
         },
         "Paragraphs": [
@@ -14653,7 +15667,20 @@
           },
           "Line": "[Page ][‸«][ PAGE ][|][0][»]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 197,
+        "open.add": 67,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 99,
+        "options": 33,
+        "steps": 741,
+        "observe": 255,
+        "reset": 28,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-07": {
       "DefinitionHash": "7ec1d024babd9a4c",
@@ -14665,8 +15692,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1301,
-      "RunAt": "2026-10-25T16:38:36.5806443+11:00",
+      "DurationMs": 838,
+      "RunAt": "2026-11-07T12:54:01.0267163+11:00",
       "Lines": [
         "[«][ T‸OC \\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[Beta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -14898,7 +15925,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 242,
+        "open.add": 85,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 25,
+        "steps": 148,
+        "observe": 369,
+        "reset": 29,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-07b": {
       "DefinitionHash": "448ac5fc1076c016",
@@ -14911,8 +15951,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1533,
-      "RunAt": "2026-10-25T16:38:38.1184642+11:00",
+      "DurationMs": 993,
+      "RunAt": "2026-11-07T12:54:02.0242977+11:00",
       "Lines": [
         "[«][ Tx‸OC \\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[Beta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -15147,7 +16187,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 210,
+        "open.add": 66,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 116,
+        "options": 27,
+        "steps": 321,
+        "observe": 380,
+        "reset": 29,
+        "close": 26
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-07b~tracked": {
       "DefinitionHash": "66d244e0cb5540f4",
@@ -15160,8 +16213,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1627,
-      "RunAt": "2026-10-25T16:38:39.7499394+11:00",
+      "DurationMs": 1075,
+      "RunAt": "2026-11-07T12:54:03.1040525+11:00",
       "Lines": [
         "[«][ T]{+[x]+}[‸OC \\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»][\\rBeta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»][\\r][»][Alpha heading] #TOC1",
         "[Alpha body text.]",
@@ -15349,7 +16402,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 62,
+        "open.view": 25,
+        "open.front": 0,
+        "open.park": 109,
+        "options": 29,
+        "steps": 319,
+        "observe": 472,
+        "reset": 29,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-07c": {
       "DefinitionHash": "0d03206e0bd0fd38",
@@ -15362,8 +16428,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1945,
-      "RunAt": "2026-10-25T16:38:41.699387+11:00",
+      "DurationMs": 1421,
+      "RunAt": "2026-11-07T12:54:04.5299098+11:00",
       "Lines": [
         "[‸«][ TOC \\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[Beta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -15596,13 +16662,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Update Table of Contents",
-          "SeenAt": "2026-10-25T16:38:40.3097915+11:00"
+          "SeenAt": "2026-11-07T12:54:03.5270046+11:00",
+          "Text": ""
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 196,
+        "open.add": 64,
+        "open.view": 24,
+        "open.front": 0,
+        "open.park": 107,
+        "options": 26,
+        "steps": 784,
+        "observe": 358,
+        "reset": 29,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-07c~tracked": {
       "DefinitionHash": "e235b0b18fff211e",
@@ -15615,8 +16695,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 2046,
-      "RunAt": "2026-10-25T16:38:43.7512601+11:00",
+      "DurationMs": 1483,
+      "RunAt": "2026-11-07T12:54:06.0172439+11:00",
       "Lines": [
         "[‸«][ TOC \\o \"1-3\" ][|][Alpha heading\\t][«][ PAGEREF _Toc243828883 \\h ][|][1][»] #TOC1",
         "[Beta heading\\t][«][ PAGEREF _Toc243828884 \\h ][|][1][»] #TOC1",
@@ -15849,13 +16929,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Update Table of Contents",
-          "SeenAt": "2026-10-25T16:38:42.2467333+11:00"
+          "SeenAt": "2026-11-07T12:54:04.9544944+11:00",
+          "Text": ""
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 201,
+        "open.add": 64,
+        "open.view": 22,
+        "open.front": 0,
+        "open.park": 113,
+        "options": 29,
+        "steps": 764,
+        "observe": 433,
+        "reset": 28,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-08": {
       "DefinitionHash": "3d772e1705a80d35",
@@ -15875,8 +16969,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1996,
-      "RunAt": "2026-10-25T16:38:45.7519311+11:00",
+      "DurationMs": 2729,
+      "RunAt": "2026-11-07T13:03:37.7657477+11:00",
       "Lines": [
         "[a⍽b soft⁃hyphen ][h:hidden ][words ‸dash—end.]",
         "Selection: IP 29–29 · Undo —"
@@ -16168,7 +17262,20 @@
           },
           "Line": "[a⍽b soft⁃hyphen hidden words ‸dash—end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 952,
+        "open.add": 155,
+        "open.view": 108,
+        "open.front": 558,
+        "open.park": 127,
+        "options": 31,
+        "steps": 1242,
+        "observe": 417,
+        "reset": 34,
+        "close": 52
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-08b": {
       "DefinitionHash": "6885fc81304165bc",
@@ -16181,8 +17288,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1066,
-      "RunAt": "2026-10-25T16:38:46.82294+11:00",
+      "DurationMs": 949,
+      "RunAt": "2026-11-07T13:03:38.7217306+11:00",
       "Lines": [
         "[a⍽b soft⁃hyphen ][h:‸hidden ][words dash—end.]",
         "Selection: IP 16–16 · Undo —"
@@ -16264,7 +17371,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 224,
+        "open.add": 66,
+        "open.view": 39,
+        "open.front": 0,
+        "open.park": 117,
+        "options": 26,
+        "steps": 315,
+        "observe": 312,
+        "reset": 33,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-08b~tracked": {
       "DefinitionHash": "f19d7cf7d59f0133",
@@ -16277,8 +17397,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1123,
-      "RunAt": "2026-10-25T16:38:47.9513566+11:00",
+      "DurationMs": 877,
+      "RunAt": "2026-11-07T13:03:39.6040718+11:00",
       "Lines": [
         "[a⍽b soft⁃hyphen ][h:‸hidden ][words dash—end.]",
         "Selection: IP 16–16 · Tracking · Revisions 0 · Undo —"
@@ -16360,7 +17480,20 @@
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 210,
+        "open.add": 69,
+        "open.view": 31,
+        "open.front": 0,
+        "open.park": 108,
+        "options": 27,
+        "steps": 313,
+        "observe": 250,
+        "reset": 35,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-08c": {
       "DefinitionHash": "830c51e59038bdbc",
@@ -16375,8 +17508,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1349,
-      "RunAt": "2026-10-25T16:38:49.3054309+11:00",
+      "DurationMs": 1120,
+      "RunAt": "2026-11-07T13:03:40.7292454+11:00",
       "Lines": [
         "[h:a⍽b s][of‸t⁃hyphen ][h:hidden ][words dash—end.]",
         "Selection: IP 7–7 · Undo: Hidden"
@@ -16546,7 +17679,20 @@
           },
           "Line": "[a⍽b sof‸t⁃hyphen hidden words dash—end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 220,
+        "open.add": 67,
+        "open.view": 33,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 24,
+        "steps": 568,
+        "observe": 237,
+        "reset": 31,
+        "close": 40
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-08c~tracked": {
       "DefinitionHash": "2f79ef6dbdf8f3cc",
@@ -16561,8 +17707,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1469,
-      "RunAt": "2026-10-25T16:38:50.7794287+11:00",
+      "DurationMs": 1236,
+      "RunAt": "2026-11-07T13:03:41.9702683+11:00",
       "Lines": [
         "{~[h:a⍽b s]~}[of‸t⁃hyphen ][h:hidden ][words dash—end.]",
         "Selection: IP 7–7 · Tracking · Revisions 1 · Undo: Hidden"
@@ -16739,7 +17885,20 @@
           },
           "Line": "[a⍽b sof‸t⁃hyphen hidden words dash—end.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 272,
+        "open.add": 166,
+        "open.view": 18,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 27,
+        "steps": 575,
+        "observe": 290,
+        "reset": 30,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-09": {
       "DefinitionHash": "1ac6100731e2a940",
@@ -16754,10 +17913,10 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1535,
-      "RunAt": "2026-10-25T16:38:52.3194904+11:00",
+      "DurationMs": 1168,
+      "RunAt": "2026-11-07T12:54:12.4378537+11:00",
       "Lines": [
-        "[The ][‸«][ DATE ][|][25/10/2026][»][quick brown fox jumps over the lazy dog.]",
+        "[The ][‸«][ DATE ][|][7/11/2026][»][quick brown fox jumps over the lazy dog.]",
         "Selection: IP 4–4 · Undo: Update Fields, Typing \"E\", Typing \"\", Insert Field"
       ],
       "Observation": {
@@ -16780,19 +17939,19 @@
           "InlineShapes": 0,
           "Shapes": 0,
           "Overtype": false,
-          "Text": "2",
+          "Text": "7",
           "IsCollapsed": true
         },
         "Paragraphs": [
           {
             "Index": 1,
             "Start": 0,
-            "End": 64,
-            "Text": "The \u0013 DATE \u000025/10/2026\u0015quick brown fox jumps over the lazy dog.\r",
+            "End": 63,
+            "Text": "The \u0013 DATE \u00007/11/2026\u0015quick brown fox jumps over the lazy dog.\r",
             "Runs": [
               {
                 "Start": 0,
-                "End": 64,
+                "End": 63,
                 "Marks": ""
               }
             ],
@@ -16819,7 +17978,7 @@
             "TypeName": "Date",
             "Begin": 4,
             "Separator": 11,
-            "End": 22,
+            "End": 21,
             "Code": "DATE"
           }
         ],
@@ -16917,12 +18076,25 @@
             "InlineShapes": 0,
             "Shapes": 0,
             "Overtype": false,
-            "Text": "2",
+            "Text": "7",
             "IsCollapsed": true
           },
-          "Line": "[The ][‸«][ DATE ][|][25/10/2026][»][quick brown fox jumps over the lazy dog.]"
+          "Line": "[The ][‸«][ DATE ][|][7/11/2026][»][quick brown fox jumps over the lazy dog.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 183,
+        "open.add": 64,
+        "open.view": 29,
+        "open.front": 0,
+        "open.park": 88,
+        "options": 22,
+        "steps": 789,
+        "observe": 118,
+        "reset": 29,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-09~tracked": {
       "DefinitionHash": "56df5aec3f49134b",
@@ -16937,10 +18109,10 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1657,
-      "RunAt": "2026-10-25T16:38:53.9834229+11:00",
+      "DurationMs": 1249,
+      "RunAt": "2026-11-07T12:54:13.6917457+11:00",
       "Lines": [
-        "[The ]{+[‸«][ DATE ][|][25/10/2026][»]+}[quick brown fox jumps over the lazy dog.]",
+        "[The ]{+[‸«][ DATE ][|][7/11/2026][»]+}[quick brown fox jumps over the lazy dog.]",
         "Selection: IP 4–4 · Tracking · Revisions 1 · Undo: Update Fields, Typing \"E\", Typing \"\", Insert Field"
       ],
       "Observation": {
@@ -16963,19 +18135,19 @@
           "InlineShapes": 0,
           "Shapes": 0,
           "Overtype": false,
-          "Text": "2",
+          "Text": "7",
           "IsCollapsed": true
         },
         "Paragraphs": [
           {
             "Index": 1,
             "Start": 0,
-            "End": 64,
-            "Text": "The \u0013 DATE \u000025/10/2026\u0015quick brown fox jumps over the lazy dog.\r",
+            "End": 63,
+            "Text": "The \u0013 DATE \u00007/11/2026\u0015quick brown fox jumps over the lazy dog.\r",
             "Runs": [
               {
                 "Start": 0,
-                "End": 64,
+                "End": 63,
                 "Marks": ""
               }
             ],
@@ -17002,7 +18174,7 @@
             "TypeName": "Date",
             "Begin": 4,
             "Separator": 11,
-            "End": 22,
+            "End": 21,
             "Code": "DATE"
           }
         ],
@@ -17010,7 +18182,7 @@
           {
             "Type": "Insert",
             "Start": 4,
-            "End": 23,
+            "End": 22,
             "Author": "Simon Cropp"
           }
         ],
@@ -17107,12 +18279,25 @@
             "InlineShapes": 0,
             "Shapes": 0,
             "Overtype": false,
-            "Text": "2",
+            "Text": "7",
             "IsCollapsed": true
           },
-          "Line": "[The ][‸«][ DATE ][|][25/10/2026][»][quick brown fox jumps over the lazy dog.]"
+          "Line": "[The ][‸«][ DATE ][|][7/11/2026][»][quick brown fox jumps over the lazy dog.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 188,
+        "open.add": 62,
+        "open.view": 23,
+        "open.front": 0,
+        "open.park": 102,
+        "options": 26,
+        "steps": 795,
+        "observe": 182,
+        "reset": 29,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-10": {
       "DefinitionHash": "c5377803121740fb",
@@ -17125,11 +18310,11 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1506,
-      "RunAt": "2026-10-25T16:38:55.4935478+11:00",
+      "DurationMs": 1141,
+      "RunAt": "2026-11-07T12:54:14.8369636+11:00",
       "Lines": [
         "[The ⟦quick br‸⟧own fox jumps over the lazy dog.]",
-        "Selection: Normal 4–12 end-active · Undo — · Dialog \"Insert Hyperlink\" (bosa_sdm_msword)"
+        "Selection: Normal 4–12 end-active · Undo — · Dialog \"Insert Hyperlink\" (bosa_sdm_msword): MSO Generic Control Container | quick br | C&urrent Folder | Or select a pla&ce in this document:"
       ],
       "Observation": {
         "Selection": {
@@ -17197,13 +18382,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Insert Hyperlink",
-          "SeenAt": "2026-10-25T16:38:54.5033532+11:00"
+          "SeenAt": "2026-11-07T12:54:14.1033559+11:00",
+          "Text": "MSO Generic Control Container | quick br | C&urrent Folder | Or select a pla&ce in this document:"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 186,
+        "open.add": 64,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 99,
+        "options": 22,
+        "steps": 787,
+        "observe": 93,
+        "reset": 28,
+        "close": 25
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-10b": {
       "DefinitionHash": "6b0ab0d97ad0923d",
@@ -17216,12 +18415,12 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1589,
-      "RunAt": "2026-10-25T16:38:57.088105+11:00",
+      "DurationMs": 1195,
+      "RunAt": "2026-11-07T12:54:16.0365646+11:00",
       "Lines": [
         "[See ]<[the ‸site]>[ today.]",
         "[Second paragraph.]",
-        "Selection: IP 43–43 · Undo — · Dialog \"Edit Hyperlink\" (bosa_sdm_msword)"
+        "Selection: IP 43–43 · Undo — · Dialog \"Edit Hyperlink\" (bosa_sdm_msword): MSO Generic Control Container | the site | C&urrent Folder | Or select a pla&ce in this document: | https://example.com/"
       ],
       "Observation": {
         "Selection": {
@@ -17324,13 +18523,27 @@
         "Dialog": {
           "ClassName": "bosa_sdm_msword",
           "Title": "Edit Hyperlink",
-          "SeenAt": "2026-10-25T16:38:56.0290967+11:00"
+          "SeenAt": "2026-11-07T12:54:15.2624299+11:00",
+          "Text": "MSO Generic Control Container | the site | C&urrent Folder | Or select a pla&ce in this document: | https://example.com/"
         },
         "Hotspots": [],
         "Remarks": []
       },
       "Remarks": [],
-      "Tests": []
+      "Tests": [],
+      "Phases": {
+        "open": 185,
+        "open.add": 63,
+        "open.view": 30,
+        "open.front": 0,
+        "open.park": 91,
+        "options": 23,
+        "steps": 790,
+        "observe": 145,
+        "reset": 28,
+        "close": 24
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-11": {
       "DefinitionHash": "a874ee78bcf64707",
@@ -17344,8 +18557,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2752,
-      "RunAt": "2026-10-25T17:26:45.6501264+11:00",
+      "DurationMs": 2357,
+      "RunAt": "2026-11-07T12:54:18.3986762+11:00",
       "Lines": [
         "[See ]<[bu:the site]>[ today.]",
         "[⟦Target‸⟧ paragraph here.]",
@@ -17491,7 +18704,20 @@
           },
           "Line": "[⟦Target‸⟧ paragraph here.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 191,
+        "open.add": 62,
+        "open.view": 33,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 23,
+        "steps": 1849,
+        "observe": 239,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-11/backspace": {
       "DefinitionHash": "e9f83c8f81927df6",
@@ -17507,8 +18733,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 4443,
-      "RunAt": "2026-10-25T17:26:52.8683362+11:00",
+      "DurationMs": 4013,
+      "RunAt": "2026-11-07T12:54:24.7718277+11:00",
       "Lines": [
         "[See ]<[bu:the site]>[ today.]",
         "[‸paragraph here.]",
@@ -17683,7 +18909,20 @@
           },
           "Line": "[‸paragraph here.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 188,
+        "open.add": 61,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 104,
+        "options": 24,
+        "steps": 3502,
+        "observe": 242,
+        "reset": 30,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-11/backspace~tracked": {
       "DefinitionHash": "22bddbbcc2607b66",
@@ -17699,8 +18938,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 4509,
-      "RunAt": "2026-10-25T17:26:57.3819988+11:00",
+      "DurationMs": 4066,
+      "RunAt": "2026-11-07T12:54:28.8420488+11:00",
       "Lines": [
         "[See ]<[bu:the site]>[ today.]",
         "{-[‸Target ]-}[paragraph here.]",
@@ -17882,7 +19121,20 @@
           },
           "Line": "[‸Target paragraph here.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 189,
+        "open.add": 62,
+        "open.view": 28,
+        "open.front": 1,
+        "open.park": 96,
+        "options": 26,
+        "steps": 3519,
+        "observe": 275,
+        "reset": 27,
+        "close": 30
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-11b": {
       "DefinitionHash": "b70132d4fa3256c7",
@@ -17896,8 +19148,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2753,
-      "RunAt": "2026-10-25T17:27:00.1406238+11:00",
+      "DurationMs": 2316,
+      "RunAt": "2026-11-07T12:54:31.1632124+11:00",
       "Lines": [
         "[See ]<[]>",
         "[‸ today.]",
@@ -18063,7 +19315,20 @@
           },
           "Line": "[‸ today.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 185,
+        "open.add": 62,
+        "open.view": 28,
+        "open.front": 0,
+        "open.park": 93,
+        "options": 24,
+        "steps": 1860,
+        "observe": 192,
+        "reset": 28,
+        "close": 27
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-11b~tracked": {
       "DefinitionHash": "1b6fed4793330389",
@@ -18077,8 +19342,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 2983,
-      "RunAt": "2026-10-25T17:27:03.1288082+11:00",
+      "DurationMs": 2501,
+      "RunAt": "2026-11-07T12:54:33.6693501+11:00",
       "Lines": [
         "[See ]{-<[bu:the site]>-}{+<[]>+}",
         "[‸ today.]",
@@ -18275,7 +19540,20 @@
           },
           "Line": "[‸ today.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 180,
+        "open.add": 62,
+        "open.view": 21,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 26,
+        "steps": 1869,
+        "observe": 369,
+        "reset": 29,
+        "close": 28
+      },
+      "Build": "16.0.20527.20150"
     },
     "F-11~tracked": {
       "DefinitionHash": "57370dbdb9d5457a",
@@ -18289,8 +19567,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 2763,
-      "RunAt": "2026-10-25T17:26:48.4205417+11:00",
+      "DurationMs": 2351,
+      "RunAt": "2026-11-07T12:54:20.7539872+11:00",
       "Lines": [
         "[See ]<[bu:the site]>[ today.]",
         "[⟦Target‸⟧ paragraph here.]",
@@ -18437,7 +19715,20 @@
           },
           "Line": "[⟦Target‸⟧ paragraph here.]"
         }
-      ]
+      ],
+      "Phases": {
+        "open": 192,
+        "open.add": 66,
+        "open.view": 26,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 28,
+        "steps": 1838,
+        "observe": 236,
+        "reset": 28,
+        "close": 29
+      },
+      "Build": "16.0.20527.20150"
     }
   }
 }

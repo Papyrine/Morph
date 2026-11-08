@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Layout Table with Tall Second Row\nSimilar to letters/05 structure\nCompany\nName\n123 Main\nStreet\nCity, State\n12345"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Recipient Name\n456 Other Street\nOther City, State 67890\nDate: January 1, 2024\nDear Recipient,\nThis is the body of the letter. It contains multiple paragraphs of text that would\nnormally fill most of a page.\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod\ntempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam,\nquis nostrud exercitation ullamco laboris.\nBest regards,\nSender Name\nTitle"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0051,
+      "Ssim": 0.9931,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0262,
+      "Ssim": 0.9486,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

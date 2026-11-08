@@ -173,17 +173,13 @@ static class SkiaPainter
     {
         var ascent = line.Baseline - line.Y;
 
-        // A line carrying a tracked change gets Word's change bar: a thin black rule in the left
-        // margin spanning the line (Word-measured on tracked_changes/01 — a ~0.5pt rule at half
-        // the left margin, x=36pt inside a 72pt margin at 150 DPI).
-        foreach (var run in line.Runs)
+        // A revised line gets Word's change bar: a thin black rule at half the left margin (Word-measured
+        // on tracked_changes/01 — x=36pt inside a 72pt margin at 150 DPI), as far as the layout says
+        // (PlacedLine.ChangeBar).
+        if (line.ChangeBar is var (barTop, barBottom))
         {
-            if (run.Properties.IsRevisionMark)
-            {
-                var barX = P(context, context.PageSettings.MarginLeft / 2);
-                canvas.DrawLine(barX, P(context, line.Y), barX, P(context, line.Y + line.Height), context.GetReusableRulePaint(SKColors.Black, P(context, 0.75)));
-                break;
-            }
+            var barX = P(context, context.PageSettings.MarginLeft / 2);
+            canvas.DrawLine(barX, P(context, barTop), barX, P(context, barBottom), context.GetReusableRulePaint(SKColors.Black, P(context, 0.75)));
         }
 
         foreach (var run in line.Runs)
@@ -215,12 +211,12 @@ static class SkiaPainter
             {
                 canvas.Save();
                 canvas.Scale((float) (properties.CharacterScalePercent / 100), 1, P(context, run.X), 0);
-                DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
+                DrawTracked(context, canvas, run.Text, properties, run.X, baseline, run.GlyphX);
                 canvas.Restore();
             }
             else
             {
-                DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
+                DrawTracked(context, canvas, run.Text, properties, run.X, baseline, run.GlyphX);
             }
 
             if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
@@ -264,7 +260,7 @@ static class SkiaPainter
             : SkiaRenderContext.ParseColor(properties.UnderlineColorHex);
         var rules = new List<TextDecorations.Rule>();
         var waves = new List<TextDecorations.Wave>();
-        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => MeasurePrefix(context, properties, _), rules, waves);
+        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => run.PrefixWidth(_, prefix => MeasurePrefix(context, properties, prefix)), rules, waves);
         foreach (var rule in rules)
         {
             var y = P(context, rule.Y);
@@ -294,13 +290,16 @@ static class SkiaPainter
     // placed width already includes both (the measurer kerns and tracks the advances), so the following run
     // starts past it; Skia's own DrawText takes no pair adjustment, so a kerned run is drawn glyph by glyph
     // with the kern the layout measured added to each pen (CanonicalTextMeasurer.KernShiftsPoints).
-    // Per-glyph so surrogate pairs stay intact — mirrors PdfPainter.DrawTracked.
-    static void DrawTracked(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, double baseline)
+    // Per-glyph so surrogate pairs stay intact — mirrors PdfPainter.DrawTracked. A run the layout drew at
+    // Word's pen (PlacedRun.GlyphX) puts each glyph where that says, its kern and tracking already in it,
+    // and draws it at the size Word does (PlacedRun.GlyphFont).
+    static void DrawTracked(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, double baseline, IReadOnlyList<float>? glyphX)
     {
-        var font = context.CreateFont(properties);
+        var positions = PlacedRun.Positions(glyphX, text);
+        var font = context.CreateFont(positions == null ? properties : PlacedRun.GlyphFont(properties));
         var paint = context.GetReusableTextPaint(properties);
         var y = P(context, baseline);
-        var kernShifts = KernShifts(context, text, properties);
+        var kernShifts = positions == null ? KernShifts(context, text, properties) : null;
 
         // w14:shadow: a copy of the run in the shadow's colour, offset along its direction and
         // softened by its blur, under the glyphs (TextEffectGeometry).
@@ -313,7 +312,7 @@ static class SkiaPainter
                 Color = SkiaRenderContext.ParseColor(shadow.ColorHex).WithAlpha(TextEffectGeometry.ShadowAlpha(shadow)),
                 MaskFilter = shadow.BlurPoints > 0 ? SKMaskFilter.CreateBlur(SKBlurStyle.Normal, P(context, shadow.BlurPoints) / 2) : null
             };
-            DrawSpaced(context, canvas, text, properties, penX + offsetX, y + P(context, offsetY), font, shadowPaint, kernShifts);
+            DrawSpaced(context, canvas, text, properties, penX + offsetX, y + P(context, offsetY), font, shadowPaint, kernShifts, positions);
         }
 
         // A bold run in a face that is not bold: the glyphs are filled and stroked, which thickens every
@@ -323,13 +322,13 @@ static class SkiaPainter
             paint.Style = SKPaintStyle.StrokeAndFill;
             paint.StrokeWidth = P(context, BoldSimulation.StrokeWidthPoints(properties.SyntheticBold, VerticalRunPosition.RenderSizePoints(properties), 72.0 / context.Dpi));
             paint.StrokeJoin = SKStrokeJoin.Miter;
-            DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts);
+            DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts, positions);
             paint.Style = SKPaintStyle.Fill;
             paint.StrokeWidth = 0;
         }
         else
         {
-            DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts);
+            DrawSpaced(context, canvas, text, properties, penX, y, font, paint, kernShifts, positions);
         }
 
         // w14:textOutline: a stroke centred on the glyph outlines, over the fill.
@@ -343,12 +342,26 @@ static class SkiaPainter
                 StrokeJoin = SKStrokeJoin.Round,
                 Color = SkiaRenderContext.ParseColor(outline.ColorHex)
             };
-            DrawSpaced(context, canvas, text, properties, penX, y, font, outlinePaint, kernShifts);
+            DrawSpaced(context, canvas, text, properties, penX, y, font, outlinePaint, kernShifts, positions);
         }
     }
 
-    static void DrawSpaced(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, float y, SKFont font, SKPaint paint, double[]? kernShifts)
+    static void DrawSpaced(SkiaRenderContext context, SKCanvas canvas, string text, RunProperties properties, double penX, float y, SKFont font, SKPaint paint, double[]? kernShifts, IReadOnlyList<float>? positions)
     {
+        // At Word's pen: each cluster where the layout put it.
+        if (positions != null)
+        {
+            var index = 0;
+            while (index < text.Length)
+            {
+                var end = PlacedRun.ClusterEnd(positions, text, index);
+                canvas.DrawText(text.Substring(index, end - index), P(context, penX + positions[index]), y, font, paint);
+                index = end;
+            }
+
+            return;
+        }
+
         if ((properties.CharacterSpacingPoints == 0 &&
              kernShifts == null) ||
             text.Length <= 1)

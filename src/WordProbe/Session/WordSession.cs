@@ -44,7 +44,7 @@ sealed class WordSession : IDisposable
     // Every recorded result is compared against every other, so they all have to come from one Word: a
     // different build moved paragraph spacing and a floating picture's copy offset across a whole rerun.
     // Raising this means rerunning the catalogue, not one family.
-    public const string ExpectedBuild = "16.0.20527.20088";
+    public const string ExpectedBuild = "16.0.20527.20150";
 
     static void RequireExpectedBuild()
     {
@@ -169,6 +169,9 @@ sealed class WordSession : IDisposable
         var zoom = view.Zoom;
         Ensure(() => zoom.Percentage, _ => zoom.Percentage = _, settings.ZoomPercent);
         Ensure(() => view.ShowAll, _ => view.ShowAll = _, false);
+        // Persisted like an option, so the profile's value is kept for the restore first.
+        OptionsSnapshot.Remember(OriginalOptions, "View.ShowHiddenText", view.ShowHiddenText);
+        Ensure(() => view.ShowHiddenText, _ => view.ShowHiddenText = _, false);
         Ensure(() => view.ShowFieldCodes, _ => view.ShowFieldCodes = _, false);
         Ensure(() => view.ShowBookmarks, _ => view.ShowBookmarks = _, false);
         Ensure(() => view.ShowRevisionsAndComments, _ => view.ShowRevisionsAndComments = _, true);

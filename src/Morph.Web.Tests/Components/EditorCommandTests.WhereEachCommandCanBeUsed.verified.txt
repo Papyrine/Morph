@@ -1,0 +1,46 @@
+﻿an inline picture selected, a floating picture selected
+    wrap-text
+cells selected
+    merge-cells
+comments allowed
+    new-comment
+in a link
+    remove-link
+in a numbered list
+    continue-numbering, restart-numbering
+in a table, cells selected
+    autofit, cell-shading, cell-shadings, delete-column, delete-row, delete-table, distribute-columns, insert-column-left, insert-column-right, insert-row-above, insert-row-below, split-cells, table-borders
+read-only, writable, revising, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    column-bottom, column-top, copy, find, marks, next-cell, one-page, page-width, pages, presentation, previous-cell, review-pane, row-end, row-start, story-end, story-start, word-count
+read-only, writable, revising, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, tracked changes, tracking forced, comments allowed
+    ruler
+read-only, writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    next-change, previous-change
+tracked changes
+    accept-all, reject-all
+with history
+    redo, undo
+writable, revising, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    font, font-size, replace
+writable, with history, in a table, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    table
+writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, comments allowed
+    track
+writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    bookmark, clear-formatting, cut, decrease-indent, delete, end-list, follow-on, font-colour, font-colours, footer, format-painter, header, heading1, heading2, heading3, increase-indent, indent, line-double, line-one-and-half, line-single, outdent, overtype, paste, picture, reset-picture, unindent
+writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, tracked changes, tracking forced, comments allowed
+    page-field, page-number
+writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, a floating picture selected, tracked changes, tracking forced, comments allowed
+    contents, endnote, footnote, margins, next-footnote, orientation, paper-size, previous-footnote, update-contents
+writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    align-center, align-justify, align-left, align-right, all-caps, bold, bullet-library, bullets, change-case, demote, double-underline, font-dialog, grow, grow-point, hang, hidden, highlight, highlights, italic, left-indent, move-down, move-up, normal-style, numbering, numbering-library, paragraph-dialog, paragraph-shading, paragraph-shadings, promote, reset-paragraph, right-indent, shrink, shrink-point, small-caps, space-before, spacing, spacing-after, spacing-before, strike, styles, subscript, superscript, symbol-font, tab-indent, underline, unhang, word-underline
+writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, tracked changes, tracking forced, comments allowed
+    blank-page, breaks, columns, page-break
+writable, with history, text selected, in a table, cells selected, paragraphs selected, in a link, in a numbered list, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    date-field, more-paragraph-borders, paragraph-borders, symbol, time-field
+writable, with history, text selected, in a table, in a link, in a numbered list, an inline picture selected, a floating picture selected, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    link
+writable, with history, text selected, in a table, paragraphs selected, in a link, in a numbered list, in a header, in a footnote, in an endnote, tracked changes, tracking forced, comments allowed
+    date
+writable, with history, text selected, paragraphs selected, in a link, in a numbered list, an inline picture selected, tracked changes, tracking forced, comments allowed
+    column-break

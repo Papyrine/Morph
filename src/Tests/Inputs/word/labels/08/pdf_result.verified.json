@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "YOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET\nYOUR EVENT NAME\nTICKET"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.5479,
+      "Ssim": 0.9247,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

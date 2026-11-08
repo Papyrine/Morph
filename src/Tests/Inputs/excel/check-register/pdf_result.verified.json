@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 841.8900146484375,
+          "Height": 595.280029296875
+        },
+        "Text": "√ Check register\nNumber Date Description of transaction Clear Debit (-) Credit (+) Balance\n16/07/2026 Previous balance $1,016.16 $1,016.16\n1033 17/07/2026 Groceries √ $123.78 $892.38\n18/07/2026 Deposit, sweepstakes winnings $10,000.00 $10,892.38\n1034 19/07/2026 Dry cleaner $10.75 $10,881.63"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2576,
+      "Ssim": 0.7567,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

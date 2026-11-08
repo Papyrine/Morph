@@ -110,11 +110,17 @@ export function corrections(text, end, trigger) {
         apply({ from: tokenStart + doubled[1].length, to: tokenStart + doubled[1].length + 2, text: '—' });
     }
 
+    // Spaced, one hyphen or two make the en dash alike, as Word's option says ("text, a space, one or two
+    // hyphens, a space"): the probes typed only the one.
     const wordStart = start(current, end, _ => letter.test(_));
     if (wordStart >= 4 &&
         current.slice(wordStart - 3, wordStart) === ' - ' &&
         !/\s/.test(current[wordStart - 4])) {
         apply({ from: wordStart - 2, to: wordStart - 1, text: '–' });
+    } else if (wordStart >= 5 &&
+        current.slice(wordStart - 4, wordStart) === ' -- ' &&
+        !/\s/.test(current[wordStart - 5])) {
+        apply({ from: wordStart - 3, to: wordStart - 1, text: '–' });
     }
 
     const word = current.slice(wordStart, end);

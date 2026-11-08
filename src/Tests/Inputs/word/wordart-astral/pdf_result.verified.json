@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
+        "Text": "WORDART ASTRAL GLYPHS\nU+10780 in Fade / Triangle warps, against all-BMP controls\nFadeRight control (5 BMP)\nFadeRight astral first\nFadeRight astral middle\nFadeRight astral last\nTriangle control (5 BMP)\nTriangle astral middle"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1046,
+      "Ssim": 0.9714,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

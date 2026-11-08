@@ -182,6 +182,30 @@ public class TableEditTests
         await Assert.That(Describe(ReviewEditor.ResolveAll(result.Document, accept: false))).StartsWith("<a|b/c|d>");
     }
 
+    // Text selected from one cell into another is the cells between, as Word selects a drag across cells
+    // (WordProbe T-07), and Delete clears them and keeps them (R-T-4): the whole of each cell, wherever in
+    // it the selection starts or ends. The caret is left at the first cell's start. Runs 0 to 3 are the
+    // cells' text, a to d.
+    [Test]
+    public async Task Delete_FromOneCellIntoAnother_ClearsTheCellsBetween()
+    {
+        var row = DocumentEditor.Delete(Grid(), new(0, 1), new(1, 0), Plain);
+        var block = DocumentEditor.Delete(Grid(), new(1, 1), new(2, 0), Plain);
+
+        await Assert.That(Describe(row.Document)).StartsWith("<|/c|d>");
+        await Assert.That((row.Paragraph, row.Offset)).IsEqualTo((0, 0));
+        await Assert.That(Describe(block.Document)).StartsWith("<|/|>");
+    }
+
+    [Test]
+    public async Task Delete_FromOneCellIntoAnother_Tracked_StrikesTheirText()
+    {
+        var result = DocumentEditor.Delete(Grid(), new(0, 1), new(1, 0), Tracked);
+
+        await Assert.That(Describe(result.Document)).StartsWith("<{-a-}|{-b-}/c|d>");
+        await Assert.That(Describe(ReviewEditor.ResolveAll(result.Document, accept: false))).StartsWith("<a|b/c|d>");
+    }
+
     // A table that was all a cell held leaves the cell a paragraph to hold, as a cell has to.
     [Test]
     public async Task ATableNestedInACell_Deleted_LeavesTheCellAParagraph()

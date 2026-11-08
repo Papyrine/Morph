@@ -55,6 +55,11 @@ static partial class DocumentEditor
             like = next ?? -1;
         }
 
+        if (content.Count == 1)
+        {
+            content = [Spaced(content[0], before.LastOrDefault().Text?.LastOrDefault(), after.FirstOrDefault().Text?.FirstOrDefault())];
+        }
+
         var last = content.Count - 1;
         var paragraphs = new List<NewParagraph>();
         for (var index = 0; index <= last; index++)
@@ -105,6 +110,41 @@ static partial class DocumentEditor
         }
 
         return new(bytes, paragraph + last, end);
+    }
+
+    // Word's smart cut and paste (WordProbe C-01): one line pasted against a word on either side is
+    // spaced from it, as the box spaces the plain text it pastes (morph-edit.js, spaced). The space is a
+    // run of its own, so it is part of no link the pasted text is. A character that is not text — a
+    // field, a picture — is no word.
+    static PastedParagraph Spaced(PastedParagraph pasted, char? before, char? after)
+    {
+        var text = pasted.Text;
+        if (text.Length == 0 ||
+            text.Contains('\n'))
+        {
+            return pasted;
+        }
+
+        static bool Word(char? character) =>
+            character is { } letter && char.IsLetterOrDigit(letter);
+
+        var runs = pasted.Runs.ToList();
+        if (Word(before) &&
+            Word(text[0]))
+        {
+            runs.Insert(0, new(" "));
+        }
+
+        if (Word(after) &&
+            Word(text[^1]))
+        {
+            runs.Add(new(" "));
+        }
+
+        return pasted with
+        {
+            Runs = runs
+        };
     }
 
     // Each stretch of pasted text that links somewhere, made a link: from the end of the paragraph's

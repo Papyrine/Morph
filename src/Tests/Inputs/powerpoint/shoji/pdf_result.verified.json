@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "BASIC PRESENTATION"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 960.0,
+          "Height": 540.0
+        },
+        "Text": "Agenda\nIntroduction\nBuilding confidence\nEngaging the audience\nVisual aids\nFinal tips & takeaways"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.2394,
+      "Ssim": 0.9441,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.6212,
+      "Ssim": 0.9292,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

@@ -1,10 +1,10 @@
--           <w:docPart w:val="A318F00CC3E449C29CB93C89DA450791" />
-+           <w:docPart w:val="66CEE9FA71264260A321C2F99C542214" />
--           <w:docPart w:val="A318F00CC3E449C29CB93C89DA450791" />
-+           <w:docPart w:val="66CEE9FA71264260A321C2F99C542214" />
--           <w:docPart w:val="482B37B4DA26489BA5B64E31444F5E03" />
-+           <w:docPart w:val="23269B703394471AA6BFC77CAE8024A2" />
-+     <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-10-27T13:10:00Z" w16du:dateUtc="2026-10-27T02:10:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
+-           <w:docPart w:val="686D522A7A914E00A224DEEA22332FA8" />
++           <w:docPart w:val="D5C75789359B4C28859E3D7379F2E33F" />
+-           <w:docPart w:val="686D522A7A914E00A224DEEA22332FA8" />
++           <w:docPart w:val="D5C75789359B4C28859E3D7379F2E33F" />
+-           <w:docPart w:val="C3BB9627BC5C4F4D9F7F642AF330A127" />
++           <w:docPart w:val="FE236090C930475B8B7A3C583908F9EB" />
++     <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-11-07T12:17:00Z" w16du:dateUtc="2026-11-07T01:17:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:t xml:space="preserve"> </w:t>
 +       </w:r>
@@ -12,26 +12,26 @@
 +         <w:t xml:space="preserve">Rich: </w:t>
 +       </w:r>
 +     </w:ins>
-+     <w:customXmlInsRangeStart w:id="1" w:author="Simon Cropp" w:date="2026-10-27T13:10:00Z" />
++     <w:customXmlInsRangeStart w:id="1" w:author="Simon Cropp" w:date="2026-11-07T12:17:00Z" />
 +     <w:sdt>
 +       <w:sdtPr>
-+         <w:id w:val="1944645673" />
++         <w:id w:val="316463430" />
 +         <w:placeholder>
-+           <w:docPart w:val="594CB18D37314F12B02BC70403D9A433" />
++           <w:docPart w:val="B9D1034B183A4F298690C465B74DA4D0" />
 +         </w:placeholder>
 +       </w:sdtPr>
 +       <w:sdtContent>
 +         <w:customXmlInsRangeEnd w:id="1" />
-+         <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-10-27T13:10:00Z" w16du:dateUtc="2026-10-27T02:10:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++         <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-11-07T12:17:00Z" w16du:dateUtc="2026-11-07T01:17:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +           <w:r>
 +             <w:t>content here</w:t>
 +           </w:r>
 +         </w:ins>
-+         <w:customXmlInsRangeStart w:id="3" w:author="Simon Cropp" w:date="2026-10-27T13:10:00Z" />
++         <w:customXmlInsRangeStart w:id="3" w:author="Simon Cropp" w:date="2026-11-07T12:17:00Z" />
 +       </w:sdtContent>
 +     </w:sdt>
 +     <w:customXmlInsRangeEnd w:id="3" />
-+     <w:ins w:id="4" w:author="Simon Cropp" w:date="2026-10-27T13:10:00Z" w16du:dateUtc="2026-10-27T02:10:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++     <w:ins w:id="4" w:author="Simon Cropp" w:date="2026-11-07T12:17:00Z" w16du:dateUtc="2026-11-07T01:17:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +       <w:r>
 +         <w:t xml:space="preserve"> end.</w:t>
 +       </w:r>

@@ -8,10 +8,12 @@ public partial class SnapshotTests
 {
     const string extendShown = ".editor-status-extend[data-value='true']";
 
-    // Delete in extend mode deletes what it selected and ends the mode, so what is typed after is text;
-    // a click ends it too. The status bar shows the mode while it is on.
+    // Delete in extend mode deletes what it selected and ends the mode, so what is typed after is text.
+    // A click extends the selection from where the mode began to the click, and the mode stays on, as
+    // Word's does (WordProbe S-10d), until Esc. The status bar shows the mode while it is on.
     [Test]
-    public async Task ExtendMode_EndsOnDeleteAndOnAClick()
+    [Property("WordBehavior", "R-S-5")]
+    public async Task ExtendMode_EndsOnDelete_AndAClickExtends()
     {
         var page = await OpenEditAsync(Build(P("", R("One two. The quick fox jumps. Last one."))));
 
@@ -33,11 +35,87 @@ public partial class SnapshotTests
 
         await page.Keyboard.PressAsync("F8");
         await page.WaitForSelectorAsync(extendShown);
-        await page.Locator($"{editor} .edit-p").ClickAsync(new() {Position = new() {X = 5, Y = 5}});
+        await page.Locator($"{editor} .edit-p").ClickAsync(new() {Position = new() {X = 2, Y = 5}});
+        await Assert.That(await SelectedAsync(page)).IsEqualTo("One two. The x");
+        await page.WaitForSelectorAsync(extendShown);
+        await page.Keyboard.PressAsync("Escape");
         await page.WaitForSelectorAsync(extendShown, new() {State = WaitForSelectorState.Hidden});
-        await page.Keyboard.PressAsync("End");
+        await Assert.That(await SelectedAsync(page)).IsEqualTo("One two. The x");
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two. The xfox jumps. Last one.");
+    }
+
+    // Undo and Redo in an open paragraph follow what was typed in it: greyed out with nothing typed and
+    // nothing in the file's history, on with the first key, and swapped by an Undo of the last one.
+    [Test]
+    public async Task UndoAndRedo_FollowWhatIsTypedInTheOpenParagraph()
+    {
+        var page = await OpenEditAsync(Build(P("", R("One two."))));
+        const string undo = "[data-edit-command=undo]";
+        const string redo = "[data-edit-command=redo]";
+
+        await ClickInAsync(page, "two");
+        await Assert.That(await page.IsDisabledAsync(undo)).IsTrue();
+        await Assert.That(await page.IsDisabledAsync(redo)).IsTrue();
+
+        await page.Keyboard.TypeAsync("x");
+        await page.WaitForSelectorAsync($"{undo}:not([disabled])");
+        await Assert.That(await page.IsDisabledAsync(redo)).IsTrue();
+
+        await page.Keyboard.PressAsync("Control+z");
+        await page.WaitForSelectorAsync($"{redo}:not([disabled])");
+        await Assert.That(await page.IsDisabledAsync(undo)).IsTrue();
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two.");
+    }
+
+    // Escape in the ribbon's Font or Size box puts back what the box showed and goes back to the
+    // paragraph, where the caret was left: what was typed into the box is not applied, and what was
+    // typed in the paragraph is kept.
+    [Test]
+    [Arguments(".editor-font-input", "Comic Sans MS")]
+    [Arguments(".editor-size-input", "48")]
+    public async Task EscapeInTheFontBoxes_PutsBackWhatTheyShowed(string box, string typed)
+    {
+        var page = await OpenEditAsync(Build(P("", R("One two."))));
+
+        // What is typed before is handed in as the box takes the focus, and the caret is still after it.
+        await ClickInAsync(page, "two");
         await page.Keyboard.TypeAsync("y");
-        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("One two. The xfox jumps. Last one.y");
+        await page.WaitForFunctionAsync($"() => document.querySelector('{editor}')?.innerText.includes('y')");
+        var shown = await page.InputValueAsync(box);
+        await page.FocusAsync(box);
+        await page.Keyboard.PressAsync("Control+a");
+        await page.Keyboard.TypeAsync(typed);
+        // The box keeps the focus through the hand-in's layout, which once disabled it, and with it
+        // what was typed.
+        await Assert.That(await page.InputValueAsync(box)).IsEqualTo(typed);
+        await page.Keyboard.PressAsync("Escape");
+
+        await Assert.That(await page.InputValueAsync(box)).IsEqualTo(shown);
+        await page.WaitForSelectorAsync($"{editor}:focus");
+        await page.Keyboard.TypeAsync("x");
+        await Assert.That(await page.InnerTextAsync(editor)).Contains("yx");
+        var saved = DocumentBody(await SaveAsync(page));
+        await Assert.That(saved).DoesNotContain("Comic Sans");
+        await Assert.That(saved).DoesNotContain("w:sz w:val=\"96\"");
+    }
+
+    // Insert > Table is greyed out with text selected in the open paragraph, on an Insert tab shown
+    // after the selection was made too, and comes back with a caret.
+    [Test]
+    public async Task InsertTable_IsGreyedOut_WhileTextIsSelected()
+    {
+        var page = await OpenEditAsync(Build(P("", R("One two."))));
+        const string table = ".editor-tool:has-text('Table')";
+
+        await ClickInAsync(page, "two");
+        await page.Keyboard.PressAsync("Home");
+        await page.Keyboard.PressAsync("Shift+ArrowRight");
+        await page.Keyboard.PressAsync("Shift+ArrowRight");
+        await ChooseTabAsync(page, "Insert");
+        await page.WaitForSelectorAsync($"{table}[disabled]");
+
+        await page.Keyboard.PressAsync("ArrowRight");
+        await page.WaitForSelectorAsync($"{table}:not([disabled])");
     }
 
     // A character beyond the Basic Multilingual Plane is two UTF-16 code units and one character:
@@ -98,6 +176,27 @@ public partial class SnapshotTests
         var saved = await SaveAsync(page);
         await Assert.That(DocumentBody(saved)).Contains("<w:fldSimple w:instr=\" PAGE \">");
         await Assert.That(string.Concat(Read(saved)[0].Split('[', ']'))).IsEqualTo("Page and 1 here there.");
+    }
+
+    // A field dragged past another field is moved past it, both still fields in the file. The other is
+    // one whose result the layout does not work out again — a page field reads the page's number in the
+    // box as on the page — so that the two read apart.
+    [Test]
+    public async Task Drag_WithinTheBox_MovesAFieldPastAnother()
+    {
+        var author = pageField.Replace(" PAGE ", " AUTHOR ").Replace(">1<", ">Ann<");
+        var page = await OpenEditAsync(Build(P("", R("Page "), pageField, R(" by "), author, R(" end."))));
+
+        await ClickInAsync(page, "end");
+        var text = await BoxTextAsync(page);
+        await SelectBoxTextAsync(page, "1 by ");
+        await DragAsync(page, editor, 0, text.Length, [text.IndexOf("by", StringComparison.Ordinal), text.IndexOf("end", StringComparison.Ordinal)]);
+        await Assert.That(await page.InnerTextAsync(editor)).IsEqualTo("Page Ann 1 by end.");
+        await HandInAsync(page);
+
+        var body = DocumentBody(await SaveAsync(page));
+        await Assert.That(body.IndexOf("AUTHOR", StringComparison.Ordinal)).IsLessThan(body.IndexOf(" PAGE ", StringComparison.Ordinal));
+        await Assert.That(body.Split("<w:fldSimple").Length - 1).IsEqualTo(2);
     }
 
     // A floating picture's anchor takes a place in the text and is not seen: Backspace beside it deletes
@@ -281,8 +380,7 @@ public partial class SnapshotTests
 
         await page.Keyboard.PressAsync("Shift+ArrowLeft");
         await page.Keyboard.PressAsync("Meta+b");
-        // Command+Enter hands the paragraph in, as Ctrl+Enter does elsewhere.
-        await page.Keyboard.PressAsync("Meta+Enter");
+        await HandInAsync(page);
         for (var attempt = 0; attempt < 40; attempt++)
         {
             if (Read(await SaveAsync(page))[2] == "[Third ][b:X][and last.]")

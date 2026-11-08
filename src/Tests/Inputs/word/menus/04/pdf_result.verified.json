@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "MONTHLY MEAL PLANNER\nNovember 20YY\nWeek 1 Week 2\nMON MON\nTUE TUE\nWED WED\nTHU THU\nFRI FRI\nSAT SAT\nSUN SUN\nWeek 3 Week 4\nMON MON\nTUE TUE\nWED WED\nTHU THU\nFRI FRI\nSAT SAT\nSUN SUN"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0668,
+      "Ssim": 0.9346,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

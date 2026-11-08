@@ -62,6 +62,8 @@ sealed record CaretPlace(int StartParagraph, int StartOffset, int EndParagraph, 
     static string Read(EditParagraph paragraph) =>
         string.Concat(paragraph.Units.Select(_ => _.Editable ? _.Text : "￼"));
 
+    // Text struck under tracking is a deletion once handed in: one place, as text a tracked change
+    // deleted is.
     static string Read(NewParagraph paragraph) =>
-        string.Concat(paragraph.Items.Select(_ => _.Text ?? "￼"));
+        string.Concat(paragraph.Items.Select(_ => _.Struck ? "￼" : _.Text ?? "￼"));
 }

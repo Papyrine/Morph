@@ -1,0 +1,44 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 2,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "f­­\nCelebrate!\nCelebrate!"
+      },
+      {
+        "Number": 2,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "To get started right away, just tap\nany placeholder text (such as this)\nand start typing to replace it with\nyour own or delete it for a blank\ncard.\nTo get started right away, just tap\nany placeholder text (such as this)\nand start typing to replace it with\nyour own or delete it for a blank\ncard."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.3492,
+      "Ssim": 0.9924,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    },
+    {
+      "Page": 2,
+      "ErrorMetric": 0.0141,
+      "Ssim": 0.9932,
+      "ExpectedFile": "expected_0002.png",
+      "VerifiedFile": "pdf_result#page_0002.verified.png",
+      "ReceivedFile": "pdf_result#page_0002.received.png"
+    }
+  ]
+}

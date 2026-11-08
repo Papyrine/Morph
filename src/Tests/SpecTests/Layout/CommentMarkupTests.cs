@@ -85,8 +85,10 @@ public class CommentMarkupTests
     [Test]
     public async Task Balloon_text_wraps_where_Words_does()
     {
-        // Word set R1's comment in five lines, its fourth ending "in the balloon" (224.02pt of Calibri
-        // 9pt) and its first refusing "should" (225.53pt).
+        // Word set R1's comment in five lines, in the document's default face at 9pt. That face is
+        // Aptos on Word 16.0.20527 (comments/02 has no styles part), whose XPS breaks these lines
+        // where they break here (2026-11-08); the build of October set them in Calibri, its fourth
+        // line ending "in the balloon" (224.02pt) and its first refusing "should" (225.53pt).
         var group = Group(Layout(new DocumentParser().Parse(Input("02"))).Pages[0]);
         var first = BalloonLines(group)
             .Where(_ => _.Y < 120)
@@ -98,8 +100,8 @@ public class CommentMarkupTests
             "Commented [R1]: This is a much longer comment that",
             "should wrap across several lines in the balloon so that its",
             "width can be read off the page. This is a much longer",
-            "comment that should wrap across several lines in the balloon",
-            "so that its width can be read off the page."
+            "comment that should wrap across several lines in the",
+            "balloon so that its width can be read off the page."
         ]);
     }
 

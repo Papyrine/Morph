@@ -691,7 +691,7 @@ static class ReviewEditor
         }
     }
 
-    static void DeleteComment(WordprocessingDocument document, string commentId)
+    public static void DeleteComment(WordprocessingDocument document, string commentId)
     {
         var main = MainPart(document);
         if (main.WordprocessingCommentsPart?.Comments is not { } comments ||

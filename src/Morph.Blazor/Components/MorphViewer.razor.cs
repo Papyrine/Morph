@@ -98,6 +98,16 @@ public partial class MorphViewer : IAsyncDisposable
     [Parameter]
     public bool MeasurePaint { get; set; }
 
+    /// <summary>
+    /// The culture the editor's dates are spelt in: the formats its Date and Time dialog offers first,
+    /// and the month and day names a date is written with. When <c>null</c> (the default) it is
+    /// <see cref="CultureInfo.CurrentCulture"/> — or, where that has no culture data (a WebAssembly app
+    /// published with <c>InvariantGlobalization</c>), how the reader's browser spells a date. Pass
+    /// <see cref="CultureInfo.InvariantCulture"/> to offer Word's own list alone.
+    /// </summary>
+    [Parameter]
+    public CultureInfo? Culture { get; set; }
+
     /// <summary>Extra CSS classes for the root element, alongside the <c>viewer</c> class.</summary>
     [Parameter]
     public string? Class { get; set; }
@@ -327,6 +337,10 @@ public partial class MorphViewer : IAsyncDisposable
                 focusReplace = false;
                 await replaceInput.FocusAsync();
             }
+            else if (handle is { } selecting)
+            {
+                await selecting.SelectFindAsync();
+            }
             else
             {
                 await findInput.FocusAsync();
@@ -532,7 +546,13 @@ public partial class MorphViewer : IAsyncDisposable
             documentId = opening;
             await viewer.LoadAsync(opening, pageSizes, opened.Json, currentPage - 1, ZoomName(InitialZoom), info.PageNoun);
             await viewer.SetPicturesAsync(opening, opened.Pictures);
+            if (Editing)
+            {
+                await viewer.SetLinesAsync(opening, opened.Edits.LineBoxes());
+            }
+
             await PushPresenceAsync();
+
             if (findOpen &&
                 findQuery.Trim().Length > 0)
             {
@@ -990,7 +1010,7 @@ public partial class MorphViewer : IAsyncDisposable
             () =>
             {
                 if (editOpen &&
-                    Locate(page, x, y, -1, -1) is var (paragraph, _, _, _))
+                    Locate(page, x, y, -1, -1, blank: false) is var (paragraph, _, _, _))
                 {
                     found = [paragraph.Ordinal, (int) paragraph.Part];
                 }
@@ -1315,7 +1335,28 @@ public partial class MorphViewer : IAsyncDisposable
         return Task.CompletedTask;
     }
 
+    // The match the reader was on stays selected on the pages, as Word leaves the text it found, and the
+    // keys are the pages' again: what is typed replaces it. With none, the reader goes back to where they
+    // were when the bar opened, rather than being left with the focus nowhere.
     async Task CloseFindAsync()
+    {
+        TextMatch? found = currentMatch >= 0 && currentMatch < matches.Count ? matches[currentMatch] : null;
+        await CloseFindBarAsync();
+        if (handle is not { } viewer)
+        {
+            return;
+        }
+
+        if (found is { } match)
+        {
+            await viewer.SelectTextAsync(match.Page, match.Start, match.Page, match.Start + match.Length);
+            return;
+        }
+
+        await ReturnToDocumentAsync();
+    }
+
+    async Task CloseFindBarAsync()
     {
         findOpen = false;
         replaceOpen = false;

@@ -62,9 +62,16 @@ public class BoldSimulationTests
 
         await Assert.That(bold.Width - regular.Width).IsEqualTo(17 * 0.6f).Within(0.01f);
         await Assert.That(bold.Runs[0].Width - regular.Runs[0].Width).IsEqualTo(17 * 0.6f).Within(0.01f);
-        // Both lines also draw at Word's whole pixels (CanonicalParagraphMeasurer.DrawAtWordPixels), so the
-        // simulation is what the bold run's spacing carries beyond the regular one's.
-        await Assert.That(bold.Runs[0].Properties.CharacterSpacingPoints - regular.Runs[0].Properties.CharacterSpacingPoints).IsEqualTo(0.6).Within(0.0001);
+        // Both lines also draw at Word's whole pixels (CanonicalParagraphMeasurer.DrawAtWordPixels), each
+        // glyph where Word's pen stands, so the simulation is how much further along the bold run's glyphs
+        // stand than the regular one's: 0.6pt for every glyph before them.
+        var boldX = bold.Runs[0].GlyphX!;
+        var regularX = regular.Runs[0].GlyphX!;
+        await Assert.That(boldX.Count).IsEqualTo(sample.Length);
+        for (var index = 0; index < sample.Length; index++)
+        {
+            await Assert.That(boldX[index] - regularX[index]).IsEqualTo(0.6f * index).Within(0.001f);
+        }
     }
 
     // _probe_synwrap: a bold sentence wraps at the very measure the regular one does.

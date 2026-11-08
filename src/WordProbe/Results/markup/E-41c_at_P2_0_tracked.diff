@@ -1,8 +1,8 @@
 +       <w:rPr>
-+         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T17:20:00Z" w16du:dateUtc="2026-10-25T06:20:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-11-07T11:44:00Z" w16du:dateUtc="2026-11-07T00:44:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du" />
 +       </w:rPr>
 -       <w:ind w:left="1440" />
-+       <w:pPrChange w:id="1" w:author="Simon Cropp" w:date="2026-10-25T17:20:00Z" w16du:dateUtc="2026-10-25T06:20:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:pPrChange w:id="1" w:author="Simon Cropp" w:date="2026-11-07T11:44:00Z" w16du:dateUtc="2026-11-07T00:44:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +         <w:pPr>
 +           <w:pStyle w:val="ListParagraph" />
 +           <w:numPr>

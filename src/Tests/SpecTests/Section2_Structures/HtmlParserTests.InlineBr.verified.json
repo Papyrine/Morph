@@ -1,0 +1,116 @@
+﻿[
+  {
+    "Runs": [
+      {
+        "Text": "line1",
+        "Properties": {
+          "FontFamily": "Times New Roman",
+          "FontSizePoints": 12.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "DoubleUnderline": false,
+          "IsRevisionMark": false,
+          "Strikethrough": false,
+          "DoubleStrikethrough": false,
+          "AllCaps": false,
+          "SmallCaps": false,
+          "CharacterScalePercent": 100.0,
+          "IsRightToLeft": false,
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
+        },
+        "InlineImageFlipHorizontal": false,
+        "InlineImageFlipVertical": false,
+        "InlineImageOpacity": 1.0,
+        "InlineImageClipToEllipse": false,
+        "IsTab": false
+      },
+      {
+        "Text": "\n",
+        "Properties": {
+          "FontFamily": "Times New Roman",
+          "FontSizePoints": 12.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "DoubleUnderline": false,
+          "IsRevisionMark": false,
+          "Strikethrough": false,
+          "DoubleStrikethrough": false,
+          "AllCaps": false,
+          "SmallCaps": false,
+          "CharacterScalePercent": 100.0,
+          "IsRightToLeft": false,
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
+        },
+        "InlineImageFlipHorizontal": false,
+        "InlineImageFlipVertical": false,
+        "InlineImageOpacity": 1.0,
+        "InlineImageClipToEllipse": false,
+        "IsTab": false
+      },
+      {
+        "Text": "line2",
+        "Properties": {
+          "FontFamily": "Times New Roman",
+          "FontSizePoints": 12.0,
+          "Bold": false,
+          "Italic": false,
+          "Underline": false,
+          "DoubleUnderline": false,
+          "IsRevisionMark": false,
+          "Strikethrough": false,
+          "DoubleStrikethrough": false,
+          "AllCaps": false,
+          "SmallCaps": false,
+          "CharacterScalePercent": 100.0,
+          "IsRightToLeft": false,
+          "HasReflection": false,
+          "Hidden": false,
+          "Emboss": false,
+          "Imprint": false,
+          "OutlineOnly": false
+        },
+        "InlineImageFlipHorizontal": false,
+        "InlineImageFlipVertical": false,
+        "InlineImageOpacity": 1.0,
+        "InlineImageClipToEllipse": false,
+        "IsTab": false
+      }
+    ],
+    "Properties": {
+      "SpacingAfterPoints": 14.0,
+      "LineSpacingMultiplier": 1.0,
+      "SnapToGrid": true,
+      "ContextualSpacing": false,
+      "SuppressLineNumbers": false,
+      "SuppressAutoHyphens": false,
+      "KeepLines": false,
+      "KeepNext": false,
+      "WidowControl": true,
+      "PageBreakBefore": false,
+      "BorderBetween": {
+        "IsVisible": false,
+        "WidthPoints": 0.5,
+        "ColorHex": "000000",
+        "HoldsSpace": false
+      },
+      "DefaultTabStopPoints": 36.0,
+      "IsRightToLeft": false,
+      "MirrorIndents": false
+    },
+    "IsAnchorOnlyMark": false,
+    "IsSectionBreakMark": false,
+    "IsCollapsedCellMark": false,
+    "PropertiesRevised": false,
+    "MarkRevised": false
+  }
+]

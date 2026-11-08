@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 595.2999877929688,
+          "Height": 841.9000244140625
+        },
+        "Text": "Header text\nFooter text\nBody paragraph 1.\nBody paragraph 2.\nBody paragraph 3.\nBody paragraph 4.\nBody paragraph 5.\nBody paragraph 6."
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0074,
+      "Ssim": 0.9899,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

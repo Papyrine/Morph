@@ -427,8 +427,9 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(cut.Find(".editor-submenu .editor-menu-item[aria-checked=true]").TextContent).IsEqualTo("In line with text");
     }
 
+    // In a link: Word's Edit, Open, Copy and Remove Hyperlink.
     [Test]
-    public async Task TheContextMenu_InALink_OffersToRemoveIt()
+    public async Task TheContextMenu_InALink_OffersToEditOpenCopyAndRemoveIt()
     {
         var linked = Build(P("", "<w:hyperlink w:anchor=\"top\"><w:r><w:t>Linked</w:t></w:r></w:hyperlink>", R(" plain")));
         var cut = await OpenEditing(linked);
@@ -437,7 +438,7 @@ public class MorphEditorTests : BunitTestContext
 
         await cut.InvokeAsync(() => cut.Instance.OnContextMenu(10, 10));
 
-        await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Font… | Paragraph… | Remove link | New comment");
+        await Assert.That(ContextLines(cut)).IsEqualTo("Cut | Copy | Paste | Font… | Paragraph… | Edit link… | Open link | Copy link | Remove link | New comment");
     }
 
     [Test]
@@ -745,6 +746,25 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(string.Join(" / ", Read(reported!).Take(3))).IsEqualTo("[First ] / [] / [paragraph here.]");
         await Assert.That(Text(Session())).IsEqualTo("paragraph here.");
         await Assert.That(cut.Find(".editor-status").TextContent).Contains("Page 1 of 2");
+    }
+
+    // Insert > Table is greyed out, as Word's is, with text selected in the open paragraph as on the
+    // pages: the script says when a selection is made there and let go.
+    [Test]
+    public async Task InsertTable_IsGreyedOut_WithTextSelectedInTheOpenParagraph()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var (block, offset) = Place(Paragraphs, 1, "bold");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 100, block.Top + 2, offset, offset));
+        Session();
+        await ChooseTabAsync(cut, "Insert");
+        await Assert.That(ToolDisabled(cut, "Table")).IsFalse();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditSelected(true));
+        await Assert.That(ToolDisabled(cut, "Table")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditSelected(false));
+        await Assert.That(ToolDisabled(cut, "Table")).IsFalse();
     }
 
     [Test]
@@ -1792,7 +1812,7 @@ public class MorphEditorTests : BunitTestContext
     [Test]
     public async Task TheDateFormats_FollowTheCulture()
     {
-        await Assert.That(MorphEditor.DateFormatsFor(CultureInfo.InvariantCulture)).IsEquivalentTo(MorphViewer.DateFormats);
+        await Assert.That(MorphEditor.DateFormatsFor(null)).IsEquivalentTo(MorphViewer.DateFormats);
         var american = MorphEditor.DateFormatsFor(new("en-US"));
         await Assert.That(american[0]).IsEqualTo("M/d/yyyy");
         await Assert.That(american).Contains("d/MM/yyyy");
@@ -1800,6 +1820,33 @@ public class MorphEditorTests : BunitTestContext
         var date = new DateTime(2026, 11, 2, 9, 5, 0);
         await Assert.That(date.ToString(DocumentEditor.Literal("d/MM/yyyy HH:mm"), new CultureInfo("de-DE"))).IsEqualTo("2/11/2026 09:05");
         await Assert.That(date.ToString(DocumentEditor.Literal("d MMMM yyyy"), new CultureInfo("de-DE"))).IsEqualTo("2 November 2026");
+    }
+
+    // A runtime with no culture data spells dates as the reader's browser does: its patterns come
+    // first among the formats, and its month and day names are the ones written.
+    [Test]
+    public async Task TheBrowsersDates_StandInForMissingCultureData()
+    {
+        var french = new ReaderDates(
+            "dd/MM/yyyy",
+            "dddd d MMMM yyyy",
+            "MMMM yyyy",
+            "HH:mm",
+            ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+            ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
+            ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+            ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."]).ToCulture();
+        await Assert.That(french).IsNotNull();
+
+        var formats = MorphEditor.DateFormatsFor(french);
+        await Assert.That(formats.Take(4)).IsEquivalentTo(["dd/MM/yyyy", "dddd d MMMM yyyy", "MMMM yyyy", "HH:mm"]);
+
+        var date = new DateTime(2026, 11, 2, 9, 5, 0);
+        await Assert.That(date.ToString(DocumentEditor.Literal(formats[1]), french)).IsEqualTo("lundi 2 novembre 2026");
+        await Assert.That(date.ToString(DocumentEditor.Literal("d MMM yy"), french)).IsEqualTo("2 nov. 26");
+
+        // A browser that handed back too few names leaves Word's list.
+        await Assert.That(new ReaderDates("d/M/yyyy", "", "", "", [], [], [], []).ToCulture()).IsNull();
     }
 
     // Undo and Redo are greyed out with nothing to undo or redo, and Undo comes on with an edit made.
@@ -1813,6 +1860,28 @@ public class MorphEditorTests : BunitTestContext
         Caret(1, 0);
         await cut.Find("[aria-label=Numbering]").ClickAsync(new());
         await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsFalse();
+    }
+
+    // A paragraph open with nothing typed has nothing of its own to undo: Undo and Redo stay greyed out
+    // with an empty file history until the script says the paragraph has a step.
+    [Test]
+    public async Task UndoAndRedo_InAnOpenParagraph_FollowItsOwnHistory()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var (block, offset) = Place(Paragraphs, 1, "bold");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 100, block.Top + 2, offset, offset));
+        Session();
+
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsTrue();
+        await Assert.That(cut.Find("[data-edit-command=redo]").HasAttribute("disabled")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditHistory(true, false));
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsFalse();
+        await Assert.That(cut.Find("[data-edit-command=redo]").HasAttribute("disabled")).IsTrue();
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditHistory(false, true));
+        await Assert.That(cut.Find("[data-edit-command=undo]").HasAttribute("disabled")).IsTrue();
+        await Assert.That(cut.Find("[data-edit-command=redo]").HasAttribute("disabled")).IsFalse();
     }
 
     [Test]

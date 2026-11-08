@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Business Cards\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com\nROBERT TAMBURELLO\nVice President\nFabrikam\n1234 First Street, Brunswick, GA 98052\nwww.fabrikam.com\n360.555.0150 | rtamburello@fabrikam.com"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.0684,
+      "Ssim": 0.9002,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}

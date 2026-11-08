@@ -54,6 +54,33 @@ public class InsertTests
         await Assert.That(DocumentReview.Read(result.Document).Changes).Count().IsEqualTo(1);
     }
 
+    // Column breaks
+
+    // Word's Ctrl+Shift+Enter (WordProbe E-29): a break in the line, with no paragraph of its own, the
+    // place after it; tracked, an insertion that rejecting takes away.
+    [Test]
+    public async Task AColumnBreak_IsInTheLine()
+    {
+        var docx = Build(P(R("Break here")) + section);
+
+        var result = DocumentEditor.InsertColumnBreak(docx, 0, 5, Plain);
+
+        await Assert.That(Body(result.Document)).IsEqualTo(
+            "<w:p><w:r><w:t xml:space=\"preserve\">Break</w:t></w:r><w:r><w:br w:type=\"column\" /></w:r><w:r><w:t xml:space=\"preserve\"> here</w:t></w:r></w:p>");
+        await Assert.That((result.Paragraph, result.Offset)).IsEqualTo((0, 6));
+    }
+
+    [Test]
+    public async Task AColumnBreak_Tracked_IsAnInsertion()
+    {
+        var docx = Build(P(R("Break here")) + section);
+
+        var result = DocumentEditor.InsertColumnBreak(docx, 0, 5, Tracked);
+
+        await Assert.That(DocumentReview.Read(result.Document).Changes.Select(_ => _.Kind)).IsEquivalentTo([ReviewChangeKind.Insertion]);
+        await Assert.That(Shape(ReviewEditor.ResolveAll(result.Document, accept: false))).IsEqualTo("[Break][ here] ¶");
+    }
+
     // Tables
 
     // Word-probed 2026-10-18: a 3-column table inserted on A4 has columns of 3005, 3005 and 3006

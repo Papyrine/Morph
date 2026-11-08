@@ -1,13 +1,13 @@
--           <w:docPart w:val="C1A0AC5FF24845F2ABE93B1E4F4F3CC6" />
-+           <w:docPart w:val="EC0545ABAE3C417BBB620D1A319AB91B" />
-+         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-10-25T16:37:00Z" w16du:dateUtc="2026-10-25T05:37:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
+-           <w:docPart w:val="22542809F6B7468996860797AFDED945" />
++           <w:docPart w:val="8E5433BBA0DA4BAC9D0BCCE4F1C16D88" />
++         <w:del w:id="0" w:author="Simon Cropp" w:date="2026-11-07T12:53:00Z" w16du:dateUtc="2026-11-07T01:53:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
 +           <w:r>
 +             <w:delText>content her</w:delText>
 +           </w:r>
 +         </w:del>
 -           <w:t>content here</w:t>
 +           <w:t>e</w:t>
--           <w:docPart w:val="C1A0AC5FF24845F2ABE93B1E4F4F3CC6" />
-+           <w:docPart w:val="EC0545ABAE3C417BBB620D1A319AB91B" />
--           <w:docPart w:val="CA87EC8E83474B4BA338089BDD12CD64" />
-+           <w:docPart w:val="D52B6133403D4DE9A1D80D0EE1550E06" />
+-           <w:docPart w:val="22542809F6B7468996860797AFDED945" />
++           <w:docPart w:val="8E5433BBA0DA4BAC9D0BCCE4F1C16D88" />
+-           <w:docPart w:val="3BBEEC0E89BC459BB85554E027E0FD1D" />
++           <w:docPart w:val="6ED5D352355A4D37876AA65F0F1206A2" />

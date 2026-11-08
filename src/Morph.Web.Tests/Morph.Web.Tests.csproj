@@ -19,9 +19,14 @@
     <MSBuild Projects="..\Morph.Web\Morph.Web.csproj" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=$(BlazorPublishDir)" />
   </Target>
 
-  <!-- Publish the WOPI sample, its editor's WebAssembly app with it, for WopiSampleTests to run as a process. -->
+  <!-- Publish the WOPI sample, its editor's WebAssembly app with it, for WopiSampleTests to run as a process.
+       The sample is no reference of this project, so it is restored here, and in a call of its own: run as
+       "Restore;Publish" in one call, the publish evaluates the project before the restore writes the
+       package props it imports, and on a clean checkout ProjectDefaults' settings (Nullable among them)
+       never reach the compile. The restore's own session id gives it a separate evaluation. -->
   <Target Name="PublishWopiSampleForTests" AfterTargets="Build">
-    <MSBuild Projects="..\Morph.Wopi.Sample\Morph.Wopi.Sample.csproj" Targets="Restore;Publish" Properties="Configuration=$(Configuration);PublishDir=$(WopiSamplePublishDir)" />
+    <MSBuild Projects="..\Morph.Wopi.Sample\Morph.Wopi.Sample.csproj" Targets="Restore" Properties="Configuration=$(Configuration);MSBuildRestoreSessionId=$([System.Guid]::NewGuid())" />
+    <MSBuild Projects="..\Morph.Wopi.Sample\Morph.Wopi.Sample.csproj" Targets="Publish" Properties="Configuration=$(Configuration);PublishDir=$(WopiSamplePublishDir)" />
   </Target>
 
   <ItemGroup>

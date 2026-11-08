@@ -44,13 +44,16 @@ public partial class SnapshotTests
         await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[First short paragraph here.]");
     }
 
+    // Escape leaves the paragraph and keeps what was typed in it, which is then one step for Ctrl+Z to
+    // take back: a stray Escape never loses work, as Word's never does.
     [Test]
-    public async Task Edit_Escape_AbandonsWhatWasTyped()
+    public async Task Edit_Escape_LeavesTheParagraph_AndKeepsWhatWasTyped()
     {
         var page = await OpenEditAsync(Paragraphs);
 
-        await ClickInAsync(page, "paragraph here");
-        await page.Keyboard.TypeAsync("Never mind");
+        await ClickBeforeAsync(page, "paragraph here");
+        await WaitForEditorAsync(page, "First");
+        await page.Keyboard.TypeAsync("short ");
         await page.Keyboard.PressAsync("Escape");
 
         await page.WaitForSelectorAsync(
@@ -59,6 +62,11 @@ public partial class SnapshotTests
             {
                 State = WaitForSelectorState.Detached
             });
+        await WaitForBodyAsync(page, _ => _.Contains("short"));
+        await Assert.That(string.Concat(Read(await SaveAsync(page))[0].Split('[', ']'))).IsEqualTo("First short paragraph here.");
+
+        await page.Keyboard.PressAsync("Control+z");
+        await WaitForBodyAsync(page, _ => !_.Contains("short"));
         await Assert.That(Read(await SaveAsync(page))[0]).IsEqualTo("[First paragraph here.]");
     }
 
@@ -717,7 +725,8 @@ public partial class SnapshotTests
                             return;
                         }
 
-                        const reading = database.transaction('drafts').objectStore('drafts').get('last');
+                        // The tab's own draft (morph-draft.js), under the key its session storage holds.
+                        const reading = database.transaction('drafts').objectStore('drafts').get(sessionStorage.getItem('morph-draft-key'));
                         reading.onsuccess = () => {
                             database.close();
                             resolve(!!reading.result);
@@ -1050,13 +1059,23 @@ public partial class SnapshotTests
         await page.Mouse.ClickAsync((float) box[0], (float) box[1]);
     }
 
-    // Ctrl+Enter hands the paragraph in and, once the page has been drawn again, opens it again where
-    // the caret was; Escape then leaves it, nothing typed since, so the test goes on with no paragraph open.
+    // Escape hands the paragraph in and leaves it; once the page has been drawn again with what was
+    // typed, the test goes on with no paragraph open. An Escape the paragraph takes for itself first —
+    // ending extend mode, leaving the caret before a picture it selected — is followed by another.
     static async Task HandInAsync(IPage page)
     {
-        await page.Keyboard.PressAsync("Control+Enter");
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            if (await page.Locator(editor).CountAsync() == 0)
+            {
+                break;
+            }
+
+            await page.Keyboard.PressAsync("Escape");
+        }
+
         await page.WaitForSelectorAsync(
-            ".edit-box.edit-pending",
+            ".edit-box",
             new()
             {
                 State = WaitForSelectorState.Detached,
@@ -1068,28 +1087,6 @@ public partial class SnapshotTests
             {
                 Timeout = 60000
             });
-        try
-        {
-            // The paragraph opens again a moment after the page is drawn; one that was handed in
-            // unchanged was never closed.
-            await page.WaitForSelectorAsync(".edit-box", new() {Timeout = 3000});
-        }
-        catch (TimeoutException)
-        {
-            return;
-        }
-
-        if (await page.Locator(".edit-box").CountAsync() > 0)
-        {
-            await page.Keyboard.PressAsync("Escape");
-            await page.WaitForSelectorAsync(
-                ".edit-box",
-                new()
-                {
-                    State = WaitForSelectorState.Detached,
-                    Timeout = 60000
-                });
-        }
     }
 
     static Task WaitForTextAsync(IPage page, string text) =>

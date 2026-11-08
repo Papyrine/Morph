@@ -36,7 +36,7 @@ public partial class MorphEditor
             PictureSelected = PictureSelected,
             FloatingPicture = FloatingPictureSelected,
             Story = CurrentStory,
-            Selected = PagesSelected,
+            Selected = PagesSelected || TypedSelection,
             SpansParagraphs = SpansParagraphs,
             CanUndo = CanUndo,
             CanRedo = CanRedo,
@@ -301,11 +301,16 @@ public partial class MorphEditor
                 Checked = _ => _.Painting
             };
 
+        // The Font and Size boxes take the focus, which hands the open paragraph in, and an input
+        // disabled while that edit is under way would drop the focus and what is typed after it. A
+        // name or size typed waits for the edit (RequireAsync), so the boxes ask only for a file that
+        // can be written.
         public static readonly EditorCommand Font = new("font", "Font", _ => _.ToggleMenu(fontMenu))
         {
             Place = "Home › Font",
             Menu = fontMenu,
-            Opens = "listbox"
+            Opens = "listbox",
+            Enabled = _ => _.CanWrite
         };
 
         public static readonly EditorCommand FontSize =
@@ -313,7 +318,8 @@ public partial class MorphEditor
             {
                 Place = "Home › Font",
                 Menu = sizeMenu,
-                Opens = "listbox"
+                Opens = "listbox",
+                Enabled = _ => _.CanWrite
             };
 
         public static readonly EditorCommand Grow =
@@ -674,12 +680,26 @@ public partial class MorphEditor
 
         // Insert
 
+        // Word's key for it, Ctrl+Enter (WordProbe E-28): the open paragraph is handed in, and typing
+        // goes on in the paragraph after the break.
         public static readonly EditorCommand PageBreak =
             new("page-break", "Page break", _ => _.InsertPageBreakAsync())
             {
                 Icon = Lucide.SeparatorHorizontal,
+                Key = "Ctrl+Enter",
                 Place = "Insert › Pages",
                 Enabled = ForPages
+            };
+
+        // Ctrl+Shift+Enter (WordProbe E-29), a character in the line. In a table Word splits the table
+        // at the row instead, which the editor does not do: there it is greyed out.
+        public static readonly EditorCommand ColumnBreak =
+            new("column-break", "Column break", _ => _.InsertColumnBreakAsync())
+            {
+                Icon = Lucide.SeparatorVertical,
+                Key = "Ctrl+Shift+Enter",
+                Place = "Layout › Page setup › Breaks",
+                Enabled = _ => ForPages(_) && !_.InTable
             };
 
         // Word's Blank Page: a page break either side of an empty paragraph, as one edit.
@@ -691,9 +711,9 @@ public partial class MorphEditor
                 Enabled = ForPages
             };
 
-        // Word greys Table out whenever anything is selected: a table goes in at a caret. Text selected in
-        // the open paragraph is the script's to know, which marks the button as it marks Cut and Copy
-        // (data-caret-only); text selected across the pages is the state's.
+        // Word greys Table out whenever anything is selected: a table goes in at a caret. Text selected
+        // across the pages, or in the open paragraph (which the script reports as a selection is made or
+        // let go, OnEditSelected), is the state's.
         public static readonly EditorCommand Table =
             new("table", "Table", _ => _.ToggleMenu(tableMenu))
             {
@@ -1221,9 +1241,9 @@ public partial class MorphEditor
             };
 
         // Word's keys for a field at the caret, which no button stands for: Alt+Shift+D a DATE field in
-        // d/MM/yyyy, Alt+Shift+P a PAGE field and Alt+Shift+T a TIME field (WordProbe E-100).
+        // the language's short date (d/MM/yyyy in en-AU), Alt+Shift+P a PAGE field and Alt+Shift+T a TIME field (WordProbe E-100).
         public static readonly EditorCommand DateField =
-            new("date-field", "Date field", _ => _.InsertDateAsync(DateFormats[0], true))
+            new("date-field", "Date field", _ => _.InsertShortDateAsync())
             {
                 Key = "Alt+Shift+D",
                 Enabled = ForTextAlone
@@ -1476,6 +1496,7 @@ public partial class MorphEditor
                 Find,
                 Replace,
                 PageBreak,
+                ColumnBreak,
                 BlankPage,
                 Table,
                 Picture,

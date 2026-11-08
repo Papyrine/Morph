@@ -59,8 +59,40 @@ public partial class SnapshotTests
         await Assert.That(await page.Locator(contextMenu).CountAsync()).IsEqualTo(0);
     }
 
-    // Escape closes the menu that is open — the ribbon's or a right-click's — and goes no further: what
-    // was typed in the open paragraph stays, where Escape with no menu open abandons it.
+    // In an editor shorter than the menu, the menu scrolls, and a submenu opened from it is still shown
+    // whole, outside the menu's clip, and its lines still run their commands.
+    [Test]
+    public async Task ContextMenu_ThatScrolls_ShowsItsSubmenusWhole()
+    {
+        var page = await OpenEditAsync(TableDocument());
+        // A host gives the editor its height: here less than the menu's.
+        await page.EvalOnSelectorAsync(".viewer", "viewer => { viewer.style.minHeight = '0'; viewer.style.height = '300px'; }");
+
+        await RightClickInAsync(page, "Cell one");
+        await Assert.That(await page.EvalOnSelectorAsync<string>(contextMenu, "menu => getComputedStyle(menu).overflowY")).IsEqualTo("auto");
+        await page.HoverAsync($"{contextMenu} .editor-menu-item:text-is('Insert')");
+
+        var line = $"{contextMenu} .editor-submenu .editor-menu-item:text-is('Row below')";
+        await page.WaitForSelectorAsync(line);
+        var shown = await page.EvalOnSelectorAsync<bool>(
+            line,
+            """
+            item => {
+                const box = item.getBoundingClientRect();
+                return [box.top + 2, box.bottom - 2].every(y => {
+                    const hit = document.elementFromPoint(box.left + box.width / 2, y);
+                    return hit === item || item.contains(hit);
+                });
+            }
+            """);
+        await Assert.That(shown).IsTrue();
+
+        await ChooseFromContextAsync(page, "Row below");
+        await WaitForTableAsync(page, _ => _.Rows == 3);
+    }
+
+    // Escape closes the menu that is open — the ribbon's or a right-click's — and goes no further: the
+    // paragraph stays open with what was typed, where Escape with no menu open hands it in and leaves it.
     [Test]
     public async Task Escape_ClosesAMenu_AndKeepsWhatWasTyped()
     {

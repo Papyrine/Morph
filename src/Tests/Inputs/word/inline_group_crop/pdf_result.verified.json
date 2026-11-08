@@ -1,0 +1,28 @@
+﻿{
+  "target": {
+    "Document": {
+      "Creator": "Morph"
+    },
+    "PageCount": 1,
+    "Pages": [
+      {
+        "Number": 1,
+        "Info": {
+          "Width": 612.0,
+          "Height": 792.0
+        },
+        "Text": "Menu\nTo update images, single click with the left mouse until they are\nselected. Do a right mouse click and choose Change Picture from the\nshortcut menu.\nAppetizer\nDescribe your Appetizer.\nMain Course\nDescribe your Main Course, and\ndon’t hold back\nDessert\nDescribe your Dessert and\ndon’t hold back"
+      }
+    ]
+  },
+  "PageDiffs": [
+    {
+      "Page": 1,
+      "ErrorMetric": 0.1732,
+      "Ssim": 0.8616,
+      "ExpectedFile": "expected_0001.png",
+      "VerifiedFile": "pdf_result#page_0001.verified.png",
+      "ReceivedFile": "pdf_result#page_0001.received.png"
+    }
+  ]
+}
