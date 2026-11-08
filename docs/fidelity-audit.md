@@ -210,6 +210,66 @@ At the same commit the recorded Skia error metric over their 133 pages went 0.02
 pages closer and 11 further; the furthest are the multi-line fixtures whose breaks had matched the
 Aptos reference (`complex_spacing`, `align_justified`).
 
+**And back again (2026-11-08).** On Word 16.0.20527 the same reading gives Aptos: the object model
+reports `Styles("Normal").Font` as Aptos 12pt for `long_paragraph` (still compatibility mode 12), and
+a render of a copy embeds Aptos alone and runs 27 lines where its Calibri reference, and Morph, run
+26. Size and spacing did not move: 12pt, `w:line="278"` auto, 8pt after, in bare packages with no
+settings part and with settings at modes 14 and 15 alike. Nothing on the machine changed with it —
+the Normal template dates from March 2024 (its own docDefaults say 11pt, so it is not the source),
+and Aptos has been both in the Office cloud-font cache and installed for the user since July and May
+— so the built-in default followed the Word build. A package with no styles part but a theme is set
+in the theme's minor font at the built-in 12pt (a bare package with only `labels/12`'s theme added
+came out in Georgia 12pt); no corpus fixture is such a package. Count them by the main part's
+relationships, not by the name `word/styles.xml`: `labels/12`'s styles part is `word/styles2.xml`.
+
+The parser's built-in family went back to Aptos on 2026-11-08, the theme's minor font joined it for
+a themed package, and the 147 corpus fixtures with no styles part were rendered again on that build,
+twice over so that no Office cloud font was caught mid-download. Every render embeds Aptos where the
+document leaves the face to Word, and any Calibri it embeds is one the document names (a run, a
+header, a chart). Over their 215 pages the Skia error metric went 0.0173 → 0.0183 and SSIM
+0.9761 → 0.9726, 70 pages further and 2 closer — yet the line geometry of page 1 (each line's top
+and right edge, within a few pixels) agrees with Word in 106 fixtures against 103 before, and pages
+compared side by side break and stand line for line. The loss had two parts, neither of them a line
+break:
+
+- **Words drawn 1-2px right of Word's.** Measured word by word on lines that pair one for one, 85%
+  of word starts had stood within 1px of Word's in Calibri and 64% did in Aptos, every miss to the
+  right, the median 1-2px past the first 200px of a line. A style-less document kerns (Word's
+  built-in Normal), Aptos kerns about 1.5 times as hard as Calibri (`Pa` −0.67px at 12pt, Calibri's
+  −0.43), and the drawing rule left the kern out of each glyph's whole pixel while catching up to
+  the kerned linear position at every space. Read off Word's XPS (`_probe_kerndraw_c12` / `_c15`
+  and four templates that do not kern), a run that kerns draws each glyph's whole pixel plus its
+  pair's kern rounded to a whole pixel, and a space catches the pen up only once it trails by more
+  than 0.6px (`CanonicalParagraphMeasurer.DrawAtWordPixels`). With that rule, 82% of these word
+  starts stand within 1px of Word's (45% exactly, from 34%), the median drift is 0 along the whole
+  line, and the 215 pages scored 0.0183 → 0.0179 (SSIM 0.9726 → 0.9746, 34 closer, 4 further);
+  over the whole corpus 47 pages moved closer and 19 further, SSIM 0.9450 → 0.9457, with no page
+  count changed. A first version drew the kern in every run: it put these fixtures closer and the
+  templates that do not kern 1-2% narrow (business-plans/15 SSIM −0.49 over 19 pages), which is how
+  the condition was found. That rule still spread each run's drawn width evenly over its glyphs,
+  where Word's pen runs unevenly, so the words inside a long run stood up to 2-3px from Word's. The
+  painters now draw every glyph where the pen stands (`PlacedRun.GlyphX`, `docs/word-features.md`,
+  Kerning): 94% of these word starts stand within 1px of Word's and 60% exactly, the 215 pages score
+  0.0174 (SSIM 0.9773), and the whole corpus 0.9506 on Skia and 0.9526 on ImageSharp — against the
+  renders on the renewed references before the drawing rule changed, 252 pages closer and 21 further.
+- **Lighter strokes.** Word's references carry about 18% more ink than Morph's renders of the same
+  page (the median Word-to-Morph ratio of summed darkness over the 147 fixtures: 1.216 in Calibri,
+  1.182 in Aptos), so this is no new Aptos effect. The reference pixels are WPF's: RenderHelper
+  rasterises Word's XPS with `RenderTargetBitmap`, whose text gamma draws darker than the
+  deterministic greyscale antialiasing Morph renders with. Darkening Morph's glyphs to match would
+  chase that rasteriser rather than Word, and it is a floor under the error metric on text-heavy
+  pages, not a defect.
+
+Two other changes came with the build:
+
+- **A page break that ends the document makes no page.** Word 16.0.20527 counts one page for a break
+  alone in the last paragraph or ending its text, two for anything after it, and with two breaks
+  there drops only the last (its own page count over COM, modes 12, 14 and 15). The parser drops a
+  page break that ends the body; `explicit_break_blank_page` went from two pages to one.
+- **A comment balloon is set in the document's default face**, so `comments/02`'s balloon wraps as
+  Aptos does — "comment that should wrap across several lines in the" / "balloon so that its…" —
+  where the October build's Calibri ended the fourth line "in the balloon".
+
 **Render twice.** Word fetches an Office cloud font the first time a document asks for it and
 substitutes until the download lands, so after the font cache has been emptied a first RenderHelper
 run produces a page that looks plausible and is set in the wrong face. `business-plans/04` embedded

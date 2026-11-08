@@ -1,10 +1,10 @@
 ﻿
-<div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-font-title" blazor:onkeydown="71">
+<div class="editor-dialog editor-dialog-wide" role="dialog" aria-modal="true" aria-labelledby="editor-font-title" blazor:onkeydown="104">
 	<h2 id="editor-font-title" class="editor-dialog-title">Font</h2>
 	<div class="editor-field-grid editor-field-grid-three">
 		<label class="editor-field">
 			Font
-			<input type="text" class="editor-input" list="editor-font-names" value="Calibri" blazor:oninput="72">
+			<input type="text" class="editor-input" list="editor-font-names" value="Aptos" blazor:oninput="105">
 			<datalist id="editor-font-names">
 				<option value="Aptos"></option>
 				<option value="Aptos Display"></option>
@@ -27,7 +27,7 @@
 		</label>
 		<label class="editor-field">
 			Font style
-			<select class="editor-input" value="bold" blazor:onchange="73">
+			<select class="editor-input" value="bold" blazor:onchange="106">
 				<option value="regular">Regular</option>
 				<option value="italic">Italic</option>
 				<option value="bold" selected="">Bold</option>
@@ -36,7 +36,7 @@
 		</label>
 		<label class="editor-field">
 			Size
-			<input type="number" class="editor-input" min="1" max="1638" step="0.5" list="editor-font-sizes" value="12" blazor:oninput="74">
+			<input type="number" class="editor-input" min="1" max="1638" step="0.5" list="editor-font-sizes" value="12" blazor:oninput="107">
 			<datalist id="editor-font-sizes">
 				<option value="8"></option>
 				<option value="9"></option>
@@ -59,7 +59,7 @@
 		</label>
 		<label class="editor-field">
 			Font colour
-			<select class="editor-input" value="auto" blazor:onchange="75">
+			<select class="editor-input" value="auto" blazor:onchange="108">
 				<option value="auto" selected="">Automatic</option>
 				<option value="C00000">Dark red</option>
 				<option value="FF0000">Red</option>
@@ -80,7 +80,7 @@
 		</label>
 		<label class="editor-field">
 			Underline style
-			<select class="editor-input" value="none" blazor:onchange="76">
+			<select class="editor-input" value="none" blazor:onchange="109">
 				<option value="none" selected="">(none)</option>
 				<option value="single">Single</option>
 				<option value="words">Words only</option>
@@ -95,32 +95,32 @@
 	<fieldset class="editor-fieldset editor-effects">
 		<legend>Effects</legend>
 		<label class="editor-check">
-			<input type="checkbox" blazor:onchange="77">
+			<input type="checkbox" blazor:onchange="110">
 			Strikethrough</label>
 		<label class="editor-check">
-			<input type="checkbox" blazor:onchange="78">
+			<input type="checkbox" blazor:onchange="111">
 			Small caps</label>
 		<label class="editor-check">
-			<input type="checkbox" blazor:onchange="79">
+			<input type="checkbox" blazor:onchange="112">
 			Double strikethrough</label>
 		<label class="editor-check">
-			<input type="checkbox" blazor:onchange="80">
+			<input type="checkbox" blazor:onchange="113">
 			All caps</label>
 		<label class="editor-check">
-			<input type="checkbox" blazor:onchange="81">
+			<input type="checkbox" blazor:onchange="114">
 			Superscript</label>
 		<label class="editor-check">
-			<input type="checkbox" blazor:onchange="82">
+			<input type="checkbox" blazor:onchange="115">
 			Hidden</label>
 		<label class="editor-check">
-			<input type="checkbox" blazor:onchange="83">
+			<input type="checkbox" blazor:onchange="116">
 			Subscript</label>
 	</fieldset>
 	<div class="editor-font-preview" aria-label="Preview">
-		<span style="font-family: 'Calibri', sans-serif; font-size: 12pt; font-weight: 700;">Calibri</span>
+		<span style="font-family: 'Aptos', sans-serif; font-size: 12pt; font-weight: 700;">Aptos</span>
 	</div>
 	<div class="editor-dialog-buttons">
-		<button type="button" class="editor-button editor-button-primary" blazor:onclick="84">OK</button>
-		<button type="button" class="editor-button" blazor:onclick="85">Cancel</button>
+		<button type="button" class="editor-button editor-button-primary" blazor:onclick="117">OK</button>
+		<button type="button" class="editor-button" blazor:onclick="118">Cancel</button>
 	</div>
 </div>

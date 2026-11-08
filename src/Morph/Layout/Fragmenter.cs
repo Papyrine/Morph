@@ -6185,7 +6185,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var runs = new List<PlacedRun>(line.Runs.Count);
             foreach (var run in line.Runs)
             {
-                var placed = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift, run.BorderInside && line.DrawPad <= 0);
+                var placed = new PlacedRun(lineLeft + run.X, run.Width, run.Text, run.Properties, run.Leader, run.BaselineShift, run.BorderInside && line.DrawPad <= 0, GlyphX: run.GlyphX);
 
                 // An embossed or imprinted run is drawn as three copies of itself (TextRelief).
                 if (TextRelief.Applies(run.Properties))

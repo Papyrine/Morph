@@ -272,7 +272,7 @@ static class PdfPainter
                 scaled = surface.PushTransform(Matrix3x2.CreateScale((float) (properties.CharacterScalePercent / 100), 1, new(run.X, baseline)));
             }
 
-            DrawTracked(context, surface, run.Text, properties, color, run.X, baseline);
+            DrawTracked(context, surface, run.Text, properties, color, run.X, baseline, run.GlyphX);
             scaled?.Dispose();
 
             // Underline below the baseline, strike through the x-height (TextDecorations).
@@ -325,7 +325,7 @@ static class PdfPainter
             run.Width,
             baseline,
             ascent,
-            _ => (float) (Advance(face, _, sizePoints) + properties.CharacterSpacingPoints * _.Length),
+            _ => run.PrefixWidth(_, prefix => (float) (Advance(face, prefix, sizePoints) + properties.CharacterSpacingPoints * prefix.Length)),
             rules,
             waves);
         foreach (var rule in rules)
@@ -363,12 +363,15 @@ static class PdfPainter
     // includes both (the canonical measurer kerned and tracked the advances), so a following run starts
     // past it. Glyphs map one to one onto characters through the face's cmap, as the measurer reads them,
     // so no shaping can move a glyph off the position the layout gave it.
-    static void DrawTracked(PdfRenderContext context, Surface surface, string text, RunProperties properties, PdfColor color, double penX, double baseline)
+    static void DrawTracked(PdfRenderContext context, Surface surface, string text, RunProperties properties, PdfColor color, double penX, double baseline, IReadOnlyList<float>? glyphX)
     {
         var face = context.GetFace(properties);
         var sizePoints = VerticalRunPosition.RenderSizePoints(properties);
-        var kernShifts = KernShifts(face, text, properties, context.FontWidthScale);
-        var glyphs = Glyphs(face, text, properties.CharacterSpacingPoints, sizePoints, kernShifts);
+        var positions = PlacedRun.Positions(glyphX, text);
+        var kernShifts = positions == null ? KernShifts(face, text, properties, context.FontWidthScale) : null;
+        // A run drawn at Word's pen is drawn at the size Word draws its glyphs at (PlacedRun.GlyphFont).
+        var glyphSize = positions == null || sizePoints <= 0 ? sizePoints : CanonicalTextMeasurer.DrawnEmPoints(sizePoints);
+        var glyphs = positions == null ? Glyphs(face, text, properties.CharacterSpacingPoints, sizePoints, kernShifts) : Placed(face, text, glyphSize, positions);
         if (glyphs.Count == 0)
         {
             return;
@@ -380,7 +383,7 @@ static class PdfPainter
             var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
             surface.SetFill(context.GetFill(PdfRenderContext.ParseColor(shadow.ColorHex)));
             surface.SetStroke(null);
-            surface.DrawGlyphs(new((float) (penX + offsetX), (float) (baseline + offsetY)), face.Font, (float) sizePoints, text, glyphs);
+            surface.DrawGlyphs(new((float) (penX + offsetX), (float) (baseline + offsetY)), face.Font, (float) glyphSize, text, glyphs);
         }
 
         surface.SetFill(context.GetFill(color));
@@ -409,7 +412,7 @@ static class PdfPainter
             sheared = surface.PushTransform(new(1, 0, -skew, 1, skew * (float) baseline, 0));
         }
 
-        surface.DrawGlyphs(new((float) penX, (float) baseline), face.Font, (float) sizePoints, text, glyphs);
+        surface.DrawGlyphs(new((float) penX, (float) baseline), face.Font, (float) glyphSize, text, glyphs);
 
         // w14:textOutline: a stroke centred on the glyph outlines, over the fill.
         if (properties.Outline is { } outline)
@@ -419,7 +422,7 @@ static class PdfPainter
             {
                 LineJoin = LineJoin.Round
             });
-            surface.DrawGlyphs(new((float) penX, (float) baseline), face.Font, (float) sizePoints, text, glyphs);
+            surface.DrawGlyphs(new((float) penX, (float) baseline), face.Font, (float) glyphSize, text, glyphs);
         }
 
         sheared?.Dispose();
@@ -444,6 +447,41 @@ static class PdfPainter
             var offset = kernShifts == null ? 0 : kernShifts[i] * pointsToUnits;
             glyphs.Add(new(metrics.GlyphId(codepoint), (float) advance, i, length, (float) offset));
             i += length;
+        }
+
+        return glyphs;
+    }
+
+    // One glyph per character of a run drawn at Word's pen (PlacedRun.GlyphX): the last glyph of each
+    // cluster advances to where the next cluster starts, so every cluster starts where the layout put it,
+    // its kern and tracking already in that; a glyph within a cluster (a combining mark's base) keeps the
+    // face's own advance.
+    static List<Glyph> Placed(PdfFace face, string text, double sizePoints, IReadOnlyList<float> positions)
+    {
+        var metrics = face.Metrics;
+        var unitsPerEm = face.Font.UnitsPerEm;
+        var pointsToUnits = sizePoints > 0 ? unitsPerEm / sizePoints : 0;
+        var glyphs = new List<Glyph>(text.Length);
+        var pen = (double) positions[0];
+        var index = 0;
+        while (index < text.Length)
+        {
+            var end = PlacedRun.ClusterEnd(positions, text, index);
+            var character = index;
+            while (character < end)
+            {
+                var length = char.IsHighSurrogate(text[character]) &&
+                             character + 1 < end ? 2 : 1;
+                var codepoint = char.ConvertToUtf32(text, character);
+                var own = metrics.AdvanceUnits(codepoint) * sizePoints / metrics.UnitsPerEm;
+                var last = character + length >= end;
+                var advance = last && end < text.Length ? positions[end] - pen : own;
+                glyphs.Add(new(metrics.GlyphId(codepoint), (float) (advance * pointsToUnits), character, length, 0));
+                pen += advance;
+                character += length;
+            }
+
+            index = end;
         }
 
         return glyphs;

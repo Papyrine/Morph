@@ -173,7 +173,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var textAscent = 0f;
             for (var segment = 0; segment < segments.Count; segment++)
             {
-                runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties, segments[segment].Leader, segments[segment].BaselineShift, segments[segment].BorderInside);
+                runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties, segments[segment].Leader, segments[segment].BaselineShift, segments[segment].BorderInside, segments[segment].GlyphX);
                 textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
             }
 
@@ -821,7 +821,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // only), so the line it lands on knows which notes it brought with it.
     readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false, float BaselineShift = 0, bool IsInset = false, string? FootnoteReferenceId = null, string? EndnoteReferenceId = null, double FitPixels = 0, bool Closes = false, bool BorderInside = false);
 
-    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false);
+    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false, IReadOnlyList<float>? GlyphX = null);
 
     // Width is the pen position the line reached, rounded once onto the pixel grid — where a painter
     // and an alignment place things. LinearWidth is the same total unrounded, which is the quantity Word
@@ -2004,16 +2004,37 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
     // Draws a line's runs as wide as Word draws them (todo #43). Word breaks a line on the font's linear
     // advances but DRAWS each glyph a whole pixel of its 120-dpi grid wide, at the em rounded to a whole
-    // pixel: the 26.6 scaled advance round(units x ppem x 64 / upm), rounded up from 30/64px in
-    // compatibility modes 12 and 14 and to the nearest pixel in mode 15, a glyph of the bold simulation a
-    // pixel more (BoldSimulation.AdvancePoints). Its pen falls behind the linear position inside a word,
-    // is brought up to it at a space, and is never pulled back, so where the whole pixels run wide (12pt
-    // Calibri draws 3.6% wider) a line ends right of where it was laid out: multiple_pages' full lines
-    // end at x=1124 in Word and stopped at 1095. Each run is drawn as wide as the pen takes it, its glyphs
-    // spread evenly across that width (CharacterSpacingPoints, which only the painters read), and
-    // everything after it on the line moved along. Only where the line has the room, and then by no more
-    // than the room: Word narrows the spaces of a line that would overrun its measure. A justified or
-    // squeezed line has had its room given to its spaces, and a line with a tab, a leader or an inline
+    // pixel, a glyph of the bold simulation a pixel more (BoldSimulation.AdvancePoints). Read off Word's
+    // XPS (2026-11-08): _probe_kerndraw_c12 / _c15, Aptos and Calibri at 10, 11, 12, 24 and 48pt in
+    // packages with no styles part, so kerned by Word's built-in Normal (DocumentParser's
+    // builtInKerningMinPoints); and four corpus templates that do not kern (letters/13, resumes/06,
+    // newsletters/04, business/03: Posterama, Arial Nova, Euphemia, Sylfaen, Calibri).
+    // - In compatibility modes 12 and 14 a glyph is the 26.6 scaled advance round(units x ppem x 64 /
+    //   upm) rounded up from 30/64px; in mode 15 rounded to the nearest pixel. A run that kerns
+    //   (KerningEnabled) draws the pair's kern too: in modes 12 and 14 the kern with the glyph after it,
+    //   rounded to a whole pixel at the unrounded em, is added to that pixel (1360 of 1360 Aptos
+    //   advances and 1364 of 1364 Calibri, where the plain pixel alone gets 73-90%); in mode 15 it joins
+    //   the advance before the rounding (94% at 12pt, against 77-83% for the plain pixel; the rest is
+    //   presumably the hinting's). A run that does not kern draws the plain pixel (99-100% in the
+    //   templates; adding the kern there put them 1-2% off and drew their lines narrow).
+    // - The pen is never pulled back, and at a space it is brought up to the linear position the line
+    //   was laid out on (kerned where the run kerns), by whole pixels and only once it trails that
+    //   position by more than 0.6px: 537 of 544 spaces in the kerned probe, 90-100% of the templates'
+    //   (the pen after a space within 0.06-0.11px of Word's on average, where catching up to the exact
+    //   linear position was 0.23-0.28px off). Catching up to the UNKERNED position in a run that kerns
+    //   undid the kerning at every space, which put 12pt Aptos words 1-3px right of Word's mid-line
+    //   (multiple_pages' "Paragraph" draws 3px narrow, its Pa and ra kerned a pixel each).
+    // So where the whole pixels run wide (12pt Calibri draws 3.6% wider) a line ends right of where it
+    // was laid out: multiple_pages' full lines end at x=1124 in Word and stopped at 1095. Each run is
+    // drawn as wide as the pen takes it, every glyph where the pen stands when it reaches it
+    // (WrapSegment.GlyphX, which the painters draw at — the pen does not run evenly along a line: on
+    // multiple_pages' first line Word's stands 0.7px behind the linear position at the first space and
+    // 9px ahead at the end, so a width spread evenly over the run's glyphs left its middle words 2-3px
+    // off Word's), and everything after it on the line moved along. A run stretched by w:w, whose
+    // painters scale the canvas about its start, still spreads its glyphs evenly instead
+    // (CharacterSpacingPoints). Only where the line has the room, and then by no more than the room:
+    // Word narrows the spaces of a line that would overrun its measure, and so does GiveBack. A justified
+    // or squeezed line has had its room given to its spaces, and a line with a tab, a leader or an inline
     // picture places things at positions this would have to move with it; those stay as they are.
     // Returns the points the line grew by.
     float DrawAtWordPixels(List<WrapSegment> segments, double roomPoints)
@@ -2026,6 +2047,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
         var deltas = new double[segments.Count];
         var glyphCounts = new int[segments.Count];
+        var glyphPositions = new float[]?[segments.Count];
         var growth = 0.0;
         for (var index = 0; index < segments.Count; index++)
         {
@@ -2044,42 +2066,80 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
             var sizePoints = VerticalRunPosition.RenderSizePoints(properties);
             var ppem = Math.Round(sizePoints * CanonicalTextMeasurer.ReferenceDpi / 72, MidpointRounding.AwayFromZero);
+            var linearEm = CanonicalTextMeasurer.EmPixels(sizePoints);
             var scale = properties.CharacterScalePercent / 100.0;
             var extra = properties.CharacterSpacingPoints +
                         (properties.SyntheticBold == SyntheticBold.Simulated ? BoldSimulation.AdvancePoints : 0);
-            var pen = 0.0;
-            var consumed = 0;
-            var glyphs = 0;
+            var pieces = new List<string>();
             while (elements.MoveNext())
             {
-                var element = (string) elements.Current;
-                consumed += element.Length;
-                glyphs++;
-                var pixels = 0L;
-                foreach (var rune in element.EnumerateRunes())
+                pieces.Add((string) elements.Current);
+            }
+
+            var kerns = KerningEnabled(properties);
+            // Where each character is drawn, for the painters to put it there. Not for a run stretched by
+            // w:w: its painters scale the canvas about the run's start, so it keeps its glyphs spread.
+            var positions = scale == 1 ? new float[segment.Text.Length] : null;
+            var characters = 0;
+            var penPixels = 0L;
+            var linearPixels = 0.0;
+            for (var position = 0; position < pieces.Count; position++)
+            {
+                var piece = pieces[position];
+                if (positions != null)
                 {
-                    var scaled = (long) Math.Round(metrics.AdvanceUnits(rune.Value) * ppem * 64 / metrics.UnitsPerEm, MidpointRounding.AwayFromZero);
-                    pixels += (scaled + (squeezeJustifiedLines ? 32 : 34)) / 64;
+                    var at = (float) (penPixels * 72.0 / CanonicalTextMeasurer.ReferenceDpi + extra * position);
+                    for (var character = 0; character < piece.Length; character++)
+                    {
+                        positions[characters + character] = at;
+                    }
                 }
 
-                pen += CanonicalTextMeasurer.PixelsToPoints(pixels) * scale + extra;
-                if (element == " ")
+                characters += piece.Length;
+                var kern = kerns && position + 1 < pieces.Count ? KernUnitsBetween(metrics, piece, pieces[position + 1]) : 0;
+                var runes = piece.EnumerateRunes().ToList();
+                var units = 0L;
+                var pixels = 0L;
+                for (var runeIndex = 0; runeIndex < runes.Count; runeIndex++)
                 {
-                    pen = Math.Max(pen, TextWidthPoints(properties, segment.Text[..consumed]));
+                    var advance = metrics.AdvanceUnits(runes[runeIndex].Value);
+                    units += advance;
+                    if (squeezeJustifiedLines)
+                    {
+                        // The kern belongs to the piece's last glyph, the one before the next piece.
+                        var withKern = advance + (runeIndex == runes.Count - 1 ? kern : 0);
+                        var scaled = (long) Math.Round(withKern * ppem * 64 / metrics.UnitsPerEm, MidpointRounding.AwayFromZero);
+                        pixels += (scaled + 32) / 64;
+                    }
+                    else
+                    {
+                        var scaled = (long) Math.Round(advance * ppem * 64 / metrics.UnitsPerEm, MidpointRounding.AwayFromZero);
+                        pixels += (scaled + 34) / 64;
+                    }
+                }
+
+                if (!squeezeJustifiedLines)
+                {
+                    pixels += (long) Math.Round(kern * linearEm / metrics.UnitsPerEm, MidpointRounding.AwayFromZero);
+                }
+
+                penPixels += pixels;
+                linearPixels += (units + kern) * linearEm / metrics.UnitsPerEm;
+                if (piece == " ")
+                {
+                    penPixels = Math.Max(penPixels, (long) Math.Floor(linearPixels + spaceCatchUpPixels));
                 }
             }
 
-            glyphCounts[index] = glyphs;
+            var pen = penPixels * 72.0 / CanonicalTextMeasurer.ReferenceDpi * scale + extra * pieces.Count;
+            glyphCounts[index] = pieces.Count;
+            glyphPositions[index] = positions;
             deltas[index] = pen - segment.Width;
             growth += deltas[index];
         }
 
-        if (Math.Abs(growth) < 0.05)
-        {
-            return 0;
-        }
-
         // A line that would overrun its measure gives back the excess, as Word narrows its spaces.
+        var drawnDeltas = (double[]) deltas.Clone();
         if (growth > roomPoints)
         {
             var excess = growth - Math.Max(0, roomPoints);
@@ -2098,21 +2158,81 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         {
             var segment = segments[index];
             var delta = glyphCounts[index] > 0 ? deltas[index] : 0;
-            segments[index] = segment with
+            if (glyphPositions[index] is { } positions)
             {
-                X = (float) (segment.X + shift),
-                Width = (float) (segment.Width + delta),
-                Properties = glyphCounts[index] > 0 && Math.Abs(delta) > 0.001
-                    ? segment.Properties with
-                    {
-                        CharacterSpacingPoints = segment.Properties.CharacterSpacingPoints + delta / glyphCounts[index]
-                    }
-                    : segment.Properties
-            };
+                GiveBack(positions, segment.Text, drawnDeltas[index] - delta);
+                segments[index] = segment with
+                {
+                    X = (float) (segment.X + shift),
+                    Width = (float) (segment.Width + delta),
+                    GlyphX = positions
+                };
+            }
+            else
+            {
+                segments[index] = segment with
+                {
+                    X = (float) (segment.X + shift),
+                    Width = (float) (segment.Width + delta),
+                    Properties = glyphCounts[index] > 0 && Math.Abs(delta) > 0.001
+                        ? segment.Properties with
+                        {
+                            CharacterSpacingPoints = segment.Properties.CharacterSpacingPoints + delta / glyphCounts[index]
+                        }
+                        : segment.Properties
+                };
+            }
+
             shift += delta;
         }
 
         return (float) shift;
+    }
+
+    // Narrows a run drawn at Word's pen positions by the points its line gave back, out of its spaces as
+    // Word narrows them (DrawAtWordPixels), or out of every glyph alike where the run has no space.
+    static void GiveBack(float[] positions, string text, double points)
+    {
+        if (points <= 0.0001)
+        {
+            return;
+        }
+
+        var spaces = text.Count(_ => _ == ' ');
+        var taken = 0.0;
+        for (var index = 0; index < positions.Length; index++)
+        {
+            positions[index] -= (float) taken;
+            if (spaces == 0)
+            {
+                taken += points / positions.Length;
+            }
+            else if (text[index] == ' ')
+            {
+                taken += points / spaces;
+            }
+        }
+    }
+
+    // At a space Word brings its drawn pen up to the linear position the line was laid out on once it
+    // trails that by more than 0.6px, to the whole pixel: the pen goes to floor(linear + 0.4)
+    // (DrawAtWordPixels).
+    const double spaceCatchUpPixels = 0.4;
+
+    // The pair kerning between the last glyph of one piece of text and the first of the next, in design
+    // units: what Word adds to the first glyph's drawn advance in a run that kerns (DrawAtWordPixels).
+    static int KernUnitsBetween(FontMetrics metrics, string before, string after)
+    {
+        if (metrics.KernPairs is not { } kernTable ||
+            before.Length == 0 ||
+            after.Length == 0)
+        {
+            return 0;
+        }
+
+        var last = before.EnumerateRunes().Last();
+        var first = after.EnumerateRunes().First();
+        return kernTable.KernUnits(metrics.GlyphId(last.Value), metrics.GlyphId(first.Value));
     }
 
     // A runless paragraph that exists only to carry a section break's sectPr contributes its spacing but

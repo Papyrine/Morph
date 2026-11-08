@@ -74,64 +74,64 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3005,
-      "Ssim": 0.9243,
+      "ErrorMetric": 0.3006,
+      "Ssim": 0.9242,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0155,
-      "Ssim": 0.9781,
+      "ErrorMetric": 0.0156,
+      "Ssim": 0.9767,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"
     },
     {
       "Page": 3,
-      "ErrorMetric": 0.3015,
-      "Ssim": 0.9429,
+      "ErrorMetric": 0.3014,
+      "Ssim": 0.9431,
       "ExpectedFile": "expected_0003.png",
       "VerifiedFile": "pdf_result#page_0003.verified.png",
       "ReceivedFile": "pdf_result#page_0003.received.png"
     },
     {
       "Page": 4,
-      "ErrorMetric": 0.0155,
-      "Ssim": 0.9781,
+      "ErrorMetric": 0.0156,
+      "Ssim": 0.9767,
       "ExpectedFile": "expected_0004.png",
       "VerifiedFile": "pdf_result#page_0004.verified.png",
       "ReceivedFile": "pdf_result#page_0004.received.png"
     },
     {
       "Page": 5,
-      "ErrorMetric": 0.2992,
-      "Ssim": 0.913,
+      "ErrorMetric": 0.2993,
+      "Ssim": 0.9131,
       "ExpectedFile": "expected_0005.png",
       "VerifiedFile": "pdf_result#page_0005.verified.png",
       "ReceivedFile": "pdf_result#page_0005.received.png"
     },
     {
       "Page": 6,
-      "ErrorMetric": 0.0155,
-      "Ssim": 0.9781,
+      "ErrorMetric": 0.0156,
+      "Ssim": 0.9767,
       "ExpectedFile": "expected_0006.png",
       "VerifiedFile": "pdf_result#page_0006.verified.png",
       "ReceivedFile": "pdf_result#page_0006.received.png"
     },
     {
       "Page": 7,
-      "ErrorMetric": 0.3022,
-      "Ssim": 0.9181,
+      "ErrorMetric": 0.302,
+      "Ssim": 0.9186,
       "ExpectedFile": "expected_0007.png",
       "VerifiedFile": "pdf_result#page_0007.verified.png",
       "ReceivedFile": "pdf_result#page_0007.received.png"
     },
     {
       "Page": 8,
-      "ErrorMetric": 0.0155,
-      "Ssim": 0.9781,
+      "ErrorMetric": 0.0156,
+      "Ssim": 0.9767,
       "ExpectedFile": "expected_0008.png",
       "VerifiedFile": "pdf_result#page_0008.verified.png",
       "ReceivedFile": "pdf_result#page_0008.received.png"

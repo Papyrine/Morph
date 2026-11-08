@@ -204,7 +204,7 @@ static class SvgPainter
                 }
 
                 var baseline = line.Baseline - run.BaselineShift;
-                Text(run.Text, properties, run.X, baseline);
+                Text(run.Text, properties, run.X, baseline, run.GlyphX);
 
                 if (properties.Underline || properties.Strikethrough || properties.DoubleStrikethrough)
                 {
@@ -242,7 +242,7 @@ static class SvgPainter
         // browser does not keep them: Chromium drops a run's leading space even under white-space:pre, and
         // the x list then shifts onto the characters before their own — a space's width left for the
         // rest of the run.
-        void Text(string text, RunProperties properties, double penX, double baseline)
+        void Text(string text, RunProperties properties, double penX, double baseline, IReadOnlyList<float>? glyphX)
         {
             if (!HasInk(text))
             {
@@ -254,22 +254,26 @@ static class SvgPainter
             {
                 var (offsetX, offsetY) = TextEffectGeometry.ShadowOffset(shadow);
                 var shadowColor = ImageSharpRenderContext.ParseColor(shadow.ColorHex).WithAlpha(TextEffectGeometry.ShadowAlpha(shadow) / 255f);
-                TextElement(text, properties, penX + offsetX, baseline + offsetY, shadowColor, null);
+                TextElement(text, properties, penX + offsetX, baseline + offsetY, shadowColor, null, glyphX);
             }
 
-            TextElement(text, properties, penX, baseline, null, null);
+            TextElement(text, properties, penX, baseline, null, null, glyphX);
             if (properties.Outline is { } outline)
             {
-                TextElement(text, properties, penX, baseline, null, outline);
+                TextElement(text, properties, penX, baseline, null, outline, glyphX);
             }
         }
 
-        void TextElement(string text, RunProperties properties, double penX, double baseline, Color? fillOverride, TextOutline? outlineOnly)
+        void TextElement(string text, RunProperties properties, double penX, double baseline, Color? fillOverride, TextOutline? outlineOnly, IReadOnlyList<float>? glyphX)
         {
-            var font = context.GetFont(properties);
-            var positions = properties.CharacterSpacingPoints == 0 || text.Length <= 1
-                ? GlyphPositions.Of(font, TextShaping.ResolveKerningMode(properties), text)
-                : Tracked(font, text, (float) properties.CharacterSpacingPoints);
+            // A run drawn at Word's pen (PlacedRun.GlyphX) puts each character where the layout says, at the
+            // size Word draws it (PlacedRun.GlyphFont), as ImageSharpPainter.DrawTracked does.
+            var placed = PlacedRun.Positions(glyphX, text);
+            var font = context.GetFont(placed == null ? properties : PlacedRun.GlyphFont(properties));
+            var positions = placed ??
+                            (properties.CharacterSpacingPoints == 0 || text.Length <= 1
+                                ? GlyphPositions.Of(font, TextShaping.ResolveKerningMode(properties), text)
+                                : Tracked(font, text, (float) properties.CharacterSpacingPoints));
 
             svg.Append("<text x=\"");
             var first = true;
@@ -400,7 +404,7 @@ static class SvgPainter
             var rules = new List<TextDecorations.Rule>();
             var waves = new List<TextDecorations.Wave>();
             var font = context.GetFont(properties);
-            TextDecorations.Collect(properties, run.Text, run.X, run.Width, (float) baseline, (float) ascent, _ => (float) (context.MeasureText(font, _) + properties.CharacterSpacingPoints * _.Length), rules, waves);
+            TextDecorations.Collect(properties, run.Text, run.X, run.Width, (float) baseline, (float) ascent, _ => run.PrefixWidth(_, prefix => (float) (context.MeasureText(font, prefix) + properties.CharacterSpacingPoints * prefix.Length)), rules, waves);
             foreach (var rule in rules)
             {
                 Stroke(rule.X0, rule.Y, rule.X1, rule.Y, rule.IsStrike ? color : underlineColor, rule.Thickness, null);

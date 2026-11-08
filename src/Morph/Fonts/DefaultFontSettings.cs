@@ -8,13 +8,13 @@ static class DefaultFontSettings
     /// <summary>
     /// Factory default for <see cref="DefaultFont"/>: the resolver-safe last resort. Morph ships
     /// the four standard Aptos faces as embedded resources, so this resolves on every host,
-    /// including Linux/macOS machines with no fonts installed - which is why it stays Aptos even
-    /// though Word's own built-in default for a style-less document is Calibri 12pt.
+    /// including Linux/macOS machines with no fonts installed. It is also the family Word 16.0.20527
+    /// gives a style-less document (2026-11-08; the build of October gave Calibri).
     ///
     /// <para>The parser's built-in family for a style-less document lives in
     /// <c>DocumentParser.builtInDefaultFontFamily</c> and only applies when neither
     /// <see cref="ExportOptions.DefaultFont"/> nor this setting has been customized. Word's own
-    /// built-in there is Calibri 12pt, and that is what the parser supplies.</para>
+    /// built-in there is Aptos 12pt, and that is what the parser supplies.</para>
     /// </summary>
     const string builtInDefaultFont = "Aptos";
 
@@ -44,7 +44,7 @@ static class DefaultFontSettings
     /// Gets or sets the process-wide default fallback font family: the last resort the font
     /// resolvers fall back to for an unresolvable face, and - when customized - the default run
     /// font for a DOCX document that does not declare one (left uncustomized, such documents get
-    /// Word's own built-in, Calibri 12pt, with this family as the resolver fallback behind it).
+    /// Word's own built-in, Aptos 12pt, with this family as the resolver fallback behind it).
     /// Defaults to <c>Aptos</c>; the four standard faces ship inside Morph.dll as embedded
     /// resources so the default resolves on every host. Must be set before the first
     /// render; attempts to change it after any conversion has started will throw

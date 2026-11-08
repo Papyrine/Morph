@@ -243,7 +243,8 @@ component is `ExportOptionsPanel`: `ExportOptions` is already Morph's own record
 `PagedDocument`, which parses and runs the `Fragmenter` once and writes any page as SVG through
 `SvgPainter` (Morph.ImageSharp; the browser draws it, `MorphViewer.VectorPages`, the default) or paints it
 at any DPI through `ImageSharpPainter`. `SvgPainter` reads the same tree in the same order as
-`ImageSharpPainter`, with each glyph at the x SixLabors.Fonts lays it at, so a drawing change made to one
+`ImageSharpPainter`, with each glyph at the x the layout gives it (`PlacedRun.GlyphX`, where Word's pen
+draws it) or else the x SixLabors.Fonts lays it at, so a drawing change made to one
 painter belongs in the other too. It also rests on `TextLayerBuilder`, which reads each page's runs off the laid-out tree into the
 selectable text layer (`wwwroot/morph-text.js`) that the converter's preview carries too. Both use Morph
 internals: `Morph` and `Morph.ImageSharp` grant `Morph.Blazor` `InternalsVisibleTo`, so a change to the

@@ -23,24 +23,32 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Conversion constants
 
 
-    // Word's built-in defaults, supplied when a document declares no styles.xml or no
-    // docDefaults at all: CALIBRI 12pt with w:spacing w:line="278" w:lineRule="auto"
-    // w:after="160". The family is Word-probed (bare three-part package, one paragraph, no
-    // w:rFonts anywhere): Word draws the sample 632x21px at 150 DPI, matching its own explicit
-    // Calibri 12 exactly on both axes (Aptos 12 is 665x20, Times 12 is 629x23). An earlier
-    // comment here read the long_paragraph advances as "12pt Aptos", and of the reference it was
-    // read from that was true: the references rendered before 2026-08 are set in Aptos, which is
-    // what Word gave a style-less document then. It gives Calibri now, and the 105 references
-    // that were in Aptos were regenerated on 2026-10-02 (docs/fidelity-audit.md).
+    // Word's built-in defaults, supplied when a document declares no styles part or no
+    // docDefaults at all: APTOS 12pt with w:spacing w:line="278" w:lineRule="auto" w:after="160".
+    // The family follows the Word build. References rendered before 2026-08 are set in Aptos; the
+    // build of October gave Calibri (Word drew a bare three-part package's sample 632x21px at
+    // 150 DPI, its own explicit Calibri 12 exactly, and Styles("Normal").Font read Calibri 12), and
+    // the 105 references then in Aptos were regenerated on 2026-10-02; Word 16.0.20527 gives Aptos
+    // 12pt again — Styles("Normal").Font reads Aptos 12 and a render embeds Aptos alone, in bare
+    // packages with no settings and at compatibility modes 14 and 15 alike — and the 147 style-less
+    // references were regenerated on it on 2026-11-08 (docs/fidelity-audit.md).
     // The line pitch is unchanged by the family: Calibri's GDI cell and Aptos's hhea box are
     // both 1.2207em, so 12pt * 1.2207 * 278/240 = 35.35px at 150 DPI either way.
-    // A caller-supplied default font (ExportOptions.DefaultFont or a customized
-    // DefaultFontSettings.DefaultFont) still overrides the family - see the constructor.
-    // Word's built-in family for this case is CALIBRI (probed - see the comment block above).
-    // The flip from Aptos landed 2026-08-30, once the "autofit slack" that had held it back
-    // proved to be a mismeasurement (Word's rule is max(cellMargin, borderWidth/2) per side -
-    // see TableLayout).
-    const string builtInDefaultFontFamily = "Calibri";
+    // A package with no styles part but a theme takes the theme's minor font instead
+    // (StylelessThemeFont), and a caller-supplied default font (ExportOptions.DefaultFont or a
+    // customized DefaultFontSettings.DefaultFont) still overrides the family - see the constructor.
+    const string builtInDefaultFontFamily = "Aptos";
+
+    // A package with no styles part but a theme is set in the theme's minor font, at the built-in
+    // size: a bare package with only labels/12's theme added (minor font Georgia) came out in
+    // Georgia 12pt on Word 16.0.20527 (2026-11-08, read off its XPS). With a styles part the
+    // docDefaults decide, and with no theme the built-in family does.
+    string? StylelessThemeFont(MainDocumentPart mainPart) =>
+        mainPart.StyleDefinitionsPart == null &&
+        mainPart.ThemePart != null &&
+        currentThemeFonts?.MinorFont is {Length: > 0} minor
+            ? minor
+            : null;
 
     const double builtInDefaultFontSizePoints = 12.0;
 
@@ -410,9 +418,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         currentThemeFonts = ThemeParser.ExtractThemeFonts(mainPart.ThemePart);
 
         // Resolve the document's default font from docDefaults (w:rPrDefault/w:rFonts). Every run
-        // that doesn't carry an explicit font inherits this. Falls back to the constructor's
-        // defaultFont when the document doesn't specify one.
-        effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? defaultFont ?? builtInDefaultFontFamily;
+        // that doesn't carry an explicit font inherits this. Falls back to the theme's minor font
+        // for a package with no styles part, then to the constructor's defaultFont.
+        effectiveDefaultFont = ResolveDocDefaultFont(mainPart) ?? StylelessThemeFont(mainPart) ?? defaultFont ?? builtInDefaultFontFamily;
         effectiveDefaultFontSizePoints = ResolveDocDefaultFontSizePoints(mainPart) ?? builtInDefaultFontSizePoints;
         effectiveDefaultKerningMinPoints = ResolveDocDefaultKerningMinPoints(mainPart);
 
@@ -535,6 +543,19 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         var elements = ParseElements(body, mainPart);
+
+        // A page break that ends the document makes no page: Word keeps the final paragraph's mark on
+        // the page before it. Word 16.0.20527's own page count over COM (2026-11-08, compatibility
+        // modes 12, 14 and 15 alike): a break alone in the last paragraph, or ending its text, leaves
+        // one page; text after it, an empty paragraph after it, or a paragraph of text, two; two breaks
+        // there, two — only the last goes. The paragraph holding nothing but the break leaves only the
+        // break here, so a break that ends the list is exactly that one. The build of October drew the
+        // blank page (explicit_break_blank_page's reference until then).
+        if (elements.Count > 0 &&
+            elements[^1] is PageBreakElement)
+        {
+            elements.RemoveAt(elements.Count - 1);
+        }
 
         // Pull consecutive w:framePr-positioned paragraphs out of normal flow into floating
         // text-frame elements (Word's text-frame feature).

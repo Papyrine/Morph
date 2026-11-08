@@ -207,7 +207,7 @@ static class ImageSharpPainter
 
             // A superscript or subscript sits off the line baseline by its shift (VerticalRunPosition).
             var baseline = line.Baseline - run.BaselineShift;
-            DrawTracked(context, canvas, run.Text, properties, run.X, baseline);
+            DrawTracked(context, canvas, run.Text, properties, run.X, baseline, run.GlyphX);
 
             if (properties.Underline ||
                 properties.Strikethrough ||
@@ -250,7 +250,7 @@ static class ImageSharpPainter
             : ImageSharpRenderContext.ParseColor(properties.UnderlineColorHex);
         var rules = new List<TextDecorations.Rule>();
         var waves = new List<TextDecorations.Wave>();
-        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => MeasurePrefix(context, properties, _), rules, waves);
+        TextDecorations.Collect(properties, run.Text, run.X, run.Width, baseline, ascent, _ => run.PrefixWidth(_, prefix => MeasurePrefix(context, properties, prefix)), rules, waves);
         foreach (var rule in rules)
         {
             var y = P(context, rule.Y);
@@ -278,10 +278,12 @@ static class ImageSharpPainter
     // previous top-anchored form subtracted SixLabors' own ascender (typo when flagged, else hhea) from
     // the baseline, and SixLabors' LineBox placement does not put the baseline at origin + ascender
     // either, so every run drew high by a font-specific fraction of the em (0.11 em on
-    // business-plans/13). Per-character tracking mirrors SkiaPainter.DrawTracked, surrogate-safe.
-    static void DrawTracked(ImageSharpRenderContext context, DrawingCanvas canvas, string text, RunProperties properties, double penX, double baseline)
+    // business-plans/13). Per-character tracking mirrors SkiaPainter.DrawTracked, surrogate-safe, and so
+    // does a run drawn at Word's pen (PlacedRun.GlyphX): each cluster where the layout put it.
+    static void DrawTracked(ImageSharpRenderContext context, DrawingCanvas canvas, string text, RunProperties properties, double penX, double baseline, IReadOnlyList<float>? glyphX)
     {
-        var font = context.GetFont(properties);
+        var positions = PlacedRun.Positions(glyphX, text);
+        var font = context.GetFont(positions == null ? properties : PlacedRun.GlyphFont(properties));
         var brush = context.GetBrush(ImageSharpRenderContext.ParseColor(properties.ColorHex));
         var baselineY = P(context, baseline);
 
@@ -337,6 +339,19 @@ static class ImageSharpPainter
 
         void Draw(Brush? fill, Pen? stroke, float startX, float y)
         {
+            if (positions != null)
+            {
+                var index = 0;
+                while (index < text.Length)
+                {
+                    var end = PlacedRun.ClusterEnd(positions, text, index);
+                    canvas.DrawText(Options(context, font, startX + P(context, positions[index]), y, properties), text.AsSpan(index, end - index), fill, stroke);
+                    index = end;
+                }
+
+                return;
+            }
+
             if (properties.CharacterSpacingPoints == 0 || text.Length <= 1)
             {
                 canvas.DrawText(Options(context, font, startX, y, properties), text.AsSpan(), fill, stroke);

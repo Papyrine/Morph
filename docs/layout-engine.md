@@ -260,9 +260,10 @@ Word DRAWS glyphs and Word does not break lines there. Asked directly instead of
   on 902 and within 1.7px on all (`docs/word-features.md`, Table Auto-fit).*
 - ***What the XPS records instead.** Whole-pixel glyph advances at the em rounded to a whole pixel. Inside
   a run the pen may fall about 5px behind its linear position before a glyph is widened by a pixel (one
-  glyph repeated 5 to 160 times, 300 runs: 296 within 1px of that model, 235 of a per-glyph one). A space
-  brings the pen up to the rounded linear position when it is behind and never pulls it back when it is
-  ahead. And a line that drew wider than its measure has its spaces narrowed until it fits — which is what
+  glyph repeated 5 to 160 times, 300 runs: 296 within 1px of that model, 235 of a per-glyph one). A run
+  that kerns draws each pair's kern rounded to a whole pixel on top (2026-11-08, `_probe_kerndraw_c12`).
+  A space brings the pen up to `floor(linear + 0.4)` when that is ahead of it — only once it trails the
+  linear position by more than 0.6px — and never pulls it back when it is ahead. And a line that drew wider than its measure has its spaces narrowed until it fits — which is what
   the "space-compression wedge" of 2026-08-30 had modelled as a breaking rule. Word was not squeezing a
   line to avoid a wrap; it was squeezing the drawing of a line that already fitted on its linear width.*
 - ***Why the sidecars looked right.** A sidecar cell was the mean advance of a 20-glyph run, and 5px of
