@@ -41,7 +41,7 @@
                     }
                 </ul>
             }
-            <span class="wopi-status" role="status" aria-live="polite">@status</span>
+            <span class="wopi-status" role="status" aria-live="polite">@ShownStatus</span>
             @if (file.CloseUrl is not null)
             {
                 <button type="button" class="wopi-close" @onclick="CloseAsync">
@@ -68,7 +68,7 @@
         <MorphEditor @ref="editorComponent" Source="bytes" FileName="@info!.BaseFileName" Author="@info.UserFriendlyName"
                      ReadOnly="readOnly" ShowOpenFile="false" ShowNew="false" ShowSamples="false"
                      ShowDownload="!info.DisableExport" ShowPrint="!info.DisablePrint" ShowIssueLink="ShowIssueLink"
-                     OnSave="SaveCallback" OnDocumentChanged="OnChanged" KeepDrafts="false" />
+                     OnSave="SaveCallback" OnDocumentChanged="OnChanged" OnTypingChanged="OnTyping" KeepDrafts="false" />
     }
     else
     {

@@ -51,6 +51,15 @@ public partial class MorphWopi : IAsyncDisposable
     string? problem;
     string? status;
 
+    // The paragraph open for typing holds typing the file does not have yet (MorphViewer.OnTypingChanged).
+    bool typing;
+
+    // The bar's status: never "Saved" while there is typing that save has not had. The session's state
+    // says "Saved" until a handed-in edit reaches it, and a paragraph is handed in only when the reader
+    // leaves it, pauses or saves, so its keystrokes would otherwise sit under a "Saved" they are not in.
+    string? ShownStatus =>
+        typing && status == "Saved" ? null : status;
+
     EventCallback<byte[]> SaveCallback
     {
         get
@@ -275,6 +284,9 @@ public partial class MorphWopi : IAsyncDisposable
 
     void OnChanged(byte[] _) =>
         status = null;
+
+    void OnTyping(bool value) =>
+        typing = value;
 
     static string Problem(WopiReply reply)
     {

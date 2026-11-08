@@ -409,6 +409,7 @@ Limits worth knowing:
 | `ReadOnly` | `false` | Shows the document, its comments and its tracked changes without offering to change any of them — in the editor, its text too. |
 | `Author` | — | The name new comments and tracked changes are signed with. Left unset, the reader is asked for one, and is "Guest" until they give it. |
 | `OnDocumentChanged` | — | Called with the file's bytes after every edit, undo and redo — in the viewer's review pane, or anywhere in the editor. Handing them back as `Source` does not reopen the file. |
+| `OnTypingChanged` | — | `MorphEditor` only in practice: called with `true` when the paragraph open for typing comes to hold typing of its own — not in the file, and not in `OnDocumentChanged`'s bytes, until the paragraph is handed in — and with `false` when it stops. Only then, never per keystroke. A host's "saved" mark is not true while it is; `MorphWopi` hides its "Saved" for it. |
 | `OnSave` | — | Saves the file where it came from. Given one, Save and Ctrl+S hand it the file instead of downloading it; the file counts as saved once it returns, and what it throws is shown, the file still edited. Download then saves a copy. |
 | `ShowNew` | `true` | `MorphEditor` only: offers a new blank document in the File menu. |
 | `KeepDrafts` | `true` | `MorphEditor` only: keeps a draft of a document with edits not saved in the browser's storage, for the start page to offer back. Off, the page still asks before it is left; `MorphWopi` turns it off. |

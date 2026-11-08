@@ -257,10 +257,11 @@ public class WopiSampleTests
         await page.Keyboard.PressAsync("End");
         await page.Keyboard.TypeAsync(" over WOPI");
         await page.Keyboard.PressAsync("Control+s");
-        // The file itself, not the status: run after TwoEditors_EditTogether, this page joins the session
-        // that test saved, whose status already reads "Saved", and typing does not change it until the
-        // paragraph is handed in — so a wait for "Saved" could pass before this save had landed.
-        await UntilSavedAsync(Path.Combine(folder, "Report.docx"), "over WOPI");
+        // The file itself, then the status: run after TwoEditors_EditTogether, this page joins the session
+        // that test saved, whose status read "Saved" before anything was typed here, so the status alone
+        // does not say that this save has landed.
+        var path = Path.Combine(folder, "Report.docx");
+        await UntilSavedAsync(path, "over WOPI");
         await frame.WaitForSelectorAsync(
             ".wopi-status:text-is('Saved')",
             new()
@@ -268,6 +269,35 @@ public class WopiSampleTests
                 Timeout = 60000
             });
         await Assert.That(await frame.InnerTextAsync(".editor-name")).DoesNotContain("edited");
+
+        // Typed into again, the bar stops saying "Saved" at the first key, though what is typed reaches
+        // the file only when the paragraph is handed in (MorphWopi.ShownStatus) — within 1.5s, before the
+        // hand-in a coauthoring page makes after 2s idle could clear it for another reason.
+        await page.Keyboard.PressAsync("Escape");
+        await frame.Locator(".text-layer span", new() { HasTextString = "MINUTES" }).First.ClickAsync();
+        await frame.WaitForSelectorAsync(
+            ".edit-box[contenteditable=true]",
+            new()
+            {
+                Timeout = 60000
+            });
+        await page.Keyboard.PressAsync("End");
+        await page.Keyboard.TypeAsync(" again");
+        await frame.WaitForFunctionAsync(
+            "() => document.querySelector('.wopi-status')?.textContent !== 'Saved'",
+            null,
+            new()
+            {
+                Timeout = 1500
+            });
+        await page.Keyboard.PressAsync("Control+s");
+        await UntilSavedAsync(path, "again");
+        await frame.WaitForSelectorAsync(
+            ".wopi-status:text-is('Saved')",
+            new()
+            {
+                Timeout = 60000
+            });
 
         // Close goes back to the host, and the file is unlocked: it opens to edit again.
         await CloseAsync(page, frame);

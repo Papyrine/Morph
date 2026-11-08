@@ -44,6 +44,15 @@ public partial class MorphViewer
     public EventCallback<byte[]> OnDocumentChanged { get; set; }
 
     /// <summary>
+    /// Called with true when the paragraph open for typing comes to hold typing of its own, which is not
+    /// in the file until the paragraph is handed in, and with false when it stops: handed in, closed, or
+    /// typed back to what it was. Only then, never per keystroke. A host's "saved" mark is not true
+    /// while it is.
+    /// </summary>
+    [Parameter]
+    public EventCallback<bool> OnTypingChanged { get; set; }
+
+    /// <summary>
     /// Saves the file where it came from, as a WOPI host's storage (<see cref="MorphWopi"/>). Given one,
     /// Save and Ctrl+S hand it the file instead of downloading it, and the file counts as saved once it
     /// returns; a failure it throws is shown, and the file stays edited. Download still saves a copy.
@@ -665,7 +674,7 @@ public partial class MorphViewer
     /// </summary>
     [JSInvokable]
     public Task OnEditHistory(bool undoable, bool redoable) =>
-        InvokeAsync(() =>
+        InvokeAsync(async () =>
         {
             if (boxUndo == undoable &&
                 boxRedo == redoable)
@@ -673,9 +682,15 @@ public partial class MorphViewer
                 return;
             }
 
+            var typed = boxUndo != undoable;
             boxUndo = undoable;
             boxRedo = redoable;
             StateHasChanged();
+            // A step of its own to undo is typing the file does not have yet.
+            if (typed)
+            {
+                await OnTypingChanged.InvokeAsync(undoable);
+            }
         });
 
     // Text is selected across the pages.
