@@ -127,6 +127,34 @@ public class WopiSampleTests
         return reader.ReadToEnd();
     }
 
+    // Waits until the host's copy of the file holds the text: a save lands when the host has written it,
+    // and a file being written may not read as a package yet.
+    static async Task UntilSavedAsync(string path, string text)
+    {
+        var body = "";
+        for (var tries = 0; tries < 240; tries++)
+        {
+            try
+            {
+                body = Body(path);
+                if (body.Contains(text))
+                {
+                    return;
+                }
+            }
+            catch (IOException)
+            {
+            }
+            catch (InvalidDataException)
+            {
+            }
+
+            await Task.Delay(250);
+        }
+
+        throw new TimeoutException($"{path} never held \"{text}\"; its body read:{Environment.NewLine}{body}");
+    }
+
     // What each page did — its frames' console, its dialogs and where it went — told when a wait for it fails.
     static readonly ConditionalWeakTable<IPage, ConcurrentQueue<string>> logs = [];
 
@@ -229,14 +257,16 @@ public class WopiSampleTests
         await page.Keyboard.PressAsync("End");
         await page.Keyboard.TypeAsync(" over WOPI");
         await page.Keyboard.PressAsync("Control+s");
+        // The file itself, not the status: run after TwoEditors_EditTogether, this page joins the session
+        // that test saved, whose status already reads "Saved", and typing does not change it until the
+        // paragraph is handed in — so a wait for "Saved" could pass before this save had landed.
+        await UntilSavedAsync(Path.Combine(folder, "Report.docx"), "over WOPI");
         await frame.WaitForSelectorAsync(
             ".wopi-status:text-is('Saved')",
             new()
             {
                 Timeout = 60000
             });
-
-        await Assert.That(Body(Path.Combine(folder, "Report.docx"))).Contains("over WOPI");
         await Assert.That(await frame.InnerTextAsync(".editor-name")).DoesNotContain("edited");
 
         // Close goes back to the host, and the file is unlocked: it opens to edit again.
