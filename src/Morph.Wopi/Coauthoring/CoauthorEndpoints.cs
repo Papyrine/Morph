@@ -44,6 +44,7 @@ static class CoauthorEndpoints
         try
         {
             CoauthorUser user;
+            HostFile info;
             using (var answer = await requests.SendAsync(file, token, "CheckFileInfo", cancel: cancel))
             {
                 if (!answer.IsSuccessStatusCode)
@@ -51,10 +52,12 @@ static class CoauthorEndpoints
                     return Results.StatusCode((int) answer.StatusCode);
                 }
 
-                user = CoauthorUser.Parse(await answer.Content.ReadAsStringAsync(cancel));
+                var json = await answer.Content.ReadAsStringAsync(cancel);
+                user = CoauthorUser.Parse(json);
+                info = HostFile.Parse(json);
             }
 
-            var (_, connection) = await sessions.JoinAsync(file, token, user, cancel);
+            var (_, connection) = await sessions.JoinAsync(file, token, user, info, cancel);
             return Results.Json(new JoinReply(connection.Id, connection.UserName, connection.Color, connection.CanWrite, connection.Version), Json);
         }
         catch (HttpRequestException exception)

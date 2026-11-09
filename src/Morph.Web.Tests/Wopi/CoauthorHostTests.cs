@@ -297,6 +297,105 @@ public class CoauthorHostTests
         await Assert.That(commit.Result).IsEqualTo("refused");
     }
 
+    // Another client held the lock as the session opened the file, and saved the file before it let the lock
+    // go. The next page to join takes the lock, and the session takes the file as it now is: what it read
+    // before is not saved over the other client's save.
+    [Test]
+    public async Task AFileSavedElsewhere_BeforeTheSessionCouldLockIt_IsTakenIn()
+    {
+        var clock = Clock();
+        await using var server = await StartAsync(clock);
+        var (_, launch) = await PostAsync(server.Client(), await server.LaunchAsync(user: "eve"));
+        var elsewhere = new WopiSession(server.Client(), launch!);
+        await elsewhere.LockAsync("elsewhere");
+        var ann = await JoinAsync(server, "ann");
+        await elsewhere.PutFileAsync(Typed(ann.Document, Editable(ann.Document)[0], " — Elsewhere"), "elsewhere");
+        await elsewhere.UnlockAsync("elsewhere");
+
+        var bob = await JoinAsync(server, "bob");
+        await CommitAsync(bob, Typed(bob.Document, Editable(bob.Document)[^1], " — Bob"));
+        var saved = await bob.Client.SaveAsync();
+
+        await Assert.That(Text(bob.Document)).Contains(" — Elsewhere");
+        await Assert.That(saved.Saved).IsTrue();
+        var stored = Text(await File.ReadAllBytesAsync(Path.Combine(server.Storage.Root, "Report.docx")));
+        await Assert.That(stored).Contains(" — Elsewhere");
+        await Assert.That(stored).Contains(" — Bob");
+    }
+
+    // The host's storage is written to while the session holds the lock. The save carries the time of the
+    // file the session has, the host refuses it (1010), and the session merges the change with its edits
+    // before it saves again.
+    [Test]
+    public async Task AFileChangedInStorage_IsMergedWithTheEdits_BeforeTheSave()
+    {
+        var clock = Clock();
+        await using var server = await StartAsync(clock);
+        var ann = await JoinAsync(server, "ann");
+        var paragraphs = Editable(ann.Document);
+        var path = Path.Combine(server.Storage.Root, "Report.docx");
+        await File.WriteAllBytesAsync(path, Typed(ann.Document, paragraphs[^1], " — Storage"));
+        await CommitAsync(ann, Typed(ann.Document, paragraphs[0], " — Ann"));
+
+        var saved = await ann.Client.SaveAsync();
+
+        await Assert.That(saved.Saved).IsTrue();
+        var stored = Text(await File.ReadAllBytesAsync(path));
+        await Assert.That(stored).Contains(" — Storage");
+        await Assert.That(stored).Contains(" — Ann");
+        var (_, latest) = await ann.Client.DocumentAsync();
+        await Assert.That(Text(latest)).IsEqualTo(stored);
+    }
+
+    // A change in storage to the paragraph the session's edits changed too cannot be merged: the edits are
+    // not saved over it.
+    [Test]
+    public async Task AnEditThatCannotBeMerged_WithAChangeInStorage_IsNotSavedOverIt()
+    {
+        var clock = Clock();
+        await using var server = await StartAsync(clock);
+        var ann = await JoinAsync(server, "ann");
+        var paragraph = Editable(ann.Document)[0];
+        var path = Path.Combine(server.Storage.Root, "Report.docx");
+        await File.WriteAllBytesAsync(path, Typed(ann.Document, paragraph, " — Storage"));
+        await CommitAsync(ann, Typed(ann.Document, paragraph, " — Ann"));
+
+        var saved = await ann.Client.SaveAsync();
+
+        await Assert.That(saved.Saved).IsFalse();
+        await Assert.That(saved.Problem).Contains("changed elsewhere");
+        var stored = Text(await File.ReadAllBytesAsync(path));
+        await Assert.That(stored).Contains(" — Storage");
+        await Assert.That(stored).DoesNotContain(" — Ann");
+    }
+
+    // The session's lock lapsed, and another client saved the file meanwhile. The session's save finds the
+    // file unlocked, takes the lock again, and merges what changed before it saves.
+    [Test]
+    public async Task ALapsedLock_IsTakenAgain_AndWhatChangedMeanwhileIsMerged()
+    {
+        var clock = Clock();
+        await using var server = await StartAsync(clock);
+        var ann = await JoinAsync(server, "ann");
+        var paragraphs = Editable(ann.Document);
+        var locks = server.App.Services.GetRequiredService<IOfficeLockStore>();
+        var held = await locks.Get(server.Id);
+        await locks.CompareExchange(server.Id, held!.Id, null);
+        var (_, launch) = await PostAsync(server.Client(), await server.LaunchAsync(user: "eve"));
+        var elsewhere = new WopiSession(server.Client(), launch!);
+        await elsewhere.LockAsync("elsewhere");
+        await elsewhere.PutFileAsync(Typed(ann.Document, paragraphs[^1], " — Elsewhere"), "elsewhere");
+        await elsewhere.UnlockAsync("elsewhere");
+        await CommitAsync(ann, Typed(ann.Document, paragraphs[0], " — Ann"));
+
+        var saved = await ann.Client.SaveAsync();
+
+        await Assert.That(saved.Saved).IsTrue();
+        var stored = Text(await File.ReadAllBytesAsync(Path.Combine(server.Storage.Root, "Report.docx")));
+        await Assert.That(stored).Contains(" — Elsewhere");
+        await Assert.That(stored).Contains(" — Ann");
+    }
+
     [Test]
     public async Task ATokenTheHostRefuses_JoinsNothing()
     {

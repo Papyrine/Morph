@@ -20,6 +20,14 @@ sealed record SessionPresence(string Connection, string Name, int Color, string?
 /// page's: an edit by anyone else that changes it is refused, and nobody else may open it. The document is
 /// saved to the host a while after the first change not yet saved, and when the last page leaves.
 ///
+/// The file may change without the session: another client saves it while the session does not hold the
+/// lock (before the session could take it, or after it lapsed), or the host's storage is written to. So a
+/// lock the session takes, or takes again, is trusted only once the file is seen not to have changed since
+/// the session read or saved it (<see cref="CatchUpAsync"/>): a change is taken into the document, merged
+/// with the edits not yet saved, and nothing is saved over it. A save also carries the time the host gave
+/// for the file the session has (X-COOL-WOPI-Timestamp), which a host for Collabora Online refuses when
+/// the file changed since.
+///
 /// Everything a session does runs one thing at a time, behind its gate.
 /// </summary>
 sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time, MorphWopiOptions options, ILogger logger, Action<CoauthorSession> closed)
@@ -49,6 +57,13 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
     string? problem;
     string? saved;
     bool dirty;
+    // The file as the session last read or saved it: the document it was, the host's version of it, and when
+    // the host says it was last changed. Either of the last two may be unknown.
+    byte[]? hostDocument;
+    string? hostVersion;
+    string? hostModified;
+    // Whether the file may have changed since: the lock was taken (again) and the file not yet compared.
+    bool behind;
     string? lastToken;
     ITimer? autosave;
     ITimer? refresh;
@@ -59,10 +74,11 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
     public bool IsClosed { get; private set; }
 
     /// <summary>
-    /// Adds a page with the token the host accepted, for the user it is. The first page opens the document
-    /// from the host; the first that may write takes the file's lock, without which nobody's edits are taken.
+    /// Adds a page with the token the host accepted, for the user it is, and the file as that token's
+    /// CheckFileInfo found it. The first page opens the document from the host; the first that may write
+    /// takes the file's lock, without which nobody's edits are taken.
     /// </summary>
-    public async Task<CoauthorConnection> JoinAsync(string token, CoauthorUser user, Cancel cancel)
+    public async Task<CoauthorConnection> JoinAsync(string token, CoauthorUser user, HostFile info, Cancel cancel)
     {
         await gate.WaitAsync(cancel);
         try
@@ -74,7 +90,7 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
 
             if (document == null)
             {
-                await OpenAsync(token, cancel);
+                await OpenAsync(token, info, cancel);
             }
 
             var canWrite = user.CanWrite && editable;
@@ -102,7 +118,7 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         }
     }
 
-    async Task OpenAsync(string token, Cancel cancel)
+    async Task OpenAsync(string token, HostFile info, Cancel cancel)
     {
         using var answer = await requests.SendAsync(file, token, "GetFile", cancel: cancel);
         if (!answer.IsSuccessStatusCode)
@@ -124,6 +140,10 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         document = bytes;
         version = 1;
         history.Add((version, bytes));
+        // The version of what GetFile sent; CheckFileInfo's, from before it, where the host sends none.
+        hostDocument = bytes;
+        hostVersion = Header(answer, "X-WOPI-ItemVersion") ?? info.Version;
+        hostModified = info.LastModifiedTime;
     }
 
     static bool Editable(byte[] bytes)
@@ -151,6 +171,108 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         lockId = id;
         problem = null;
         refresh = time.CreateTimer(_ => Later(RefreshAsync), null, refreshInterval, refreshInterval);
+        // The file may have changed since the session read it: while another client held the lock, or
+        // between the read and the lock.
+        behind = true;
+        await CatchUpAsync(token, cancel);
+    }
+
+    /// <summary>
+    /// Compares the file the host has with the one the session last read or saved, once the session holds
+    /// the lock: a file changed meanwhile is taken into the document, merged with the edits not yet saved,
+    /// and the pages are told of the new version. Null once caught up, else why not: until then nothing is
+    /// saved, and the next save tries again.
+    /// </summary>
+    async Task<string?> CatchUpAsync(string token, Cancel cancel)
+    {
+        try
+        {
+            if (await FileInfoAsync(token, cancel) is not { } info)
+            {
+                return "the host did not say what the file is now.";
+            }
+
+            hostModified = info.LastModifiedTime;
+            // Unknown on either side: nothing to compare, as before the session took the lock.
+            if (info.Version == null ||
+                hostVersion == null ||
+                info.Version == hostVersion)
+            {
+                hostVersion ??= info.Version;
+                behind = false;
+                return null;
+            }
+
+            byte[] theirs;
+            string? theirVersion;
+            using (var answer = await requests.SendAsync(file, token, "GetFile", cancel: cancel))
+            {
+                if (!answer.IsSuccessStatusCode)
+                {
+                    return $"the host answered {(int) answer.StatusCode} to GetFile.";
+                }
+
+                theirs = await answer.Content.ReadAsByteArrayAsync(cancel);
+                theirVersion = Header(answer, "X-WOPI-ItemVersion") ?? info.Version;
+            }
+
+            if (!Editable(theirs))
+            {
+                logger.LogWarning("{File} was changed elsewhere into a document that cannot be edited here", file);
+                return "the file was changed elsewhere into a document that cannot be edited here.";
+            }
+
+            theirs = ParagraphIds.StampAll(theirs);
+            var next = theirs;
+            // Edits not yet saved were made to the file as the session last had it: merged with the change.
+            if (dirty)
+            {
+                var outcome = DocumentMerge.Merge(hostDocument!, document!, theirs);
+                if (outcome.Refused)
+                {
+                    logger.LogWarning("{File} was changed elsewhere, and the edits not yet saved could not be merged with it: {Reason}", file, outcome.Reason);
+                    return $"the file was changed elsewhere, and the edits made here could not be merged with it: {outcome.Reason}";
+                }
+
+                next = outcome.Document!;
+            }
+
+            var previous = document!;
+            Adopt(next);
+            foreach (var changed in DocumentMerge.Changed(previous, document!))
+            {
+                lastChanged[changed] = version;
+            }
+
+            hostDocument = theirs;
+            hostVersion = theirVersion;
+            behind = false;
+            logger.LogInformation("{File} was changed elsewhere: taken in as version {Version}", file, version);
+            Broadcast();
+            return null;
+        }
+        catch (HttpRequestException)
+        {
+            return "the host of the file could not be reached.";
+        }
+    }
+
+    async Task<HostFile?> FileInfoAsync(string token, Cancel cancel)
+    {
+        using var answer = await requests.SendAsync(file, token, "CheckFileInfo", cancel: cancel);
+        if (!answer.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        try
+        {
+            return HostFile.Parse(await answer.Content.ReadAsStringAsync(cancel));
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
     }
 
     /// <summary>The document as it is now, and its version.</summary>
@@ -535,7 +657,8 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
     }
 
     // Puts the document to the host under the lock, with whoever edited it since the last save, taking the
-    // lock again if it lapsed. Null if saved, else why not.
+    // lock again if it lapsed. Never over a file changed since the session read or saved it: that change is
+    // taken in first. Null if saved, else why not.
     async Task<string?> PutAsync(bool exit, Cancel cancel)
     {
         if (!dirty ||
@@ -552,12 +675,36 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         };
         try
         {
-            var answer = await PutFileAsync(token, headers, cancel);
-            if (answer is { Status: 409, Unlocked: true })
+            if (behind &&
+                await CatchUpAsync(token, cancel) is { } stale)
             {
+                return NotSaved(stale);
+            }
+
+            var answer = await PutFileAsync(token, headers, cancel);
+            if (answer is {Status: 409, Changed: true})
+            {
+                // The host says the file changed since the session read or saved it.
+                behind = true;
+                if (await CatchUpAsync(token, cancel) is { } changed)
+                {
+                    return NotSaved(changed);
+                }
+
+                answer = await PutFileAsync(token, headers, cancel);
+            }
+            else if (answer is {Status: 409, Unlocked: true})
+            {
+                // The lock lapsed: taken again, the file may have changed while nobody held it.
                 using var relocked = await requests.SendAsync(file, token, "Lock", lockId, cancel: cancel);
                 if (relocked.IsSuccessStatusCode)
                 {
+                    behind = true;
+                    if (await CatchUpAsync(token, cancel) is { } lapsed)
+                    {
+                        return NotSaved(lapsed);
+                    }
+
                     answer = await PutFileAsync(token, headers, cancel);
                 }
             }
@@ -567,6 +714,11 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
                 dirty = false;
                 editors.Clear();
                 saved = "Saved";
+                if (hostVersion == null)
+                {
+                    await SavedVersionAsync(token, cancel);
+                }
+
                 Broadcast();
                 return null;
             }
@@ -582,22 +734,106 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         return saved;
     }
 
-    async Task<(int Status, bool Unlocked, string Reason)> PutFileAsync(string token, Dictionary<string, string> headers, Cancel cancel)
+    string NotSaved(string reason)
     {
-        var content = new ByteArrayContent(document!);
-        content.Headers.ContentType = new("application/octet-stream");
-        using var answer = await requests.SendAsync(file, token, "PutFile", lockId, content, headers, cancel);
-        var status = (int) answer.StatusCode;
-        string? current = null;
-        if (answer.Headers.TryGetValues("X-WOPI-Lock", out var values))
+        saved = $"Not saved: {reason}";
+        Broadcast();
+        return saved;
+    }
+
+    // A host that gave no version with the save: its CheckFileInfo's, what the next lock is compared with.
+    async Task SavedVersionAsync(string token, Cancel cancel)
+    {
+        try
         {
-            current = values.FirstOrDefault();
+            hostVersion = (await FileInfoAsync(token, cancel))?.Version;
+        }
+        catch (HttpRequestException)
+        {
+            // Unknown until the next save.
+        }
+    }
+
+    async Task<(int Status, bool Unlocked, bool Changed, string Reason)> PutFileAsync(string token, Dictionary<string, string> headers, Cancel cancel)
+    {
+        var sent = document!;
+        var content = new ByteArrayContent(sent);
+        content.Headers.ContentType = new("application/octet-stream");
+        var all = new Dictionary<string, string>(headers);
+        if (hostModified != null)
+        {
+            all["X-COOL-WOPI-Timestamp"] = hostModified;
+        }
+
+        using var answer = await requests.SendAsync(file, token, "PutFile", lockId, content, all, cancel);
+        var status = (int) answer.StatusCode;
+        if (answer.IsSuccessStatusCode)
+        {
+            // What the host now has, for the next lock and save to be compared with.
+            hostDocument = sent;
+            hostVersion = Header(answer, "X-WOPI-ItemVersion");
+            hostModified = await SavedTimeAsync(answer, cancel);
+            return (status, false, false, "");
+        }
+
+        if (status != 409)
+        {
+            return (status, false, false, Reason(answer, $"the host answered {status}."));
+        }
+
+        // The file changed since the time the save carried: a host for Collabora Online answers so (1010),
+        // naming no lock.
+        if (await CoolStatusAsync(answer, cancel) == 1010)
+        {
+            return (status, false, true, "the file was changed elsewhere.");
         }
 
         // A conflict naming no lock: the file is not locked at all, as when the lock lapsed.
-        var unlocked = status == 409 &&
-                       string.IsNullOrEmpty(current);
-        return (status, unlocked, Reason(answer, $"the host answered {status}."));
+        var unlocked = string.IsNullOrEmpty(Header(answer, "X-WOPI-Lock"));
+        return (status, unlocked, false, Reason(answer, $"the host answered {status}."));
+    }
+
+    // The LastModifiedTime a save answers with, which the next save carries.
+    static async Task<string?> SavedTimeAsync(HttpResponseMessage answer, Cancel cancel)
+    {
+        try
+        {
+            return HostFile.Parse(await answer.Content.ReadAsStringAsync(cancel)).LastModifiedTime;
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    static async Task<int?> CoolStatusAsync(HttpResponseMessage answer, Cancel cancel)
+    {
+        try
+        {
+            using var json = JsonDocument.Parse(await answer.Content.ReadAsStringAsync(cancel));
+            if (json.RootElement.ValueKind == JsonValueKind.Object &&
+                json.RootElement.TryGetProperty("COOLStatusCode", out var code) &&
+                code.TryGetInt32(out var value))
+            {
+                return value;
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return null;
+    }
+
+    static string? Header(HttpResponseMessage answer, string name)
+    {
+        if (answer.Headers.TryGetValues(name, out var values) &&
+            values.FirstOrDefault() is {Length: > 0} value)
+        {
+            return value;
+        }
+
+        return null;
     }
 
     async Task RefreshAsync()
@@ -614,8 +850,18 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
             using var answer = await requests.SendAsync(file, token, "RefreshLock", lockId);
             if (answer.StatusCode == HttpStatusCode.Conflict)
             {
-                // The lock lapsed, as while the server slept: take it again.
-                using var _ = await requests.SendAsync(file, token, "Lock", lockId);
+                // The lock lapsed, as while the server slept: taken again, the file may have changed while
+                // nobody held it.
+                using var relocked = await requests.SendAsync(file, token, "Lock", lockId);
+                if (relocked.IsSuccessStatusCode)
+                {
+                    behind = true;
+                    if (await CatchUpAsync(token, Cancel.None) is { } stale &&
+                        dirty)
+                    {
+                        NotSaved(stale);
+                    }
+                }
             }
         }
         catch (HttpRequestException)

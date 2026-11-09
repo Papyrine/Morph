@@ -8,8 +8,11 @@ sealed class CoauthorSessions(WopiRequests requests, TimeProvider time, IOptions
     readonly ConcurrentDictionary<string, CoauthorSession> sessions = new(StringComparer.Ordinal);
     readonly ConcurrentDictionary<string, (CoauthorSession Session, CoauthorConnection Connection)> connections = new(StringComparer.Ordinal);
 
-    /// <summary>Adds a page to the session of its file, which it opens if there is none.</summary>
-    public async Task<(CoauthorSession Session, CoauthorConnection Connection)> JoinAsync(Uri file, string token, CoauthorUser user, Cancel cancel)
+    /// <summary>
+    /// Adds a page to the session of its file, which it opens if there is none. <paramref name="info"/> is the
+    /// file as the CheckFileInfo of the page's token found it.
+    /// </summary>
+    public async Task<(CoauthorSession Session, CoauthorConnection Connection)> JoinAsync(Uri file, string token, CoauthorUser user, HostFile info, Cancel cancel)
     {
         while (true)
         {
@@ -22,7 +25,7 @@ sealed class CoauthorSessions(WopiRequests requests, TimeProvider time, IOptions
 
             try
             {
-                var connection = await session.JoinAsync(token, user, cancel);
+                var connection = await session.JoinAsync(token, user, info, cancel);
                 connections[connection.Id] = (session, connection);
                 return (session, connection);
             }

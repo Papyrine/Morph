@@ -488,8 +488,15 @@ edits unchanged. Three layers:
   (`CoauthorSessions`), holds the document, its versions, the one WOPI lock and the paragraph each page has
   open, merges commits, refuses an edit to a paragraph someone else has open (and a lock asked for with a
   version older than that paragraph's last change: `stale`), and autosaves through `WopiRequests`, the
-  signed sender the proxy uses too. `CoauthorEndpoints` maps `/morph/wopi/session/*`; the state goes out as
-  Server-Sent Events. `CoauthorHostTests` and `CoauthorTests` run it against OfficeHost in a test server.
+  signed sender the proxy uses too. The file can change without the session (another client saved it
+  before the session could take the lock or after its lock lapsed, or the host's storage was written to),
+  so a lock the session takes or takes again is trusted only once CheckFileInfo's `Version` matches the
+  version it last read or saved (`CatchUpAsync`): a change is taken in as a new version, merged with the
+  edits not yet saved by `DocumentMerge`, and nothing is saved over a change it cannot merge. Each save
+  carries `X-COOL-WOPI-Timestamp`, the host's `LastModifiedTime` of the file the session has, and a 409
+  `COOLStatusCode` 1010 leads to the same catch-up. `CoauthorEndpoints` maps `/morph/wopi/session/*`; the
+  state goes out as Server-Sent Events. `CoauthorHostTests` and `CoauthorTests` run it against OfficeHost
+  in a test server.
 - **Editor**: `Coauthor` (`Services/Coauthor.cs`) commits every file the editor shows as a patch against
   the version it descends from (`based`), holds a merged answer until the editor is ready, and fetches
   others' versions; `CoauthorClient` is the HTTP and the events. `MorphViewer.Coauthoring.cs` is the
