@@ -1,5 +1,3 @@
-using System.Xml.Linq;
-
 /// <summary>
 /// Reads an SVG document into an <see cref="SvgDrawing"/>: every shape as figures of lines and
 /// cubics in the <c>viewBox</c>'s coordinates, with its fill, stroke, opacity and clip resolved, so

@@ -709,8 +709,10 @@ sealed class SlideShapeParser(
         foreach (var vml in hostPart.Parts.Select(_ => _.OpenXmlPart).OfType<VmlDrawingPart>())
         {
             using var stream = vml.GetStream(FileMode.Open, FileAccess.Read);
-            var document = System.Xml.Linq.XDocument.Load(stream);
-            var shape = document.Descendants().FirstOrDefault(_ => _.Name.LocalName == "shape" && _.Attributes().Any(attribute => attribute.Name.LocalName is "spid" or "id" && attribute.Value == spid));
+            var document = XDocument.Load(stream);
+            var shape = document.Descendants()
+                .FirstOrDefault(_ => _.Name.LocalName == "shape" &&
+                                     _.Attributes().Any(attribute => attribute.Name.LocalName is "spid" or "id" && attribute.Value == spid));
             var relationship = shape?.Descendants()
                 .Where(_ => _.Name.LocalName == "imagedata")
                 .SelectMany(_ => _.Attributes())

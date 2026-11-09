@@ -1,6 +1,3 @@
-using System.Net.ServerSentEvents;
-using System.Threading.Channels;
-
 /// <summary>What a commit came to: kept as sent, kept merged with others' edits, refused, or sent against a version no longer kept.</summary>
 sealed record CommitReply(string Result, long Version, string? Patch = null, string? Reason = null, string? Paragraph = null, string? By = null);
 
@@ -517,10 +514,7 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
     {
         dirty = true;
         saved = null;
-        if (autosave == null)
-        {
-            autosave = time.CreateTimer(_ => Later(AutosaveAsync), null, options.AutosaveDelay, Timeout.InfiniteTimeSpan);
-        }
+        autosave ??= time.CreateTimer(_ => Later(AutosaveAsync), null, options.AutosaveDelay, Timeout.InfiniteTimeSpan);
 
         Broadcast();
     }
