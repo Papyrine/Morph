@@ -64,7 +64,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     onPage(_);
                 }
             });
-        var flow = new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes)
+        var flow = new Flow(
+            measurer,
+            compatibility ?? new(),
+            page, header,
+            footer, firstPageHeader,
+            firstPageFooter,
+            evenPageHeader,
+            evenPageFooter,
+            notes)
         {
             OnPage = report
         };
@@ -75,12 +83,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // Kept as the parser cached them, every one read the number Word last saved (_probe_chapter's
         // eleven body fields all read "9").
         if (!Flow.HasPageField(elements) ||
-            flow.BodyPageFieldTexts(elements, bookmarks) is not {Count: > 0} texts)
+            flow.BodyPageFieldTexts(elements, bookmarks) is not { Count: > 0 } texts)
         {
             return laidOut;
         }
 
-        return new Flow(measurer, compatibility ?? new(), page, header, footer, firstPageHeader, firstPageFooter, evenPageHeader, evenPageFooter, notes)
+        return new Flow(
+                measurer,
+                compatibility ?? new(),
+                page,
+                header,
+                footer,
+                firstPageHeader,
+                firstPageFooter,
+                evenPageHeader,
+                evenPageFooter,
+                notes)
             {
                 OnPage = report
             }
@@ -100,7 +118,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             foreach (var line in DocumentConverter.Lines(items))
             {
-                if (line.Paragraph is {Properties: {ResolvedStyleId: { } id, Numbering.LevelNumber: { } number}} paragraph &&
+                if (line.Paragraph is { Properties: { ResolvedStyleId: { } id, Numbering.LevelNumber: { } number } } paragraph &&
                     id == style &&
                     seen.Add(paragraph))
                 {
@@ -132,8 +150,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         new(
             x,
             y,
-            (float) shape.WidthPoints,
-            (float) shape.HeightPoints,
+            (float)shape.WidthPoints,
+            (float)shape.HeightPoints,
             data,
             shape.RotationDegrees,
             shape.FlipHorizontal,
@@ -195,14 +213,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // The bottom the flow breaks against. Equal to pageContentBottom — the bottom margin — until a
         // footnote area opens on the current column, when it rises by the area's height
         // (RefreshContentBottom): Word's body stops where the notes begin (_probe_fn_d, 40 of 44 lines).
-        float contentBottom = (float) (page.HeightPoints - page.MarginBottom);
-        float pageContentBottom = (float) (page.HeightPoints - page.MarginBottom);
+        float contentBottom = (float)(page.HeightPoints - page.MarginBottom);
+        float pageContentBottom = (float)(page.HeightPoints - page.MarginBottom);
         float contentHeight;
-        float fullContentLeft = (float) page.MarginLeft;
-        float fullContentWidth = (float) (page.WidthPoints - page.MarginLeft - page.MarginRight);
+        float fullContentLeft = (float)page.MarginLeft;
+        float fullContentWidth = (float)(page.WidthPoints - page.MarginLeft - page.MarginRight);
         int columnCount = Math.Max(1, page.ColumnCount);
-        float columnWidth = (float) page.ColumnWidth;
-        float columnSpacing = (float) page.ColumnSpacing;
+        float columnWidth = (float)page.ColumnWidth;
+        float columnSpacing = (float)page.ColumnSpacing;
         readonly List<LaidOutPage> pages = [];
 
         // Told the count of finished pages each time one is kept (Fragmenter.Layout's onPage).
@@ -367,13 +385,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             current = settings;
             contentTop = HeaderReservedTop(settings, Bands(settings).Header);
-            pageContentBottom = (float) (settings.HeightPoints - settings.MarginBottom);
+            pageContentBottom = (float)(settings.HeightPoints - settings.MarginBottom);
             contentHeight = pageContentBottom - contentTop;
-            fullContentLeft = (float) settings.MarginLeft;
-            fullContentWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
+            fullContentLeft = (float)settings.MarginLeft;
+            fullContentWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             columnCount = Math.Max(1, settings.ColumnCount);
-            columnWidth = (float) settings.ColumnWidth;
-            columnSpacing = (float) settings.ColumnSpacing;
+            columnWidth = (float)settings.ColumnWidth;
+            columnSpacing = (float)settings.ColumnSpacing;
             if (noteAreas.Length < columnCount)
             {
                 Array.Resize(ref noteAreas, columnCount);
@@ -462,7 +480,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var properties = paragraph.Properties;
                     if (properties.SpacingBeforePoints > 0)
                     {
-                        rows.Add(new(NoteRowKind.Spacing, (float) properties.SpacingBeforePoints));
+                        rows.Add(new(NoteRowKind.Spacing, (float)properties.SpacingBeforePoints));
                     }
 
                     var lines = measurer.LayoutLineContents(paragraph, columnWidth);
@@ -473,7 +491,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                     if (properties.SpacingAfterPoints > 0)
                     {
-                        rows.Add(new(NoteRowKind.Spacing, (float) properties.SpacingAfterPoints));
+                        rows.Add(new(NoteRowKind.Spacing, (float)properties.SpacingAfterPoints));
                     }
                 }
             }
@@ -489,7 +507,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             var lines = measurer.LayoutLineContents(paragraph, columnWidth);
             var line = lines.Count > 0 ? lines[0] : default;
-            var height = (float) (paragraph.Properties.SpacingBeforePoints + paragraph.Properties.SpacingAfterPoints) + line.Height;
+            var height = (float)(paragraph.Properties.SpacingBeforePoints + paragraph.Properties.SpacingAfterPoints) + line.Height;
             return new(continuation ? NoteRowKind.ContinuationSeparator : NoteRowKind.Separator, height, paragraph, line);
         }
 
@@ -498,7 +516,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // behind them (CommitLineNotes) rather than jumping ahead.
         List<string>? NewFootnotes(LaidOutLine line)
         {
-            if (notes == null || pendingNoteRows.Count > 0 || line.FootnoteReferenceIds is not {Count: > 0} ids)
+            if (notes == null || pendingNoteRows.Count > 0 || line.FootnoteReferenceIds is not { Count: > 0 } ids)
             {
                 return null;
             }
@@ -541,7 +559,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     if (row.Paragraph!.Properties.WidowControl &&
                         index + 1 < rows.Count &&
-                        rows[index + 1] is {Kind: NoteRowKind.Line} second &&
+                        rows[index + 1] is { Kind: NoteRowKind.Line } second &&
                         ReferenceEquals(second.Paragraph, row.Paragraph))
                     {
                         total += second.Height;
@@ -636,8 +654,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             if (accepted <= 0 ||
                 accepted >= rows.Count ||
-                rows[accepted - 1] is not {Kind: NoteRowKind.Line, Paragraph: { } paragraph} ||
-                rows[accepted] is not {Kind: NoteRowKind.Line} next ||
+                rows[accepted - 1] is not { Kind: NoteRowKind.Line, Paragraph: { } paragraph } ||
+                rows[accepted] is not { Kind: NoteRowKind.Line } next ||
                 !ReferenceEquals(next.Paragraph, paragraph) ||
                 !paragraph.Properties.WidowControl)
             {
@@ -686,12 +704,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // spilling), its endnotes join the document-end list.
         void CommitLineNotes(LaidOutLine line, float bodyBottom)
         {
-            if (line.EndnoteReferenceIds is {Count: > 0} endnoteIds)
+            if (line.EndnoteReferenceIds is { Count: > 0 } endnoteIds)
             {
                 CiteEndnotes(endnoteIds);
             }
 
-            if (line.FootnoteReferenceIds is not {Count: > 0} || notes == null)
+            if (line.FootnoteReferenceIds is not { Count: > 0 } || notes == null)
             {
                 return;
             }
@@ -781,7 +799,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     case ParagraphElement paragraph:
                         CollectNoteReferences(paragraph, footnoteIds, endnoteIds);
                         break;
-                    case ContentControlElement {CellParagraph: { } controlParagraph}:
+                    case ContentControlElement { CellParagraph: { } controlParagraph }:
                         CollectNoteReferences(controlParagraph, footnoteIds, endnoteIds);
                         break;
                     case TableElement nested:
@@ -840,7 +858,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             RecordColumnBottom();
             for (var column = 0; column < noteAreas.Length; column++)
             {
-                if (noteAreas[column] is not {Rows.Count: > 0} area)
+                if (noteAreas[column] is not { Rows.Count: > 0 } area)
                 {
                     continue;
                 }
@@ -863,7 +881,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         case NoteRowKind.Separator:
                         case NoteRowKind.ContinuationSeparator:
                             var width = row.Kind == NoteRowKind.Separator ? Math.Min(separatorWidthPoints, columnWidth) : columnWidth;
-                            items.Add(SeparatorRule(row.Paragraph!, row.Line, left, top + (float) row.Paragraph!.Properties.SpacingBeforePoints, width));
+                            items.Add(SeparatorRule(row.Paragraph!, row.Line, left, top + (float)row.Paragraph!.Properties.SpacingBeforePoints, width));
                             break;
                         case NoteRowKind.Line:
                             items.Add(NoteLine(row, left, top));
@@ -891,8 +909,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             var paragraph = row.Paragraph!;
             var properties = paragraph.Properties;
-            var availableWidth = columnWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
-            var indentLeft = left + (float) properties.LeftIndentPoints;
+            var availableWidth = columnWidth - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
+            var indentLeft = left + (float)properties.LeftIndentPoints;
             var firstLineShift = FirstLineIndentOffset(properties, row.LineIndex);
             var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, row.Line.Width);
             var baseline = top + row.Line.Ascent;
@@ -917,7 +935,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var separatorLine = separatorLines.Count > 0 ? separatorLines[0] : default;
             // Strict against the bottom, not HasSpaceFor's 2% slack: _probe_fn_h's 43 lines leave 18pt,
             // the block needs 29.3, and the slack would have kept it where Word moves it.
-            var gap = atRegionTop ? 0 : Math.Max(lastAfter, (float) separator.Properties.SpacingBeforePoints);
+            var gap = atRegionTop ? 0 : Math.Max(lastAfter, (float)separator.Properties.SpacingBeforePoints);
             if (!atRegionTop &&
                 y + gap + separatorLine.Height + FirstEndnoteLineHeight() > contentBottom)
             {
@@ -929,7 +947,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             items.Add(SeparatorRule(separator, separatorLine, ColumnLeft, y, Math.Min(separatorWidthPoints, columnWidth)));
             y += separatorLine.Height;
             atRegionTop = false;
-            lastAfter = (float) separator.Properties.SpacingAfterPoints;
+            lastAfter = (float)separator.Properties.SpacingAfterPoints;
             lastContextual = false;
             lastStyleId = null;
             lastIsParagraph = false;
@@ -966,7 +984,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     elements.OfType<ParagraphElement>().FirstOrDefault() is { } paragraph)
                 {
                     var lines = measurer.LayoutLineContents(paragraph, columnWidth);
-                    return (float) paragraph.Properties.SpacingBeforePoints + (lines.Count > 0 ? lines[0].Height : 0);
+                    return (float)paragraph.Properties.SpacingBeforePoints + (lines.Count > 0 ? lines[0].Height : 0);
                 }
             }
 
@@ -998,13 +1016,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // marking over a colour bar) reserved two lines and let the first body heading land inside the bar.
         float HeaderReservedTop(PageSettings settings, HeaderFooterContent? content)
         {
-            var marginTop = (float) settings.MarginTop;
+            var marginTop = (float)settings.MarginTop;
             if (settings.TopMarginIsAbsolute || content == null)
             {
                 return marginTop;
             }
 
-            var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
+            var bandWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             var headerHeight = 0f;
             foreach (var element in content.Elements)
             {
@@ -1017,9 +1035,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // paragraph holding "X" at 48pt put it at 78.14pt too. The corpus case is that
                     // header's 6pt, which held wedding/01's whole page 6pt high.
                     var properties = paragraph.Properties;
-                    headerHeight += (float) properties.SpacingBeforePoints +
+                    headerHeight += (float)properties.SpacingBeforePoints +
                                     measurer.LayoutParagraphForMeasurement(paragraph, bandWidth).Sum() +
-                                    (float) properties.SpacingAfterPoints;
+                                    (float)properties.SpacingAfterPoints;
                 }
                 else if (element is TableElement table)
                 {
@@ -1027,7 +1045,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
             }
 
-            return Math.Max(marginTop, (float) settings.HeaderDistance + headerHeight);
+            return Math.Max(marginTop, (float)settings.HeaderDistance + headerHeight);
         }
 
         // A section break. A continuous break keeps the same page; when it switches column count the new
@@ -1158,7 +1176,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // w:lnNumType restart="newSection" numbers each section from Start again; "continuous"
             // carries the count across, and "newPage" resets in FinishPage anyway.
-            if (current.LineNumbers is {Restart: LineNumberRestart.NewSection})
+            if (current.LineNumbers is { Restart: LineNumberRestart.NewSection })
             {
                 lineNumberCount = 0;
             }
@@ -1224,7 +1242,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     columnY = columnTop;
                 }
 
-                var oldColumn = (int) ((line.X - fullContentLeft) / columnStride);
+                var oldColumn = (int)((line.X - fullContentLeft) / columnStride);
                 rebalanced.Add(ShiftLine(line, (column - oldColumn) * columnStride, columnY - line.Y));
                 columnY += line.Height;
                 maxBottom = Math.Max(maxBottom, columnY);
@@ -1289,7 +1307,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         // Under w:endnotePr/w:pos="sectEnd" the section's endnotes close it, under its last
                         // line, before the break (_probe_en_sect: section one's two notes on its own page,
                         // section two's one on the next, each 31.68pt under the last body baseline).
-                        if (notes is {EndnotesAtSectionEnd: true})
+                        if (notes is { EndnotesAtSectionEnd: true })
                         {
                             PlaceEndnotes();
                             citedEndnotes.Clear();
@@ -1305,7 +1323,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         // An empty mark paragraph holds only the break, and a section's endnotes stand
                         // before it, straight under the section's text (_probe_en_sect: section one's
                         // first note 31.68pt under its last baseline, as section two's, which has none)
-                        if (notes is {EndnotesAtSectionEnd: true})
+                        if (notes is { EndnotesAtSectionEnd: true })
                         {
                             PlaceEndnotes();
                             citedEndnotes.Clear();
@@ -1320,15 +1338,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                     // A block-level content control renders as its synthetic paragraph (the parser resolved
                     // its value — checkbox glyph, dropdown selection, formatted date, plain text — into runs).
-                    case ContentControlElement {CellParagraph: { } controlParagraph}:
+                    case ContentControlElement { CellParagraph: { } controlParagraph }:
                         PlaceParagraph(controlParagraph, KeepAfter(elements, index), ClosingBorderReserve(elements, index));
                         break;
 
-                    case TableElement {Properties.IsFloating: true} table:
+                    case TableElement { Properties.IsFloating: true } table:
                         PlaceFloatingTable(table);
                         break;
 
-                    case TableElement {Properties.IsSheetGrid: true} sheet when bodyFloats.Count > floatRunStart:
+                    case TableElement { Properties.IsSheetGrid: true } sheet when bodyFloats.Count > floatRunStart:
                         PlaceSheetUnderFloats(sheet, KeepAfter(elements, index));
                         break;
 
@@ -1343,15 +1361,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // An image-filled shape (a full-bleed background photo) paints as a plain image — the shape
                     // painter skips image fills. It carries the shape's rotation and flip; a shape image has no
                     // source crop or clip geometry of its own.
-                    case FloatingShapeElement {ImageData.Length: > 0} shape when shape.ImageContentType != "image/svg+xml":
+                    case FloatingShapeElement { ImageData.Length: > 0 } shape when shape.ImageContentType != "image/svg+xml":
                         EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
-                    case FloatingShapeElement {ImageData: null} shape when shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null:
+                    case FloatingShapeElement { ImageData: null } shape when shape.Gradient != null || shape.FillColorHex != null || shape.LineColorHex != null:
                         EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
-                    case FloatingTextBoxElement {WrapType: WrapType.None} textBox:
+                    case FloatingTextBoxElement { WrapType: WrapType.None } textBox:
                         EmitBodyFloat(textBox, textBox.VerticalAnchor, textBox.AnchorParagraph);
                         break;
 
@@ -1514,7 +1532,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             floatExclusions.Clear();
 
             // w:lnNumType restart="newPage" (the OOXML default) numbers each page from Start again.
-            if (current.LineNumbers is {Restart: LineNumberRestart.NewPage})
+            if (current.LineNumbers is { Restart: LineNumberRestart.NewPage })
             {
                 lineNumberCount = 0;
             }
@@ -1611,7 +1629,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         void AlignPage()
         {
             if (verticalAlignment == PageVerticalAlignment.Top || pageMixesSections || items.Count == 0 ||
-                noteAreas.Any(_ => _ is {Rows.Count: > 0}))
+                noteAreas.Any(_ => _ is { Rows.Count: > 0 }))
             {
                 return;
             }
@@ -1809,9 +1827,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     {
                         bodyFloats[index] =
                             bodyFloats[index] with
-                        {
-                            Item = ShiftItem(bodyFloats[index].Item, dy)
-                        };
+                            {
+                                Item = ShiftItem(bodyFloats[index].Item, dy)
+                            };
                     }
                 }
             }
@@ -1859,9 +1877,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // The empty paragraph that carries a next-page (or even/odd-page) section break: the parser emits it
         // directly ahead of the break.
         static bool IsNextPageSectionMark(IReadOnlyList<DocumentElement> elements, int index, ParagraphElement paragraph) =>
-            paragraph is {Runs.Count: 0, Properties.Borders: null or {HasAnyBorder: false}} &&
+            paragraph is { Runs.Count: 0, Properties.Borders: null or { HasAnyBorder: false } } &&
             index + 1 < elements.Count &&
-            elements[index + 1] is SectionBreakElement {BreakType: not SectionBreakType.Continuous};
+            elements[index + 1] is SectionBreakElement { BreakType: not SectionBreakType.Continuous };
 
         // Places a next-page section break's mark paragraph, which Word lets take no room when it does not
         // fit: a page filled exactly by 54 exact 12pt lines and closed by the empty sectPr paragraph is one
@@ -1961,7 +1979,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                                 behindFloats.Count == 0 &&
                                 frontFloats.Count == 0
                     ? body
-                    : (IReadOnlyList<PlacedItem>) [.. backgroundImages, .. footerImages, .. headerBand, .. footerBand, .. behindFloats, .. body, .. frontFloats];
+                    : (IReadOnlyList<PlacedItem>)[.. backgroundImages, .. footerImages, .. headerBand, .. footerBand, .. behindFloats, .. body, .. frontFloats];
                 pages.Add(new(pageNumber, settings, pageItems));
             }
 
@@ -2046,7 +2064,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // True when EmitBodyFloatAt would register a wrap exclusion for this element — such a float
         // cannot defer past its anchor paragraph, whose flow band must see the exclusion.
         static bool RegistersExclusion(DocumentElement element) =>
-            element is FloatingImageElement {BehindText: false, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom};
+            element is FloatingImageElement { BehindText: false, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom };
 
         // Emits a body float now when its Y is absolute (page/margin) or it has no recorded anchor;
         // defers a paragraph-anchored one until its anchor paragraph's top is known. Resolving from the
@@ -2133,10 +2151,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 };
                 if (percent is { } fraction)
                 {
-                    return baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight));
+                    return baseY + (float)(fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight));
                 }
 
-                return baseY + (float) offset;
+                return baseY + (float)offset;
             }
 
             switch (element)
@@ -2150,16 +2168,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         AddBodyFloat(item, image.BehindText, IsAbsoluteY(image.VerticalAnchor));
                     }
 
-                    RegisterFloatExclusion(image, imageX, imageY, (float) image.WidthPoints, (float) image.HeightPoints);
+                    RegisterFloatExclusion(image, imageX, imageY, (float)image.WidthPoints, (float)image.HeightPoints);
                     break;
                 }
 
-                case FloatingShapeElement {ImageData: {Length: > 0} shapeImage} shape when shape.ImageContentType != "image/svg+xml":
+                case FloatingShapeElement { ImageData: { Length: > 0 } shapeImage } shape when shape.ImageContentType != "image/svg+xml":
                     AddBodyFloat(ShapeImage(shape, FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), shapeImage), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                     break;
 
                 case FloatingShapeElement shape:
-                    AddBodyFloat(new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float) shape.WidthPoints, (float) shape.HeightPoints, shape), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
+                    AddBodyFloat(new PlacedShape(FloatX(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent), AnchoredY(shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent), (float)shape.WidthPoints, (float)shape.HeightPoints, shape), shape.BehindText, IsAbsoluteY(shape.VerticalAnchor));
                     break;
 
                 case FloatingTextBoxElement textBox:
@@ -2176,8 +2194,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // rules and slices become placed shapes and its labels laid-out paragraphs (ChartComposer).
         void PlaceChart(FloatingChartElement chart, float chartX, float chartY)
         {
-            var composer = new ChartComposer(measurer, (content, x, boxY, width, height, alignment) => LayoutCellContent(new() {Content = content}, x, boxY, width, height, alignment));
-            foreach (var item in composer.Compose(chart.Chart, chartX, chartY, (float) chart.WidthPoints, (float) chart.HeightPoints, chart.Scale))
+            var composer = new ChartComposer(measurer, (content, x, boxY, width, height, alignment) => LayoutCellContent(new()
+            {
+                Content = content
+            }, x, boxY, width, height, alignment));
+            foreach (var item in composer.Compose(chart.Chart, chartX, chartY, (float)chart.WidthPoints, (float)chart.HeightPoints, chart.Scale))
             {
                 AddBodyFloat(item, false, IsAbsoluteY(chart.VerticalAnchor));
             }
@@ -2192,10 +2213,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var baseX = anchor == HorizontalAnchor.Page ? 0f : fullContentLeft;
             if (percent is { } fraction)
             {
-                return baseX + (float) (fraction * (anchor == HorizontalAnchor.Page ? current.WidthPoints : fullContentWidth));
+                return baseX + (float)(fraction * (anchor == HorizontalAnchor.Page ? current.WidthPoints : fullContentWidth));
             }
 
-            return baseX + (float) offset;
+            return baseX + (float)offset;
         }
 
         // Absolute Y of a body float: page-anchored from the top edge, margin-anchored from the top margin,
@@ -2212,10 +2233,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             };
             if (percent is { } fraction)
             {
-                return baseY + (float) (fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight));
+                return baseY + (float)(fraction * (anchor == VerticalAnchor.Page ? current.HeightPoints : contentHeight));
             }
 
-            return baseY + (float) offset;
+            return baseY + (float)offset;
         }
 
         // A page/margin anchor gives the float an absolute Y independent of the flow cursor, so it belongs to
@@ -2239,19 +2260,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 case WrapType.Square or WrapType.Tight or WrapType.Through:
                     floatExclusions.Add(new(
-                        left - (float) image.WrapDistanceLeftPoints,
-                        top - (float) image.WrapDistanceTopPoints,
-                        left + width + (float) image.WrapDistanceRightPoints,
-                        top + height + (float) image.WrapDistanceBottomPoints,
+                        left - (float)image.WrapDistanceLeftPoints,
+                        top - (float)image.WrapDistanceTopPoints,
+                        left + width + (float)image.WrapDistanceRightPoints,
+                        top + height + (float)image.WrapDistanceBottomPoints,
                         FullWidth: false,
                         image.WrapTextSide));
                     break;
                 case WrapType.TopAndBottom:
                     floatExclusions.Add(new(
                         ColumnLeft,
-                        top - (float) image.WrapDistanceTopPoints,
+                        top - (float)image.WrapDistanceTopPoints,
                         ColumnLeft + columnWidth,
-                        top + height + (float) image.WrapDistanceBottomPoints,
+                        top + height + (float)image.WrapDistanceBottomPoints,
                         FullWidth: true,
                         WrapTextSide.BothSides));
                     break;
@@ -2384,7 +2405,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var right = float.MinValue;
                 foreach (var item in pageItems)
                 {
-                    if (item is PlacedTableRow {IsRepeatedHeader: false} row &&
+                    if (item is PlacedTableRow { IsRepeatedHeader: false } row &&
                         ReferenceEquals(row.Table, sheet))
                     {
                         top = Math.Min(top, row.Y);
@@ -2405,7 +2426,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 foreach (var (_, item, behind, order) in floats)
                 {
                     // A turned picture reaches outside its own box, by half its longer side at most.
-                    var reach = item is PlacedImage {RotationDegrees: not 0} ? Math.Max(item.Width, item.Height) / 2 : 0;
+                    var reach = item is PlacedImage { RotationDegrees: not 0 } ? Math.Max(item.Width, item.Height) / 2 : 0;
                     if (item.Y + item.Height + reach < bandTop || item.Y - reach > bandBottom)
                     {
                         continue;
@@ -2468,8 +2489,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         void PlaceTextBox(FloatingTextBoxElement textBox, float boxY)
         {
             var boxX = FloatX(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent);
-            var boxWidth = (float) textBox.WidthPoints;
-            var boxHeight = (float) textBox.HeightPoints;
+            var boxWidth = (float)textBox.WidthPoints;
+            var boxHeight = (float)textBox.HeightPoints;
             var absoluteY = IsAbsoluteY(textBox.VerticalAnchor);
 
             if (textBox.BackgroundColorHex != null || textBox.LineColorHex != null)
@@ -2508,16 +2529,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         IReadOnlyList<PlacedItem> LayoutTextBoxContent(FloatingTextBoxElement textBox, float boxX, float boxY)
         {
             var insets = textBox.Insets;
-            var boxHeight = (float) textBox.HeightPoints;
+            var boxHeight = (float)textBox.HeightPoints;
             var content = LayoutCellContent(
                 new()
                 {
                     Content = textBox.Content
                 },
-                boxX + (float) insets.Left,
-                boxY + (float) insets.Top,
-                Math.Max(0, (float) (textBox.WidthPoints - insets.Left - insets.Right)),
-                Math.Max(0, (float) (textBox.HeightPoints - insets.Top - insets.Bottom)),
+                boxX + (float)insets.Left,
+                boxY + (float)insets.Top,
+                Math.Max(0, (float)(textBox.WidthPoints - insets.Left - insets.Right)),
+                Math.Max(0, (float)(textBox.HeightPoints - insets.Top - insets.Bottom)),
                 textBox.VerticalAlignment);
 
             // A fixed-size Word text box hides what falls below it: cards/02's code box holds an empty
@@ -2555,13 +2576,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // visual threshold and avoids the wrap.
             const float autoWidthPaddingPoints = 2;
             var frameWidth = Math.Min(
-                frame.WidthPoints is { } explicitWidth ? (float) explicitWidth : measuredWidth + autoWidthPaddingPoints,
+                frame.WidthPoints is { } explicitWidth ? (float)explicitWidth : measuredWidth + autoWidthPaddingPoints,
                 columnWidth);
-            var frameHeight = frame.HeightPoints is { } explicitHeight ? (float) explicitHeight : measuredHeight;
+            var frameHeight = frame.HeightPoints is { } explicitHeight ? (float)explicitHeight : measuredHeight;
 
             // Lifted frames paint over the flow (FrameGrouper appends them after the in-flow content), and
             // their anchors are page/margin (the ShouldLift gate), so they defer like the other absolute floats.
-            foreach (var item in LayoutCellContent(new() {Content = frame.Content}, FrameX(frame, frameWidth), FrameY(frame, frameHeight), frameWidth, frameHeight, CellVerticalAlignment.Top))
+            foreach (var item in LayoutCellContent(new()
+                     {
+                         Content = frame.Content
+                     }, FrameX(frame, frameWidth), FrameY(frame, frameHeight), frameWidth, frameHeight, CellVerticalAlignment.Top))
             {
                 AddBodyFloat(item, behind: false, absoluteY: true);
             }
@@ -2572,13 +2596,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var anchorLeft = frame.HorizontalAnchor switch
             {
                 HorizontalAnchor.Page => 0f,
-                HorizontalAnchor.Margin => (float) current.MarginLeft,
+                HorizontalAnchor.Margin => (float)current.MarginLeft,
                 _ => ColumnLeft
             };
             var anchorWidth = frame.HorizontalAnchor switch
             {
-                HorizontalAnchor.Page => (float) current.WidthPoints,
-                HorizontalAnchor.Margin => (float) (current.WidthPoints - current.MarginLeft - current.MarginRight),
+                HorizontalAnchor.Page => (float)current.WidthPoints,
+                HorizontalAnchor.Margin => (float)(current.WidthPoints - current.MarginLeft - current.MarginRight),
                 _ => columnWidth
             };
 
@@ -2595,7 +2619,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 FrameHorizontalAlignment.Right => anchorLeft + Math.Max(0, anchorWidth - width - rightInset),
                 FrameHorizontalAlignment.Center => anchorLeft + Math.Max(0, (anchorWidth - width) / 2),
                 FrameHorizontalAlignment.Left => anchorLeft,
-                _ => anchorLeft + (float) frame.XPoints
+                _ => anchorLeft + (float)frame.XPoints
             };
         }
 
@@ -2614,14 +2638,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             };
             var anchorBottom = frame.VerticalAnchor switch
             {
-                VerticalAnchor.Page => (float) (current.HeightPoints - current.MarginBottom),
+                VerticalAnchor.Page => (float)(current.HeightPoints - current.MarginBottom),
                 _ => contentBottom
             };
 
             switch (frame.VerticalAlignment)
             {
                 case FrameVerticalAlignment.Top:
-                    return anchorTop + (float) frame.YPoints;
+                    return anchorTop + (float)frame.YPoints;
                 case FrameVerticalAlignment.Center:
                     return anchorTop + Math.Max(0, (anchorBottom - anchorTop - height) / 2);
                 case FrameVerticalAlignment.Bottom:
@@ -2631,13 +2655,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     {
                         if (frame.YPoints >= bottomAnchorYThresholdPoints)
                         {
-                            return anchorTop + (float) frame.YPoints;
+                            return anchorTop + (float)frame.YPoints;
                         }
 
                         return anchorBottom - height;
                     }
 
-                    return y + (float) frame.YPoints;
+                    return y + (float)frame.YPoints;
             }
         }
 
@@ -2651,14 +2675,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             var columnCount = TableLayout.GetColumnCount(table);
             var tableWidth = TableLayout.CalculateColumnWidths(table, columnCount, fullContentWidth, measurer).Sum();
-            var offsetX = (float) table.Properties.FloatingXOffsetPoints;
+            var offsetX = (float)table.Properties.FloatingXOffsetPoints;
             var left = table.Properties.FloatingHorizontalAnchor switch
             {
                 FloatingTableHorizontalAnchor.Page => offsetX,
                 FloatingTableHorizontalAnchor.Margin => fullContentLeft + offsetX,
                 _ => ColumnLeft + offsetX
             };
-            var offsetY = (float) table.Properties.FloatingYOffsetPoints;
+            var offsetY = (float)table.Properties.FloatingYOffsetPoints;
 
             if (table.Properties.FloatingVerticalAnchor == FloatingTableVerticalAnchor.Text)
             {
@@ -2701,12 +2725,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // (arch/wave/envelope/…) are a later slice; the corpus templates are all unwarped.
         IReadOnlyList<PlacedItem> LayoutWordArtText(string text, string fontFamily, double fontSizePoints, bool bold, bool italic, string? fillColorHex, TextAlignment alignment, WordArtInsets insets, float boxX, float boxY, float boxWidth, float boxHeight)
         {
-            boxX += (float) insets.Left;
-            boxWidth = Math.Max(0, boxWidth - (float) (insets.Left + insets.Right));
-            var properties = new RunProperties {FontFamily = fontFamily, FontSizePoints = fontSizePoints, Bold = bold, Italic = italic, ColorHex = fillColorHex};
+            boxX += (float)insets.Left;
+            boxWidth = Math.Max(0, boxWidth - (float)(insets.Left + insets.Right));
+            var properties = new RunProperties
+            {
+                FontFamily = fontFamily,
+                FontSizePoints = fontSizePoints,
+                Bold = bold,
+                Italic = italic,
+                ColorHex = fillColorHex
+            };
             var textWidth = measurer.MeasureRunWidth(text, properties);
             var widthScale = textWidth > 0 ? boxWidth / textWidth : 1f;
-            var heightScale = fontSizePoints > 0 ? boxHeight / (float) (fontSizePoints * 1.2) : 1f;
+            var heightScale = fontSizePoints > 0 ? boxHeight / (float)(fontSizePoints * 1.2) : 1f;
             var scale = Math.Min(Math.Min(widthScale, heightScale), 1f);
             var paragraph = new ParagraphElement
             {
@@ -2726,7 +2757,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     Alignment = alignment
                 }
             };
-            return LayoutCellContent(new() {Content = [paragraph]}, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Center);
+            return LayoutCellContent(new()
+            {
+                Content = [paragraph]
+            }, boxX, boxY, boxWidth, boxHeight, CellVerticalAlignment.Center);
         }
 
         // The box chrome of an unwarped WordArt shape (business/06's frame, wedding/08's ellipse badge): its
@@ -2750,7 +2784,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 Subpaths = wordArt.BoxSubpaths,
                 Preset = wordArt.BoxIsEllipse ? PresetShape.Ellipse : PresetShape.Rect
             };
-            return new(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, boxShape);
+            return new(boxX, boxY, (float)wordArt.WidthPoints, (float)wordArt.HeightPoints, boxShape);
         }
 
         // A block-level unwarped WordArt takes flow space (its declared height) at the current cursor, aligned
@@ -2764,10 +2798,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             if (!atRegionTop)
             {
-                y += Math.Max(lastAfter, (float) wordArt.SpacingBeforePoints);
+                y += Math.Max(lastAfter, (float)wordArt.SpacingBeforePoints);
             }
 
-            var height = (float) wordArt.HeightPoints;
+            var height = (float)wordArt.HeightPoints;
 
             // Alone in its paragraph the box takes that paragraph's line, as a picture alone on its line
             // does (CanonicalParagraphMeasurer.BoxLine), with its effect extent reserved around it.
@@ -2775,9 +2809,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var boxTop = 0f;
             if (wordArt.HostParagraph is { } host)
             {
-                var effectTop = (float) (wordArt.EffectExtent?.Top ?? 0);
-                var reserved = height + effectTop + (float) (wordArt.EffectExtent?.Bottom ?? 0);
-                (lineHeight, var markRoom) = measurer.BoxLine(new() {Runs = [], Properties = host}, reserved);
+                var effectTop = (float)(wordArt.EffectExtent?.Top ?? 0);
+                var reserved = height + effectTop + (float)(wordArt.EffectExtent?.Bottom ?? 0);
+                (lineHeight, var markRoom) = measurer.BoxLine(new()
+                {
+                    Runs = [],
+                    Properties = host
+                }, reserved);
                 boxTop = markRoom + effectTop;
             }
 
@@ -2786,9 +2824,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // Its own after-spacing is noted once the box has its page: a box carried to a fresh page
             // starts that page's spacing over, and noted ahead of the move its after went with the old
             // page (wordart's wave, first on its page, sat flush against the chevron under it).
-            lastAfter = (float) wordArt.SpacingAfterPoints;
+            lastAfter = (float)wordArt.SpacingAfterPoints;
             lastIsParagraph = false;
-            var boxWidth = (float) wordArt.WidthPoints;
+            var boxWidth = (float)wordArt.WidthPoints;
             var boxX = ColumnLeft + AlignmentOffset(wordArt.Alignment, columnWidth, boxWidth);
             if (wordArt.Transform != WordArtTransform.None)
             {
@@ -2817,11 +2855,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var absoluteY = IsAbsoluteY(wordArt.VerticalAnchor);
             if (wordArt.Transform != WordArtTransform.None)
             {
-                AddBodyFloat(new PlacedWordArt(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, wordArt), wordArt.BehindText, absoluteY);
+                AddBodyFloat(new PlacedWordArt(boxX, boxY, (float)wordArt.WidthPoints, (float)wordArt.HeightPoints, wordArt), wordArt.BehindText, absoluteY);
                 return;
             }
 
-            foreach (var item in LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, wordArt.TextAlignment, wordArt.Insets, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints))
+            foreach (var item in LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, wordArt.TextAlignment, wordArt.Insets, boxX, boxY, (float)wordArt.WidthPoints, (float)wordArt.HeightPoints))
             {
                 AddBodyFloat(item, wordArt.BehindText, absoluteY);
             }
@@ -2842,7 +2880,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         }
 
         static bool IsDrawable(FloatingImageElement image) =>
-            Drawable(image) is {Data.Length: > 0} or {Vector: not null};
+            Drawable(image) is { Data.Length: > 0 } or { Vector: not null };
 
         // What a floating picture draws as at a point: the picture itself, or — for a metafile, which no
         // painter decodes — the shapes and text its drawing composes into in the picture's box.
@@ -2850,7 +2888,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             if (image.Metafile is { } metafile)
             {
-                return MetafileComposer.Compose(metafile, x, y, (float) image.WidthPoints, (float) image.HeightPoints, LayoutText);
+                return MetafileComposer.Compose(metafile, x, y, (float)image.WidthPoints, (float)image.HeightPoints, LayoutText);
             }
 
             return [PlaceImage(image, x, y)];
@@ -2858,14 +2896,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Text laid out in a box, as a chart's labels and a metafile's text are.
         IReadOnlyList<PlacedItem> LayoutText(IReadOnlyList<DocumentElement> content, float x, float y, float width, float height, CellVerticalAlignment alignment) =>
-            LayoutCellContent(new() {Content = content}, x, y, width, height, alignment);
+            LayoutCellContent(new()
+            {
+                Content = content
+            }, x, y, width, height, alignment);
 
         // A floating picture placed at a point, with everything the painter turns, crops, cuts and
         // recolours it by.
         static PlacedImage PlaceImage(FloatingImageElement image, float x, float y)
         {
             var (data, vector) = Drawable(image);
-            return new(x, y, (float) image.WidthPoints, (float) image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline, Vector: vector);
+            return new(x, y, (float)image.WidthPoints, (float)image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline, Vector: vector);
         }
 
         // The flow space a border edge occupies: its own width plus the w:space gap it holds open between
@@ -2888,13 +2929,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             if (BorderStroke.Draws(edge))
             {
-                return (float) (BorderStroke.Extent(edge.Style, edge.WidthPoints) + spacePoints);
+                return (float)(BorderStroke.Extent(edge.Style, edge.WidthPoints) + spacePoints);
             }
 
             // A none edge draws nothing but keeps its space (BorderEdge.HoldsSpace).
             if (edge.HoldsSpace)
             {
-                return (float) spacePoints;
+                return (float)spacePoints;
             }
 
             return 0f;
@@ -2907,7 +2948,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // follows it and paints under it, while still painting over its own members' shading.
         void FlushBorderRun()
         {
-            if (borderRunProperties is not {Borders: { } borders} run)
+            if (borderRunProperties is not { Borders: { } borders } run)
             {
                 borderRunProperties = null;
                 borderRunBetweens.Clear();
@@ -2925,10 +2966,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // and gave the SAME edge whether or not a numbering marker occupied the gutter — so this is
             // indent-driven, not marker-driven. A first-line indent (which moves text RIGHT) never shifts it.
             // The right edge held at 1123px throughout, so the width takes the hanging back.
-            var left = ColumnLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints - borderBoxLeftOutset;
-            var width = borderRunWidth + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints + borderBoxLeftOutset + borderBoxRightOutset;
-            var top = borderRunTop - (float) run.BorderTopSpacePoints;
-            var height = borderRunBottom - borderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
+            var left = ColumnLeft + (float)(run.LeftIndentPoints - run.HangingIndentPoints) - (float)run.BorderLeftSpacePoints - borderBoxLeftOutset;
+            var width = borderRunWidth + (float)run.HangingIndentPoints + (float)run.BorderLeftSpacePoints + (float)run.BorderRightSpacePoints + borderBoxLeftOutset + borderBoxRightOutset;
+            var top = borderRunTop - (float)run.BorderTopSpacePoints;
+            var height = borderRunBottom - borderRunTop + (float)run.BorderTopSpacePoints + (float)run.BorderBottomSpacePoints;
 
             // Shading fills the whole border box — out to the rules, across the w:space gap —
             // not only the text lines: Word's html_css_margin_padding #CCE5FF box is solid from
@@ -2952,16 +2993,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // top edge alone got none.
             var rightBand = borders.Right.Shadow &&
                             BorderStroke.Draws(borders.Right)
-                ? (float) BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints)
+                ? (float)BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints)
                 : 0f;
             var bottomBand = borders.Bottom.Shadow &&
                              BorderStroke.Draws(borders.Bottom)
-                ? (float) BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints)
+                ? (float)BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints)
                 : 0f;
             if (rightBand > 0 || bottomBand > 0)
             {
-                var outerRight = left + width + (BorderStroke.Draws(borders.Right) ? (float) BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints) : 0f);
-                var outerBottom = top + height + (BorderStroke.Draws(borders.Bottom) ? (float) BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints) : 0f);
+                var outerRight = left + width + (BorderStroke.Draws(borders.Right) ? (float)BorderStroke.Extent(borders.Right.Style, borders.Right.WidthPoints) : 0f);
+                var outerBottom = top + height + (BorderStroke.Draws(borders.Bottom) ? (float)BorderStroke.Extent(borders.Bottom.Style, borders.Bottom.WidthPoints) : 0f);
                 if (rightBand > 0)
                 {
                     items.Add(new PlacedShading(outerRight, top, rightBand, outerBottom + bottomBand - top, "000000"));
@@ -3110,14 +3151,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // control R6's 54px). Reserving scales with the space as measured at 0 / 6 / 20pt: 3 / 14 / 45px
             // against a predicted 3.1 / 15.6 / 44.8.
             if (borderRunProperties == null &&
-                properties.Borders is {HasAnyBorder: true} opening)
+                properties.Borders is { HasAnyBorder: true } opening)
             {
                 y += EdgeReserve(opening.Top, properties.BorderTopSpacePoints);
             }
-            else if (properties.Borders is {HasAnyBorder: false, Top.HoldsSpace: true})
+            else if (properties.Borders is { HasAnyBorder: false, Top.HoldsSpace: true })
             {
                 // No edge draws, so no box opens, but a none top still holds its space.
-                y += (float) properties.BorderTopSpacePoints;
+                y += (float)properties.BorderTopSpacePoints;
             }
 
             // A member that continues an open box under a w:between rule: the rule and its space on
@@ -3127,8 +3168,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             if (borderRunProperties != null &&
                 properties.BorderBetweenReservePoints > 0)
             {
-                betweenRule = y + (float) (properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
-                y += (float) properties.BorderBetweenReservePoints;
+                betweenRule = y + (float)(properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
+                y += (float)properties.BorderBetweenReservePoints;
             }
 
             // Where this paragraph may lay out beside any wrapping float, resolved once at its first line's
@@ -3147,7 +3188,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // Columns are equal width, so the width available for alignment is constant even as a line spills
             // to the next column; the left edge is read per line, after any advance.
-            var availableWidth = wrapWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
+            var availableWidth = wrapWidth - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
 
             // Paragraph-border box (w:pBdr): track the first line's top and last line's bottom so a single
             // border can be stroked around the whole paragraph. If it breaks across a column or page the
@@ -3313,7 +3354,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         // page opens on such a box: Word's rule is at the margin (72.8pt) and the text
                         // 11pt further down than a line set at the margin.
                         if (borderRunProperties == null &&
-                            properties.Borders is {HasAnyBorder: true} carried)
+                            properties.Borders is { HasAnyBorder: true } carried)
                         {
                             y += EdgeReserve(carried.Top, properties.BorderTopSpacePoints);
                         }
@@ -3341,7 +3382,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // The float band's left edge when one narrowed this paragraph, else the column's — read
                     // per line, so a paragraph spilling into the next column follows it. A banded paragraph
                     // keeps its band even then, matching the scope production holds open across the wrap.
-                    var indentLeft = (bandConstrained ? bandLeft : ColumnLeft) + (float) properties.LeftIndentPoints;
+                    var indentLeft = (bandConstrained ? bandLeft : ColumnLeft) + (float)properties.LeftIndentPoints;
                     var firstLineShift = FirstLineIndentOffset(properties, placedIndex);
                     var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = y + line.Ascent;
@@ -3382,7 +3423,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             var digitsWidth = measurer.MeasureRunWidth(digits, digitProperties);
                             lineRuns =
                             [
-                                new(ColumnLeft - (float) lineNumbers.DistancePoints - digitsWidth, digitsWidth, digits, digitProperties),
+                                new(ColumnLeft - (float)lineNumbers.DistancePoints - digitsWidth, digitsWidth, digits, digitProperties),
                                 .. lineRuns
                             ];
                         }
@@ -3430,7 +3471,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // across a region has no single box to contribute to and ends the run instead.
             if (!borderBroke &&
                 borderTop is { } boxTop &&
-                properties.Borders is {HasAnyBorder: true})
+                properties.Borders is { HasAnyBorder: true })
             {
                 if (borderRunProperties == null)
                 {
@@ -3448,7 +3489,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // Continuing a run whose w:between is visible: rule the boundary just crossed. It sits a
                     // between-space below the previous member's last line (probe group F: with a 6pt space the
                     // green rule fell 11px/5.3pt under F1's line bottom at 150dpi).
-                    borderRunBetweens.Add(betweenRule ?? borderRunBottom + (float) properties.BorderBetweenSpacePoints);
+                    borderRunBetweens.Add(betweenRule ?? borderRunBottom + (float)properties.BorderBetweenSpacePoints);
                 }
 
                 borderRunBottom = y;
@@ -3456,21 +3497,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             else
             {
                 FlushBorderRun();
-                if (properties.Borders is {HasAnyBorder: false, Bottom.HoldsSpace: true})
+                if (properties.Borders is { HasAnyBorder: false, Bottom.HoldsSpace: true })
                 {
-                    y += (float) properties.BorderBottomSpacePoints;
+                    y += (float)properties.BorderBottomSpacePoints;
                 }
             }
 
             if (ReferenceEquals(paragraphItems, items))
             {
-                ClipRotatedPictures(paragraphItemsStart, paragraphPreSpacingTops[paragraph], y + (float) properties.SpacingAfterPoints);
+                ClipRotatedPictures(paragraphItemsStart, paragraphPreSpacingTops[paragraph], y + (float)properties.SpacingAfterPoints);
             }
 
             // An empty paragraph is a full-height spacer line AND carries its after-spacing into the
             // collapse with the next paragraph (measured against Word: two_columns' title/blank/body gap is
             // line + after + line + after, not line + after + line). It behaves like any other paragraph.
-            lastAfter = (float) properties.SpacingAfterPoints;
+            lastAfter = (float)properties.SpacingAfterPoints;
             lastContextual = properties.ContextualSpacing;
             lastStyleId = ParagraphGap.StyleKey(properties);
             lastIsParagraph = true;
@@ -3513,7 +3554,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     Images = kept
                 };
-                items.Insert(index + 1, new PlacedClipGroup(0, top, (float) current.WidthPoints, bottom - top, rotated));
+                items.Insert(index + 1, new PlacedClipGroup(0, top, (float)current.WidthPoints, bottom - top, rotated));
                 index++;
             }
         }
@@ -4120,11 +4161,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 var (insetLeft, insetRight) = SideInsets(padding, borders);
-                var budget = Math.Max(0f, available - (float) padding.Vertical - horizontalEdges);
+                var budget = Math.Max(0f, available - (float)padding.Vertical - horizontalEdges);
                 var (content, continuation, height) = LayoutCellFragment(
                     cell,
                     cellX + insetLeft,
-                    rowY + (float) padding.Top + topEdge,
+                    rowY + (float)padding.Top + topEdge,
                     cellWidth - insetLeft - insetRight,
                     budget,
                     cell.Properties.VerticalAlignment,
@@ -4134,18 +4175,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 continuations[cellIndex] = continuation;
                 anyContinues |= continuation != null;
-                usedHeight = Math.Max(usedHeight, height + (float) padding.Vertical);
+                usedHeight = Math.Max(usedHeight, height + (float)padding.Vertical);
 
                 // Cell-anchored behind-text art belongs to the row's first fragment; repeating it on every
                 // continuation would stamp it down the document.
                 var floatShapes = isFirstFragment ? ResolveCellFloatShapes(cell, cellX, rowY) : [];
                 if (isFirstFragment &&
-                    ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is {Count: > 0} frontShapes)
+                    ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is { Count: > 0 } frontShapes)
                 {
                     content = [.. content, .. frontShapes];
                 }
 
-                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, bottomEdge, cell.Properties.Diagonals, floatShapes));
+                cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float)cell.Properties.ClipSpillLeftPoints, (float)cell.Properties.ClipSpillRightPoints, bottomEdge, cell.Properties.Diagonals, floatShapes));
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -4241,7 +4282,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // its slot (TableLayout.CellSpacingInsets carries the Word-probed gap law). A synthetic
             // content-less cell carries the frame so the painters need no new item kind.
             if (detached &&
-                table.Properties.DefaultBorders is {HasAnyBorder: true} frame)
+                table.Properties.DefaultBorders is { HasAnyBorder: true } frame)
             {
                 var frameEdges = new CellBorders
                 {
@@ -4286,18 +4327,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (detached)
                 {
                     var insets = TableLayout.CellSpacingInsets(table.Properties, gridColIndex, span, colCount, rowIndex, table.Rows.Count);
-                    boxX += (float) insets.Left;
-                    boxY += (float) insets.Top;
-                    boxWidth -= (float) insets.Horizontal;
-                    boxHeight -= (float) insets.Vertical;
+                    boxX += (float)insets.Left;
+                    boxY += (float)insets.Top;
+                    boxWidth -= (float)insets.Horizontal;
+                    boxHeight -= (float)insets.Vertical;
                 }
 
                 var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
                 var (insetLeft, insetRight) = SideInsets(padding, borders);
                 var content = cell.Properties.TextDirection == CellTextDirection.LeftToRight
-                    ? LayoutCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment, row)
-                    : LayoutRotatedCellContent(cell, boxX + insetLeft, boxY + (float) padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float) padding.Vertical - topEdge - cellBottomEdge);
+                    ? LayoutCellContent(cell, boxX + insetLeft, boxY + (float)padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float)padding.Vertical - topEdge - cellBottomEdge, cell.Properties.VerticalAlignment, row)
+                    : LayoutRotatedCellContent(cell, boxX + insetLeft, boxY + (float)padding.Top + topEdge, boxWidth - insetLeft - insetRight, boxHeight - (float)padding.Vertical - topEdge - cellBottomEdge);
 
                 content = CutPicturesAtCellEdge(content, boxX + boxWidth);
 
@@ -4305,7 +4346,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // before the cell's paragraphs, and outside any clip (PlacedCell.Floats); in-front ones
                 // join the content after the paragraphs, so they paint over the text.
                 var floatShapes = ResolveCellFloatShapes(cell, cellX, rowY);
-                if (ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is {Count: > 0} frontShapes)
+                if (ResolveCellFloatShapes(cell, cellX, rowY, behindText: false) is { Count: > 0 } frontShapes)
                 {
                     content = [.. content, .. frontShapes];
                 }
@@ -4346,7 +4387,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                 }
 
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, true, (float) cell.Properties.ClipSpillLeftPoints, (float) cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipVertically: clipVertically));
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, true, (float)cell.Properties.ClipSpillLeftPoints, (float)cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipVertically: clipVertically));
 
                 if (sideSegments != null)
                 {
@@ -4372,8 +4413,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // rule with a small margin pushes the text in, and the default 5.4pt margin swallows any rule
         // under 10.8pt.
         static (float Left, float Right) SideInsets(CellSpacing padding, CellBorders? borders) =>
-            ((float) Math.Max(padding.Left, TableLayout.HalfBorder(borders?.Left)),
-                (float) Math.Max(padding.Right, TableLayout.HalfBorder(borders?.Right)));
+            ((float)Math.Max(padding.Left, TableLayout.HalfBorder(borders?.Left)),
+                (float)Math.Max(padding.Right, TableLayout.HalfBorder(borders?.Right)));
 
         // An inline picture wider than its cell is cut off at the cell's right edge. Word-probed
         // (_probe_widepic): a picture declared 300pt wide in a fixed 200pt cell is drawn at its own scale
@@ -4388,7 +4429,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             List<PlacedItem>? cut = null;
             for (var index = 0; index < content.Count; index++)
             {
-                if (content[index] is not PlacedLine {Images.Count: > 0} line)
+                if (content[index] is not PlacedLine { Images.Count: > 0 } line)
                 {
                     continue;
                 }
@@ -4460,16 +4501,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     continue;
                 }
 
-                var shapeX = cellX + (float) shape.HorizontalPositionPoints;
-                var shapeY = cellY + (float) shape.VerticalPositionPoints;
-                if (shape.ImageData is {Length: > 0} shapeImage &&
+                var shapeX = cellX + (float)shape.HorizontalPositionPoints;
+                var shapeY = cellY + (float)shape.VerticalPositionPoints;
+                if (shape.ImageData is { Length: > 0 } shapeImage &&
                     shape.ImageContentType != "image/svg+xml")
                 {
                     shapes.Add(ShapeImage(shape, shapeX, shapeY, shapeImage));
                 }
                 else if (shape.ImageData == null)
                 {
-                    shapes.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
+                    shapes.Add(new PlacedShape(shapeX, shapeY, (float)shape.WidthPoints, (float)shape.HeightPoints, shape));
                 }
             }
 
@@ -4600,7 +4641,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             string? lastCellStyleId = null;
             // A continuation fragment is never at the cell's start, so its first paragraph does not get the
             // first-paragraph spacing-before treatment (and a paragraph resumed mid-way gets no spacing at all).
-            var first = start is {ElementIndex: 0, LineIndex: 0};
+            var first = start is { ElementIndex: 0, LineIndex: 0 };
             var limit = budget is { } allowed ? contentTop + allowed : float.MaxValue;
             CellSplitPoint? continuation = null;
 
@@ -4618,19 +4659,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             void FlushCellBorderRun()
             {
-                if (cellBorderRun is not {Borders: { } runBorders} run)
+                if (cellBorderRun is not { Borders: { } runBorders } run)
                 {
                     cellBorderRun = null;
                     cellBorderBetweens = null;
                     return;
                 }
 
-                var boxLeft = contentLeft + (float) (run.LeftIndentPoints - run.HangingIndentPoints) - (float) run.BorderLeftSpacePoints - borderBoxLeftOutset;
-                var boxWidth = contentWidth - (float) run.LeftIndentPoints - (float) run.RightIndentPoints
-                               + (float) run.HangingIndentPoints + (float) run.BorderLeftSpacePoints + (float) run.BorderRightSpacePoints
+                var boxLeft = contentLeft + (float)(run.LeftIndentPoints - run.HangingIndentPoints) - (float)run.BorderLeftSpacePoints - borderBoxLeftOutset;
+                var boxWidth = contentWidth - (float)run.LeftIndentPoints - (float)run.RightIndentPoints
+                               + (float)run.HangingIndentPoints + (float)run.BorderLeftSpacePoints + (float)run.BorderRightSpacePoints
                                + borderBoxLeftOutset + borderBoxRightOutset;
-                var boxTop = cellBorderRunTop - (float) run.BorderTopSpacePoints;
-                var boxHeight = cellBorderRunBottom - cellBorderRunTop + (float) run.BorderTopSpacePoints + (float) run.BorderBottomSpacePoints;
+                var boxTop = cellBorderRunTop - (float)run.BorderTopSpacePoints;
+                var boxHeight = cellBorderRunBottom - cellBorderRunTop + (float)run.BorderTopSpacePoints + (float)run.BorderBottomSpacePoints;
 
                 // The run's shading fills the whole box, out to the rules, behind its member lines — as
                 // FlushBorderRun does in the page flow. Cell paragraphs had none at all: brochures/06's
@@ -4686,21 +4727,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // labels/09's ticket numbers are such tables, one in each ticket's left stub,
                 // text-anchored a twip in; anchored to the margin or the page, it stands where that puts
                 // it on the page.
-                if (element is TableElement {Properties.IsFloating: true} floatingTable)
+                if (element is TableElement { Properties.IsFloating: true } floatingTable)
                 {
                     var floating = floatingTable.Properties;
                     var floatingWidth = TableLayout.CalculateColumnWidths(floatingTable, TableLayout.GetColumnCount(floatingTable), contentWidth, measurer).Sum();
                     var floatingLeft = floating.FloatingHorizontalAnchor switch
                     {
-                        FloatingTableHorizontalAnchor.Page => (float) floating.FloatingXOffsetPoints,
-                        FloatingTableHorizontalAnchor.Margin => fullContentLeft + (float) floating.FloatingXOffsetPoints,
-                        _ => contentLeft + (float) floating.FloatingXOffsetPoints
+                        FloatingTableHorizontalAnchor.Page => (float)floating.FloatingXOffsetPoints,
+                        FloatingTableHorizontalAnchor.Margin => fullContentLeft + (float)floating.FloatingXOffsetPoints,
+                        _ => contentLeft + (float)floating.FloatingXOffsetPoints
                     };
                     var floatingTop = floating.FloatingVerticalAnchor switch
                     {
-                        FloatingTableVerticalAnchor.Page => (float) floating.FloatingYOffsetPoints,
-                        FloatingTableVerticalAnchor.Margin => this.contentTop + (float) floating.FloatingYOffsetPoints,
-                        _ => cellY + (float) floating.FloatingYOffsetPoints
+                        FloatingTableVerticalAnchor.Page => (float)floating.FloatingYOffsetPoints,
+                        FloatingTableVerticalAnchor.Margin => this.contentTop + (float)floating.FloatingYOffsetPoints,
+                        _ => cellY + (float)floating.FloatingYOffsetPoints
                     };
                     lines.AddRange(LayoutNestedTable(floatingTable, floatingLeft, floatingTop, floatingWidth).Items);
                     continue;
@@ -4731,7 +4772,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     FlushCellBorderRun();
                     cellY += first ? 0 : lastCellAfter;
                     first = false;
-                    var wordArtWidth = Math.Min((float) cellWordArt.WidthPoints, contentWidth);
+                    var wordArtWidth = Math.Min((float)cellWordArt.WidthPoints, contentWidth);
 
                     // The box stands in the cell where its paragraph's w:jc puts it, as it does in the
                     // page flow (PlaceWordArt). Set at the cell's left edge whatever the paragraph
@@ -4739,7 +4780,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var wordArtLeft = contentLeft + AlignmentOffset(cellWordArt.Alignment, contentWidth, wordArtWidth);
                     if (cellWordArt.Transform != WordArtTransform.None)
                     {
-                        lines.Add(new PlacedWordArt(wordArtLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints, cellWordArt));
+                        lines.Add(new PlacedWordArt(wordArtLeft, cellY, wordArtWidth, (float)cellWordArt.HeightPoints, cellWordArt));
                     }
                     else
                     {
@@ -4748,10 +4789,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             lines.Add(boxItem);
                         }
 
-                        lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, cellWordArt.TextAlignment, cellWordArt.Insets, wordArtLeft, cellY, wordArtWidth, (float) cellWordArt.HeightPoints));
+                        lines.AddRange(LayoutWordArtText(cellWordArt.Text, cellWordArt.FontFamily, cellWordArt.FontSizePoints, cellWordArt.Bold, cellWordArt.Italic, cellWordArt.FillColorHex, cellWordArt.TextAlignment, cellWordArt.Insets, wordArtLeft, cellY, wordArtWidth, (float)cellWordArt.HeightPoints));
                     }
 
-                    cellY += (float) cellWordArt.HeightPoints;
+                    cellY += (float)cellWordArt.HeightPoints;
                     lastCellAfter = 0;
                     lastCellVisibleAfter = 0;
                     lastCellContextual = false;
@@ -4767,7 +4808,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // The empty end-of-cell mark after a nested table takes no height and none of its
                 // spacing (ParagraphElement.IsCollapsedCellMark carries the probe). It still places a
                 // zero-height line, so the paragraph keeps a position on the page.
-                if (paragraph is {IsCollapsedCellMark: true})
+                if (paragraph is { IsCollapsedCellMark: true })
                 {
                     FlushCellBorderRun();
                     lines.Add(new PlacedLine(contentLeft, cellY, 0, 0, cellY, paragraph, 0, [], []));
@@ -4810,7 +4851,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var spaceTop = cellY;
                 if (first)
                 {
-                    cellY += (float) properties.SpacingBeforePoints;
+                    cellY += (float)properties.SpacingBeforePoints;
                 }
                 else if (elementIndex == start.ElementIndex)
                 {
@@ -4831,8 +4872,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             ? cell.Content[elementIndex - 1] as ParagraphElement ?? (cell.Content[elementIndex - 1] as ContentControlElement)?.CellParagraph
                             : null;
                         cellY += ending == null
-                            ? (float) properties.SpacingBeforePoints
-                            : ParagraphGap.Between((float) ending.Properties.SpacingAfterPoints, ending.Properties.ContextualSpacing, ParagraphGap.StyleKey(ending.Properties), true, properties).Before;
+                            ? (float)properties.SpacingBeforePoints
+                            : ParagraphGap.Between((float)ending.Properties.SpacingAfterPoints, ending.Properties.ContextualSpacing, ParagraphGap.StyleKey(ending.Properties), true, properties).Before;
                     }
                 }
                 else
@@ -4847,7 +4888,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // Opening a border run reserves its top rule and w:space, exactly as the page flow does
                 // after the collapsed spacing-before.
                 if (cellBorderRun == null &&
-                    properties.Borders is {HasAnyBorder: true} openingBorders)
+                    properties.Borders is { HasAnyBorder: true } openingBorders)
                 {
                     cellY += EdgeReserve(openingBorders.Top, properties.BorderTopSpacePoints);
                 }
@@ -4857,8 +4898,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (cellBorderRun != null &&
                     properties.BorderBetweenReservePoints > 0)
                 {
-                    cellBetweenRule = cellY + (float) (properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
-                    cellY += (float) properties.BorderBetweenReservePoints;
+                    cellBetweenRule = cellY + (float)(properties.BorderBetweenReservePoints - properties.BorderBetweenSpacePoints);
+                    cellY += (float)properties.BorderBetweenReservePoints;
                 }
 
                 // A single-line cell wraps against an unbounded width — the line simply runs past the
@@ -4867,9 +4908,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // leaves an over-long line at the left edge).
                 var wrapWidth = cell.Properties.SingleLine ? TableHeightCalculator.UnboundedWidth : contentWidth;
                 var paragraphLines = measurer.LayoutLineContents(paragraph, wrapWidth);
-                var isEmpty = paragraphLines is [{Width: <= 0} _];
-                var textLeft = contentLeft + (float) properties.LeftIndentPoints;
-                var availableWidth = contentWidth - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
+                var isEmpty = paragraphLines is [{ Width: <= 0 } _];
+                var textLeft = contentLeft + (float)properties.LeftIndentPoints;
+                var availableWidth = contentWidth - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
 
                 // How many of the paragraph's remaining lines this fragment takes. Without a budget that is
                 // all of them (the whole-row path, unchanged). With one, count what fits — always at least
@@ -4892,7 +4933,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     for (var lineIndex = resumeLine; lineIndex < paragraphLines.Count; lineIndex++)
                     {
                         var candidate = paragraphLines[lineIndex];
-                        var afterReserve = lineIndex == paragraphLines.Count - 1 ? (float) properties.SpacingAfterPoints : 0f;
+                        var afterReserve = lineIndex == paragraphLines.Count - 1 ? (float)properties.SpacingAfterPoints : 0f;
                         if ((lines.Count > 0 || take > 0) &&
                             probeY + candidate.Height + afterReserve > limit)
                         {
@@ -4972,7 +5013,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // Fold this whole-placed paragraph into the open border run, or open one. A paragraph
                 // resumed mid-way (a continuation fragment) has no single box and ends the run instead.
                 if (resumeLine == 0 &&
-                    properties.Borders is {HasAnyBorder: true})
+                    properties.Borders is { HasAnyBorder: true })
                 {
                     if (cellBorderRun == null)
                     {
@@ -4982,7 +5023,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                     else if (properties.BorderBetween.IsVisible)
                     {
-                        (cellBorderBetweens ??= []).Add(cellBetweenRule ?? cellBorderRunBottom + (float) properties.BorderBetweenSpacePoints);
+                        (cellBorderBetweens ??= []).Add(cellBetweenRule ?? cellBorderRunBottom + (float)properties.BorderBetweenSpacePoints);
                     }
 
                     cellBorderRunBottom = cellY;
@@ -4999,7 +5040,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // the deleted production mirror). cover-letters/09 ends its Address block with an empty
                 // 42pt-after paragraph before the salutation: dropping that gap sat the whole letter
                 // body 42pt high.
-                lastCellAfter = (float) properties.SpacingAfterPoints;
+                lastCellAfter = (float)properties.SpacingAfterPoints;
                 lastCellVisibleAfter = isEmpty ? 0 : lastCellAfter;
                 lastCellContextual = properties.ContextualSpacing;
                 lastCellIsParagraph = true;
@@ -5066,7 +5107,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var runs = new PlacedRun[line.Runs.Count];
             for (var runIndex = 0; runIndex < line.Runs.Count; runIndex++)
             {
-                runs[runIndex] = line.Runs[runIndex] with {X = line.Runs[runIndex].X + dx};
+                runs[runIndex] = line.Runs[runIndex] with
+                {
+                    X = line.Runs[runIndex].X + dx
+                };
             }
 
             var images = line.Images;
@@ -5138,7 +5182,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // side and clipped on the other.
                 if (element is TableElement bandTable)
                 {
-                    var (tableItems, tableHeight) = LayoutNestedTable(bandTable, left + (float) bandTable.Properties.IndentPoints, bandY, width);
+                    var (tableItems, tableHeight) = LayoutNestedTable(bandTable, left + (float)bandTable.Properties.IndentPoints, bandY, width);
                     result.AddRange(tableItems);
                     bandY += tableHeight;
                     continue;
@@ -5151,14 +5195,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 var properties = paragraph.Properties;
                 var spaceTop = bandY;
-                bandY += (float) properties.SpacingBeforePoints;
+                bandY += (float)properties.SpacingBeforePoints;
                 var paragraphLines = measurer.LayoutLineContents(paragraph, width);
-                var availableWidth = width - (float) properties.LeftIndentPoints - (float) properties.RightIndentPoints;
+                var availableWidth = width - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
                 var drawShift = 0f;
                 for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
-                    var indentLeft = left + (float) properties.LeftIndentPoints;
+                    var indentLeft = left + (float)properties.LeftIndentPoints;
                     var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
                     var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
                     var baseline = bandY + line.Ascent;
@@ -5176,7 +5220,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     bandY += line.Height;
                 }
 
-                bandY += (float) properties.SpacingAfterPoints;
+                bandY += (float)properties.SpacingAfterPoints;
             }
 
             return result;
@@ -5261,14 +5305,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, bool sectionFirst, PageNumbering numbering, PageSettings settings)
         {
             var content = SelectVariant(settings, sectionFirst, pageNumber, isHeader: true);
-            var bandLeft = (float) settings.MarginLeft;
-            var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
+            var bandLeft = (float)settings.MarginLeft;
+            var bandWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             if (content == null)
             {
                 return [];
             }
 
-            return LayoutBand(SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat), bandLeft, (float) settings.HeaderDistance, bandWidth);
+            return LayoutBand(SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat), bandLeft, (float)settings.HeaderDistance, bandWidth);
         }
 
         // Picks the header or footer for a page from its section's set: the section's first page takes
@@ -5324,8 +5368,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return [];
             }
 
-            var bandLeft = (float) settings.MarginLeft;
-            var bandWidth = (float) (settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
+            var bandLeft = (float)settings.MarginLeft;
+            var bandWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             var elements = SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat);
             var height = 0f;
             foreach (var element in elements)
@@ -5340,7 +5384,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
             }
 
-            var footerTop = (float) settings.HeightPoints - (float) settings.FooterDistance - height;
+            var footerTop = (float)settings.HeightPoints - (float)settings.FooterDistance - height;
             return LayoutBand(elements, bandLeft, footerTop, bandWidth);
         }
 
@@ -5390,7 +5434,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 foreach (var line in DocumentConverter.Lines(items))
                 {
                     var paragraph = line.Paragraph;
-                    if (paragraph is {Properties: {ResolvedStyleId: { } id, Numbering.LevelNumber: { } number}} &&
+                    if (paragraph is { Properties: { ResolvedStyleId: { } id, Numbering.LevelNumber: { } number } } &&
                         id.StartsWith("Heading", StringComparison.Ordinal) &&
                         int.TryParse(id.AsSpan("Heading".Length), out var headingLevel))
                     {
@@ -5402,7 +5446,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     {
                         if (!firsts.TryGetValue(level, out var first))
                         {
-                            first = ChapterHeadings(bodies.Select(_ => _.Items), level) is {Count: > 0} headings ? headings[0].Number : null;
+                            first = ChapterHeadings(bodies.Select(_ => _.Items), level) is { Count: > 0 } headings ? headings[0].Number : null;
                             firsts[level] = first;
                         }
 
@@ -5424,13 +5468,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             continue;
                         }
 
-                        texts[run] = FieldText(run, numbering[index] with {Chapter = chapter}, settings.PageNumberFormat);
+                        texts[run] = FieldText(run, numbering[index] with
+                        {
+                            Chapter = chapter
+                        }, settings.PageNumberFormat);
                     }
                 }
             }
 
             if (references.Count > 0 &&
-                bookmarks is {Count: > 0})
+                bookmarks is { Count: > 0 })
             {
                 var marked = new Dictionary<string, ParagraphElement>(StringComparer.Ordinal);
                 foreach (var bookmark in bookmarks)
@@ -5447,7 +5494,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         marked.TryGetValue(name, out var target) &&
                         landed.TryGetValue(target, out var place))
                     {
-                        texts[run] = (numbering[place.Page] with {Chapter = place.Chapter}).PageText(run.PageFieldNumberFormat ?? bodies[place.Page].Settings.PageNumberFormat);
+                        texts[run] = (numbering[place.Page] with
+                        {
+                            Chapter = place.Chapter
+                        }).PageText(run.PageFieldNumberFormat ?? bodies[place.Page].Settings.PageNumberFormat);
                     }
                 }
             }
@@ -5547,13 +5597,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var items = new List<PlacedItem>();
-            var marginLeft = (float) settings.MarginLeft;
+            var marginLeft = (float)settings.MarginLeft;
             // A paragraph-anchored band float positions from the band's own origin: the header distance for
             // a header, the footer distance up from the page bottom for a footer. Page/margin anchors are
             // absolute and shared by both.
             var bandTop = isFooter
-                ? (float) (settings.HeightPoints - settings.FooterDistance)
-                : (float) settings.HeaderDistance;
+                ? (float)(settings.HeightPoints - settings.FooterDistance)
+                : (float)settings.HeaderDistance;
 
             // A band's behind-text floating art is anchored like a body float but from the band origin —
             // the page edge, the top margin, or the band itself. Both band images and band shapes (e.g.
@@ -5565,17 +5615,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 var x = horizontalAnchor == HorizontalAnchor.Page ? 0f : marginLeft;
                 x += horizontalPercent is { } across
-                    ? (float) (across * (horizontalAnchor == HorizontalAnchor.Page ? settings.WidthPoints : settings.WidthPoints - settings.MarginLeft - settings.MarginRight))
-                    : (float) horizontalOffset;
+                    ? (float)(across * (horizontalAnchor == HorizontalAnchor.Page ? settings.WidthPoints : settings.WidthPoints - settings.MarginLeft - settings.MarginRight))
+                    : (float)horizontalOffset;
                 var y = verticalAnchor switch
                 {
                     VerticalAnchor.Page => 0f,
-                    VerticalAnchor.Margin => (float) settings.MarginTop,
+                    VerticalAnchor.Margin => (float)settings.MarginTop,
                     _ => bandTop
                 };
                 y += verticalPercent is { } down
-                    ? (float) (down * (verticalAnchor == VerticalAnchor.Page ? settings.HeightPoints : settings.HeightPoints - settings.MarginTop - settings.MarginBottom))
-                    : (float) verticalOffset;
+                    ? (float)(down * (verticalAnchor == VerticalAnchor.Page ? settings.HeightPoints : settings.HeightPoints - settings.MarginTop - settings.MarginBottom))
+                    : (float)verticalOffset;
                 return (x, y);
             }
 
@@ -5603,7 +5653,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // the body, so its front-text shapes also sat under the body content — cards/05's two
                     // 0.5pt fold-guide rules (a full-height vertical and a full-width horizontal, both
                     // front-text page-anchored header shapes) were silently dropped by the behind-only gate.
-                    if (shape.ImageData is {Length: > 0} shapeImage &&
+                    if (shape.ImageData is { Length: > 0 } shapeImage &&
                         shape.ImageContentType != "image/svg+xml")
                     {
                         items.Add(ShapeImage(shape, shapeX, shapeY, shapeImage));
@@ -5613,7 +5663,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                               shape.FillColorHex != null ||
                               shape.LineColorHex != null))
                     {
-                        items.Add(new PlacedShape(shapeX, shapeY, (float) shape.WidthPoints, (float) shape.HeightPoints, shape));
+                        items.Add(new PlacedShape(shapeX, shapeY, (float)shape.WidthPoints, (float)shape.HeightPoints, shape));
                     }
                 }
                 // A band's anchored single-paragraph wps text box — a running-header title, a footer label —
@@ -5625,19 +5675,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var (boxX, boxY) = Position(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.HorizontalPositionPercent, wordArt.VerticalAnchor, wordArt.VerticalPositionPoints, wordArt.VerticalPositionPercent);
                     if (wordArt.Transform != WordArtTransform.None)
                     {
-                        items.Add(new PlacedWordArt(boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints, wordArt));
+                        items.Add(new PlacedWordArt(boxX, boxY, (float)wordArt.WidthPoints, (float)wordArt.HeightPoints, wordArt));
                     }
                     else
                     {
-                        items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, wordArt.TextAlignment, wordArt.Insets, boxX, boxY, (float) wordArt.WidthPoints, (float) wordArt.HeightPoints));
+                        items.AddRange(LayoutWordArtText(wordArt.Text, wordArt.FontFamily, wordArt.FontSizePoints, wordArt.Bold, wordArt.Italic, wordArt.FillColorHex, wordArt.TextAlignment, wordArt.Insets, boxX, boxY, (float)wordArt.WidthPoints, (float)wordArt.HeightPoints));
                     }
                 }
                 // A band text box places its chrome and content as PlaceTextBox does a body one.
                 else if (element is FloatingTextBoxElement textBox)
                 {
                     var (boxX, boxY) = Position(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent, textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent);
-                    var boxWidth = (float) textBox.WidthPoints;
-                    var boxHeight = (float) textBox.HeightPoints;
+                    var boxWidth = (float)textBox.WidthPoints;
+                    var boxHeight = (float)textBox.HeightPoints;
                     if (textBox.BackgroundColorHex != null || textBox.LineColorHex != null)
                     {
                         var boxShape = new FloatingShapeElement
@@ -5681,7 +5731,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 TextAlignment.Center => ColumnLeft + slack / 2,
                 TextAlignment.Right => ColumnLeft + slack,
-                _ => ColumnLeft + (float) table.Properties.IndentPoints
+                _ => ColumnLeft + (float)table.Properties.IndentPoints
             };
         }
 
@@ -5727,21 +5777,21 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             element switch
             {
                 ParagraphElement paragraph => paragraph.Properties.KeepNext,
-                ContentControlElement {CellParagraph: { } paragraph} => paragraph.Properties.KeepNext,
-                TableElement {Properties.IsFloating: false, Rows.Count: > 0} table => RowKeeps(table.Rows[^1]),
+                ContentControlElement { CellParagraph: { } paragraph } => paragraph.Properties.KeepNext,
+                TableElement { Properties.IsFloating: false, Rows.Count: > 0 } table => RowKeeps(table.Rows[^1]),
                 _ => false
             };
 
         static bool RowKeeps(TableRow row) =>
-            row.Cells is [{Content: [ParagraphElement {Properties.KeepNext: true}, ..]}, ..];
+            row.Cells is [{ Content: [ParagraphElement { Properties.KeepNext: true }, ..] }, ..];
 
         // The body elements Run places in the flow — the ones that can part two others, or be kept to
         // them. The rest (floats, a floating table, a content control with no paragraph, the element
         // kinds Run does not place) take no flow space and pass between elements without parting them.
         static bool TakesFlowSpace(DocumentElement element) =>
             element is ParagraphElement or
-                ContentControlElement {CellParagraph: not null} or
-                TableElement {Properties.IsFloating: false} or
+                ContentControlElement { CellParagraph: not null } or
+                TableElement { Properties.IsFloating: false } or
                 PageBreakElement or
                 ColumnBreakElement or
                 SectionBreakElement or
@@ -5763,7 +5813,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var previous = FlowParagraph(elements[index])?.Properties;
-            var previousAfter = (float) (previous?.SpacingAfterPoints ?? 0);
+            var previousAfter = (float)(previous?.SpacingAfterPoints ?? 0);
             var previousContextual = previous?.ContextualSpacing ?? false;
             var previousIsParagraph = previous != null;
             var previousStyle = previous == null ? null : ParagraphGap.StyleKey(previous);
@@ -5825,7 +5875,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         break;
                     }
 
-                    previousAfter = (float) properties.SpacingAfterPoints;
+                    previousAfter = (float)properties.SpacingAfterPoints;
                     previousContextual = properties.ContextualSpacing;
                     previousIsParagraph = true;
                     previousStyle = ParagraphGap.StyleKey(properties);
@@ -5888,7 +5938,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         static float ClosingBorderReserve(IReadOnlyList<DocumentElement> elements, int index)
         {
             var properties = FlowParagraph(elements[index])?.Properties;
-            if (properties?.Borders is not {HasAnyBorder: true} borders)
+            if (properties?.Borders is not { HasAnyBorder: true } borders)
             {
                 return 0;
             }
@@ -5926,7 +5976,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             element switch
             {
                 ParagraphElement paragraph => paragraph,
-                ContentControlElement {CellParagraph: { } control} => control,
+                ContentControlElement { CellParagraph: { } control } => control,
                 _ => null
             };
 
@@ -6027,13 +6077,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 var properties = paragraph.Properties;
-                var lines = measurer.LayoutLineContents(paragraph, cellWidth - (float) (padding.Left + padding.Right));
+                var lines = measurer.LayoutLineContents(paragraph, cellWidth - (float)(padding.Left + padding.Right));
                 var together = properties.WidowControl ? 2 : 1;
                 var held = !properties.KeepLines &&
                            lines.Count >= together * 2
                     ? together
                     : lines.Count;
-                var cellOpening = (float) (padding.Top + padding.Bottom + properties.SpacingBeforePoints);
+                var cellOpening = (float)(padding.Top + padding.Bottom + properties.SpacingBeforePoints);
                 for (var line = 0; line < held; line++)
                 {
                     cellOpening += lines[line].Height;
@@ -6125,9 +6175,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         static float FirstLineIndentOffset(ParagraphProperties properties, int lineIndex)
         {
             if (lineIndex == 0 &&
-                properties.Numbering is not {Text.Length: > 0})
+                properties.Numbering is not { Text.Length: > 0 })
             {
-                return (float) (properties.FirstLineIndentPoints - properties.HangingIndentPoints);
+                return (float)(properties.FirstLineIndentPoints - properties.HangingIndentPoints);
             }
 
             return 0f;
@@ -6138,7 +6188,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         IReadOnlyList<PlacedRun> LineRuns(ParagraphElement paragraph, LaidOutLine line, int lineIndex, float lineLeft)
         {
             if (lineIndex == 0 &&
-                paragraph.Properties.Numbering is {Text.Length: > 0} numbering)
+                paragraph.Properties.Numbering is { Text.Length: > 0 } numbering)
             {
                 // The marker and the FIRST line's text where the level's suffix puts them
                 // (CanonicalParagraphMeasurer.MarkerPlacement, whose text shift the wrap
@@ -6185,7 +6235,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var barTop = first && spaceTop is { } space && space < top ? space : top;
-            return (barTop, top + height + (last ? (float) after : 0));
+            return (barTop, top + height + (last ? (float)after : 0));
         }
 
         static (float Y, float Height, float Baseline) DrawnLine(LaidOutLine line, float y, float baseline, ref float drawShift)
@@ -6196,7 +6246,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return (top, line.Height, baseline + drawShift);
             }
 
-            var growth = (float) BorderStroke.LineGrowth(line.DrawPad);
+            var growth = (float)BorderStroke.LineGrowth(line.DrawPad);
             var drawn = (top, line.Height + growth, baseline + drawShift + line.DrawPad);
             drawShift += growth;
             return drawn;
@@ -6298,8 +6348,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The layout box (extent + effectExtent) sits with its bottom on the baseline; the
                 // picture draws inside it, offset by the left and top effect edges (ImageEffectExtent).
-                var effectLeft = (float) (image.EffectExtent?.Left ?? 0) + (float) (image.ShapeGroup?.DrawOffsetXPoints ?? 0);
-                var effectBottom = (float) (image.EffectExtent?.Bottom ?? 0) - (float) (image.ShapeGroup?.DrawOffsetYPoints ?? 0);
+                var effectLeft = (float)(image.EffectExtent?.Left ?? 0) + (float)(image.ShapeGroup?.DrawOffsetXPoints ?? 0);
+                var effectBottom = (float)(image.EffectExtent?.Bottom ?? 0) - (float)(image.ShapeGroup?.DrawOffsetYPoints ?? 0);
                 var x = lineLeft + image.X + effectLeft;
                 var y = baseline - effectBottom - image.Height;
                 if (image.Fraction is { } fraction)
@@ -6310,7 +6360,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 if (image.Chart is { } chart)
                 {
-                    var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new() {Content = content}, left, top, width, height, alignment));
+                    var composer = new ChartComposer(measurer, (content, left, top, width, height, alignment) => LayoutCellContent(new()
+                    {
+                        Content = content
+                    }, left, top, width, height, alignment));
                     images[imageIndex] = new(x, y, image.Width, image.Height, null, Composed: composer.Compose(chart, x, y, image.Width, image.Height));
                     continue;
                 }
