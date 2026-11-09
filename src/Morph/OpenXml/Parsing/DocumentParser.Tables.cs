@@ -1,5 +1,4 @@
-﻿using A = DocumentFormat.OpenXml.Drawing;
-using OoxmlTableCellProperties = DocumentFormat.OpenXml.Wordprocessing.TableCellProperties;
+﻿using OoxmlTableCellProperties = DocumentFormat.OpenXml.Wordprocessing.TableCellProperties;
 using OoxmlTableProperties = DocumentFormat.OpenXml.Wordprocessing.TableProperties;
 
 /// <summary>
@@ -471,7 +470,7 @@ sealed partial class DocumentParser
                     var cellFlags = TableStyleParser.ParseConditionalFormatFlags(cellProps?.GetFirstChild<ConditionalFormatStyle>());
                     var effectiveFlags = cellFlags | rowFlags;
 
-                    var conditionalBorders = (CellBorders?) null;
+                    CellBorders? conditionalBorders = null;
                     var conditionalShading = styleInfo.BackgroundColorHex;
                     string? conditionalRunColor = null;
 
@@ -569,9 +568,7 @@ sealed partial class DocumentParser
 
                 // Word collapses the unavoidable empty end-of-cell paragraph mark that directly
                 // follows a nested table to zero height.
-                if (cellContent.Count >= 2 &&
-                    cellContent[^1] is ParagraphElement {Runs.Count: 0, IsAnchorOnlyMark: false} endMark &&
-                    cellContent[^2] is TableElement)
+                if (cellContent is [.., TableElement, ParagraphElement {Runs.Count: 0, IsAnchorOnlyMark: false} endMark])
                 {
                     cellContent[^1] = new ParagraphElement
                     {

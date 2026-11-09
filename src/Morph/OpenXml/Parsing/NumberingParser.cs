@@ -1,5 +1,3 @@
-using A = DocumentFormat.OpenXml.Drawing;
-
 /// <summary>
 /// Reads the numbering part into <see cref="NumberingLevelDefinition"/>s and formats list
 /// numbers (decimal, roman, letter, …). The per-paragraph counters stay in

@@ -39,8 +39,11 @@ sealed partial class DocumentParser
         // An inline chart (a:graphicData holding a c:chart reference to a chart part).
         if (drawing
                 .Descendants()
-                .FirstOrDefault(_ => _.LocalName == "chart" &&
-                                     _.Parent?.LocalName == "graphicData") is { } chartReference)
+                .FirstOrDefault(_ => _ is
+                {
+                    LocalName: "chart",
+                    Parent.LocalName: "graphicData"
+                }) is { } chartReference)
         {
             return ParseInlineChartRun(drawing, chartReference, hostPart, runProps);
         }
@@ -542,11 +545,22 @@ sealed partial class DocumentParser
     {
         if (drawing
                 .Descendants()
-                .FirstOrDefault(_ => _.LocalName == "chart" &&
-                                     _.Parent?.LocalName == "graphicData") is not { } chartReference ||
-            anchor.Extent is not {Cx: { } width, Cy: { } height} ||
-            width.Value <= 0 ||
-            height.Value <= 0 ||
+                .FirstOrDefault(_ => _ is
+                {
+                    LocalName: "chart",
+                    Parent.LocalName: "graphicData"
+                }) is not { } chartReference ||
+            anchor.Extent is not
+            {
+                Cx:
+                {
+                    Value: > 0
+                } width,
+                Cy:
+                {
+                    Value: > 0
+                } height
+            } ||
             chartReference.GetAttributes().FirstOrDefault(_ => _.LocalName == "id").Value is not {Length: > 0} relationshipId ||
             hostPart.PartOrNull(relationshipId)?.RootElement is not { } chartSpace ||
             new ChartReader(currentThemeColors, currentThemeFonts, culture).Read(chartSpace) is not { } model)
@@ -948,7 +962,7 @@ sealed partial class DocumentParser
     /// </summary>
     static (WrapType Type, WrapTextSide Side, double DistLeft, double DistTop, double DistRight, double DistBottom) ParseWrap(DW.Anchor anchor)
     {
-        double Points(UInt32Value? own, UInt32Value? anchorDistance) =>
+        static double Points(UInt32Value? own, UInt32Value? anchorDistance) =>
             (own?.Value ?? anchorDistance?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
 
         if (anchor.GetFirstChild<DW.WrapSquare>() is { } square)

@@ -1,5 +1,3 @@
-using A = DocumentFormat.OpenXml.Drawing;
-
 /// <summary>
 /// Flattens Office Math (<c>m:oMath</c>) into runs of text, the way Word's own linear format
 /// reads it.
@@ -183,7 +181,7 @@ static class MathParser
 
     // A fraction is built up unless its m:fPr/m:type says it is set on the line (lin) or skewed (skw).
     static bool BuiltUp(DocumentFormat.OpenXml.Math.Fraction fraction) =>
-        fraction.FractionProperties?.FractionType?.Val?.Value is not ({} type) ||
+        fraction.FractionProperties?.FractionType?.Val?.Value is not {} type ||
         type == DocumentFormat.OpenXml.Math.FractionTypeValues.Bar ||
         type == DocumentFormat.OpenXml.Math.FractionTypeValues.NoBar;
 

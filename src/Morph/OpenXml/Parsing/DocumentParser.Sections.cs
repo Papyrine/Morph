@@ -1,5 +1,4 @@
-﻿using A = DocumentFormat.OpenXml.Drawing;
-using OoxmlParagraphProperties = DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties;
+﻿using OoxmlParagraphProperties = DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties;
 using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 using OoxmlPageBorders = DocumentFormat.OpenXml.Wordprocessing.PageBorders;
 
@@ -123,7 +122,7 @@ sealed partial class DocumentParser
                 // CSS shorthand: "[style] [weight] size family" — last token is the family,
                 // any "bold" token sets weight, any "Npt" token sets size.
                 var fontValue = prop[(colonIndex + 1)..].Trim();
-                ReadOnlySpan<char> lastToken = default;
+                CharSpan lastToken = default;
                 foreach (var tokenRange in fontValue.Split(' '))
                 {
                     var token = fontValue[tokenRange];
@@ -954,7 +953,7 @@ sealed partial class DocumentParser
 
         if (elements.Count > 0)
         {
-            return new HeaderFooterContent
+            return new()
             {
                 Elements = elements
             };

@@ -26,7 +26,9 @@ sealed partial class DocumentParser
         var plotArea = chartSpace?.Descendants().FirstOrDefault(_ => _.LocalName == "plotArea");
         var chart = plotArea?.Elements().FirstOrDefault(_ => _.LocalName is "doughnutChart" or "pieChart");
         var series = chart?.Elements().FirstOrDefault(_ => _.LocalName == "ser");
-        if (plotArea == null || chart == null || series == null)
+        if (plotArea == null ||
+            chart == null ||
+            series == null)
         {
             return null;
         }
@@ -34,11 +36,16 @@ sealed partial class DocumentParser
         static OpenXmlElement? Child(OpenXmlElement? parent, string localName) =>
             parent?.Elements().FirstOrDefault(_ => _.LocalName == localName);
 
-        static double? Value(OpenXmlElement? element) =>
-            element?.GetAttributes().FirstOrDefault(_ => _.LocalName == "val").Value is { } text &&
-            double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number)
-                ? number
-                : null;
+        static double? Value(OpenXmlElement? element)
+        {
+            if (element?.GetAttributes().FirstOrDefault(_ => _.LocalName == "val").Value is { } text &&
+                double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out var number))
+            {
+                return number;
+            }
+
+            return null;
+        }
 
         // The cached values, by point index.
         var values = new SortedDictionary<int, double>();
@@ -138,7 +145,7 @@ sealed partial class DocumentParser
         var steps = Math.Max(2, (int) Math.Ceiling(sweepDegrees / 2));
         var points = new List<(double X, double Y)>(steps * 2 + 2);
 
-        (double X, double Y) At(double degrees, double radius)
+        static (double X, double Y) At(double degrees, double radius)
         {
             var radians = degrees * Math.PI / 180;
             return (0.5 + radius * Math.Sin(radians), 0.5 - radius * Math.Cos(radians));

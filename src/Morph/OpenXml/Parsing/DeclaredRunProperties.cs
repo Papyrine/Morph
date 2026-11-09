@@ -1,4 +1,3 @@
-using A = DocumentFormat.OpenXml.Drawing;
 /// <summary>
 /// Run properties as DECLARED by one rung of the style ladder, as against the resolved values
 /// <see cref="RunProperties"/> carries. Every member is nullable so "this rung said nothing" stays
@@ -94,7 +93,7 @@ sealed record DeclaredRunProperties
         var sizePoints = OoxmlUnits.FontSizeHalfPointsToPoints(size?.Val?.Value);
 
         string? colorHex = null;
-        var color = rPr.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>();
+        var color = rPr.GetFirstChild<Color>();
         if (color?.Val?.HasValue == true &&
             color.Val.Value != "auto")
         {

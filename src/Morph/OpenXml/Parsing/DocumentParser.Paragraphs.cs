@@ -169,8 +169,7 @@ sealed partial class DocumentParser
 
             // lvlRestart=K means "restart when an item at level <= K-1 increments".
             // If our incrementedIlvl is deeper than K-1, this level keeps its value.
-            if (deeperLevel.LevelRestart is { } restart &&
-                restart > 0 &&
+            if (deeperLevel.LevelRestart is { } restart and > 0 &&
                 incrementedIlvl > restart - 1)
             {
                 continue;
@@ -523,9 +522,9 @@ sealed partial class DocumentParser
         var runs = new List<Run>();
 
         var paragraphStyleId = paraProps?.ParagraphStyleId?.Val?.Value;
-        var inScopedPart = para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any()
-                           || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Header>().Any()
-                           || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Footer>().Any();
+        var inScopedPart = para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any() ||
+                           para.Ancestors<Header>().Any() ||
+                           para.Ancestors<Footer>().Any();
         var props = ParseParagraphProperties(paraProps, mainPart, paragraphStyleId, omitParagraphMark: inScopedPart, paragraph: para);
 
         // --- PAGE / NUMPAGES / SECTIONPAGES field tracking ---
@@ -1778,7 +1777,7 @@ sealed partial class DocumentParser
         {
             for (var sibling = paragraph.PreviousSibling(); sibling != null; sibling = sibling.PreviousSibling())
             {
-                if (sibling is Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock)
+                if (sibling is Paragraph or Table or SdtBlock)
                 {
                     return sibling;
                 }
@@ -1791,7 +1790,7 @@ sealed partial class DocumentParser
         {
             for (var sibling = paragraph.NextSibling(); sibling != null; sibling = sibling.NextSibling())
             {
-                if (sibling is Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock)
+                if (sibling is Paragraph or Table or SdtBlock)
                 {
                     return sibling;
                 }
@@ -1808,7 +1807,7 @@ sealed partial class DocumentParser
             {
                 var neighbour = first ? block.PreviousSibling() : block.NextSibling();
                 while (neighbour != null &&
-                       neighbour is not (Paragraph or DocumentFormat.OpenXml.Wordprocessing.Table or SdtBlock))
+                       neighbour is not (Paragraph or Table or SdtBlock))
                 {
                     neighbour = first ? neighbour.PreviousSibling() : neighbour.NextSibling();
                 }
@@ -1854,10 +1853,8 @@ sealed partial class DocumentParser
             {
                 return inherited.numId;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 
@@ -1938,7 +1935,7 @@ sealed partial class DocumentParser
             var declared = effectiveStyleId != null &&
                            paragraphStyleDeclaredSpacing.TryGetValue(effectiveStyleId, out var d)
                 ? d
-                : new StyleParagraphSpacing();
+                : new();
 
             if (declared.SpacingBeforePoints == null &&
                 fromTableStyle.SpacingBeforePoints is { } tsBefore)
@@ -2214,8 +2211,7 @@ sealed partial class DocumentParser
 
         if (shadingElement != null)
         {
-            string? inlineBgColor = null;
-            inlineBgColor = ResolveThemeFill(shadingElement);
+            var inlineBgColor = ResolveThemeFill(shadingElement);
 
             if (inlineBgColor == null &&
                 shadingElement.Fill?.HasValue == true &&
@@ -2267,8 +2263,8 @@ sealed partial class DocumentParser
         // business-plans/15's cost table (Univers marks with no w:sz, 9pt by the chain), business-plans/13
         // (marks whose w:rFonts names no w:ascii) and COMPASS's stocktake summary (an undefined TBLText
         // style, 9pt from the table style; Word's layout over COM, 2026-09-30) are the cases.
-        double? paragraphMarkFontSize = null;
-        string? paragraphMarkFontFamily = null;
+        double? paragraphMarkFontSize;
+        string? paragraphMarkFontFamily;
         var paragraphMarkRunProps = props.ParagraphMarkRunProperties;
         var markLadder = ParseRunProperties(null, mainPart, styleId);
         if (paragraphMarkRunProps != null)
@@ -2408,8 +2404,8 @@ sealed partial class DocumentParser
         {
             switch (ancestor)
             {
-                case DocumentFormat.OpenXml.Wordprocessing.Header:
-                case DocumentFormat.OpenXml.Wordprocessing.Footer:
+                case Header:
+                case Footer:
                 case DocumentFormat.OpenXml.Wordprocessing.Footnote:
                 case DocumentFormat.OpenXml.Wordprocessing.Endnote:
                     return false;

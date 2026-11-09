@@ -1,6 +1,4 @@
-﻿using A = DocumentFormat.OpenXml.Drawing;
-using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
-using OoxmlRunProperties = DocumentFormat.OpenXml.Wordprocessing.RunProperties;
+﻿using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 
 /// <summary>
 /// A run: its properties, revisions, hints, text effects and content controls.
@@ -602,10 +600,8 @@ sealed partial class DocumentParser
     }
 
     static bool IsEastAsiaHinted(char ch) =>
-        ch >= '\u3000'
-        || ch is >= '\u2010' and <= '\u2FFF'
-        || ch is '\u00A1' or '\u00A4' or '\u00A7' or '\u00A8' or '\u00AA' or '\u00AD' or '\u00AF'
-            or (>= '\u00B0' and <= '\u00B4') or (>= '\u00B6' and <= '\u00BA') or (>= '\u00BC' and <= '\u00BF')
+        ch is >= '\u3000' or >= '\u2010' and <= '\u2FFF' or '\u00A1' or '\u00A4' or '\u00A7' or '\u00A8' or '\u00AA' or '\u00AD' or '\u00AF'
+            or >= '\u00B0' and <= '\u00B4' or >= '\u00B6' and <= '\u00BA' or >= '\u00BC' and <= '\u00BF'
             or '\u00D7' or '\u00F7';
 
     List<Run> ParseRun(OoxmlRun run, MainDocumentPart mainPart, string? paragraphStyleId = null, string? hyperlinkUrl = null, bool emitLineBreaks = false)
@@ -751,7 +747,7 @@ sealed partial class DocumentParser
                 // body lives in footnotes.xml / endnotes.xml (ExtractFootnotes / ExtractEndnotes);
                 // here we only record the citation position as an empty marker run so the text
                 // exporters can emit a reference and a trailing notes section.
-                case FootnoteReference footnoteReference when footnoteReference.Id?.Value is { } footnoteId:
+                case FootnoteReference { Id.Value: { } footnoteId }:
                     FlushText();
                     var footnoteKey = footnoteId.ToString();
                     if (!footnoteCitationNumbers.TryGetValue(footnoteKey, out var footnoteNumber))
@@ -777,7 +773,7 @@ sealed partial class DocumentParser
                             Source = SourceAt(position, atomic: true)
                         });
                     break;
-                case EndnoteReference endnoteReference when endnoteReference.Id?.Value is { } endnoteId:
+                case EndnoteReference { Id.Value: { } endnoteId }:
                     FlushText();
                     var endnoteKey = endnoteId.ToString();
                     if (!endnoteCitationNumbers.TryGetValue(endnoteKey, out var endnoteNumber))
@@ -845,7 +841,7 @@ sealed partial class DocumentParser
     static RunSymbol? ParseSymbol(SymbolChar symbolChar, string runFont)
     {
         if (!int.TryParse(symbolChar.Char?.Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var code) ||
-            code is <= 0 or > 0xFFFF or (>= 0xD800 and <= 0xDFFF))
+            code is <= 0 or > 0xFFFF or >= 0xD800 and <= 0xDFFF)
         {
             return null;
         }
@@ -1125,7 +1121,7 @@ sealed partial class DocumentParser
             italic = italicElement.IsOn();
         }
 
-        var underlineColorHex = (string?) null;
+        string? underlineColorHex = null;
         if (underlineElement != null &&
             underlineElement.Val?.Value != UnderlineValues.None)
         {
@@ -1233,7 +1229,7 @@ sealed partial class DocumentParser
 
         if (shadingElement != null)
         {
-            string? inlineBgColor = null;
+            string? inlineBgColor;
             inlineBgColor = ResolveThemeFill(shadingElement);
 
             if (inlineBgColor == null &&
@@ -1493,9 +1489,11 @@ sealed partial class DocumentParser
     // <w14:shadow/> <w14:textOutline/> <w14:glow/> <w14:reflection/> all empty, and Word draws
     // "All features" as plain small caps.
     static bool IsInertEffect([NotNullWhen(false)] OpenXmlElement? element) =>
-        element is null ||
-        (!element.HasAttributes &&
-         !element.HasChildren);
+        element is null or
+        {
+            HasAttributes: false,
+            HasChildren: false
+        };
 
     TextOutline? ParseTextOutline(
         DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect? element,
@@ -1642,7 +1640,12 @@ sealed partial class DocumentParser
             operations.Add(ColorTransform.FromOoxml(known, value));
         }
 
-        return currentThemeColors.ResolveColor(name, new ColorTransforms {Operations = operations ?? []});
+        return currentThemeColors.ResolveColor(
+            name,
+            new()
+            {
+                Operations = operations ?? []
+            });
     }
 
     (string? Color, int? AlphaPercent) ReadW14ColorWithAlpha(

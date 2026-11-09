@@ -1,5 +1,4 @@
-﻿using A = DocumentFormat.OpenXml.Drawing;
-using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
+﻿using OoxmlRun = DocumentFormat.OpenXml.Wordprocessing.Run;
 
 /// <summary>
 /// Parses DOCX files using OpenXML.
@@ -549,7 +548,7 @@ sealed partial class DocumentParser(string? defaultFont = null, bool? useLetterP
 
         // The document-level parts are section 1's — what the text exporters (which do not paginate)
         // and a caller without section settings see; the engine reads each page's own section.
-        var firstSection = sectionBands.Count > 0 ? sectionBands[0] : new SectionBands();
+        var firstSection = sectionBands.Count > 0 ? sectionBands[0] : new();
         var header = firstSection.Header;
         var footer = firstSection.Footer;
         var firstPageHeader = pageSettings.DifferentFirstPage ? firstSection.FirstPageHeader : null;
@@ -893,8 +892,7 @@ sealed partial class DocumentParser(string? defaultFont = null, bool? useLetterP
     /// rather than any single channel. A WCAG contrast crossover would sit near 122 and is refuted.
     /// </summary>
     static bool IsDarkForAutomaticText(string? fillHex) =>
-        Brightness(fillHex) is { } brightness &&
-        brightness < 59;
+        Brightness(fillHex) is < 59;
 
     // ITU-R BT.601 perceived brightness, 0-255. Null when the value is not a six-digit hex colour
     // (a theme name, "auto", "none").

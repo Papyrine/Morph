@@ -85,15 +85,14 @@ static class BlipReader
             string? resolved = null;
             switch (colorChild)
             {
-                case A.RgbColorModelHex rgb when rgb.Val?.HasValue == true:
+                case A.RgbColorModelHex { Val.HasValue: true } rgb:
                     resolved = ShapeParser.ApplyLiteralColorTransforms(rgb.Val.Value!, rgb);
                     break;
-                case A.SchemeColor scheme when scheme.Val?.HasValue == true &&
-                                               themeColors != null:
+                case A.SchemeColor { Val.HasValue: true } scheme when themeColors != null:
                     var schemeValue = ((IEnumValue) scheme.Val.Value).Value;
                     resolved = themeColors.ResolveColor(schemeValue, ShapeParser.ExtractColorTransforms(scheme));
                     break;
-                case A.PresetColor preset when preset.Val?.HasValue == true:
+                case A.PresetColor { Val.HasValue: true } preset:
                     // The two presets the corpus uses; anything else keeps the slot's default.
                     if (preset.Val.Value == A.PresetColorValues.Black)
                     {

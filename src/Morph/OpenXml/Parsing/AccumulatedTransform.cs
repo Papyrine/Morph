@@ -1,5 +1,3 @@
-using A = DocumentFormat.OpenXml.Drawing;
-
 /// <summary>
 /// Accumulated transform from nested groups: an affine map from a child's local EMU
 /// coordinates into the anchor's coordinate space. The linear part carries the composed
@@ -60,7 +58,7 @@ struct AccumulatedTransform
     /// </summary>
     public static AccumulatedTransform Of(OpenXmlElement element, long rootChOffX, long rootChOffY, double rootScaleX, double rootScaleY, bool composeFlips = false)
     {
-        var transform = AccumulatedTransform.Identity;
+        var transform = Identity;
 
         var current = element.Parent;
         while (current != null)

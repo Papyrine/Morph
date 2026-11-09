@@ -1,5 +1,3 @@
-using A = DocumentFormat.OpenXml.Drawing;
-
 /// <summary>
 /// Resolves what a table style declares up its <c>w:basedOn</c> chain — cell margins, borders,
 /// conditional regions, run properties, indent — and the conditional-format flags a cell
@@ -14,7 +12,7 @@ static class TableStyleParser
     {
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var current = style;
-        while (current != null)
+        while (true)
         {
             if (current.StyleId?.Value is { } id &&
                 !visited.Add(id))
@@ -747,7 +745,7 @@ static class TableStyleParser
 
         if (hasAny)
         {
-            return new CellSpacing(top, right, bottom, left);
+            return new(top, right, bottom, left);
         }
 
         return null;

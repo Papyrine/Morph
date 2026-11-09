@@ -1,6 +1,4 @@
-﻿using A = DocumentFormat.OpenXml.Drawing;
-
-/// <summary>
+﻿/// <summary>
 /// The styles part: what each style declares up its basedOn chain, the document defaults, and the style table itself.
 /// </summary>
 sealed partial class DocumentParser
@@ -968,7 +966,7 @@ sealed partial class DocumentParser
         var left = false;
         var hanging = false;
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        var current = (string?) styleId;
+        var current = styleId;
         while (current != null &&
                visited.Add(current) &&
                styleOwnIndents.TryGetValue(current, out var own))
@@ -1039,7 +1037,7 @@ sealed partial class DocumentParser
         var stylesPart = mainPart.StyleDefinitionsPart;
         if (stylesPart?.Styles == null)
         {
-            return (result, new(result.Keys, StringComparer.OrdinalIgnoreCase));
+            return (result, [with(StringComparer.OrdinalIgnoreCase), .. result.Keys]);
         }
 
         foreach (var style in stylesPart.Styles.Elements<Style>())
@@ -1448,11 +1446,6 @@ sealed partial class DocumentParser
             }
         }
 
-        if (stylesById.TryGetValue(styleId, out var match))
-        {
-            return match;
-        }
-
-        return null;
+        return stylesById.GetValueOrDefault(styleId);
     }
 }
