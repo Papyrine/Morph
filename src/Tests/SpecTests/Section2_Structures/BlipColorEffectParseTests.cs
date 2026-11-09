@@ -12,7 +12,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.Grayscale());
 
-        var result = DocumentParser.ReadBlipColorEffect(blip, null).Effect;
+        var result = BlipReader.ReadBlipColorEffect(blip, null).Effect;
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.Grayscale);
     }
@@ -23,7 +23,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.Duotone());
 
-        var result = DocumentParser.ReadBlipColorEffect(blip, null).Effect;
+        var result = BlipReader.ReadBlipColorEffect(blip, null).Effect;
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.Duotone);
     }
@@ -34,7 +34,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.LuminanceEffect {Brightness = 70000});
 
-        var result = DocumentParser.ReadBlipColorEffect(blip, null).Effect;
+        var result = BlipReader.ReadBlipColorEffect(blip, null).Effect;
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.Washout);
     }
@@ -45,7 +45,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.LuminanceEffect {Brightness = -30000});
 
-        var result = DocumentParser.ReadBlipColorEffect(blip, null).Effect;
+        var result = BlipReader.ReadBlipColorEffect(blip, null).Effect;
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
@@ -56,7 +56,7 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.BiLevel {Threshold = 50000});
 
-        var result = DocumentParser.ReadBlipColorEffect(blip, null).Effect;
+        var result = BlipReader.ReadBlipColorEffect(blip, null).Effect;
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
@@ -64,7 +64,7 @@ public class BlipColorEffectParseTests
     [Test]
     public async Task ReturnsNoneForEmptyBlip()
     {
-        var result = DocumentParser.ReadBlipColorEffect(new A.Blip(), null).Effect;
+        var result = BlipReader.ReadBlipColorEffect(new A.Blip(), null).Effect;
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
@@ -72,7 +72,7 @@ public class BlipColorEffectParseTests
     [Test]
     public async Task ReturnsNoneWhenBlipNull()
     {
-        var result = DocumentParser.ReadBlipColorEffect(null, null).Effect;
+        var result = BlipReader.ReadBlipColorEffect(null, null).Effect;
 
         await Assert.That(result).IsEqualTo(BlipColorEffect.None);
     }
@@ -85,14 +85,14 @@ public class BlipColorEffectParseTests
         var blip = new A.Blip();
         blip.AppendChild(new A.AlphaModulationFixed {Amount = 50000});
 
-        await Assert.That(DocumentParser.ReadBlipOpacity(blip)).IsEqualTo(0.5).Within(0.0001);
+        await Assert.That(BlipReader.ReadBlipOpacity(blip)).IsEqualTo(0.5).Within(0.0001);
     }
 
     [Test]
     public async Task OpacityIsOpaqueWithoutAlphaModFix()
     {
-        await Assert.That(DocumentParser.ReadBlipOpacity(new A.Blip())).IsEqualTo(1).Within(0.0001);
-        await Assert.That(DocumentParser.ReadBlipOpacity(null)).IsEqualTo(1).Within(0.0001);
+        await Assert.That(BlipReader.ReadBlipOpacity(new A.Blip())).IsEqualTo(1).Within(0.0001);
+        await Assert.That(BlipReader.ReadBlipOpacity(null)).IsEqualTo(1).Within(0.0001);
     }
 
     [Test]
@@ -104,7 +104,7 @@ public class BlipColorEffectParseTests
         blip.AppendChild(new A.Grayscale());
         blip.AppendChild(new A.AlphaModulationFixed {Amount = 30000});
 
-        await Assert.That(DocumentParser.ReadBlipColorEffect(blip, null).Effect).IsEqualTo(BlipColorEffect.Grayscale);
-        await Assert.That(DocumentParser.ReadBlipOpacity(blip)).IsEqualTo(0.3).Within(0.0001);
+        await Assert.That(BlipReader.ReadBlipColorEffect(blip, null).Effect).IsEqualTo(BlipColorEffect.Grayscale);
+        await Assert.That(BlipReader.ReadBlipOpacity(blip)).IsEqualTo(0.3).Within(0.0001);
     }
 }

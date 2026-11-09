@@ -6,7 +6,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using W = DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
-/// Covers <c>DocumentParser.ParseTableCellMargin</c> and <c>ParseCellMargin</c>.
+/// Covers <c>TableStyleParser.ParseTableCellMargin</c> and <c>ParseCellMargin</c>.
 /// Both must honor the Office 2010+ <c>&lt;w:start&gt;</c>/<c>&lt;w:end&gt;</c> form
 /// in addition to the legacy <c>&lt;w:left&gt;</c>/<c>&lt;w:right&gt;</c> form —
 /// otherwise horizontal padding from writers like Excelsior (which emit start/end)
@@ -22,7 +22,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMarginDefault(
             $"""<w:tblCellMar {wNs}><w:top w:w="0" w:type="dxa"/><w:start w:w="108" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:end w:w="108" w:type="dxa"/></w:tblCellMar>""");
 
-        var result = DocumentParser.ParseTableCellMargin(margin);
+        var result = TableStyleParser.ParseTableCellMargin(margin);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Top).IsEqualTo(0);
@@ -37,7 +37,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMarginDefault(
             $"""<w:tblCellMar {wNs}><w:top w:w="400" w:type="dxa"/><w:left w:w="200" w:type="dxa"/><w:bottom w:w="400" w:type="dxa"/><w:right w:w="200" w:type="dxa"/></w:tblCellMar>""");
 
-        var result = DocumentParser.ParseTableCellMargin(margin);
+        var result = TableStyleParser.ParseTableCellMargin(margin);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Top).IsEqualTo(20);
@@ -52,7 +52,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMarginDefault(
             $"""<w:tblCellMar {wNs}><w:start w:w="108" w:type="dxa"/><w:end w:w="108" w:type="dxa"/><w:left w:w="9999" w:type="dxa"/><w:right w:w="9999" w:type="dxa"/></w:tblCellMar>""");
 
-        var result = DocumentParser.ParseTableCellMargin(margin);
+        var result = TableStyleParser.ParseTableCellMargin(margin);
 
         await Assert.That(result!.Left).IsEqualTo(108 / 20d);
         await Assert.That(result.Right).IsEqualTo(108 / 20d);
@@ -63,7 +63,7 @@ public class TableCellMarginParseTests
     {
         var margin = new TableCellMarginDefault($"""<w:tblCellMar {wNs}/>""");
 
-        var result = DocumentParser.ParseTableCellMargin(margin);
+        var result = TableStyleParser.ParseTableCellMargin(margin);
 
         await Assert.That(result).IsNull();
     }
@@ -74,7 +74,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:top w:w="0" w:type="dxa"/><w:start w:w="108" w:type="dxa"/><w:bottom w:w="0" w:type="dxa"/><w:end w:w="108" w:type="dxa"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Top).IsEqualTo(0);
@@ -89,7 +89,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:top w:w="400" w:type="dxa"/><w:left w:w="200" w:type="dxa"/><w:bottom w:w="400" w:type="dxa"/><w:right w:w="200" w:type="dxa"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Top).IsEqualTo(20);
@@ -104,7 +104,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:start w:w="108" w:type="dxa"/><w:end w:w="108" w:type="dxa"/><w:left w:w="9999" w:type="dxa"/><w:right w:w="9999" w:type="dxa"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         await Assert.That(result!.Left).IsEqualTo(108 / 20d);
         await Assert.That(result.Right).IsEqualTo(108 / 20d);
@@ -115,7 +115,7 @@ public class TableCellMarginParseTests
     {
         var margin = new TableCellMargin($"""<w:tcMar {wNs}/>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         await Assert.That(result).IsNull();
     }
@@ -130,7 +130,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:top w:w="0pt" w:type="dxa"/><w:start w:w="0pt" w:type="dxa"/><w:bottom w:w="0pt" w:type="dxa"/><w:end w:w="0pt" w:type="dxa"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         await Assert.That(result).IsNotNull();
         await Assert.That(result!.Top).IsEqualTo(0);
@@ -145,7 +145,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:top w:w="18pt" w:type="dxa"/><w:start w:w="1in" w:type="dxa"/><w:bottom w:w="1pc" w:type="dxa"/><w:end w:w="72pt" w:type="dxa"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         // 18pt
         await Assert.That(result!.Top).IsEqualTo(18);
@@ -163,7 +163,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:start w:w="1cm" w:type="dxa"/><w:end w:w="1cm" w:type="dxa"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         await Assert.That(result!.Left).IsEqualTo(1 * 72 / 2.54).Within(1e-9);
         await Assert.That(result.Right).IsEqualTo(1 * 72 / 2.54).Within(1e-9);
@@ -175,7 +175,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:top w:w="50%" w:type="pct"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin);
+        var result = TableStyleParser.ParseCellMargin(margin);
 
         await Assert.That(result!.Top).IsEqualTo(0);
     }
@@ -191,7 +191,7 @@ public class TableCellMarginParseTests
             $"""<w:tcMar {wNs}><w:bottom w:w="0" w:type="dxa"/></w:tcMar>""");
         var tableDefault = new CellSpacing(top: 14.4, right: 57.6, bottom: 14.4, left: 18);
 
-        var result = DocumentParser.ParseCellMargin(margin, tableDefault);
+        var result = TableStyleParser.ParseCellMargin(margin, tableDefault);
 
         await Assert.That(result).IsNotNull();
         // overridden
@@ -212,7 +212,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMargin(
             $"""<w:tcMar {wNs}><w:bottom w:w="240" w:type="dxa"/></w:tcMar>""");
 
-        var result = DocumentParser.ParseCellMargin(margin, tableDefault: null);
+        var result = TableStyleParser.ParseCellMargin(margin, tableDefault: null);
 
         await Assert.That(result!.Bottom).IsEqualTo(12);
         await Assert.That(result.Top).IsEqualTo(0);
@@ -229,7 +229,7 @@ public class TableCellMarginParseTests
             $"""<w:tcMar {wNs}><w:top w:w="100" w:type="dxa"/><w:start w:w="200" w:type="dxa"/><w:bottom w:w="300" w:type="dxa"/><w:end w:w="400" w:type="dxa"/></w:tcMar>""");
         var tableDefault = new CellSpacing(top: 99, right: 99, bottom: 99, left: 99);
 
-        var result = DocumentParser.ParseCellMargin(margin, tableDefault);
+        var result = TableStyleParser.ParseCellMargin(margin, tableDefault);
 
         await Assert.That(result!.Top).IsEqualTo(5);
         await Assert.That(result.Left).IsEqualTo(10);
@@ -290,7 +290,7 @@ public class TableCellMarginParseTests
         var linedRows = TableStyle("LinedRows", "TableNormal",
             $"""<w:tblCellMar {wNs}><w:top w:w="57" w:type="dxa"/><w:bottom w:w="57" w:type="dxa"/></w:tblCellMar>""");
 
-        var result = DocumentParser.ResolveStyleCellPadding(linedRows,
+        var result = TableStyleParser.ResolveStyleCellPadding(linedRows,
             new() { ["TableNormal"] = normal, ["LinedRows"] = linedRows });
 
         await Assert.That(result).IsNotNull();
@@ -314,7 +314,7 @@ public class TableCellMarginParseTests
             $"""<w:tblCellMar {wNs}><w:top w:w="57" w:type="dxa"/><w:bottom w:w="57" w:type="dxa"/></w:tblCellMar>""");
         var linedColumns = TableStyle("LinedColumns", "LinedRows", cellMargin: null);
 
-        var result = DocumentParser.ResolveStyleCellPadding(linedColumns,
+        var result = TableStyleParser.ResolveStyleCellPadding(linedColumns,
             new()
             {
                 ["TableNormal"] = normal,
@@ -339,7 +339,7 @@ public class TableCellMarginParseTests
         var derived = TableStyle("Derived", "TableNormal",
             $"""<w:tblCellMar {wNs}><w:top w:w="57" w:type="dxa"/><w:left w:w="0" w:type="dxa"/></w:tblCellMar>""");
 
-        var result = DocumentParser.ResolveStyleCellPadding(derived,
+        var result = TableStyleParser.ResolveStyleCellPadding(derived,
             new() { ["TableNormal"] = normal, ["Derived"] = derived });
 
         await Assert.That(result!.Top).IsEqualTo(57 / 20d);
@@ -354,7 +354,7 @@ public class TableCellMarginParseTests
         var normal = TableStyle("TableNormal", null, cellMargin: null);
         var derived = TableStyle("Derived", "TableNormal", cellMargin: null);
 
-        var result = DocumentParser.ResolveStyleCellPadding(derived,
+        var result = TableStyleParser.ResolveStyleCellPadding(derived,
             new() { ["TableNormal"] = normal, ["Derived"] = derived });
 
         await Assert.That(result).IsNull();
@@ -371,7 +371,7 @@ public class TableCellMarginParseTests
             $"""<w:tblCellMar {wNs}><w:top w:w="400" w:type="dxa"/><w:bottom w:w="400" w:type="dxa"/></w:tblCellMar>""");
         var stylePadding = new CellSpacing(top: 2.85, right: 5.4, bottom: 2.85, left: 5.4);
 
-        var result = DocumentParser.MergeTableCellMargin(margin, stylePadding);
+        var result = TableStyleParser.MergeTableCellMargin(margin, stylePadding);
 
         await Assert.That(result!.Top).IsEqualTo(20);
         await Assert.That(result.Bottom).IsEqualTo(20);
@@ -390,7 +390,7 @@ public class TableCellMarginParseTests
             $"""<w:tblCellMar {wNs}><w:left w:w="0" w:type="dxa"/><w:right w:w="0" w:type="dxa"/></w:tblCellMar>""");
         var stylePadding = new CellSpacing(top: 2.85, right: 5.4, bottom: 2.85, left: 5.4);
 
-        var result = DocumentParser.MergeTableCellMargin(margin, stylePadding);
+        var result = TableStyleParser.MergeTableCellMargin(margin, stylePadding);
 
         await Assert.That(result!.Left).IsEqualTo(0);
         await Assert.That(result.Right).IsEqualTo(0);
@@ -471,7 +471,7 @@ public class TableCellMarginParseTests
         var margin = new TableCellMarginDefault(
             $"""<w:tblCellMar {wNs}><w:top w:w="400" w:type="dxa"/><w:bottom w:w="400" w:type="dxa"/></w:tblCellMar>""");
 
-        var result = DocumentParser.MergeTableCellMargin(margin, fallback: null);
+        var result = TableStyleParser.MergeTableCellMargin(margin, fallback: null);
 
         await Assert.That(result!.Top).IsEqualTo(20);
         await Assert.That(result.Bottom).IsEqualTo(20);

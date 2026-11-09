@@ -11,7 +11,7 @@ public class ConditionalFormattingTests
     {
         var cnf = new ConditionalFormatStyle { FirstRow = true };
 
-        var flags = DocumentParser.ParseConditionalFormatFlags(cnf);
+        var flags = TableStyleParser.ParseConditionalFormatFlags(cnf);
 
         await Assert.That(flags).IsEqualTo(ConditionalFormatFlags.FirstRow);
     }
@@ -21,7 +21,7 @@ public class ConditionalFormattingTests
     {
         var cnf = new ConditionalFormatStyle { FirstColumn = true, OddHorizontalBand = true };
 
-        var flags = DocumentParser.ParseConditionalFormatFlags(cnf);
+        var flags = TableStyleParser.ParseConditionalFormatFlags(cnf);
 
         await Assert.That(flags).IsEqualTo(ConditionalFormatFlags.FirstColumn | ConditionalFormatFlags.OddHBand);
     }
@@ -29,7 +29,7 @@ public class ConditionalFormattingTests
     [Test]
     public async Task ParseFlags_NullReturnsNone()
     {
-        var flags = DocumentParser.ParseConditionalFormatFlags(null);
+        var flags = TableStyleParser.ParseConditionalFormatFlags(null);
 
         await Assert.That(flags).IsEqualTo(ConditionalFormatFlags.None);
     }
@@ -37,7 +37,7 @@ public class ConditionalFormattingTests
     [Test]
     public async Task ResolveActiveConditions_FirstRowOverridesBanding()
     {
-        var conditions = DocumentParser.ResolveActiveConditions(
+        var conditions = TableStyleParser.ResolveActiveConditions(
             ConditionalFormatFlags.FirstRow | ConditionalFormatFlags.OddHBand,
             rowIndex: 0, colIndex: 0,
             totalRows: 5, totalCols: 3,
@@ -52,7 +52,7 @@ public class ConditionalFormattingTests
     public async Task ResolveActiveConditions_DerivedFromPositionWhenNoFlags()
     {
         // Row 0 of a 4-row, 3-col grid → firstRow + firstColumn for the 0,0 cell.
-        var conditions = DocumentParser.ResolveActiveConditions(
+        var conditions = TableStyleParser.ResolveActiveConditions(
             ConditionalFormatFlags.None,
             rowIndex: 0, colIndex: 0,
             totalRows: 4, totalCols: 3,
@@ -66,7 +66,7 @@ public class ConditionalFormattingTests
     public async Task ResolveActiveConditions_BandingForBodyRows()
     {
         // Row 1 (after header) should be Band1Horizontal under rowBandSize=1.
-        var row1 = DocumentParser.ResolveActiveConditions(
+        var row1 = TableStyleParser.ResolveActiveConditions(
             ConditionalFormatFlags.None,
             rowIndex: 1, colIndex: 1,
             totalRows: 5, totalCols: 4,
@@ -75,7 +75,7 @@ public class ConditionalFormattingTests
         await Assert.That(row1).Contains(TableStyleOverrideValues.Band1Horizontal);
 
         // Row 2 alternates to Band2Horizontal.
-        var row2 = DocumentParser.ResolveActiveConditions(
+        var row2 = TableStyleParser.ResolveActiveConditions(
             ConditionalFormatFlags.None,
             rowIndex: 2, colIndex: 1,
             totalRows: 5, totalCols: 4,
@@ -88,7 +88,7 @@ public class ConditionalFormattingTests
     public async Task ResolveActiveConditions_LastRowAndLastColumn()
     {
         // Bottom-right cell of a 4x3 grid.
-        var conditions = DocumentParser.ResolveActiveConditions(
+        var conditions = TableStyleParser.ResolveActiveConditions(
             ConditionalFormatFlags.None,
             rowIndex: 3, colIndex: 2,
             totalRows: 4, totalCols: 3,
@@ -149,7 +149,7 @@ public class ConditionalFormattingTests
     [Test]
     public async Task ParseTableLookMask_NullReturnsAllConditions()
     {
-        var mask = DocumentParser.ParseTableLookMask(null);
+        var mask = TableStyleParser.ParseTableLookMask(null);
 
         await Assert.That(mask).IsEqualTo(ConditionalFormatFlagsExtensions.AllConditions);
     }
@@ -161,7 +161,7 @@ public class ConditionalFormattingTests
         // bump up to "1" should be derivable from position.
         var look = new TableLook { FirstRow = false, LastRow = false, FirstColumn = false, LastColumn = false };
 
-        var mask = DocumentParser.ParseTableLookMask(look);
+        var mask = TableStyleParser.ParseTableLookMask(look);
 
         await Assert.That(mask & ConditionalFormatFlags.FirstRow).IsEqualTo(ConditionalFormatFlags.None);
         await Assert.That(mask & ConditionalFormatFlags.LastRow).IsEqualTo(ConditionalFormatFlags.None);
@@ -174,7 +174,7 @@ public class ConditionalFormattingTests
         // even though firstRow / firstColumn are still derivable.
         var look = new TableLook { FirstRow = true, NoHorizontalBand = true, NoVerticalBand = true };
 
-        var mask = DocumentParser.ParseTableLookMask(look);
+        var mask = TableStyleParser.ParseTableLookMask(look);
 
         await Assert.That(mask & ConditionalFormatFlags.OddHBand).IsEqualTo(ConditionalFormatFlags.None);
         await Assert.That(mask & ConditionalFormatFlags.EvenHBand).IsEqualTo(ConditionalFormatFlags.None);
@@ -191,7 +191,7 @@ public class ConditionalFormattingTests
         var maskWithoutBanding = ConditionalFormatFlagsExtensions.AllConditions
             & ~(ConditionalFormatFlags.OddHBand | ConditionalFormatFlags.EvenHBand);
 
-        var conditions = DocumentParser.ResolveActiveConditions(
+        var conditions = TableStyleParser.ResolveActiveConditions(
             ConditionalFormatFlags.None,
             rowIndex: 1, colIndex: 1,
             totalRows: 5, totalCols: 4,

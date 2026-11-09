@@ -9,7 +9,7 @@ public class PictureFillTests
     const string a = "http://schemas.openxmlformats.org/drawingml/2006/main";
 
     static ImageCrop? Crop(string inner) =>
-        DocumentParser.ReadCrop(new A.BlipFill($"<a:blipFill xmlns:a=\"{a}\">{inner}</a:blipFill>"));
+        BlipReader.ReadCrop(new A.BlipFill($"<a:blipFill xmlns:a=\"{a}\">{inner}</a:blipFill>"));
 
     static string Scenario(string name) =>
         Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", name.Replace('/', Path.DirectorySeparatorChar), "input.docx");

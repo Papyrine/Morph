@@ -85,7 +85,7 @@ sealed record TableProperties
 
     /// <summary>
     /// Offset of the table's left BORDER from the left margin (can be negative). Resolved by
-    /// <c>DocumentParser.ResolveTableIndent</c> from <c>w:tblInd</c>: the indent itself in
+    /// <c>TableStyleParser.ResolveTableIndent</c> from <c>w:tblInd</c>: the indent itself in
     /// compatibility mode 15, the indent minus the first cell's left margin in modes 12 and 14, where
     /// <c>w:tblInd</c> positions the text rather than the border.
     /// </summary>
@@ -118,7 +118,7 @@ sealed record TableProperties
     /// modes 12 and 14 the column bounds the text extent, and the first cell's left margin plus the
     /// last cell's right margin hang outside it (a 100% table is column + both margins wide, an
     /// autofit table may grow to that too); zero in mode 15, where the column bounds the border box.
-    /// Resolved by <c>DocumentParser.ResolveTableWidthOverhang</c> — see <c>TableLayout.CalculateColumnWidths</c>.
+    /// Resolved by <c>TableStyleParser.ResolveTableWidthOverhang</c> — see <c>TableLayout.CalculateColumnWidths</c>.
     /// </summary>
     public double WidthOverhangPoints { get; init; }
 

@@ -22,9 +22,9 @@ A floating drawing reaches the model through up to three sweeps, all launched fr
    where child coordinates already live in the root space.
 2. **`ParseDrawingElements`** — pictures (`pic:pic`). Emits `FloatingImageElement`s (or inline
    `ImageElement`s when there is no anchor). Nested transforms compose through
-   `GetAccumulatedTransform` (below).
+   `AccumulatedTransform.Of` (below).
 3. **The walk (`ParseAllShapesFromDrawing`)** — per `wps:wsp`: a text box
-   (`ParseTextBoxFromShapeWithTransform`), else — when the txbx is absent or text-free — a
+   (`ParseTextBoxFromShape`), else — when the txbx is absent or text-free — a
    fill shape (`ParseSolidFillShape`) or a line connector (`ParseLineShape`). Uses the same
    composed nested transform as the picture path. `ParseSolidFillShape` also parses blip-filled
    (image-textured) shapes into `FloatingShapeElement.ImageData`; the renderers clip the picture
@@ -86,7 +86,7 @@ flourish ornaments, cover-letters/07's underline rule.
 
 ## Nested-transform composition
 
-`GetAccumulatedTransform` builds a full 2×2 affine + translation from the child's ancestor
+`AccumulatedTransform.Of` builds a full 2×2 affine + translation from the child's ancestor
 `grpSp` chain, composed innermost-out. Each group contributes `R·F·diag(scale)` about its own
 centre — `F` its `@flipH`/`@flipV` mirror: a child point maps as
 `c + R·F·(off + (p − chOff)·scale − c)`. `MapRectangle` maps a child rect's centre exactly,
@@ -109,7 +109,7 @@ cards/09's ±45° cancelling pairs exposed it.
 Degenerate extents: a group of zero-width vertical connectors legitimately has `cx=0` in the
 anchor extent AND its child space (cards/06's page-2 fold lines) — the root scale went 0/0 and
 NaN'd every child position. Both root-scale computations (SP and the walk) clamp each
-degenerate length to 1, matching `GetAccumulatedTransform`'s long-standing nested-group
+degenerate length to 1, matching `AccumulatedTransform.Of`'s long-standing nested-group
 clamps, and a zero-area group frame skips the child clip entirely.
 
 ## Stroke widths under a group transform

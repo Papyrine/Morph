@@ -447,8 +447,8 @@ sealed class SlideShapeParser(
         }
 
         var blip = picture.BlipFill.Blip;
-        var (colorEffect, duotoneColorHex, duotoneLightColorHex) = DocumentParser.ReadBlipColorEffect(blip, themeColors);
-        var (clipToEllipse, clipSubpaths) = DocumentParser.ReadPictureClip(PictureGeometry(picture, placeholder, placeholders), (box.Width, box.Height));
+        var (colorEffect, duotoneColorHex, duotoneLightColorHex) = BlipReader.ReadBlipColorEffect(blip, themeColors);
+        var (clipToEllipse, clipSubpaths) = BlipReader.ReadPictureClip(PictureGeometry(picture, placeholder, placeholders), (box.Width, box.Height));
 
         return new FloatingImageElement
         {
@@ -472,7 +472,7 @@ sealed class SlideShapeParser(
             ColorEffect = colorEffect,
             DuotoneColorHex = duotoneColorHex,
             DuotoneLightColorHex = duotoneLightColorHex,
-            Opacity = DocumentParser.ReadBlipOpacity(blip),
+            Opacity = BlipReader.ReadBlipOpacity(blip),
             Description = picture.NonVisualPictureProperties?
                 .NonVisualDrawingProperties?.Description?.Value,
             RelativeHeight = ordinal

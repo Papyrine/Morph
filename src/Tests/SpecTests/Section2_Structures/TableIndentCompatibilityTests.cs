@@ -5,7 +5,7 @@ using W = DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
 /// Where a table's left border sits, by compatibility mode — the XPS-read rule on
-/// <c>DocumentParser.ResolveTableIndent</c>: mode 15 puts the border at margin + <c>w:tblInd</c>;
+/// <c>TableStyleParser.ResolveTableIndent</c>: mode 15 puts the border at margin + <c>w:tblInd</c>;
 /// modes 12 and 14 put the TEXT there and hang the border left by the first cell's own left margin.
 /// Word's built-in Normal Table declares <c>w:tblInd</c> 0, so under a styles part the indent is always
 /// declared; only a package with no styles part reaches the undeclared branch.
@@ -245,17 +245,17 @@ public class TableIndentCompatibilityTests
     public async Task ResolveTableIndent_covers_the_probe_matrix()
     {
         // Mode 15: the declared indent, or zero.
-        await Assert.That(DocumentParser.ResolveTableIndent(15, 36, true, 72)).IsEqualTo(36d);
-        await Assert.That(DocumentParser.ResolveTableIndent(15, null, true, 72)).IsEqualTo(0d);
+        await Assert.That(TableStyleParser.ResolveTableIndent(15, 36, true, 72)).IsEqualTo(36d);
+        await Assert.That(TableStyleParser.ResolveTableIndent(15, null, true, 72)).IsEqualTo(0d);
 
         // Mode 12, declared: indent minus the first cell margin (probe tables B, D, H, J, K).
-        await Assert.That(DocumentParser.ResolveTableIndent(12, 36, true, 72)).IsEqualTo(-36d);
-        await Assert.That(DocumentParser.ResolveTableIndent(12, 72, true, 0)).IsEqualTo(72d);
+        await Assert.That(TableStyleParser.ResolveTableIndent(12, 36, true, 72)).IsEqualTo(-36d);
+        await Assert.That(TableStyleParser.ResolveTableIndent(12, 72, true, 0)).IsEqualTo(72d);
 
         // Mode 12, undeclared: on the margin with declared table margins (A, E, F), the built-in
         // margin to the left of it otherwise (O).
-        await Assert.That(DocumentParser.ResolveTableIndent(12, null, true, 72)).IsEqualTo(0d);
-        await Assert.That(DocumentParser.ResolveTableIndent(12, null, false, 5.4)).IsEqualTo(-5.4);
+        await Assert.That(TableStyleParser.ResolveTableIndent(12, null, true, 72)).IsEqualTo(0d);
+        await Assert.That(TableStyleParser.ResolveTableIndent(12, null, false, 5.4)).IsEqualTo(-5.4);
     }
 
     static MemoryStream BuildDocument(int mode, int? indentTwips, bool styles, int? tableMarginTwips, int? firstCellMarginTwips)

@@ -1,3 +1,4 @@
+using A = DocumentFormat.OpenXml.Drawing;
 /// <summary>
 /// Run properties as DECLARED by one rung of the style ladder, as against the resolved values
 /// <see cref="RunProperties"/> carries. Every member is nullable so "this rung said nothing" stays
@@ -69,4 +70,84 @@ sealed record DeclaredRunProperties
     /// </summary>
     public static bool ToggleAcross(bool? styleLevel, bool? paragraphLevel) =>
         (styleLevel ?? false) ^ (paragraphLevel ?? false);
+
+    /// <summary>
+    /// Reads a style rung's <c>w:rPr</c> as DECLARED values — only what the element actually states,
+    /// so the table-style rung can be layered between the document defaults and a paragraph style
+    /// without inventing values neither declared. Returns null when the rung says nothing usable.
+    /// </summary>
+    public static DeclaredRunProperties? Read(OpenXmlElement? rPr)
+    {
+        if (rPr == null)
+        {
+            return null;
+        }
+
+        string? fontFamily = null;
+        var fonts = rPr.GetFirstChild<RunFonts>();
+        if (fonts?.Ascii?.HasValue == true)
+        {
+            fontFamily = fonts.Ascii.Value;
+        }
+
+        var size = rPr.GetFirstChild<FontSize>();
+        var sizePoints = OoxmlUnits.FontSizeHalfPointsToPoints(size?.Val?.Value);
+
+        string? colorHex = null;
+        var color = rPr.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.Color>();
+        if (color?.Val?.HasValue == true &&
+            color.Val.Value != "auto")
+        {
+            colorHex = color.Val.Value;
+        }
+
+        // A toggle element PRESENT with no w:val means on; w:val="0"/"false" means off. Absent stays
+        // null so it contributes nothing to the XOR.
+        static bool? Toggle<T>(OpenXmlElement rPr)
+            where T : OnOffType
+        {
+            if (rPr.GetFirstChild<T>() is { } element)
+            {
+                return element.Val?.Value ?? true;
+            }
+
+            return null;
+        }
+
+        var declared = new DeclaredRunProperties
+        {
+            FontFamily = fontFamily,
+            FontSizePoints = sizePoints,
+            ColorHex = colorHex,
+            Bold = Toggle<Bold>(rPr),
+            Italic = Toggle<Italic>(rPr),
+            Strikethrough = Toggle<Strike>(rPr),
+            AllCaps = Toggle<Caps>(rPr),
+            SmallCaps = Toggle<SmallCaps>(rPr),
+            Underline = rPr.GetFirstChild<Underline>() is {Val.HasValue: true} u
+                ? u.Val!.Value != UnderlineValues.None
+                : null,
+            KerningMinFontSizePoints = KerningMinPoints(rPr)
+        };
+
+        if (declared.HasAny)
+        {
+            return declared;
+        }
+
+        return null;
+    }
+
+    // What one rung's w:rPr says about kerning: the w:kern threshold in points (zero switches it
+    // off), or null when the rung does not mention it.
+    public static double? KerningMinPoints(OpenXmlElement? rPr)
+    {
+        var kern = rPr?.GetFirstChild<Kern>();
+        if (kern?.Val?.HasValue != true)
+        {
+            return null;
+        }
+
+        return kern.Val.Value.HalfPointsToPoints();
+    }
 }

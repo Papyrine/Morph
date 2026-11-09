@@ -3,7 +3,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
 /// What a table style hands the rows and paragraphs inside it beyond borders and padding: a row's
-/// <c>w:cantSplit</c> (<c>DocumentParser.ResolveStyleCannotSplit</c>) and the run size and face an
+/// <c>w:cantSplit</c> (<c>TableStyleParser.ResolveStyleCannotSplit</c>) and the run size and face an
 /// empty paragraph's mark resolves to. Both surfaced in COMPASS's stocktake report, whose rows take
 /// cantSplit from the PM&amp;C table style alone and whose summary cells name a paragraph style the
 /// package never defines — and both are Word-read off that report (2026-09-30): Word carried a
@@ -96,8 +96,8 @@ public class TableStyleInheritanceTests
             ["Loose"] = loose
         };
 
-        await Assert.That(DocumentParser.ResolveStyleCannotSplit(silent, styles)).IsTrue();
-        await Assert.That(DocumentParser.ResolveStyleCannotSplit(loose, styles)).IsFalse();
+        await Assert.That(TableStyleParser.ResolveStyleCannotSplit(silent, styles)).IsTrue();
+        await Assert.That(TableStyleParser.ResolveStyleCannotSplit(loose, styles)).IsFalse();
     }
 
     // The empty cell paragraph names a style that does not exist and has no run to stand in for its

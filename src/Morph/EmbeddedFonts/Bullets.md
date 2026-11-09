@@ -72,6 +72,6 @@ tables that don't appear in all three fonts (`vhea`, `vmtx`, `GPOS`,
 single TTF, and renames the family to `Morph Bullets`.
 
 When adding a new bullet codepoint mapping in
-`DocumentParser.MapBulletPuaToUnicode`, add a corresponding entry to the
+`NumberingParser.MapBulletPuaToUnicode`, add a corresponding entry to the
 appropriate `*_GLYPHS` dict at the top of `tools/build-bullets-font.py`
 and rebuild.

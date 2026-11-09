@@ -1,7 +1,7 @@
 using DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
-/// Covers <c>DocumentParser.ResolveStyleConditionals</c> — a table style's <c>w:tblStylePr</c> regions
+/// Covers <c>TableStyleParser.ResolveStyleConditionals</c> — a table style's <c>w:tblStylePr</c> regions
 /// resolved through the <c>w:basedOn</c> chain, a region's <c>w:tcPr</c> and <c>w:rPr</c> each taken whole
 /// from the nearest style that declares it (Word-probed, <c>_probe_tblinherit</c>). A derived style that
 /// restates only a region's run properties keeps the base's cell properties for it, and vice versa.
@@ -16,7 +16,6 @@ public class TableStyleConditionalInheritanceTests
         return [with($"""<w:style {wNs} w:type="table" w:styleId="{styleId}">{basedOnXml}<w:tblPr/>{blocks}</w:style>""")];
     }
 
-    static DocumentParser Parser() => new("Arial");
 
     [Test]
     public async Task DerivedRegionReplacesEachBlockItDeclares()
@@ -48,8 +47,8 @@ public class TableStyleConditionalInheritanceTests
             </w:tblStylePr>
             """);
 
-        var conditionals = Parser().ResolveStyleConditionals(derived,
-            new() {["Base"] = basedOn, ["Derived"] = derived})!;
+        var conditionals = TableStyleParser.ResolveStyleConditionals(derived,
+            new() {["Base"] = basedOn, ["Derived"] = derived}, null)!;
 
         var firstRow = conditionals[TableStyleOverrideValues.FirstRow];
         await Assert.That(firstRow.BackgroundColorHex).IsEqualTo("112233");
@@ -78,8 +77,8 @@ public class TableStyleConditionalInheritanceTests
         var derived = TableStyle("Derived", "Base",
             """<w:tblStylePr w:type="firstRow"><w:rPr><w:b/></w:rPr></w:tblStylePr>""");
 
-        var firstRow = Parser().ResolveStyleConditionals(derived,
-            new() {["Base"] = basedOn, ["Derived"] = derived})![TableStyleOverrideValues.FirstRow];
+        var firstRow = TableStyleParser.ResolveStyleConditionals(derived,
+            new() {["Base"] = basedOn, ["Derived"] = derived}, null)![TableStyleOverrideValues.FirstRow];
 
         await Assert.That(firstRow.BackgroundColorHex).IsEqualTo("FF0000");
         await Assert.That(firstRow.RunProperties!.Bold).IsTrue();

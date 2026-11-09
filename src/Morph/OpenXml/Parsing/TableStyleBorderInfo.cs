@@ -17,7 +17,7 @@ sealed record ConditionalFormat(
 /// <see cref="CannotSplit"/> is the style's own <c>w:trPr/w:cantSplit</c>, which reaches every row
 /// that does not declare its own. <see cref="CellMargin"/> is the style's whole-table
 /// <c>w:tcPr/w:tcMar</c> — margins the style gives every cell, which stand above the table's own
-/// <c>w:tblCellMar</c> and under a cell's own <c>w:tcMar</c> (<c>DocumentParser.ResolveStyleCellMargin</c>).
+/// <c>w:tblCellMar</c> and under a cell's own <c>w:tcMar</c> (<c>TableStyleParser.ResolveStyleCellMargin</c>).
 /// </summary>
 sealed record TableStyleBorderInfo(
     CellBorders Outer,

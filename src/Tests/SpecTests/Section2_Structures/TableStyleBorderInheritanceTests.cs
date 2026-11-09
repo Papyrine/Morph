@@ -1,7 +1,7 @@
 using DocumentFormat.OpenXml.Wordprocessing;
 
 /// <summary>
-/// Covers <c>DocumentParser.ResolveStyleBorders</c> — a table style's <c>w:tblBorders</c> resolved
+/// Covers <c>TableStyleParser.ResolveStyleBorders</c> — a table style's <c>w:tblBorders</c> resolved
 /// through the <c>w:basedOn</c> chain, per side.
 ///
 /// The shape that reported it: a government template whose <c>HouseOfRepsTable</c> is based on a
@@ -21,7 +21,6 @@ public class TableStyleBorderInheritanceTests
         return [with($"""<w:style {wNs} w:type="table" w:styleId="{styleId}">{basedOnXml}{tblPr}</w:style>""")];
     }
 
-    static DocumentParser Parser() => new("Arial");
 
     [Test]
     public async Task EmptyLeafInheritsWholeGridFromBase()
@@ -36,8 +35,8 @@ public class TableStyleBorderInheritanceTests
              """);
         var houseOfReps = TableStyle("HouseOfRepsTable", "ChamberTable", borders: null);
 
-        var (outer, insideH, insideV) = Parser().ResolveStyleBorders(houseOfReps,
-            new() {["ChamberTable"] = chamber, ["HouseOfRepsTable"] = houseOfReps});
+        var (outer, insideH, insideV) = TableStyleParser.ResolveStyleBorders(houseOfReps,
+            new() {["ChamberTable"] = chamber, ["HouseOfRepsTable"] = houseOfReps}, null);
 
         await Assert.That(outer.Top.IsVisible).IsTrue();
         await Assert.That(outer.Bottom.IsVisible).IsTrue();
@@ -68,8 +67,8 @@ public class TableStyleBorderInheritanceTests
              </w:tblBorders>
              """);
 
-        var (outer, _, _) = Parser().ResolveStyleBorders(derived,
-            new() {["Base"] = basedOn, ["Derived"] = derived});
+        var (outer, _, _) = TableStyleParser.ResolveStyleBorders(derived,
+            new() {["Base"] = basedOn, ["Derived"] = derived}, null);
 
         await Assert.That(outer.Top.ColorHex).IsEqualTo("0000FF");
         await Assert.That(outer.Top.WidthPoints).IsEqualTo(3);
@@ -91,8 +90,8 @@ public class TableStyleBorderInheritanceTests
         var derived = TableStyle("Derived", "Base",
             $"""<w:tblBorders {wNs}><w:top w:val="none"/></w:tblBorders>""");
 
-        var (outer, _, _) = Parser().ResolveStyleBorders(derived,
-            new() {["Base"] = basedOn, ["Derived"] = derived});
+        var (outer, _, _) = TableStyleParser.ResolveStyleBorders(derived,
+            new() {["Base"] = basedOn, ["Derived"] = derived}, null);
 
         await Assert.That(outer.Top.IsVisible).IsFalse();
         await Assert.That(outer.Bottom.IsVisible).IsTrue();
@@ -108,13 +107,13 @@ public class TableStyleBorderInheritanceTests
             $"""<w:tblBorders {wNs}><w:top w:val="single" w:color="auto" w:sz="4" w:space="0"/></w:tblBorders>""");
         var houseOfReps = TableStyle("HouseOfRepsTable", "ChamberTable", borders: null);
 
-        var (outer, _, insideV) = Parser().ResolveStyleBorders(houseOfReps,
+        var (outer, _, insideV) = TableStyleParser.ResolveStyleBorders(houseOfReps,
             new()
             {
                 ["TableNormal"] = normal,
                 ["ChamberTable"] = chamber,
                 ["HouseOfRepsTable"] = houseOfReps
-            });
+            }, null);
 
         await Assert.That(outer.Top.IsVisible).IsTrue();
         await Assert.That(insideV.IsVisible).IsTrue();
@@ -128,8 +127,8 @@ public class TableStyleBorderInheritanceTests
             $"""<w:tblBorders {wNs}><w:top w:val="single" w:color="auto" w:sz="4" w:space="0"/></w:tblBorders>""");
         var second = TableStyle("Second", "First", borders: null);
 
-        var (outer, _, _) = Parser().ResolveStyleBorders(first,
-            new() {["First"] = first, ["Second"] = second});
+        var (outer, _, _) = TableStyleParser.ResolveStyleBorders(first,
+            new() {["First"] = first, ["Second"] = second}, null);
 
         await Assert.That(outer.Top.IsVisible).IsTrue();
         await Assert.That(outer.Bottom.IsVisible).IsFalse();

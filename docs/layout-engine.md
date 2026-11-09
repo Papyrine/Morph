@@ -950,7 +950,7 @@ WordArt as the real blockers:
   header/footer *text*, behind-text header images per variant, and band *tables* — business/01's footer
   grid — all render; foreground images and 3-way tab alignment do not)
 - *Landed:* A partial `w:tcMar` cell-margin override now inherits its absent sides from the table's `w:tblCellMar` per
-  side instead of collapsing them to zero (`DocumentParser.ParseCellMargin`), which is what actually spaces
+  side instead of collapsing them to zero (`TableStyleParser.ParseCellMargin`), which is what actually spaces
   business-plans/04's vAlign=bottom section headings from their bodies — Word's XPS puts that heading row at
   31.8pt where the dropped 14.4pt top margin had left 16pt, and the shared parser fix lifted 11 corpus scenarios
   toward Word across all three backends

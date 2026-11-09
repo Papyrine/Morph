@@ -191,7 +191,7 @@ per-backend Parse → Render path is deleted. The text exporters (HTML/Markdown)
 and never paginate.
 
 **Core** (`src/Morph/`): the model (`ParsedDocument` and the `DocumentElement` hierarchy, one type per file under `src/Morph/Parsing/`), shared rendering base (`RenderContextBase`, `FontCacheLoader`, `FontHelpers`, `TableLayout`), the `ExportOptions` records, `ConversionResult`, the text exporters (HTML/Markdown), **and both parsers**:
-- **DOCX** (`src/Morph/OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. Sub-parsers handle shapes, ink, themes, and HTML (AltChunk).
+- **DOCX** (`src/Morph/OpenXml/`): `DocumentParser` reads OOXML via DocumentFormat.OpenXml and builds a `ParsedDocument`. It is a partial class split by subject — `DocumentParser.cs` holds the state, the entry points and the document-level settings, and `.Styles`, `.Sections`, `.Paragraphs`, `.Tables`, `.Runs`, `.Drawings` and `.Shapes` the rest — and the pure helpers beside it are static classes of their own: `TableStyleParser` (a table style's basedOn chain and conditional flags), `BorderParser`, `BlipReader` (opacity, duotone, crop, tile, clip — shared with the PowerPoint shape parser), `NumberingParser`, `FieldParser`, `MathParser`, `AccumulatedTransform` (nested-group transforms), plus `ShapeParser`, `InkParser`, `ThemeParser` (which also resolves scheme colours) and HTML (AltChunk).
 - **HTML** (`src/Morph/Html/`): `HtmlParser` converts HTML to `DocumentElement` trees via AngleSharp. `HtmlConverter` is the abstract base for HTML→raster converters.
 
 Because both parsers live in core, `Morph` depends on both `DocumentFormat.OpenXml` and `AngleSharp`, and every downstream assembly transitively drags both.

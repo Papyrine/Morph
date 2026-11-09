@@ -1,5 +1,5 @@
 /// <summary>
-/// Covers the Wingdings checkbox pair in <c>DocumentParser.MapBulletPuaToUnicode</c>. A Word
+/// Covers the Wingdings checkbox pair in <c>NumberingParser.MapBulletPuaToUnicode</c>. A Word
 /// template that renders a questionnaire draws its boxes as list markers, so the pair has to survive
 /// the hop from Wingdings' private-use codepoints onto the Unicode ones <c>Bullets.ttf</c> carries —
 /// and <c>Bullets.ttf</c> is what actually draws the marker, whatever font the numbering names.
