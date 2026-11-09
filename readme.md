@@ -371,11 +371,11 @@ File.WriteAllBytes("document-preview.pdf", firstThreePages);
 <sup><a href='/src/Tests/ReadmeSamples.cs#L210-L222' title='Snippet source file'>snippet source</a> | <a href='#snippet-PdfPageRange' title='Start of snippet'>anchor</a></sup>
 <!-- endSnippet -->
 
-#### PDF progress
+#### Progress
 
-A long document can take a while to convert. Pass `OnProgress` to show "Page x of y" as it goes. It is called once per page as the layout finishes it (`Stage` is `Layout` and `Total` is null, because the page count is not known yet), then once per page as it is drawn (`Stage` is `Paint`, with `Page` running 1 to `Total`). Parsing the source happens before the first call and is not reported. It works for every PDF export: Word, Excel, PowerPoint, HTML and a parsed document's `ExportToPdf`.
+A long document can take a while to convert. Pass `OnProgress` to show "Page x of y" as it goes. It is on both `PdfExportOptions` and `ImageExportOptions`, so it works for every PDF and PNG export: Word, Excel, PowerPoint and HTML, on either raster backend, and for a parsed document's `ExportToPdf`. It is called once per page as the layout finishes it (`Stage` is `Layout` and `Total` is null, because the page count is not known yet), then once per page as it is drawn (`Stage` is `Paint`, with `Page` running 1 to `Total`). Parsing the source happens before the first call and is not reported.
 
-The callback runs synchronously on the converting thread, between pages, so the conversion waits for it. Keep it cheap. A host writing progress somewhere slow, such as a database, should throttle it itself.
+The callback runs synchronously, between pages, so the conversion waits for it. Keep it cheap. A host writing progress somewhere slow, such as a database, should throttle it itself. With `MaxDegreeOfParallelism` above 1, image export calls it from the painting threads, but never two at once, and `Page` still counts up 1 to `Total`.
 
 <!-- snippet: PdfProgress -->
 <a id='snippet-PdfProgress'></a>

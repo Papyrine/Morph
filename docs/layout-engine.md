@@ -1562,12 +1562,14 @@ space-before fix introduced.
 `Fragmenter.Layout` takes an optional `onPage`, told the count of finished pages each time `Flow` keeps a
 page body (`bodies.Add`). The total is not known until the flow ends, so layout reports carry none. When a
 body PAGE/NUMPAGES/SECTIONPAGES field forces the second pass, the second pass stays quiet until it passes
-the first pass's count, so the number never runs backwards. `PdfRenderer` turns it into
-`PdfExportOptions.OnProgress` reports (`PdfExportStage.Layout`, page, no total), and `PdfPainter.Paint`
-reports each page drawn as page x of the pages the export draws (`PdfExportStage.Paint`), the
-range-clipped count when `Pages` is set. Both run on the converting thread. `PdfProgressTests` pins the
-sequence for Word, Excel, PowerPoint, a page range and the two-pass case. The raster backends do not
-report progress yet.
+the first pass's count, so the number never runs backwards. `ProgressReports` turns it into
+`OnProgress` reports on `PdfExportOptions` and `ImageExportOptions` alike (`ExportStage.Layout`, page, no
+total). Its `Painting` then reports each page drawn as page x of the pages the export draws
+(`ExportStage.Paint`), which is the range-clipped count when `Pages` is set. `PdfPainter.Paint` and both raster
+backends' `RenderPagesCounted` call it after each page. When painting runs in parallel (`ParallelPages`),
+the workers call it as each page finishes. Its lock serializes the count and the call, so the host still
+sees 1..N one call at a time. `ExportProgressTests` pins the sequence for Word, Excel and PowerPoint, to
+PDF and to both raster backends. It also covers a page range, parallel painting and the two-pass case.
 
 ## Testing strategy (a large secondary win)
 

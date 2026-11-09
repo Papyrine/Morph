@@ -39,8 +39,8 @@ public sealed record PdfExportOptions : ExportOptions
     /// converts. Applies to every PDF export — Word, Excel, PowerPoint and HTML alike. Null (the
     /// default) reports nothing.
     /// <para>
-    /// The sequence is: <see cref="PdfExportStage.Layout"/> once per page laid out (page 1, 2, … with
-    /// no total), then <see cref="PdfExportStage.Paint"/> once per page drawn (page 1 of N up to N of N).
+    /// The sequence is: <see cref="ExportStage.Layout"/> once per page laid out (page 1, 2, … with
+    /// no total), then <see cref="ExportStage.Paint"/> once per page drawn (page 1 of N up to N of N).
     /// Parsing the source comes before the first call and reports nothing. Page numbers never go
     /// backwards within a stage.
     /// </para>
@@ -50,5 +50,5 @@ public sealed record PdfExportOptions : ExportOptions
     /// throttle or hand off itself. An exception it throws ends the conversion.
     /// </para>
     /// </summary>
-    public Action<PdfExportProgress>? OnProgress { get; init; }
+    public Action<ExportProgress>? OnProgress { get; init; }
 }

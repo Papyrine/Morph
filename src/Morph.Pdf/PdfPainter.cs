@@ -60,10 +60,9 @@ static class PdfPainter
         Action<ExportWarning>? onWarning = null,
         PageRange? pages = null,
         Cancel cancel = default,
-        Action<PdfExportProgress>? onProgress = null)
+        Action<ExportProgress>? onProgress = null)
     {
-        var total = PagesToDraw(document.Pages.Count, pages);
-        var drawn = 0;
+        var progress = ProgressReports.Paint(onProgress, PagesToDraw(document.Pages.Count, pages));
         for (var index = 0; index < document.Pages.Count; index++)
         {
             var number = index + 1;
@@ -105,8 +104,7 @@ static class PdfPainter
             }
 
             context.Surface = null;
-            drawn++;
-            onProgress?.Invoke(new(PdfExportStage.Paint, drawn, total));
+            progress?.Painted();
         }
     }
 

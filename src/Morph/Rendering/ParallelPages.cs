@@ -16,7 +16,8 @@ static class ParallelPages
         Func<TContext> createContext,
         Action<TContext, LaidOutPage, Action<Action<Stream>>> paintPage,
         Action<Action<Stream>> pageCallback,
-        Cancel cancel = default)
+        Cancel cancel = default,
+        ProgressReports.Painting? progress = null)
         where TContext : IDisposable
     {
         var encoded = new byte[pages.Count][];
@@ -40,6 +41,7 @@ static class ParallelPages
                         write(buffer);
                         encoded[index] = buffer.ToArray();
                     });
+                progress?.Painted();
                 return context;
             },
             _ => _.Dispose());

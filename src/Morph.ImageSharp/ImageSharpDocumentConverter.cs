@@ -19,10 +19,11 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
         var cancel = options.Cancellation;
         cancel.ThrowIfCancellationRequested();
 
+        var progress = ProgressReports.Paint(options.OnProgress, laidOut.Pages.Count);
         var parallelism = Math.Min(options.MaxDegreeOfParallelism, laidOut.Pages.Count);
         if (parallelism > 1)
         {
-            ParallelPages.Paint(laidOut.Pages, parallelism, () => PaintingContext(document, laidOut, options), (context, page, callback) => ImageSharpPainter.PaintPage(page, context, options.Crop, callback), pageCallback, cancel);
+            ParallelPages.Paint(laidOut.Pages, parallelism, () => PaintingContext(document, laidOut, options), (context, page, callback) => ImageSharpPainter.PaintPage(page, context, options.Crop, callback), pageCallback, cancel, progress);
             return laidOut.Pages.Count;
         }
 
@@ -31,6 +32,7 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
         {
             cancel.ThrowIfCancellationRequested();
             ImageSharpPainter.PaintPage(page, context, options.Crop, pageCallback);
+            progress?.Painted();
         }
 
         return laidOut.Pages.Count;
@@ -87,7 +89,8 @@ public sealed class ImageSharpDocumentConverter : DocumentConverter
             document.EvenPageHeader,
             document.EvenPageFooter,
             DocumentNotes.From(document),
-            document.Bookmarks)
+            document.Bookmarks,
+            ProgressReports.Layout(options.OnProgress))
             .WithComments(document, measurer, options.ShowComments)
             .FitToContent(options.Dpi)
             .Restrict(options.Pages);

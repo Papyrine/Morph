@@ -59,6 +59,26 @@ public sealed record ImageExportOptions : ExportOptions
     public int MaxDegreeOfParallelism { get; init; } = 1;
 
     /// <summary>
+    /// Invoked as the export makes progress, for a host showing "Page x of y" while a long document
+    /// converts. Applies to every image export: Word, Excel, PowerPoint and HTML, on either backend.
+    /// Null (the default) reports nothing.
+    /// <para>
+    /// The sequence is: <see cref="ExportStage.Layout"/> once per page laid out (page 1, 2, … with no
+    /// total), then <see cref="ExportStage.Paint"/> once per page painted (page 1 of N up to N of N).
+    /// Parsing the source comes before the first call and reports nothing. Page numbers never go
+    /// backwards within a stage.
+    /// </para>
+    /// <para>
+    /// It runs synchronously, so the conversion waits for it: keep it cheap. A host that writes progress
+    /// somewhere slow (a database, a message queue) should throttle or hand off itself. With
+    /// <see cref="MaxDegreeOfParallelism"/> above 1 it is called from the painting threads, but never
+    /// two at once; <c>Page</c> then counts the pages finished, which complete in no fixed order. An
+    /// exception it throws ends the conversion.
+    /// </para>
+    /// </summary>
+    public Action<ExportProgress>? OnProgress { get; init; }
+
+    /// <summary>
     /// The most pixels one page may take. A document whose largest page would exceed it at
     /// <see cref="Dpi"/> is painted at the highest resolution that fits instead, so a crafted page size
     /// cannot ask for a raster of gigabytes. The default, 50 million, is an A4 page at 600 DPI with room
