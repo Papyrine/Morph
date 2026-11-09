@@ -28,8 +28,12 @@ static class MarkdownExporter
         // The comments shown (ExportOptions.ShowComments), by id, and those whose range has been
         // written, in the order their ranges ended — HtmlExporter's, as footnotes.
         Dictionary<string, Comment> commentsById = options.ShowComments
-            ? (comments ?? []).Where(_ => _.Number != null).GroupBy(_ => _.Id).ToDictionary(_ => _.Key, _ => _.First())
+            ? (comments ?? [])
+            .Where(_ => _.Number != null)
+            .GroupBy(_ => _.Id)
+            .ToDictionary(_ => _.Key, _ => _.First())
             : [];
+
         List<Comment> commentsWritten = [];
 
         public string Finish()
@@ -54,11 +58,11 @@ static class MarkdownExporter
             {
                 var element = elements[index];
 
-                if (element is ParagraphElement {Properties.Numbering: not null})
+                if (element is ParagraphElement { Properties.Numbering: not null })
                 {
                     var items = new List<ParagraphElement>();
                     while (index < elements.Count &&
-                           elements[index] is ParagraphElement {Properties.Numbering: not null} listItem)
+                           elements[index] is ParagraphElement { Properties.Numbering: not null } listItem)
                     {
                         items.Add(listItem);
                         index++;
@@ -70,7 +74,7 @@ static class MarkdownExporter
                     continue;
                 }
 
-                if (element is ParagraphElement {} quoteParagraph &&
+                if (element is ParagraphElement { } quoteParagraph &&
                     DocumentExportHelpers.IsQuote(quoteParagraph.Properties))
                 {
                     var quoteItems = new List<ParagraphElement>();
@@ -117,7 +121,7 @@ static class MarkdownExporter
                     WriteElements(frame.Content);
                     break;
                 case ContentControlElement contentControl:
-                    if (contentControl.Runs is {Count: > 0} runs)
+                    if (contentControl.Runs is { Count: > 0 } runs)
                     {
                         AppendInlineBlock(Inline(runs, inTable: false));
                     }
@@ -346,7 +350,7 @@ static class MarkdownExporter
                         // A pipe-table cell cannot hold a real Markdown list, so a list paragraph
                         // keeps its marker as literal text — "• item" / "1. item" — the same way
                         // paragraph boundaries survive as <br>.
-                        if (paragraph.Properties.Numbering is {} numbering)
+                        if (paragraph.Properties.Numbering is { } numbering)
                         {
                             var marker = DocumentExportHelpers.IsOrderedList(numbering) ? numbering.Text : "•";
                             paragraphText = $"{marker} {paragraphText}";
@@ -468,7 +472,7 @@ static class MarkdownExporter
                     open = comment;
                 }
 
-                if (run.HyperlinkUrl is {Length: > 0} url)
+                if (run.HyperlinkUrl is { Length: > 0 } url)
                 {
                     var linkText = new StringBuilder();
                     while (index < runs.Count &&
@@ -533,7 +537,7 @@ static class MarkdownExporter
         void AppendRun(StringBuilder target, Run run, bool inTable, bool inHeading)
         {
             // Markdown has no stacked form, so a built-up fraction is written on the line.
-            if (run.InlineFraction is {} fraction)
+            if (run.InlineFraction is { } fraction)
             {
                 var numerator = string.Concat(fraction.Numerator.Select(_ => _.Text));
                 var denominator = string.Concat(fraction.Denominator.Select(_ => _.Text));
@@ -541,25 +545,25 @@ static class MarkdownExporter
                 return;
             }
 
-            if (run.InlineShapeGroup is {} shapeGroup)
+            if (run.InlineShapeGroup is { } shapeGroup)
             {
                 AppendShapeGroup(target, shapeGroup, run.InlineImageWidthPoints, run.InlineImageHeightPoints);
                 return;
             }
 
-            if (run.InlineImageData is {} imageData)
+            if (run.InlineImageData is { } imageData)
             {
                 AppendImage(target, imageData, run.InlineImageContentType, run.InlineImageWidthPoints, run.InlineImageHeightPoints, run.InlineImageDescription);
                 return;
             }
 
-            if (run.FootnoteReferenceId is {} footnoteId)
+            if (run.FootnoteReferenceId is { } footnoteId)
             {
                 target.Append(NoteMarker(footnoteId, endnote: false));
                 return;
             }
 
-            if (run.EndnoteReferenceId is {} endnoteId)
+            if (run.EndnoteReferenceId is { } endnoteId)
             {
                 target.Append(NoteMarker(endnoteId, endnote: true));
                 return;
@@ -777,7 +781,7 @@ static class MarkdownExporter
         {
             foreach (var shape in group.Shapes)
             {
-                if (shape.ImageData is not {} imageData)
+                if (shape.ImageData is not { } imageData)
                 {
                     continue;
                 }

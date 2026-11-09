@@ -4896,8 +4896,10 @@ static class HtmlExporter
                 heightPoints > 0)
             {
                 var (offsetX, offsetY, fullWidth, fullHeight) = crop.Expand(0, 0, widthPoints, heightPoints);
-                if (Math.Abs(fullWidth - widthPoints) > 0.01 || Math.Abs(fullHeight - heightPoints) > 0.01 ||
-                    Math.Abs(offsetX) > 0.01 || Math.Abs(offsetY) > 0.01)
+                if (Math.Abs(fullWidth - widthPoints) > 0.01 ||
+                    Math.Abs(fullHeight - heightPoints) > 0.01 ||
+                    Math.Abs(offsetX) > 0.01 ||
+                    Math.Abs(offsetY) > 0.01)
                 {
                     var boxStyle = $"display: inline-block; overflow: hidden; width: {ToPixels(widthPoints)}px; height: {ToPixels(heightPoints)}px";
                     if (transform != null)
