@@ -197,7 +197,7 @@ public class CoauthorHostTests
         await Assert.That(events.Current.Users.Select(_ => _.Name)).IsEquivalentTo(["Ann", "Bob"]);
 
         var paragraph = Editable(ann.Document)[^1];
-        await ann.Client.EnterAsync(paragraph.Id!, ann.Version);
+        await ann.Client.EnterAsync(paragraph.Id!, ann.Version, cancel.Token);
         await events.MoveNextAsync();
         await Assert.That(events.Current.Users.Single(_ => _.Name == "Ann").Paragraph).IsEqualTo(paragraph.Id);
 

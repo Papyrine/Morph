@@ -16,8 +16,7 @@
 /// the first only and 30 with the second only; after 10 then before 40 leaves 40, 0, 30 and 10. Two
 /// paragraphs of different styles keep <c>max</c> whatever they opt into, an unstyled paragraph and
 /// one that names the default style are the same style, and the flag is inherited from a style like
-/// any other property. A rule that both paragraphs must opt in stood here until then, which is the
-/// same thing only when they do.</para>
+/// any other property.</para>
 /// </summary>
 static class ParagraphGap
 {

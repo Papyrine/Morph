@@ -5,8 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 /// apply Word's blip effects — the Recolor transforms and <c>a:alphaModFix</c> transparency —
 /// without a compile-time dependency on either engine. Prefers <c>Morph.Skia</c>, falling back to
 /// <c>Morph.ImageSharp</c>. The probe runs at most once per process and its result (present or
-/// absent) is cached; when neither backend is deployed the picture embeds its original bytes,
-/// which is what the PDF backend did for every picture before this existed.
+/// absent) is cached; when neither backend is deployed the picture embeds its original bytes.
 /// </summary>
 static class ImageEffectsFactory
 {

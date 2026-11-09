@@ -10,7 +10,9 @@ static class CoauthorEndpoints
     public static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
 
     /// <summary>The reply to a join: the page's connection, who it is, and whether its edits are taken.</summary>
+    // ReSharper disable NotAccessedPositionalProperty.Local
     sealed record JoinReply(string Connection, string Name, int Color, bool CanWrite, long Version);
+    // ReSharper restore NotAccessedPositionalProperty.Local
 
     public static void Map(IEndpointRouteBuilder endpoints)
     {

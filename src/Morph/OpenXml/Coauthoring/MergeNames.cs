@@ -1,5 +1,3 @@
-using System.Xml.Linq;
-
 /// <summary>The namespaces and names the coauthoring merge reads parts by.</summary>
 static class MergeNames
 {

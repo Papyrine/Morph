@@ -96,7 +96,7 @@ public class LeaderTilingTests
         var stream = new MemoryStream();
         using (var document = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
         {
-            W.Run Run(DocumentFormat.OpenXml.OpenXmlElement content) =>
+            static W.Run Run(DocumentFormat.OpenXml.OpenXmlElement content) =>
                 new(new W.RunProperties(new W.RunFonts {Ascii = "Calibri", HighAnsi = "Calibri"}, new W.FontSize {Val = "48"}), content);
 
             var paragraph = new W.Paragraph(

@@ -2,9 +2,6 @@
 
 /// <summary>
 /// ImageSharp counterpart of the Skia <c>HeaderFooterFloatingRenderTests</c>.
-/// Regression guard for <c>PageRenderer.RenderHeader</c> / <c>RenderFooter</c>
-/// silently dropping <c>FloatingImageElement</c> (and footer dropping behind-text
-/// <c>FloatingShapeElement</c>) prior to the fix.
 /// </summary>
 public class ImageSharpHeaderFooterFloatingRenderTests
 {

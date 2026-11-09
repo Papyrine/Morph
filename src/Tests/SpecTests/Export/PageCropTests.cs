@@ -15,9 +15,8 @@ using SkiaSharp;
 /// ContentBoxWithHeaderFooter  520 x 760  at (40, 20)
 /// </code>
 ///
-/// Both tiers are tested, per the lesson of the UseLetterPageSize render guard: the rectangle is
-/// pinned directly on <c>PageRect</c>, AND the emitted PNG is measured, because the option can be
-/// computed correctly and still not reach a page.
+/// Both tiers are tested: the rectangle is pinned directly on <c>PageRect</c>, AND the emitted PNG
+/// is measured, because the option can be computed correctly and still not reach a page.
 /// </summary>
 public class PageCropTests
 {

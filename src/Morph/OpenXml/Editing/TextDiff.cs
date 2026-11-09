@@ -83,8 +83,11 @@ static class TextDiff
             var hunk = hunks[index];
             var previous = index > 0 ? hunks[index - 1] : default(TextHunk?);
             var next = index + 1 < hunks.Count ? hunks[index + 1] : default(TextHunk?);
-            if (hunk.OldLength == 0 &&
-                hunk.NewLength > 0)
+            if (hunk is
+                {
+                    OldLength: 0,
+                    NewLength: > 0
+                })
             {
                 var floor = previous is { } earlier ? earlier.NewStart + earlier.NewLength : 0;
                 var ceiling = next?.NewStart ?? now.Length;
@@ -95,8 +98,7 @@ static class TextDiff
                     NewStart = hunk.NewStart + shift
                 };
             }
-            else if (hunk.NewLength == 0 &&
-                     hunk.OldLength > 0)
+            else if (hunk is { NewLength: 0, OldLength: > 0 })
             {
                 var floor = previous is { } earlier ? earlier.OldStart + earlier.OldLength : 0;
                 var ceiling = next?.OldStart ?? was.Length;

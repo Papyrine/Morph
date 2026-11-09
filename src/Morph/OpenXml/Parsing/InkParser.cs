@@ -27,7 +27,6 @@ static class InkParser
             return null;
         }
 
-        // Get the relationship ID
         var relIdAttribute = contentPart.GetAttributes()
             .FirstOrDefault(_ => _ is {LocalName: "id", Prefix: "r"});
 
@@ -36,13 +35,11 @@ static class InkParser
             return null;
         }
 
-        // Get the ink part
         if (mainPart.PartOrNull(relIdAttribute.Value) is not { } inkPart)
         {
             return null;
         }
 
-        // Read the InkML content
         using var stream = inkPart.GetStream(FileMode.Open, FileAccess.Read);
         var inkXml = new XmlDocument();
         inkXml.Load(stream);
@@ -70,7 +67,6 @@ static class InkParser
         var nsMgr = new XmlNamespaceManager(inkXml.NameTable);
         nsMgr.AddNamespace("inkml", "http://www.w3.org/2003/InkML");
 
-        // Parse brush definitions for colors and widths
         var brushes = new Dictionary<string, (string color, double width, byte transparency, bool isHighlighter)>();
         var brushNodes = inkXml.SelectNodes("//inkml:brush", nsMgr);
         if (brushNodes != null)
@@ -149,7 +145,6 @@ static class InkParser
             }
         }
 
-        // Parse trace elements (strokes)
         var traceNodes = inkXml.SelectNodes("//inkml:trace", nsMgr);
         if (traceNodes != null)
         {
@@ -161,7 +156,6 @@ static class InkParser
                     continue;
                 }
 
-                // Get brush properties
                 var strokeColor = "000000";
                 var strokeWidth = 1.5;
                 byte strokeTransparency = 0;
@@ -176,8 +170,6 @@ static class InkParser
                     isHighlighter = brush.isHighlighter;
                 }
 
-                // Parse trace points
-                // Format: "x1 y1, x2 y2, x3 y3" or "x1 y1 x2 y2 x3 y3"
                 var points = ParseTracePoints(traceData);
                 if (points.Count < 2)
                 {
@@ -196,7 +188,6 @@ static class InkParser
             }
         }
 
-        // Scale all stroke points to fit within the canvas bounds
         ScaleStrokesToCanvas(strokes, canvasWidth, canvasHeight);
 
         return strokes;
@@ -265,12 +256,10 @@ static class InkParser
             return;
         }
 
-        // Calculate scale factor to fit within canvas while preserving aspect ratio
         var scaleX = rawWidth > 0 ? canvasWidth / rawWidth : 1.0;
         var scaleY = rawHeight > 0 ? canvasHeight / rawHeight : 1.0;
         var scale = Math.Min(scaleX, scaleY);
 
-        // Scale and translate all points (translate to origin first, then scale)
         for (var i = 0; i < strokes.Count; i++)
         {
             var stroke = strokes[i];
@@ -287,7 +276,6 @@ static class InkParser
                     });
             }
 
-            // Replace stroke with scaled points
             strokes[i] = new()
             {
                 Points = scaledPoints,

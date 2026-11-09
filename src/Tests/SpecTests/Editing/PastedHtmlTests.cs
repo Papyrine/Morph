@@ -186,7 +186,7 @@ public class PastedHtmlTests
         var own = PastedHtml.Read("<span data-morph-font=\"Georgia\" data-morph-size=\"20\" data-morph-color=\"ff0000\" data-morph-highlight=\"FFFF00\" style=\"font-size:20pt\">gamma</span> <span data-morph-highlight=\"123456\">shaded</span>")[0].Runs;
         var other = PastedHtml.Read("<span style=\"font-family:Georgia;font-size:20pt;color:#ff0000;background-color:#ffff00\">gamma</span>")[0].Runs;
 
-        await Assert.That(own[0].Format).IsEqualTo(new RunFormat(Font: "Georgia", SizePoints: 20, Color: "FF0000", Highlight: "yellow"));
+        await Assert.That(own[0].Format).IsEqualTo(new(Font: "Georgia", SizePoints: 20, Color: "FF0000", Highlight: "yellow"));
         await Assert.That(own[^1].Format).IsEqualTo(default(RunFormat));
         await Assert.That(other[0].Format).IsEqualTo(default(RunFormat));
     }

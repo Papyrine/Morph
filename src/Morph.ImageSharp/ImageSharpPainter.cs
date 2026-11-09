@@ -2,8 +2,7 @@
 /// Paints a backend-independent <see cref="LaidOutDocument"/> to PNG bitmaps — the ImageSharp analogue of
 /// <c>SkiaPainter</c> (docs/layout-engine.md, step 6). A pure draw pass over the tree the
 /// <c>Fragmenter</c> produced. ImageSharp records draw ops onto a deferred <see cref="DrawingCanvas"/> per
-/// page and flushes them when the canvas is disposed, then encodes the page image to PNG through the same
-/// page callback the production <c>ImageSharpPageRenderer</c> uses. The tree is in points
+/// page and flushes them when the canvas is disposed, then encodes the page image to PNG. The tree is in points
 /// and ImageSharp draws in pixels, so every coordinate scales by <see cref="RenderContextBase.PointsToPixels"/>;
 /// text is drawn with its alphabetic baseline at the engine's <c>PlacedLine.Baseline</c>, like the other painters.
 ///
@@ -273,13 +272,11 @@ static class ImageSharpPainter
     static float MeasurePrefix(ImageSharpRenderContext context, RunProperties properties, string prefix) =>
         (float) (context.MeasureText(context.GetFont(properties), prefix) + properties.CharacterSpacingPoints * prefix.Length);
 
-    // Text is anchored at the engine's baseline (TextBaseline.Alphabetic in Options) — the one place
-    // ImageSharp used to diverge from Skia and PDF, which draw at PlacedLine.Baseline directly. The
-    // previous top-anchored form subtracted SixLabors' own ascender (typo when flagged, else hhea) from
-    // the baseline, and SixLabors' LineBox placement does not put the baseline at origin + ascender
-    // either, so every run drew high by a font-specific fraction of the em (0.11 em on
-    // business-plans/13). Per-character tracking mirrors SkiaPainter.DrawTracked, surrogate-safe, and so
-    // does a run drawn at Word's pen (PlacedRun.GlyphX): each cluster where the layout put it.
+    // Text is anchored at the engine's baseline (TextBaseline.Alphabetic in Options), as Skia and PDF
+    // draw at PlacedLine.Baseline. Anchoring at the top would not do: SixLabors' LineBox placement
+    // does not put the baseline at origin + ascender. Per-character tracking mirrors
+    // SkiaPainter.DrawTracked, surrogate-safe, and so does a run drawn at Word's pen (PlacedRun.GlyphX):
+    // each cluster where the layout put it.
     static void DrawTracked(ImageSharpRenderContext context, DrawingCanvas canvas, string text, RunProperties properties, double penX, double baseline, IReadOnlyList<float>? glyphX)
     {
         var positions = PlacedRun.Positions(glyphX, text);
@@ -555,10 +552,8 @@ static class ImageSharpPainter
     }
 
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
-    // child coordinate space into the inline box, painted back to front. A verbatim port of
-    // ImageSharpShapeDrawing.RenderInlineShapeGroup that reuses the same colour/contour/picture helpers, so the engine
-    // paints an inline group pixel-identically to production. The placed box is already in points with its
-    // top at Y (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
+    // child coordinate space into the inline box, painted back to front with ImageSharpShapeDrawing's
+    // colour/contour/picture helpers. The placed box is already in points with its top at Y (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
     static void PaintInlineGroup(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedImage placed, InlineShapeGroup group)
     {
         float pixelX = P(context, placed.X), pixelY = P(context, placed.Y), pixelWidth = P(context, placed.Width), pixelHeight = P(context, placed.Height);
@@ -660,11 +655,10 @@ static class ImageSharpPainter
         }
     }
 
-    // A behind-text floating shape: fill and outline of its freeform subpath contours (reusing the
-    // production BuildPath geometry, rotation already baked, nonzero winding pushed via Save) or its preset
-    // rect/ellipse box (rotated about its centre). Fill is a solid colour or a linear gradient (built the
-    // same way as the production ImageSharpPageRenderer). Image-fill shapes never reach here — the
-    // Fragmenter routes them to PlacedImage.
+    // A behind-text floating shape: fill and outline of its freeform subpath contours (BuildPath geometry,
+    // rotation already baked, nonzero winding pushed via Save) or its preset rect/ellipse box (rotated
+    // about its centre). Fill is a solid colour or a linear gradient. Image-fill shapes never reach
+    // here — the Fragmenter routes them to PlacedImage.
     static void PaintShape(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedShape placed)
     {
         var shape = placed.Shape;
@@ -757,7 +751,7 @@ static class ImageSharpPainter
         }
     }
 
-    // A linear gradient across the shape's bounding box, matching ImageSharpPageRenderer: angle 0° points
+    // A linear gradient across the shape's bounding box: angle 0° points
     // along +X (OOXML a:lin/@ang), the stops run corner-to-corner through the box centre.
     static LinearGradientBrush BuildGradientBrush(GradientFill gradient, float x, float y, float width, float height)
     {

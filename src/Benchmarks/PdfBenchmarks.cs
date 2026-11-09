@@ -1,6 +1,5 @@
 /// <summary>
-/// PDF exporter benchmarks over real corpus documents. The PDF backend was previously
-/// unmeasured; these cover the paragraph-layout path (no layout cache as of writing —
+/// PDF exporter benchmarks over real corpus documents. These cover the paragraph-layout path (no layout cache as of writing —
 /// table-heavy docs lay each cell out ~5×), image embedding, the deterministic-output
 /// Normalize pass, and the Pages-range trimming behaviour.
 /// </summary>

@@ -156,10 +156,9 @@ sealed record FontMetrics
     /// so the line gap / external leading is stacked ABOVE the text and the descent is what remains
     /// below it. Word-measured 2026-09-04 (<c>_probe_baseline</c> / <c>_probe_baseline2</c>: 23 faces at
     /// 24/48/96pt, first baseline read from the XPS <c>Glyphs</c> origin against the page's top margin,
-    /// both flagged and unflagged faces, static and variable). Every face lands here; the earlier
-    /// <c>usWinAscent</c> rule only coincided on faces with no leading (Calibri, Segoe UI, Baskerville
-    /// Old Face) and was 0.071 em low on Aptos, 0.033 em on Arial, 0.19 em on Gabriola.
-    /// The two halves of the rule that the earlier reading got backwards:
+    /// both flagged and unflagged faces, static and variable). Every face lands here; <c>usWinAscent</c>
+    /// agrees only on faces with no leading (Calibri, Segoe UI, Baskerville Old Face) and is 0.071 em
+    /// low on Aptos, 0.033 em on Arial, 0.19 em on Gabriola. The two halves of the rule:
     /// <list type="bullet">
     /// <item>A flagged font takes the TYPO box and descent — Aptos 48pt sits 75px down a 98px box
     /// (typo 0.939 em; usWinAscent would be 81px), Gabriola 1.384 em (typo ascender 0.684 plus its

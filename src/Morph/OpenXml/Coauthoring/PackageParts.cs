@@ -1,17 +1,12 @@
-using System.Xml.Linq;
-
 /// <summary>
 /// A package's entries for the merge: the bytes of each, and the XML of those it reads or rewrites,
 /// parsed once and written back only if changed. Names are the zip's, without a leading slash.
 /// </summary>
-sealed class PackageParts
+sealed class PackageParts(byte[] docx)
 {
-    readonly OrderedDictionary<string, byte[]> entries;
+    readonly OrderedDictionary<string, byte[]> entries = PackageEntries.Read(docx);
     readonly Dictionary<string, XDocument?> parsed = new(StringComparer.Ordinal);
     readonly HashSet<string> changed = new(StringComparer.Ordinal);
-
-    public PackageParts(byte[] docx) =>
-        entries = PackageEntries.Read(docx);
 
     public IEnumerable<string> Names => entries.Keys;
 

@@ -1,9 +1,6 @@
 /// <summary>
 /// Shape-drawing primitives shared by <see cref="ImageSharpPainter"/>: group-shape colour, contour
-/// and picture drawing, custGeom/preset paths and the shape rotation transform. These lived on the
-/// production <c>TextRenderer</c>/<c>ImageSharpPageRenderer</c> (internal statics the painter reused
-/// so the two paths stayed pixel-identical) and moved here verbatim when the production raster path
-/// was deleted.
+/// and picture drawing, custGeom/preset paths and the shape rotation transform.
 /// </summary>
 static class ImageSharpShapeDrawing
 {

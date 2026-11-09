@@ -6,7 +6,7 @@
 /// </summary>
 public class ExportProgressTests
 {
-    static readonly string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+    static string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     static string Input(string path) =>
         Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", path);

@@ -1,26 +1,18 @@
 ﻿/// <summary>
-/// The <see cref="IParagraphMeasurer"/> surface over the backend-independent
-/// <see cref="CanonicalTextMeasurer"/> — step 1 of the layout engine
-/// (<c>docs/layout-engine.md</c>). It wraps a paragraph's runs and reports line heights,
-/// natural width and total height from the font's own OpenType metrics, so the shared table-height
-/// math (and, later, the fragmenter) can measure without a backend font library. Font resolution is
-/// injected as a delegate — the caller wires a <c>FontResolver&lt;FontMetrics&gt;</c> — keeping this
-/// class purely about layout.
+/// The <see cref="IParagraphMeasurer"/> over the backend-independent <see cref="CanonicalTextMeasurer"/>
+/// (<c>docs/layout-engine.md</c>): wraps a paragraph's runs and reports line heights, natural width and
+/// total height from the font's own OpenType metrics, for the fragmenter and the shared table-height
+/// math. Font resolution is injected as a delegate.
 ///
-/// <para>Modelled: multi-run greedy wrap (adjacent non-space pieces across runs form one word, so a
-/// mid-word format change never splits the word), per-line height = the tallest run's hhea box under
-/// the paragraph's line-spacing rule, Word's before/after spacing, and the empty-paragraph mark's own
-/// run properties (w:pPr/w:rPr) sizing the blank line — matching PdfTextEngine, so a spacer parked over
-/// a differently-sized phantom run keeps its true height. Tabs and first-line/hanging indents are
-/// modelled too: a tab piece's advance resolves position-dependently in BuildLineItems below,
-/// and the wrap narrows the first line by the first-line or hanging indent (lists exempt — their
-/// hanging indent is the marker gutter).</para>
+/// <para>Modelled: multi-run greedy wrap (a mid-word format change never splits the word), line height
+/// from the tallest run under the line-spacing rule, before/after spacing, the mark's own run properties
+/// sizing a blank line, position-dependent tabs, and the first line narrowed by its first-line or
+/// hanging indent (lists exempt: their hanging indent is the marker gutter).</para>
 ///
-/// <para>A document's compatibility mode enters the measure in two places: in mode 15 Word narrows the
-/// spaces of a justified line to take a word that does not quite fit
-/// (<see cref="CompatibilitySettings.SqueezesJustifiedLines"/>), and holds a right, centre or decimal
-/// stop past the measure at its edge (<see cref="CompatibilitySettings.ClampsTabStops"/>). Without
-/// settings the measure squeezes nothing and clamps its stops.</para>
+/// <para>Compatibility mode 15 narrows a justified line's spaces to take a word that does not quite fit
+/// (<see cref="CompatibilitySettings.SqueezesJustifiedLines"/>) and holds a right, centre or decimal stop
+/// past the measure at its edge (<see cref="CompatibilitySettings.ClampsTabStops"/>). Without settings
+/// nothing is squeezed and stops are clamped.</para>
 /// </summary>
 sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> resolveFont, double fontWidthScale = 1.0, CompatibilitySettings? compatibility = null, Func<string, bool>? ownsFace = null) : IParagraphMeasurer
 {
@@ -46,11 +38,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // it at the face's own ascent and puts what an expanding multiple adds below it. PowerPoint keeps a
     // fifth of the single 1.2 em line under the baseline whatever the face and the multiple, so all a
     // multiple adds lies over the text and a slide's first line drops with its spacing. Measured off
-    // PowerPoint's renders (2026-11-03): Basic.pptx's bottom-anchored 36pt Arial Black title, whose
-    // own ascent is 1.1 em, stands 6pt higher than at that ascent, as a 0.96 em one puts it; and
-    // tech-brochure's 12pt body at 150% has its first line's ink at 63.0pt, 8pt under the box's top
-    // and inset, the 7.2pt its multiple adds lying over the text — and the paragraph's 12pt before
-    // not (DrawingTextParser drops it on a box's first paragraph).
+    // PowerPoint's renders (2026-11-03): Basic.pptx's bottom-anchored 36pt Arial Black title (own
+    // ascent 1.1 em) stands 6pt higher, as a 0.96 em ascent puts it; tech-brochure's 12pt body at 150%
+    // has its first line's ink 8pt under the box's top and inset, the 7.2pt its multiple adds lying
+    // over the text.
     double LineAscent(double naturalAscent, ParagraphProperties props, double naturalPitch)
     {
         if (slideLinePitch &&
@@ -98,11 +89,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                              wrapped[i].Pitch, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints))
                          + RunBorderGrowth(wrapped[i]);
 
-            // An inline image grows the line exactly as LayoutLineContents places it — measure and
-            // placement must agree or a cell's row height omits its image: newsletters/05's school
-            // photo (213pt, alone in a cell paragraph) measured as a 12pt mark line, and every row
-            // below overlapped it by the difference. The image sits on the baseline, so the line
-            // keeps the text descent under it (ImageLineHeight).
+            // An inline image grows the line exactly as LayoutLineContents places it, or a cell's row
+            // height omits its image. The image sits on the baseline, so the line keeps the text
+            // descent under it (ImageLineHeight).
             var tallestImage = 0f;
             foreach (var image in wrapped[i].Images)
             {
@@ -116,10 +105,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                              + (grid?.AscentShift ?? 0);
                 // A picture alone on its line has no pitch of its own in the wrap: its line is the
                 // mark line (MarkProperties: in a cell, the picture's own run) floored on the picture,
-                // with the leading a multiple adds under it, exactly as LayoutLineContents places it.
-                // The measure once left out the floor, and a row then stopped short of the line drawn
-                // in it: brochures/02's 11pt picture in a 12pt run made a row 2.6pt short, and the
-                // next row started that much high of Word's (2026-10-27, XPS).
+                // with the leading a multiple adds under it — must match LayoutLineContents.
                 if (wrapped[i].Segments.Count == 0)
                 {
                     var markPitch = MarkPitch(paragraph);
@@ -180,9 +166,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             AlignToLargest(runs, props.FontAlignment);
 
             // An empty mark line has no runs; its baseline still needs the mark's ascent, and its height the
-            // mark font's line pitch. Without the height, an image-only line — a heading-rule drawing in an
-            // otherwise blank paragraph (resumes/18's section rules) — collapses to the tiny image height, so
-            // the rule drops onto the following line instead of sitting in the paragraph's own font-height row.
+            // mark font's line pitch, so an image-only line (resumes/18's section rules) keeps the
+            // paragraph's own font-height row rather than collapsing to the image.
             if (segments.Count == 0)
             {
                 textAscent = AscentPoints(ParagraphFont(paragraph));
@@ -210,16 +195,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             // A run border (w:bdr) reserves its stack plus w:space above the font's line box and 1.3 times
-            // that below it — the baseline drops by the reserve and the line grows by both, exactly as
-            // LayoutLines charged. See BorderStroke.RunBorderReserve and RunBorderBelowScale for Word's.
+            // that below it, as LayoutLines charged (BorderStroke.RunBorderReserve, RunBorderBelowScale).
             var runBorderPad = RunBorderPad(wrapped[i]);
             var runBorderGrowth = (float) BorderStroke.LineGrowth(runBorderPad);
             textHeight += runBorderGrowth;
             textAscent += runBorderPad;
 
-            // An inline image sits with its bottom on the baseline, so it fills the whole ascent and can
-            // grow the line: the ascent takes the max of the text metrics and the tallest image, and the
-            // line keeps the text DESCENT under the baseline (ImageLineHeight).
+            // An inline image sits with its bottom on the baseline: the ascent is the larger of the text's
+            // and the tallest image, and the line keeps the text DESCENT under it (ImageLineHeight).
             var images = wrapped[i].Images;
             var maxImageHeight = 0f;
             foreach (var image in images)
@@ -234,8 +217,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // bottom of a line that is max(mark pitch, image) tall, not on the mark font's baseline.
             // XPS-read on _probe_r12 (2026-09-05): a 3.6pt inline rectangle alone in a 12pt Calibri
             // Light paragraph has its baseline 14.8pt under the line top (the full 14.65 pitch), where a
-            // text line's sits 11.4; resumes/12's coral rule sat 9px high on the mark ascent.
-            // The leading a multiple adds lies under that image, as it lies under a line of text.
+            // text line's sits 11.4. The leading a multiple adds lies under the image, as under text.
             var imageOnlyLeading = props.LineSpacingRule == LineSpacingRule.Auto ? Math.Max(0f, textHeight - naturalPitch) : 0f;
             var ascent = maxImageHeight > 0 &&
                          !hasText ? lineHeight - imageOnlyLeading : Math.Max(textAscent, maxImageHeight);
@@ -306,30 +288,18 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// <summary>
     /// The height of a line carrying an inline image or shape: the image's bottom sits on the
     /// baseline, its height becomes the line's ascent when it is the taller, and the text's descent
-    /// stays under the baseline — XPS-read on <c>_probe_inline</c> (2026-09-05; 6/24/48pt pictures
-    /// and 4/12/30pt inline rectangles in a 10pt Calibri line): the line above a 24pt picture sits
-    /// 24pt + its own descent over the baseline (27.6 from a 12pt line, 3.2 + 24), and the line
-    /// below keeps the plain 12.2 pitch (2.7 descent + 9.5 ascent) — so the picture line is 24 + 2.7,
-    /// not 24. Taking the max of pitch and image height dropped that descent on every image-bearing
-    /// line (icon_with_text's paragraph after its inline star sat 10-13px high). An exact rule pins
-    /// the line whatever it holds.
+    /// stays under the baseline. XPS-read on <c>_probe_inline</c> (2026-09-05; 6/24/48pt pictures and
+    /// 4/12/30pt inline rectangles in a 10pt Calibri line): beside a 24pt picture the line is 24 + 2.7
+    /// (the text's descent), not 24. An exact rule pins the line whatever it holds.
     ///
-    /// <para>The descent is the TEXT runs' descent, so a line holding only the image keeps no
-    /// descent under it: the corpus refuted adding one — cards/16, postcards/02, labels/13 and
-    /// resumes/11 each stack image-only paragraphs (card art, label icons, short inline rules), and
-    /// charging a descent to every one drifted them further from Word than the plain image height
-    /// did (skia +0.03 AE on cards/16), while icon_with_text's text-bearing line still needs it.</para>
+    /// <para>The descent is the TEXT runs', so a line holding only the image keeps none: charging one
+    /// drifted cards/16, postcards/02, labels/13 and resumes/11's image-only paragraphs from Word.</para>
     ///
-    /// <para>A line-spacing MULTIPLE adds to a picture line what it adds to the mark's own line, not
-    /// a share of the picture: the line is the single-spaced one plus <c>(multiple − 1)</c> of the
-    /// mark font's pitch, under the picture. Word-probed 2026-10-11 (<c>_probe_picline</c>: a 72pt
-    /// picture alone in a paragraph between exact-pitch references, baselines off the XPS): under a
-    /// 10pt Arial mark (11.5pt pitch) the line is 71.9 single, 77.9 at 1.5 and 83.9 double; under a
-    /// 30pt mark (34.5) it is 71.9, 89.3 and 106.7, and 65.3 at 0.8, the multiple taking its share
-    /// off as readily as adding it. Beside two letters of text the same three read 74.3, 79.7 and
-    /// 113.3, the descent kept as above. The image-only line took the larger of the multiplied mark
-    /// line and the picture, so under any multiple a tall picture lost the leading: 5.3pt under
-    /// business-plans/02's page-wide photos, whose Normal style is spaced at 1.4.</para>
+    /// <para>A line-spacing MULTIPLE adds to a picture line what it adds to the mark's own line,
+    /// <c>(multiple − 1)</c> of the mark font's pitch, under the picture. <c>_probe_picline</c>
+    /// (2026-10-11, a 72pt picture alone in a paragraph): under a 10pt Arial mark (11.5pt pitch) the
+    /// line is 71.9 single, 77.9 at 1.5 and 83.9 double; under a 30pt mark (34.5) 71.9, 89.3 and 106.7,
+    /// and 65.3 at 0.8. Beside two letters of text the three read 74.3, 79.7 and 113.3.</para>
     /// </summary>
     static float ImageLineHeight(float textHeight, float textAscent, float tallestImage, LineSpacingRule rule, bool hasText, float naturalPitch)
     {
@@ -352,9 +322,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// The line a box takes standing alone in its paragraph — an inline text box, sized as a picture
     /// alone on its line (<see cref="ImageLineHeight"/>): the mark's line floored on the box, with the
     /// leading a multiple adds under it, and the box at the top of the mark's pitch where the mark is
-    /// the taller. business/06's 32.3pt LOGO box (2.2pt of effect extent under it) on a 1.2-spaced
-    /// 12pt Calibri Light mark took exactly its own height, and everything under it sat 5.3pt high of
-    /// Word's XPS (2026-10-27), which reads the 37.5 this gives.
+    /// the taller. Word's XPS (2026-10-27) gives business/06's 32.3pt LOGO box on a 1.2-spaced 12pt
+    /// Calibri Light mark the 37.5pt line this gives.
     /// </summary>
     internal (float Height, float BoxTop) BoxLine(ParagraphElement host, float boxHeight)
     {
@@ -444,12 +413,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     public float MeasureParagraphNaturalWidth(ParagraphElement paragraph, float maxWidth) =>
         WidestLine(Wrap(paragraph, maxWidth));
 
-    // The autofit MINIMUM probe (TableLayout.MeasureCellContentWidth) asks for this at a 1pt measure, where
-    // every word lands on its own line — so the wrap it runs builds line contents once per WORD, for every
-    // cell paragraph of every autofit table, and discards all of them to keep one number. It runs
-    // widths-only for that reason, and caches the number rather than the lines: routing it through the
-    // wrap memo would retain one WrapLine per word for the whole conversion. The wrap itself is the same
-    // one MeasureParagraphNaturalWidth would run at 1pt, so the answer is unchanged.
+    // The autofit MINIMUM (TableLayout.MeasureCellContentWidth): the widest line at a 1pt measure, where
+    // every word lands on its own line. It wraps widths-only and caches the number rather than the
+    // lines, since the wrap memo would retain one WrapLine per word for the whole conversion.
     readonly ConcurrentDictionary<ParagraphElement, float> longestTokenCache = [];
 
     public float MeasureLongestTokenWidth(ParagraphElement paragraph) =>
@@ -475,10 +441,6 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return widest;
     }
 
-    // The baseline sits (line box − descent) below the line-box top — the line gap stacks above the text,
-    // the descent below it (FontMetrics.BaselineAscentUnits, Word-probed across 23 faces). Neither the hhea
-    // ascender (0.2 em high on Calibri) nor usWinAscent (0.07 em low on Aptos, the corpus default) is
-    // that quantity; both were tried. The line PITCH is the same box, so the two agree by construction.
     LaidOutFraction FractionBox(MathFraction fraction)
     {
         float Width(IReadOnlyList<Run> level) =>
@@ -512,6 +474,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return below;
     }
 
+    // The baseline sits (line box − descent) below the line-box top — the line gap stacks above the text,
+    // the descent below it (FontMetrics.BaselineAscentUnits, Word-probed across 23 faces). Neither the hhea
+    // ascender (0.2 em high on Calibri) nor usWinAscent (0.07 em low on Aptos) is that quantity. The line
+    // PITCH is the same box, so the two agree by construction.
     float AscentPoints(RunProperties fontProperties)
     {
         var metrics = resolveFont(fontProperties.FontFamily, fontProperties.Bold, fontProperties.Italic);
@@ -566,15 +532,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     /// </summary>
     public static RunProperties MarkFont(ParagraphElement paragraph) => MarkProperties(paragraph);
 
-    /// <summary>
-    /// The width in points of a short run of text in the given font — for placing a right-aligned list
-    /// marker just before its text. Zero when the font does not resolve.
-    /// </summary>
     // The horizontal scale a run's advances measure at: the conversion's own font width scale, then the
     // run's w:w (RunProperties.CharacterScalePercent).
     double WidthScale(RunProperties properties) =>
         fontWidthScale * properties.CharacterScalePercent / 100;
 
+    /// <summary>
+    /// The width in points of a short run of text in the given font — for placing a right-aligned list
+    /// marker just before its text. Zero when the font does not resolve.
+    /// </summary>
     public float MeasureRunWidth(string text, RunProperties properties)
     {
         var metrics = resolveFont(properties.FontFamily, properties.Bold, properties.Italic);
@@ -744,11 +710,6 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return (markerOffset, (float) (stop - properties.LeftIndentPoints));
     }
 
-    // Word applies pair kerning to a run whose size reaches the resolved w:kern threshold; zero
-    // (the spec default when docDefaults declare no kern) disables it. The threshold itself is
-    // resolved by the parser, including the built-in-Normal default for a document with no
-    // docDefaults - see DocumentParser (_probe_kern_* and _probe_kerncascade fixtures). The painters
-    // ask the same question to kern what they draw (CanonicalTextMeasurer.KernShiftsPoints).
     /// <summary>A run's text measured as the line measures it, in points: what places a fraction's runs.</summary>
     internal float TextWidthPoints(RunProperties properties, string text) =>
         (float) CanonicalTextMeasurer.PixelsToPoints(TextPixels(properties, text));
@@ -772,6 +733,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return pixels;
     }
 
+    // Word applies pair kerning to a run whose size reaches the resolved w:kern threshold; zero (the
+    // spec default when docDefaults declare no kern) disables it. The parser resolves the threshold,
+    // including the built-in-Normal default (_probe_kern_*, _probe_kerncascade). The painters ask the
+    // same question to kern what they draw (CanonicalTextMeasurer.KernShiftsPoints).
     internal static bool KerningEnabled(RunProperties properties) =>
         properties.KerningMinFontSizePoints > 0 &&
         properties.FontSizePoints >= properties.KerningMinFontSizePoints;
@@ -800,25 +765,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return total;
     }
 
-    // Pixels is the piece's unrounded linear device-pixel advance; accumulating it per line and
-    // quantizing once (PixelsToPoints) is pen-position rounding, which composes across fonts. Text and
-    // Properties are carried so the wrap can hand a painter each line's run segments — they never enter
-    // the width/pitch arithmetic.
-    // BreaksBefore marks a piece that may start a line even though the piece before it is not a space —
-    // the hyphen break opportunity (see TokenizeText). The word-gathering loop stops there instead of
-    // gluing every adjacent non-space piece into one unbreakable word.
-    // BaselineShift: the run's super/subscript shift (VerticalRunPosition), carried onto its segment.
-    // IsInset: a run border's horizontal reserve (BorderStroke.RunBorderGlyphInset) — advances the pen
-    // like text, joins its neighbouring word for wrapping, but belongs to no segment. Closes marks the
-    // one after the run's text, as against the one before it.
-    // FitPixels is what the piece costs the line OVER what it moves the pen: a bordered run is drawn
-    // at its pixel-floored inset and charged the whole declared stack and space (BuildWrap).
-    // BorderInside: the piece is text of a bordered run that begins with a space, whose border grows no
-    // line (BorderStroke.RunBorderReserves). It is the RUN's first character that decides, so the flag
-    // rides on every piece of the run: the part of " boxed " that wraps to the next line starts with a
-    // letter there, and Word still gives that line no extra height.
-    // A piece carries the id of the footnote / endnote its run cites (on the run's first text piece
-    // only), so the line it lands on knows which notes it brought with it.
+    // Pixels: the unrounded linear advance, summed per line and quantized once (pen-position rounding).
+    // Text, Properties: carried for the line's segments; never in the width/pitch arithmetic.
+    // BreaksBefore: may start a line though the piece before is not a space (after a hyphen, TokenizeText).
+    // BaselineShift: the run's super/subscript shift (VerticalRunPosition).
+    // IsInset: a run border's side reserve (BorderStroke.RunBorderGlyphInset) — moves the pen, joins the
+    // neighbouring word, belongs to no segment. Closes: the reserve after the run's text, not before.
+    // FitPixels: what the piece costs the line OVER what it moves the pen (a run border's full reserve).
+    // BorderInside: text of a bordered run that begins with a space, whose border grows no line
+    // (BorderStroke.RunBorderReserves); on every piece of the run, since the RUN's first character decides.
+    // Footnote/EndnoteReferenceId: the note the run cites, on its first text piece only.
     readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false, float BaselineShift = 0, bool IsInset = false, string? FootnoteReferenceId = null, string? EndnoteReferenceId = null, double FitPixels = 0, bool Closes = false, bool BorderInside = false);
 
     readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false, IReadOnlyList<float>? GlyphX = null);
@@ -828,27 +784,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // tests against the measure and sizes an autofit column from.
     readonly record struct WrapLine(float Width, float LinearWidth, float Pitch, IReadOnlyList<WrapSegment> Segments, IReadOnlyList<LaidOutImage> Images, IReadOnlyList<string>? FootnoteReferenceIds = null, IReadOnlyList<string>? EndnoteReferenceIds = null);
 
-    // Wrapping is the whole cost of a measurement — Flatten resolves a font per run and measures every
-    // piece, then BuildLineItems positions them — and the same (paragraph, width) pair is asked for over
-    // and over: a table cell's row height and then its placement ask at the identical content width, and a
-    // header or footer paragraph is asked once per page (a footer's twice, once for the height loop that
-    // anchors the band and once for the band layout). Counted over the 330-scenario corpus, the memo
-    // answers 44% of all wrap requests — 29,573 requests, 16,448 builds.
-    //
-    // The result is a pure function of the paragraph and the width: ParagraphElement is init-only, and a
-    // paragraph whose text varies per page (a PAGE field) is CLONED by the fragmenter rather than mutated
-    // (Fragmenter.SubstitutePageFields), so reference identity is a sound key. Width has to stay in it —
-    // a wrapping float narrows the measure mid-document, so one paragraph legitimately wraps at two
-    // widths in one flow. Lifetime is the measurer instance: production builds one per conversion, the
-    // same lifetime the deleted raster backends gave their pagedLayoutCache/boundedLayoutCache.
-    //
-    // Concurrent because an instance CAN be shared — the layout spec tests hold a static measurer
-    // (LayoutTestFonts.Measurer) that TUnit drives from parallel tests, which corrupted a plain
-    // Dictionary here. Racing callers may both build the same entry; the function is pure, so the loser's
-    // copy is simply discarded.
-    //
-    // Every result is shared, never copied, so nothing downstream may mutate a WrapLine's segment or image
-    // list. Nothing does: the fragmenter's LaidOutLine → PlacedLine build allocates its own arrays.
+    // The same (paragraph, width) is wrapped over and over (a cell's height then its placement, a header
+    // or footer per page). The wrap is a pure function of the two: ParagraphElement is init-only and a
+    // per-page paragraph (a PAGE field) is cloned, not mutated (Fragmenter.SubstitutePageFields), so
+    // reference identity is a sound key. Concurrent because the layout spec tests share one static
+    // measurer across parallel tests; a racing duplicate build is simply discarded. Results are shared,
+    // so nothing downstream may mutate a WrapLine's lists.
     readonly ConcurrentDictionary<(ParagraphElement Paragraph, float MaxWidth), IReadOnlyList<WrapLine>> wrapCache = [];
 
     IReadOnlyList<WrapLine> Wrap(ParagraphElement paragraph, float maxWidth) =>
@@ -906,25 +847,20 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return ascent;
     }
 
-    // How far a line may run past its measure and still fit: a three-hundredth of a layout pixel. The
-    // measure a line is tested against is a float that has usually been through arithmetic on the way
-    // here. An autofit column is the case that bites. It is sized to its content's natural width plus
-    // the cell's chrome (TableLayout.CalculateContentBasedColumnWidths), the cell takes the chrome back
-    // off, and the text is then wrapped at a measure a few millionths of a point short of the width
-    // that was read from it. Compared exactly, the last word of a cell wrapped inside the column sized
-    // to hold it: table_cell_margin_per_cell's "Top margin emphasis" and seven more table fixtures.
-    // It has to stay well under what Word resolves, though: at 0.012pt, which stood here first, eight
-    // of the bordered-run probe's lines fitted a measure Word wraps them at, 0.017px short of it.
+    // How far a line may run past its measure and still fit: a three-hundredth of a layout pixel. An
+    // autofit column is sized to its content plus the cell's chrome, which the cell takes back off, so
+    // the text is wrapped a few millionths of a point short of the width read from it; compared exactly,
+    // a cell's last word wrapped (table_cell_margin_per_cell and seven more). It must stay well under
+    // what Word resolves: at 0.012pt eight of the bordered-run probe's lines fitted a measure Word wraps
+    // them at, 0.017px short of it.
     const double fitTolerancePoints = 0.002;
 
     // A line's width as Word tests it against the measure: the linear pixels, NOT rounded onto the
     // pixel grid. Probed 2026-10-02 by stepping a right indent a pixel at a time: the narrowest
-    // measure a sentence still fits is ceil(linear width) on every one of the 54 logged thresholds,
-    // and on the 31 whose fraction is under one half the pen-rounded width (PixelsToPoints) predicts a
-    // pixel less and matches none — it kept a line that ran up to half a pixel over. What is sized
-    // FROM a line (an autofit column, a frame) reads the same unrounded width off WrapLine.LinearWidth,
-    // so the text fits the box made for it; Word's own columns run 0.3px over it in compatibility
-    // mode 12 and 0.7px over in mode 15.
+    // measure a sentence still fits is ceil(linear width) on all 54 logged thresholds; the pen-rounded
+    // width matches none of the 31 whose fraction is under one half. What is sized FROM a line (an
+    // autofit column, a frame) reads the same width off WrapLine.LinearWidth; Word's own columns run
+    // 0.3px over it in compatibility mode 12 and 0.7px over in mode 15.
     static float LinearPoints(double pixels) =>
         (float) (pixels * 72.0 / CanonicalTextMeasurer.ReferenceDpi);
 
@@ -949,16 +885,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return false;
     }
 
-    // buildItems false skips BuildLineItems and leaves every line's segments and images empty. A line's
-    // WIDTH is the accumulated pen pixels, quantized in CommitLine below — BuildLineItems only positions
-    // what the line already contains — so the widths a caller reads are identical either way.
     /// <summary>
-    /// A word wider than the line breaks where it overflows, as Word breaks it: the corpus layout
-    /// invariants (LayoutInvariantTests) caught business-plans/13's "Marketing/Advertising", 7.8pt wider
-    /// than its 90pt cell, running on into the next column where Word sets "Marketing/Advertis" and
-    /// "ing" on two lines. A piece wider than <paramref name="widthPoints"/> is cut into the longest
-    /// prefixes that fit, each after the first marked as a break opportunity, so the wrap sets them on
-    /// lines of their own. A piece no wider than the line is left alone, as is one that is not text.
+    /// A word wider than the line breaks where it overflows, as Word breaks it (business-plans/13's
+    /// "Marketing/Advertising" in a 90pt cell sets as "Marketing/Advertis" and "ing"). A piece wider than
+    /// <paramref name="widthPoints"/> is cut into the longest prefixes that fit, each after the first
+    /// marked as a break opportunity. A piece no wider than the line is left alone, as is one that is
+    /// not text.
     /// </summary>
     List<Piece> SplitOverlong(List<Piece> pieces, float widthPoints)
     {
@@ -1037,17 +969,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return result;
     }
 
+    // buildItems false skips BuildLineItems and leaves every line's segments and images empty. A line's
+    // WIDTH is the pen pixels quantized in CommitLine, so the widths a caller reads are identical either way.
     IReadOnlyList<WrapLine> BuildWrap(ParagraphElement paragraph, float maxWidth, bool buildItems, bool splitOverlong = true)
     {
         var pieces = Flatten(paragraph);
         var wrapWidth = maxWidth - (float) paragraph.Properties.LeftIndentPoints - (float) paragraph.Properties.RightIndentPoints;
 
-        // Only the FIRST line is re-sized by paragraph indents: w:firstLine indents it right (narrower by
-        // that much) and w:hanging outdents it left (wider by that much, extending toward the outer margin);
-        // subsequent lines sit at the block's LeftIndent and keep the full wrapWidth. Both indents are zero
-        // for a plain paragraph, so nothing changes. A LIST paragraph is exempt: its hanging indent only
-        // positions the marker, the text stays at the LeftIndent on every line. The Fragmenter shifts the
-        // first line's X by the same (FirstLineIndent − Hanging) so the wrap and the paint agree.
+        // Only the FIRST line is re-sized by paragraph indents: w:firstLine narrows it and w:hanging widens
+        // it. A LIST paragraph's first line is narrowed by its marker instead (its hanging indent only
+        // positions the marker). The Fragmenter shifts the first line's X by the same amount.
         var firstLineWidth = paragraph.Properties.Numbering is { Text.Length: > 0 }
             ? wrapWidth - MarkerTextShift(paragraph)
             : wrapWidth
@@ -1167,25 +1098,18 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
         }
 
-        // A justified line in compatibility mode 15 takes one more word than fits, with its spaces
-        // narrowed to make room, when both of these hold (Word-probed 2026-10-11, _probe_just15 and
-        // _probe_just15b: 30 sentences of repeated words in Calibri, Times New Roman and Arial at 10 to
-        // 48pt, each set once per whole pixel of measure, plus the same text in mode 12):
-        //
-        //  - the squeeze is at most a QUARTER of each space. Where the shorter line would be very loose
-        //    the threshold sits there on every case: accepted at 0.250 of the space and refused at
-        //    0.251 (Times New Roman's 5.000px space takes exactly 1.250px).
+        // A justified line in compatibility mode 15 takes one more word than fits, its spaces narrowed
+        // to make room, when both hold (_probe_just15, _probe_just15b, 2026-10-11: 30 sentences in
+        // Calibri, Times New Roman and Arial at 10 to 48pt, set once per pixel of measure, and in mode 12):
+        //  - the squeeze is at most a QUARTER of each space: accepted at 0.250, refused at 0.251 (Times
+        //    New Roman's 5.000px space takes exactly 1.250px).
         //  - the squeeze per space is at most HALF the stretch per space the line would need without
-        //    that word. Fifteen thresholds of 5 to 33 words bracket the factor between 0.497 and
-        //    0.503. It is per space and not a ratio of totals: as totals the same cases accept 0.634
-        //    and refuse 0.587.
-        //
-        // A line with no space left once the word is taken off it has nothing to stretch, and only the
-        // quarter applies (two long words: accepted at 0.229, refused at 0.451). The paragraph's last
-        // line is squeezed by the same test although it is not justified: sixteen words that end the
-        // paragraph stay on one line down to the very measure at which they stay on the first line of
-        // a longer paragraph. In mode 12 all 16 thresholds sit at ceil(linear width), as left-aligned
-        // text does in either mode.
+        //    that word: fifteen thresholds bracket the factor between 0.497 and 0.503. Per space, not a
+        //    ratio of totals (as totals the same cases accept 0.634 and refuse 0.587).
+        // A line with no space left once the word is taken off has nothing to stretch, and only the
+        // quarter applies (accepted at 0.229, refused at 0.451). The paragraph's last line is squeezed by
+        // the same test although it is not justified. In mode 12 all 16 thresholds sit at ceil(linear
+        // width), as left-aligned text does in either mode.
         bool FitsSqueezed(double candidatePixels, List<Piece> wordPieces)
         {
             if (lineHasTab || HasTab(wordPieces))
@@ -1520,9 +1444,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                  pieces[^1].IsBreak)
         {
             // A paragraph ENDING in an explicit line break still carries its paragraph mark on the
-            // line after it — Word draws that box. A cell of seven <w:br/> runs is EIGHT line boxes
-            // in Word's render, and dropping the last left nonstandard_main_part_name's "Notes:"
-            // cell exactly one 26px line short (213px against Word's 238).
+            // line after it: a cell of seven <w:br/> runs is EIGHT line boxes in Word's render
+            // (nonstandard_main_part_name's "Notes:" cell).
             lines.Add(new(0, 0, MarkPitch(paragraph), [], []));
         }
 
@@ -1739,12 +1662,6 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 continue;
             }
 
-            // An inline shape group (a grouped drawing) is measured exactly like an inline image: an
-            // unbreakable box whose display width counts toward the line and whose height grows the line,
-            // carried on a LaidOutImage with no bytes and its ShapeGroup set. The display size is on the
-            // run's inline-image extent, since the two are mutually exclusive.
-            // An inline chart takes the same box, composed into it at layout; a pie or doughnut also
-            // carries its slices, which the chart outranks.
             // A built-up fraction is a box as wide as its wider level, reaching from its numerator's top
             // above the baseline to its denominator's foot below it (MathFractionLayout). The box sits
             // on the line as a picture does, its bottom lowered under the baseline by the part below.
@@ -1756,13 +1673,14 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 continue;
             }
 
+            // An inline shape group or chart is measured like an inline image: an unbreakable box carried
+            // on a LaidOutImage with no bytes, its size on the run's inline-image extent (the two are
+            // mutually exclusive). A chart is composed into the box at layout.
             if (run.InlineShapeGroup is { } || run.InlineChart is { })
             {
-                // A straight connector is a box with no height (or no width) at all, and that is its
-                // size on the line: it stands on the baseline and adds nothing to the line's height.
-                // The 12pt stand-in is for a group that declares no size either way. Giving a rule
-                // 12pt of height drew it at the top of that box, 7pt above the baseline Word rules
-                // (resumes/11's three divider lines).
+                // A straight connector is a box with no height (or no width), and that is its size on
+                // the line: it stands on the baseline (resumes/11's divider lines). The 12pt stand-in
+                // is for a group that declares no size either way.
                 var sized = run.InlineImageWidthPoints > 0 || run.InlineImageHeightPoints > 0;
                 var groupWidth = (float) (sized ? run.InlineImageWidthPoints : 12);
                 var groupHeight = (float) (sized ? run.InlineImageHeightPoints : 12);
@@ -1814,17 +1732,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 (double) metrics.DescentUnits / metrics.UnitsPerEm * run.Properties.FontSizePoints);
 
             // A run border reserves its glyph inset on both sides of the run (BorderStroke.RunBorderGlyphInset):
-            // that is where Word DRAWS the run's first glyph and the run after it. What the border costs
-            // the LINE is more — the whole declared stack and space on each side, unfloored
-            // (BorderStroke.RunBorderReserve), the same quantity it reserves above and below. Word-probed
-            // 2026-10-11 (_probe_runbdr5): a line of six words and one or two bordered runs, set once per
-            // pixel of measure in ten borders — `single` at 0.5, 0.75, 2.25 and 6pt with 0 to 8pt of
-            // space, `double`, `triple` and three thin-thick families at 2.25pt — wraps its last bordered
-            // run 2 x (stack + space) past the text's own width on all forty: 3.25pt a side for a 2.25pt
-            // `single` with 1pt of space where the pen moves 2.4, 12.25 for the `triple` where it moves
-            // 9.6. The difference rides on the piece as FitPixels, charged by the fit test and not by the
-            // pen. border_style_variants' row of four bordered names is the corpus case: drawn, the
-            // fourth ends 16pt short of the measure, and Word wraps it.
+            // where Word DRAWS the run's first glyph and the run after it. What it costs the LINE is the
+            // whole declared stack and space on each side, unfloored (BorderStroke.RunBorderReserve).
+            // _probe_runbdr5 (2026-10-11: one or two bordered runs in ten borders, `single` at 0.5 to 6pt
+            // with 0 to 8pt of space, `double`, `triple` and thin-thick at 2.25pt, set once per pixel of
+            // measure) wraps the last bordered run 2 x (stack + space) past the text on all forty: 3.25pt
+            // a side for a 2.25pt `single` with 1pt of space where the pen moves 2.4, 12.25 for the
+            // `triple` where it moves 9.6. The difference rides on the piece as FitPixels.
             var insetPixels = run.Properties.Border is { } runBorder
                 ? CanonicalTextMeasurer.PixelsFromPoints((float) BorderStroke.RunBorderGlyphInset(runBorder))
                 : 0;
@@ -1836,9 +1750,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 pieces.Add(new(false, insetPixels, pitch, "", drawn, null, false, false, IsInset: true, FitPixels: insetFitPixels));
             }
 
-            // w:spacing tracking widens every character's advance (letter-spacing), so it enters the wrap
-            // and alignment maths through each token's pixel width — matching PdfTextEngine, which adds
-            // CharacterSpacingPoints per character to a token's measured width.
+            // w:spacing tracking widens every character's advance, so it enters the wrap and alignment
+            // maths through each token's pixel width.
             var trackingPerChar = run.Properties.CharacterSpacingPoints;
 
             // w:caps upper-cases the run; a soft line break (the parser emits it as "\n") splits the run
@@ -1859,10 +1772,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 foreach (var (token, isSpace, breaksBefore) in TokenizeText(parts[partIndex]))
                 {
                     // A no-break space glues its neighbours into one unbreakable token (TokenizeText
-                    // only splits on ' ', so it rides inside the word — Word never wraps at one),
-                    // but it MEASURES and PAINTS as an ordinary space: fonts that don't map U+00A0
-                    // resolved it to .notdef's wide advance, so "to improve" drew with a
-                    // double-width gap where Word shows a single space (business-plans/05).
+                    // only splits on ' '), but MEASURES and PAINTS as an ordinary space: fonts that do
+                    // not map U+00A0 would give it .notdef's wide advance (business-plans/05).
                     var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
                     var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, WidthScale(run.Properties), kerning, LigaturesEnabled(run.Properties));
                     if (trackingPerChar != 0)
@@ -2002,41 +1913,26 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         };
     }
 
-    // Draws a line's runs as wide as Word draws them (todo #43). Word breaks a line on the font's linear
-    // advances but DRAWS each glyph a whole pixel of its 120-dpi grid wide, at the em rounded to a whole
-    // pixel, a glyph of the bold simulation a pixel more (BoldSimulation.AdvancePoints). Read off Word's
-    // XPS (2026-11-08): _probe_kerndraw_c12 / _c15, Aptos and Calibri at 10, 11, 12, 24 and 48pt in
-    // packages with no styles part, so kerned by Word's built-in Normal (DocumentParser's
-    // builtInKerningMinPoints); and four corpus templates that do not kern (letters/13, resumes/06,
-    // newsletters/04, business/03: Posterama, Arial Nova, Euphemia, Sylfaen, Calibri).
-    // - In compatibility modes 12 and 14 a glyph is the 26.6 scaled advance round(units x ppem x 64 /
-    //   upm) rounded up from 30/64px; in mode 15 rounded to the nearest pixel. A run that kerns
-    //   (KerningEnabled) draws the pair's kern too: in modes 12 and 14 the kern with the glyph after it,
-    //   rounded to a whole pixel at the unrounded em, is added to that pixel (1360 of 1360 Aptos
-    //   advances and 1364 of 1364 Calibri, where the plain pixel alone gets 73-90%); in mode 15 it joins
-    //   the advance before the rounding (94% at 12pt, against 77-83% for the plain pixel; the rest is
-    //   presumably the hinting's). A run that does not kern draws the plain pixel (99-100% in the
-    //   templates; adding the kern there put them 1-2% off and drew their lines narrow).
-    // - The pen is never pulled back, and at a space it is brought up to the linear position the line
-    //   was laid out on (kerned where the run kerns), by whole pixels and only once it trails that
-    //   position by more than 0.6px: 537 of 544 spaces in the kerned probe, 90-100% of the templates'
-    //   (the pen after a space within 0.06-0.11px of Word's on average, where catching up to the exact
-    //   linear position was 0.23-0.28px off). Catching up to the UNKERNED position in a run that kerns
-    //   undid the kerning at every space, which put 12pt Aptos words 1-3px right of Word's mid-line
-    //   (multiple_pages' "Paragraph" draws 3px narrow, its Pa and ra kerned a pixel each).
-    // So where the whole pixels run wide (12pt Calibri draws 3.6% wider) a line ends right of where it
-    // was laid out: multiple_pages' full lines end at x=1124 in Word and stopped at 1095. Each run is
-    // drawn as wide as the pen takes it, every glyph where the pen stands when it reaches it
-    // (WrapSegment.GlyphX, which the painters draw at — the pen does not run evenly along a line: on
-    // multiple_pages' first line Word's stands 0.7px behind the linear position at the first space and
-    // 9px ahead at the end, so a width spread evenly over the run's glyphs left its middle words 2-3px
-    // off Word's), and everything after it on the line moved along. A run stretched by w:w, whose
-    // painters scale the canvas about its start, still spreads its glyphs evenly instead
-    // (CharacterSpacingPoints). Only where the line has the room, and then by no more than the room:
-    // Word narrows the spaces of a line that would overrun its measure, and so does GiveBack. A justified
-    // or squeezed line has had its room given to its spaces, and a line with a tab, a leader or an inline
-    // picture places things at positions this would have to move with it; those stay as they are.
-    // Returns the points the line grew by.
+    // Draws a line's runs as wide as Word draws them. Word breaks a line on the font's linear advances
+    // but DRAWS each glyph a whole pixel of its 120-dpi grid wide, at the em rounded to a whole pixel, a
+    // glyph of the bold simulation a pixel more (BoldSimulation.AdvancePoints). Read off Word's XPS
+    // (2026-11-08): _probe_kerndraw_c12 / _c15 (Aptos and Calibri at 10 to 48pt, kerned by Word's
+    // built-in Normal) and four corpus templates that do not kern (letters/13, resumes/06,
+    // newsletters/04, business/03).
+    // - In modes 12 and 14 a glyph is the 26.6 scaled advance round(units x ppem x 64 / upm) rounded up
+    //   from 30/64px; in mode 15 rounded to the nearest pixel. A run that kerns adds the pair's kern: in
+    //   modes 12 and 14 rounded to a whole pixel at the unrounded em and added to that pixel (1360 of
+    //   1360 Aptos advances, 1364 of 1364 Calibri); in mode 15 joined to the advance before rounding
+    //   (94% at 12pt). A run that does not kern draws the plain pixel (99-100% in the templates).
+    // - The pen is never pulled back, and at a space it is brought up by whole pixels to the linear
+    //   position (kerned where the run kerns) once it trails by more than 0.6px: 537 of 544 spaces in
+    //   the kerned probe, 90-100% of the templates'.
+    // Each run is drawn as wide as the pen takes it, every glyph where the pen stands when it reaches it
+    // (WrapSegment.GlyphX — the pen does not run evenly along a line), and everything after it on the
+    // line moves along. A run stretched by w:w spreads its glyphs evenly instead (CharacterSpacingPoints).
+    // Only where the line has the room, and by no more than it: Word narrows the spaces of a line that
+    // would overrun its measure, and so does GiveBack. A justified or squeezed line, or one with a tab,
+    // a leader or an inline picture, stays as it is. Returns the points the line grew by.
     float DrawAtWordPixels(List<WrapSegment> segments, double roomPoints)
     {
         if (segments.Count == 0 ||
@@ -2236,14 +2132,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     }
 
     // A runless paragraph that exists only to carry a section break's sectPr contributes its spacing but
-    // no line box — see ParagraphElement.IsSectionBreakMark for the Word probe. A paragraph with runs
-    // keeps its line whatever the flag says, so this can never swallow visible text.
-    //
-    // Deliberately NOT keyed on IsAnchorOnlyMark, the flag the parser sets for a paragraph whose only
-    // content was behind-text decorative art: Word gives that mark its line. Honouring the flag here
-    // regressed 104 of 108 changed pages (aggregate mean |Word−render| 8.4 → 56.8, menus/08 and
-    // brochures/01 to ~190 grey levels), because those paragraphs anchor art whose placement depends on
-    // the line, and agendas-minutes/11, the case it was written for, matches Word with the line kept.
+    // no line box (ParagraphElement.IsSectionBreakMark). Not keyed on IsAnchorOnlyMark: Word gives a
+    // paragraph holding only behind-text art its line, and the art's placement depends on it.
     static bool TakesNoLine(ParagraphElement paragraph) =>
         paragraph is {IsSectionBreakMark: true, Runs.Count: 0};
 
@@ -2259,15 +2149,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return SinglePitch(metrics, mark.FontSizePoints);
     }
 
-    // The font that sizes a paragraph's mark line. Word sizes a blank line by the paragraph mark's own run
-    // properties (w:rPr on w:pPr) — so the mark's rPr wins, mirroring PdfTextEngine.EmptyLineHeight. A
-    // leading run stands in only when the mark carries no rPr: falling straight to a fresh RunProperties
-    // (default font, 11pt) shrank empty spacer lines. The mark must win over a run to avoid a zero-length
-    // leading run — a deleted-text artefact whose font differs from the mark (resumes/11 parks an empty
-    // 11pt run over an 8pt mark) — over-sizing the spacer line by half a line each. With neither rPr nor a
-    // run, a bare ParagraphMarkFontSizePoints still sizes the mark at the default face — again mirroring
-    // PdfTextEngine (`ParagraphMarkFontSizePoints ?? 11`): cards/05's header holds an empty 2pt-mark
-    // paragraph, and ignoring the size reserved a full 11pt header line, starting every card table 11pt low.
+    // The font that sizes a paragraph's mark line. Word sizes a blank line by the mark's own run
+    // properties (w:rPr on w:pPr), so they win even over a leading run (resumes/11 parks an empty 11pt
+    // run over an 8pt mark). A leading run stands in only when the mark carries no rPr. With neither, a
+    // bare ParagraphMarkFontSizePoints still sizes the mark (cards/05's header's empty 2pt-mark paragraph).
     static RunProperties MarkProperties(ParagraphElement paragraph)
     {
         if (paragraph.Properties.ParagraphMarkRunProperties is { } markProperties)
@@ -2280,10 +2165,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return paragraph.Runs[0].Properties;
         }
 
-        // Neither the mark's own rPr nor a leading run: fall back to whatever the mark's size and face
-        // resolved to. The FACE matters as much as the size here, since an auto line box comes straight
-        // from the font's metrics — sizing the mark correctly but measuring it against the record's
-        // default face still gets the pitch wrong.
+        // Neither: whatever the mark's size and face resolved to. The FACE matters as much as the size,
+        // since an auto line box comes straight from the font's metrics.
         var markSize = paragraph.Properties.ParagraphMarkFontSizePoints;
         var markFamily = paragraph.Properties.ParagraphMarkFontFamily;
         if (markSize is { } size)
@@ -2306,9 +2189,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),
     // then splits each non-space run AFTER every internal hyphen, matching
-    // CanonicalTextMeasurer.WrapLines. The hyphen pieces carry BreaksBefore so the wrap may start a
-    // line at one; they are separate pieces rather than one token because a break opportunity inside a
-    // word is exactly what the gathering loop needs to see.
+    // CanonicalTextMeasurer.WrapLines. The pieces after a hyphen carry BreaksBefore so the wrap may
+    // start a line at one.
     static IEnumerable<(string Text, bool IsSpace, bool BreaksBefore)> TokenizeText(string text)
     {
         var start = 0;

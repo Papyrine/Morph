@@ -2,11 +2,10 @@ namespace Morph;
 
 // Editing: a Word document's text, changed where it stands on the page.
 //
-// The reader clicks a paragraph and the script lays an editor over it — the paragraph's own text, in
-// the face the page drew it in. What is typed there stays in the browser until the reader moves on;
-// then the paragraph as it now reads comes back here, is written into the file (DocumentEditor), and
-// the file is laid out again like any edit the review pane makes. So typing is as quick as the
-// browser, and the pages are never anything but what the file says.
+// The typing is morph-edit.js's (its header says how), and what crosses between it and here is
+// EditSession's. The paragraph handed back is written into the file here (DocumentEditor) and the file
+// laid out again like any edit the review pane makes, so the pages are never anything but what the
+// file says.
 //
 // Formatting and deleting also work on text selected across the pages, with no editor open: those
 // go straight to the file.
@@ -472,13 +471,9 @@ public partial class MorphViewer
 
     /// <summary>
     /// Called from JavaScript for a key whose command is carried out here, where the reader is, by the
-    /// command's name: Tab and Shift+Tab in a list (<c>indent</c>, <c>outdent</c>), Enter in an empty
-    /// paragraph of one (<c>end-list</c>), Backspace at the start of one or of an indented paragraph
-    /// (<c>unindent</c>), Enter at the end of a heading (<c>follow-on</c>), Ctrl+Alt+1 to 3
-    /// (<c>heading1</c> to <c>heading3</c>), Ctrl+K (<c>link</c>), and the Font and Paragraph groups'
-    /// keys (<c>grow</c>, <c>shrink</c>, <c>subscript</c>, <c>superscript</c>, <c>clear-formatting</c>,
-    /// <c>bullets</c>, <c>line-single</c>, <c>line-double</c>, <c>line-one-and-half</c>), and Alt+Shift+D,
-    /// P and T (<c>date-field</c>, <c>page-field</c>, <c>time-field</c>).
+    /// command's name in <c>MorphEditor.Commands</c>: a list's and a heading's keys (morph-edit.js
+    /// <c>onParagraphKey</c>) and Word's keys for the ribbon's commands (<c>wordKey</c>), which say which
+    /// key is which name.
     /// </summary>
     [JSInvokable]
     public Task OnEditKey(string name) =>
@@ -730,7 +725,7 @@ public partial class MorphViewer
     [JSInvokable]
     public Task OnMenuEscape() =>
         InvokeAsync(
-            async () =>
+            () =>
             {
                 // A menu leaves the paragraph open under it; a dialog took the reader away from it.
                 var dialog = EscapeCancelsDialog;
@@ -738,8 +733,10 @@ public partial class MorphViewer
                 StateHasChanged();
                 if (dialog)
                 {
-                    await ReturnToDocumentAsync();
+                    return ReturnToDocumentAsync();
                 }
+
+                return Task.CompletedTask;
             });
 
     // MorphEditor's: whether Escape now closes a dialog rather than a menu. The viewer has neither.
@@ -793,11 +790,11 @@ public partial class MorphViewer
     [JSInvokable]
     public Task OnRibbonEscape() =>
         InvokeAsync(
-            async () =>
+            () =>
             {
                 CloseMenus();
                 StateHasChanged();
-                await ReturnToDocumentAsync();
+                return ReturnToDocumentAsync();
             });
 
     // Back where the reader left the document, once something that took them away from it is done

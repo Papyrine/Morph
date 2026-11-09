@@ -7,12 +7,9 @@ using SkiaSharp;
 /// face and its italic — or the family NAME may carry a lighter weight, which deliberately
 /// outranks the bold flag for face selection (see <c>FontHelpers.ResolveTargetWeight</c>: a bold
 /// run in "Segoe UI Semilight" must still resolve Semilight rather than jumping to a different
-/// family member). Either way Word draws the run bold.
-///
-/// The old gate only emboldened when the NAME-derived target weight exceeded the face by 200+, so
-/// "Franklin Gothic Book" resolved a target of 400 against a 400 face and never fired — resumes/07's
-/// "Company, location" and its SKILLS labels rendered at normal weight against Word's bold.
-/// Rendered through the engine path, the only raster pipeline.
+/// family member). Either way Word draws the run bold — resumes/07's "Company, location" and its
+/// SKILLS labels, in "Franklin Gothic Book", among them. Gating on the NAME-derived target weight
+/// would never fire there: it resolves 400 against a 400 face.
 /// </summary>
 public class SyntheticBoldTests
 {

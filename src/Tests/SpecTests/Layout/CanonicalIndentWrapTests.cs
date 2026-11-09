@@ -1,15 +1,12 @@
 /// <summary>
 /// The measurer must subtract <c>ParagraphProperties.RightIndentPoints</c> from the wrap width, exactly
-/// like the left indent. The PDF backend used to drop the right indent entirely, so a right-indented
-/// paragraph wrapped at a Word-divergent (too wide) width — masked in tab-column layouts by a
-/// since-removed tab-overflow hack (issue #151 follow-up). These assertions began as PDF-backend
-/// regression guards; the rule now lives once in <see cref="CanonicalParagraphMeasurer"/>, which every
-/// output measures through, so the per-backend divergence class they guarded is structurally gone and
-/// what remains to protect is the shared rule.
+/// like the left indent; dropping it wraps a right-indented paragraph at a Word-divergent (too wide)
+/// width. The rule lives once in <see cref="CanonicalParagraphMeasurer"/>, which every output measures
+/// through.
 /// </summary>
 public class CanonicalIndentWrapTests
 {
-    // The old PDF fixture's geometry: 612x792 with 72pt margins.
+    // 612x792 with 72pt margins.
     const float contentWidth = 612 - 144;
 
     static readonly CanonicalParagraphMeasurer measurer = LayoutTestFonts.Measurer;
@@ -47,8 +44,8 @@ public class CanonicalIndentWrapTests
     }
 
     // Table-cell path: MeasureParagraphHeightWithWidth takes the cell inner width and must remove both
-    // indents, matching how the cell lays out. Passing the raw width to the wrap made an indented cell
-    // paragraph measure shorter than it renders, under-sizing rows.
+    // indents, matching how the cell lays out, or an indented cell paragraph measures shorter than it
+    // renders, under-sizing rows.
     [Test]
     public async Task TableCellRightIndentNarrowsCellWrapLikeLeftIndent()
     {
@@ -71,8 +68,6 @@ public class CanonicalIndentWrapTests
 
     // Autofit column width (MeasureParagraphNaturalWidth) is the bare content width — the shared
     // TableLayout adds cell padding/margin itself, so a paragraph's own indent must not inflate it.
-    // The PDF measurer used to add the left indent, making its autofit columns a left-indent wider
-    // than the raster ones.
     [Test]
     public async Task AutofitNaturalWidthExcludesTheParagraphIndent()
     {
@@ -148,8 +143,7 @@ public class CanonicalIndentWrapTests
 
     /// <summary>
     /// A leading tab must not license the first line to spill into the right margin: wrapped at a given
-    /// width, no line — the tab-led first one included — may exceed it. Before the fix the first line ran
-    /// about a whole right margin (72pt) over.
+    /// width, no line — the tab-led first one included — may exceed it.
     /// </summary>
     [Test]
     public async Task LeadingTabDoesNotLetFirstLineSpillIntoRightMargin()
@@ -158,9 +152,9 @@ public class CanonicalIndentWrapTests
         // (twips → points), a literal "1." followed by a tab, then a long body run that wraps.
         const double leftIndentPoints = 425 / 20d;
         var runProperties = new RunProperties {FontFamily = "Arial", FontSizePoints = 11};
-        // Short words fill the first line at a fine granularity, so before the fix the leading tab's
-        // right-margin licence let the line pack words to roughly a whole right margin past the content
-        // edge; wrapped at the content width it stops within one short word of it.
+        // Short words fill the first line at a fine granularity, so a right-margin licence for the
+        // leading tab would pack words well past the content edge; wrapped at the content width it stops
+        // within one short word of it.
         var body = string.Join(' ', Enumerable.Repeat("en te de op in za om of", 30));
         var paragraph = new ParagraphElement
         {

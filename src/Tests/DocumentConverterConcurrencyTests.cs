@@ -10,7 +10,7 @@ public class DocumentConverterConcurrencyTests
     // overlapping work on different documents — that's what triggers the cross-contamination
     // (parsing the same docx twice can mask the race because the overwritten field happens
     // to hold the same value either way). complex_tables and bullet_list together exercise
-    // the parser fields the original race corrupted (style borders, numbering, theme).
+    // the race-prone parser fields (style borders, numbering, theme).
     //
     // Both Skia and ImageSharp derive from DocumentConverter, so the parse path
     // covered here is shared across both backends.

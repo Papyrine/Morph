@@ -3,11 +3,10 @@ extern alias ImageSharp;
 
 /// <summary>
 /// Pins the order the shared <c>FontResolver</c> walks its fallbacks in: the curated
-/// <see cref="FontHelpers.FontFallbacks"/> alias first, then the caller's <c>FontFallback</c>. The
-/// alias used to win outright, so where its target was absent the family threw rather than reach
-/// the caller's fallback. business-plans/13 is set in Avenir Next LT Pro, which the alias maps to
-/// Century Gothic; the Blazor app's font directory holds only Aptos and maps every other family to
-/// it, and every page of that document failed to render there.
+/// <see cref="FontHelpers.FontFallbacks"/> alias first, then the caller's <c>FontFallback</c>, so
+/// an alias whose target is absent still reaches the caller's fallback. business-plans/13 is set in
+/// Avenir Next LT Pro, which the alias maps to Century Gothic; the Blazor app's font directory holds
+/// only Aptos and maps every other family to it.
 /// </summary>
 public class FontFallbackOrderTests
 {

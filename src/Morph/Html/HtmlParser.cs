@@ -16,9 +16,8 @@ sealed class HtmlParser
     /// The size HTML text is set at when nothing sizes it: CSS's <c>medium</c>, 16px, which is 12pt.
     /// Word imports at it too — XPS-read 2026-10-11 off html_complex's own AltChunk
     /// (<c>_probe_htmlsize</c>): paragraphs, table cells and list items all draw at an em of 12.00,
-    /// headings at 24.02 and 18.02, superscripts at 7.80. The model's own default of 11pt stood in
-    /// here until then, which set every HTML line 8% narrow: paragraphs that wrap in Word did not,
-    /// and rows and pages ran short of Word's by the same share.
+    /// headings at 24.02 and 18.02, superscripts at 7.80. The model's own default of 11pt sets every
+    /// HTML line 8% narrow.
     /// </summary>
     const double defaultFontSizePoints = 12;
 
@@ -619,8 +618,7 @@ sealed class HtmlParser
                 LeftIndentPoints = style?.MarginLeftPoints ?? 0,
                 RightIndentPoints = style?.MarginRightPoints ?? 0,
                 // Single spacing: Word's two-line HTML paragraph sets its baselines 13.8pt apart,
-                // 12pt Times New Roman's own line (_probe_htmlsize). 1.08 stood here while the text
-                // was set at 11pt, which made nearly the same pitch out of the wrong size.
+                // 12pt Times New Roman's own line (_probe_htmlsize).
                 LineSpacingMultiplier = style?.LineHeight ?? 1.0,
                 BackgroundColorHex = style?.BackgroundColor,
                 Borders = style?.Borders,
@@ -657,8 +655,7 @@ sealed class HtmlParser
     /// indentation like <c>&lt;p style="…"&gt;\n    text\n&lt;/p&gt;</c>, which neither a browser
     /// nor Word renders. The literal newlines otherwise become soft line breaks and each takes a
     /// line box (a bordered box grew two blank lines taller than Word's). INTERNAL whitespace is
-    /// deliberately untouched — the full CSS collapse was tried 2026-07-21 and reverted, see
-    /// docs/html-import.md.</summary>
+    /// deliberately untouched — see docs/html-import.md.</summary>
     static void TrimEdgeWhitespace(List<Run> runs)
     {
         while (runs.Count > 0 &&
@@ -1804,8 +1801,7 @@ sealed class HtmlParser
                 }
 
                 // The cell's own font styling reaches its text: a <td style="font-size:36pt"> sets its
-                // text at 36pt in Word (_probe_cellsize), where only <span>s inside it had been read.
-                // Its background and colour are the cell's own fill and text colour above, not run
+                // text at 36pt in Word (_probe_cellsize). Its background and colour are the cell's own fill and text colour above, not run
                 // shading.
                 if (cell.GetAttribute("style") is { Length: > 0 } fontStyle)
                 {
@@ -1862,11 +1858,10 @@ sealed class HtmlParser
                             // A cell's own paragraph is Word's Normal: a 278/240 line with 8pt after it.
                             // Read off Word's XPS (_probe_cellsize, cellpadding 0): every cell holds 8.0
                             // to 8.3pt more than its lines at 12, 24 and 36pt text and at two lines alike
-                            // — space after the paragraph, not a taller line. The line was taken for 1.15
-                            // until _probe_cellpitch (2026-11-01, eight-row borderless tables of Aptos at
-                            // 12, 24 and 48pt) stood its rows 24.96, 41.96 and 75.89pt apart: 8pt and
-                            // 1.414 of the size, which is Aptos's 1.2207 line at 278/240 to 0.02pt, where
-                            // 1.15 fell 0.75% short at every size. (A row whose bottom margin a cell's
+                            // — space after the paragraph, not a taller line. _probe_cellpitch (eight-row
+                            // borderless tables of Aptos at 12, 24 and 48pt) stands its rows 24.96, 41.96
+                            // and 75.89pt apart: 8pt and 1.414 of the size, which is Aptos's 1.2207 line at
+                            // 278/240 to 0.02pt, where 1.15 falls 0.75% short. (A row whose bottom margin a cell's
                             // CSS margin deepens takes it out of that, below.)
                             Properties = new()
                             {
@@ -1985,23 +1980,22 @@ sealed class HtmlParser
         // table is outdented by everything sitting left of that text: the cell padding and the
         // border. Probed against Word at 150 DPI (three tables in one document, differing only in
         // these values): the first glyph lands at x=152 for cellpadding 0, cellpadding 15 and
-        // border=3 alike, while the frame moves to 144, 125 and 137 to suit. Anchoring the frame
-        // at the margin instead — what Morph did — pushed cell text up to 30px right of Word's.
-        // A table that fills its container is deliberately left on the old footing, in BOTH the
-        // pixel conversion and the outdent. Word widens a full-width table by the inset at each end
-        // so its cell text still spans the text column exactly, while Morph's fill-container path
-        // resolves columns against the container width alone — and with a fixed total width the
-        // padding drives the COLUMN distribution, so correcting it alone moves every column away
-        // from Word. html_complex is the whole of that evidence: correct 6pt padding measured
-        // +0.015 AE per backend against the too-large 8pt. The pixel rule is right and the column
-        // distribution is the compensating error; they have to land together.
+        // border=3 alike, while the frame moves to 144, 125 and 137 to suit; a frame anchored at
+        // the margin puts cell text up to 30px right of Word's.
+        // A table that fills its container is deliberately exempt, in BOTH the pixel conversion and
+        // the outdent. Word widens a full-width table by the inset at each end so its cell text still
+        // spans the text column exactly, while the fill-container path resolves columns against the
+        // container width alone — and with a fixed total width the padding drives the COLUMN
+        // distribution, so correcting the padding alone moves every column away from Word
+        // (html_complex: the correct 6pt padding measured +0.015 AE per backend against 8pt). The
+        // pixel rule and the column distribution have to land together.
         //
         // The rate is 0.6pt a pixel, a side, not the 0.75 every other pixel takes: read off Word's XPS
         // (_probe_cellpad, two-row bordered tables at cellpadding 0 / 10 / 20 / 40) the row pitch is
         // 26.52 / 38.55 / 50.52 / 74.52pt, 1.2pt per pixel, the cell text drops 6 / 12 / 24pt below
         // the table's top, and the second column moves 12pt per 10px. A full-width table takes the
-        // rate vertically too — its rows are what html_complex's 35pt pitch is made of — and keeps
-        // its old horizontal footing for the column distribution described above.
+        // rate vertically too — its rows are what html_complex's 35pt pitch is made of — but not
+        // horizontally, for the column distribution described above.
         // A table that sets no padding, by attribute or CSS, takes HTML's default of 1px. Read off
         // Word's XPS (_probe_htmltabledefaults, 2026-10-30): borderless rows of 12pt text stand 26.42pt
         // apart at cellspacing=0 and 25.02pt with cellpadding=0 as well, and 28.02 / 26.62 with the
@@ -2131,8 +2125,7 @@ sealed class HtmlParser
     static CellSpacing? ParseCssSpacing(string style, string property) =>
         ParseCssSpacing(ParseStyleAttribute(style), property);
 
-    // Overload for callers that already parsed the style attribute — a table cell's style
-    // used to be tokenized three times (padding, margin, then the general lookup).
+    // Overload for callers that already parsed the style attribute.
     static CellSpacing? ParseCssSpacing(Dictionary<string, string> styles, string property)
     {
         // Try shorthand property

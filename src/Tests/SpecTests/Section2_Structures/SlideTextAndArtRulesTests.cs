@@ -1,4 +1,3 @@
-using System.Text;
 using DocumentFormat.OpenXml.Packaging;
 using A = DocumentFormat.OpenXml.Drawing;
 using P = DocumentFormat.OpenXml.Presentation;
@@ -39,7 +38,7 @@ public class SlideTextAndArtRulesTests
     [Test]
     public async Task NestedFlips_Cancel()
     {
-        A.TransformGroup Flipped() =>
+        static A.TransformGroup Flipped() =>
             new(
                 new A.Offset { X = 0, Y = 0 },
                 new A.Extents { Cx = 400, Cy = 400 },
@@ -148,7 +147,7 @@ public class SlideTextAndArtRulesTests
     public async Task Svg_IsStretchedToItsFrame()
     {
         var stretched = Encoding.UTF8.GetString(
-            SvgStretch.Apply(Encoding.UTF8.GetBytes("""<?xml version="1.0"?><svg width="361" height="1085" viewBox="0 0 361 1085" preserveAspectRatio="xMidYMid"><rect/></svg>"""))!);
+            SvgStretch.Apply("""<?xml version="1.0"?><svg width="361" height="1085" viewBox="0 0 361 1085" preserveAspectRatio="xMidYMid"><rect/></svg>"""u8.ToArray())!);
 
         await Assert.That(stretched).IsEqualTo("""<?xml version="1.0"?><svg preserveAspectRatio="none" width="361" height="1085" viewBox="0 0 361 1085"><rect/></svg>""");
     }
@@ -158,7 +157,7 @@ public class SlideTextAndArtRulesTests
     public async Task Svg_WithoutViewBox_GainsOne()
     {
         var stretched = Encoding.UTF8.GetString(
-            SvgStretch.Apply(Encoding.UTF8.GetBytes("""<svg width="20px" height="10"><rect/></svg>"""))!);
+            SvgStretch.Apply("""<svg width="20px" height="10"><rect/></svg>"""u8.ToArray())!);
 
         await Assert.That(stretched).IsEqualTo("""<svg preserveAspectRatio="none" viewBox="0 0 20 10" width="20px" height="10"><rect/></svg>""");
     }
@@ -173,7 +172,7 @@ public class SlideTextAndArtRulesTests
         $"""<a:p><a:pPr lvl="{level}"><a:buChar char="•"/></a:pPr><a:r><a:t>{text}</a:t></a:r></a:p>""";
 
     static string Plain(string text) =>
-        $"""<a:p><a:pPr><a:buNone/></a:pPr><a:r><a:t>{text}</a:t></a:r></a:p>""";
+        $"<a:p><a:pPr><a:buNone/></a:pPr><a:r><a:t>{text}</a:t></a:r></a:p>";
 
     // Each paragraph's marker in order, "|"-separated, empty where it has none.
     static string Markers(params string[] paragraphs) =>

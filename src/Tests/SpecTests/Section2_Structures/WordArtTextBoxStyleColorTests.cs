@@ -4,9 +4,9 @@
 /// the run's RESOLVED properties (direct run rPr over the paragraph style chain over the document
 /// defaults), not the WordArt defaults. menus/03's "EVENT INTRO"/"EVENT DATE" labels carry NO run
 /// rPr — their formatting lives entirely in the Heading1 -> Normal chain (10pt, white via
-/// <c>w:color w:val="FFFFFF" w:themeColor="background1"</c>). Reading only the first run's direct
-/// properties left them 36pt black — invisible on the template's dark band and oversized. This guards
-/// that <c>ParseWordArt</c> resolves the same cascade the body text path uses.
+/// <c>w:color w:val="FFFFFF" w:themeColor="background1"</c>); the WordArt defaults would draw them
+/// 36pt black, invisible on the template's dark band. This guards that <c>ParseWordArt</c> resolves
+/// the same cascade the body text path uses.
 /// </summary>
 public class WordArtTextBoxStyleColorTests
 {
@@ -25,9 +25,9 @@ public class WordArtTextBoxStyleColorTests
         await Assert.That(labels.Count).IsEqualTo(2);
         foreach (var label in labels)
         {
-            // Heading1 -> Normal resolves to white; the WordArt used to leave this null (black).
+            // Heading1 -> Normal resolves to white.
             await Assert.That(label.FillColorHex).IsEqualTo("FFFFFF");
-            // Heading1 sets w:sz 20 half-points = 10pt; the WordArt used to default to 36pt.
+            // Heading1 sets w:sz 20 half-points = 10pt.
             await Assert.That(label.FontSizePoints).IsEqualTo(10d);
         }
     }

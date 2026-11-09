@@ -3,11 +3,8 @@
 /// </summary>
 /// <remarks>
 /// <para>
-/// OOXML carries two unrelated families of colour transform, and they were previously conflated
-/// into one pair of <c>Shade</c>/<c>Tint</c> byte fields with two different models applied to them
-/// depending on which parser reached the colour first — a literal <c>a:srgbClr</c> went through an
-/// sRGB-space blend, the identical transform on an <c>a:schemeClr</c> went through HSL luminance.
-/// Word applies neither of those to <c>a:shade</c>.
+/// OOXML carries two unrelated families of colour transform, and Word applies them in different
+/// spaces — neither of them an sRGB-space blend or HSL luminance for <c>a:shade</c>.
 /// </para>
 /// <para>
 /// Measured against Word over 98 rendered swatches (six probe fixtures, two base colours each,

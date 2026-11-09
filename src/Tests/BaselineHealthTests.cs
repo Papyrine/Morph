@@ -3,13 +3,8 @@
 /// scenario suite runs (<see cref="SkiaScenarioTests"/> / <see cref="ImageSharpScenarioTests"/>
 /// and the PDF export snapshots) compares each rendered page against its own committed
 /// <c>*.verified.png</c> — so once a broken page is promoted, AE and SSIM compare the baseline
-/// against itself and stay green forever. That blindness let a real regression through twice:
-/// a metric-invisible thin-strip class, and — the case this guard is named for — four
-/// <c>newsletters/06</c> Skia pages that collapsed to a solid navy fill with no content
-/// (promoted broken at 8da1f624d, 2026-07-18) yet passed the suite because the baseline was
-/// itself the broken image. That scenario is doubly instructive: it renders 6 pages against
-/// Word's 4, and a page-count mismatch suppresses the per-page AE/SSIM diffs entirely, so it
-/// had no metric coverage at all — this guard was the only thing watching it.
+/// against itself and stay green forever. A page-count mismatch against Word also suppresses
+/// the per-page AE/SSIM diffs entirely, so such a scenario has no metric coverage but this guard.
 /// A rendered document page essentially always carries anti-aliased text, so it has hundreds
 /// of unique colours. A page that has collapsed to a single solid fill has a handful. Across
 /// the whole corpus the two populations are cleanly separated: the degenerate pages sit at
@@ -27,10 +22,8 @@
 ///   completeness check: a page that dropped most of its content but kept a chart still has
 ///   hundreds of colours and is out of scope here (that is what the AE/SSIM comparison against
 ///   the Word reference is for).
-///
-/// File-size collapse was considered as a second signal and rejected: PNG size is content- and
-/// encoder-dependent (the solid-navy Skia pages were still ~18 KB), so it is far noisier than
-/// the unique-colour count, which separates the two populations exactly.
+/// * PNG file size is not used: it is content- and encoder-dependent, far noisier than the
+///   unique-colour count.
 /// </summary>
 public class BaselineHealthTests
 {
@@ -73,27 +66,15 @@ public class BaselineHealthTests
         // basic-business-invoice spills a single banded row onto a second page, and Excel does the
         // same: its own expected_0002.png has 14 unique colours and one 5px ink band at rows
         // 116-120, against the render's 13-15 colours and a band at 116-119. A near-empty page is
-        // the CORRECT output here, so the collapse is not a defect to chase.
-        //
-        // ImageSharp joined the list on 2026-08-14 and left it again on 2026-08-19, having crossed
-        // the threshold in both directions without the page changing: it read 21 colours
-        // (ImageSharp.Drawing 3.1 anti-aliasing the one band over more levels), then 14 when a
-        // column-width change shifted where the band landed, then 21 again when the exact-row-fit
-        // change (page_counts.md exp 22) shifted it back. Measured at the third flip: Skia 14
-        // colours and ImageSharp 21, both inking the SAME 48 rows (72-119) against Excel's own 48
-        // (73-120), and ImageSharp's page-2 SSIM moved 0.9851 -> 0.9951 — nearer Excel, not further.
-        // It was left off the list because the threshold is what keeps moving, not the render. It crossed a fourth time on 2026-09-05, when cell rules went
-        // onto Word's 120-dpi grid (a 0.5pt rule now draws 0.6pt, 1.25px at 150 DPI, over fewer
-        // anti-aliasing levels) and the page read exactly 16 — the same one band, the same rows. It
-        // is listed on all three backends now: the page IS near-empty by design, and every flip so
-        // far has been the threshold, never the content.
+        // the CORRECT output here, so the collapse is not a defect to chase. Its colour count
+        // straddles the threshold as anti-aliasing shifts, without the content changing, so all
+        // three backends are listed.
         "basic-business-invoice/skia_result#page_0002.verified.png",
         "basic-business-invoice/imagesharp_result#page_0002.verified.png",
         "basic-business-invoice/pdf_result#page_0002.verified.png",
-        // weekly-lesson-planner carries its trailing empty rows onto a second page since trailing empty
-        // table rows stopped being absorbed (2026-09-24, docs/word-features.md Multi-page Tables rule 8).
-        // Excel prints that page too: its expected_0002.png is near-empty, and the page's AE against it
-        // fell 0.241 -> 0.011. Correct output.
+        // weekly-lesson-planner carries its trailing empty rows onto a second page (docs/word-features.md
+        // Multi-page Tables rule 8). Excel prints that page too: its expected_0002.png is near-empty.
+        // Correct output.
         "weekly-lesson-planner/skia_result#page_0002.verified.png",
         "weekly-lesson-planner/imagesharp_result#page_0002.verified.png",
         "weekly-lesson-planner/pdf_result#page_0002.verified.png"

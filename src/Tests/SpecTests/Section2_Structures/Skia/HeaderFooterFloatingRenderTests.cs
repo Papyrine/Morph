@@ -3,10 +3,7 @@ using SkiaSharp;
 
 /// <summary>
 /// Verifies that floating images and behind-text shapes placed in a header
-/// or footer actually reach the canvas. Regression guard for
-/// <c>PageRenderer.RenderHeader</c> / <c>RenderFooter</c> silently dropping
-/// <c>FloatingImageElement</c> (and footer dropping behind-text
-/// <c>FloatingShapeElement</c>) prior to the fix.
+/// or footer actually reach the canvas rather than being silently dropped.
 /// </summary>
 public class HeaderFooterFloatingRenderTests
 {

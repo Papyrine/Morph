@@ -74,8 +74,7 @@ public class DocDefaultIndentTests
     [Test]
     public async Task RightIndent_NarrowsAvailableWidthInTableCells()
     {
-        // Right indent reduces the available width for text layout — asserted against the
-        // canonical measurer, the one layout model since the production renderers were deleted.
+        // Right indent reduces the available width for text layout.
         var text = "Sample text for width";
         const float cellWidth = 130;
 

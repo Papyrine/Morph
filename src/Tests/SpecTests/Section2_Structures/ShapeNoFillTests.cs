@@ -1,8 +1,7 @@
 /// <summary>
 /// Covers the OOXML rule that a direct `<a:noFill/>` in `a:spPr` takes precedence
-/// over any `<a:fillRef>` in the shape's `wps:style`. Previously the parser would
-/// fall back to the fillRef when `a:solidFill` was absent, erroneously painting a
-/// large coloured rectangle over the page background.
+/// over any `<a:fillRef>` in the shape's `wps:style`; falling back to the fillRef
+/// when `a:solidFill` is absent paints a large coloured rectangle over the page background.
 /// </summary>
 public class ShapeNoFillTests
 {

@@ -466,7 +466,7 @@ static partial class DocumentEditor
 
                     foreach (var character in Clean(item.Text))
                     {
-                        after[^1].Add(new(character, Math.Max(item.Unit, -1), item.Format, false, item.Struck && item.Unit >= 0, item.Typed));
+                        after[^1].Add(new(character, Math.Max(item.Unit, -1), item.Format, false, item is { Struck: true, Unit: >= 0 }, item.Typed));
                     }
                 }
             }
@@ -2056,20 +2056,16 @@ static partial class DocumentEditor
             return (next, 0);
         }
 
-        // The first paragraph takes in the second, and stays what it was: its style, its alignment,
-        // its place in a list. An empty one has nothing to stay: it goes, and the second stands as
-        // it is. Says whether the first is the one left standing.
+        // The first paragraph takes in the second and keeps its own style, alignment and list place;
+        // an empty one goes and the second stands. Says whether the first is left standing. Either
+        // way the first's mark goes, with what hung off it (a revision of the mark, a section's end).
         //
         // Word-probed 2026-09-27 (Word 16 over COM; Delete at the end of the first paragraph,
-        // Backspace at the start of the second, and the mark selected and deleted all gave the
-        // same): a centred "first " joined to a right-aligned "second" is centred, and a Heading 1
-        // joined to body text is a Heading 1; an empty centred paragraph joined to a right-aligned
-        // "second" is right-aligned. This is what someone editing sees, and it is NOT what settling
-        // a tracked deletion of the same mark gives — there the second paragraph's formatting
-        // stands (ReviewEditor.MergeWithNext, probed the same day).
-        //
-        // Whichever stands, the mark that went was the first's. What hung off it goes with it — a
-        // revision of the mark, a section's end — and what hung off the second's is what is left.
+        // Backspace at the start of the second, and the mark selected and deleted all agree): a
+        // centred "first " joined to a right-aligned "second" is centred, a Heading 1 joined to body
+        // text a Heading 1, and an empty centred paragraph joined to "second" right-aligned. Settling
+        // a tracked deletion of the same mark differs: the second's formatting stands
+        // (ReviewEditor.MergeWithNext, probed the same day).
         static bool Merge(Paragraph first, Paragraph next)
         {
             if (!ParagraphContent.Runs(first).Any())

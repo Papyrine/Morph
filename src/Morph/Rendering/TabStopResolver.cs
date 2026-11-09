@@ -62,9 +62,8 @@ static class TabStopResolver
             // against its render; business-plans/13's stop sits just past its cell and lands the
             // same way). table_of_contents/03 — dot leaders to the cell edge and no number — is
             // the same clamp: that fixture's entries have NO text after the tab at all, so the
-            // leader filling to the clamped stop is everything Word shows. An earlier reading of
-            // it ("drop the following text when it would start past the edge") mistook that
-            // vacuous case for a suppression rule.
+            // leader filling to the clamped stop is everything Word shows, not a rule that drops
+            // the following text when it would start past the edge.
             if (availableEndX is { } endX &&
                 stopPosition > endX &&
                 stop.Alignment is TabAlignment.Right or TabAlignment.Center or TabAlignment.Decimal)

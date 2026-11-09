@@ -27,9 +27,8 @@
 /// edge DOWN from its grid line (<c>BorderStroke.CellEdgeLines</c>).
 ///
 /// <see cref="Diagonals"/> are the cell's <c>w:tl2br</c> / <c>w:tr2bl</c> rules, drawn corner to
-/// corner across the box at their grid-floored width after the edges. They were an engine-flip
-/// orphan: parsed onto <see cref="TableCellProperties.Diagonals"/> and drawn by the deleted
-/// production renderers, but never carried here, so <c>table_diagonal_borders/01</c> rendered none.
+/// corner across the box at their grid-floored width after the edges
+/// (<c>table_diagonal_borders/01</c>).
 /// </summary>
 sealed record PlacedCell(
     float X,

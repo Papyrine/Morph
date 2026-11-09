@@ -114,8 +114,8 @@ public class TableStyleInheritanceTests
         await Assert.That(empty.Properties.ParagraphMarkFontFamily).IsEqualTo("Arial");
     }
 
-    // Outside a table the same dangling style falls to the document default, where it used to leave the
-    // mark with nothing and measure it against the record's default face.
+    // Outside a table the same dangling style falls to the document default, rather than leaving the
+    // mark with nothing to measure it against but the record's default face.
     [Test]
     public async Task An_empty_paragraph_naming_an_undefined_style_takes_the_document_default()
     {

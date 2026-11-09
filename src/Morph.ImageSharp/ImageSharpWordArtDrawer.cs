@@ -1,7 +1,6 @@
 /// <summary>
-/// Draws WordArt shapes (warps, outline, shadow) on a <see cref="DrawingCanvas"/>. Extracted
-/// verbatim from <c>ImageSharpPageRenderer</c> so the drawing has no page-renderer dependency:
-/// the page renderer positions the shape in the flow and delegates here, and
+/// Draws WordArt shapes (warps, outline, shadow) on a <see cref="DrawingCanvas"/>, with no page-render
+/// dependency: the painter positions the shape and delegates here, and
 /// <see cref="ImageSharpWordArtRasterizer"/> draws straight onto its own transparent image without
 /// running a page render.
 /// </summary>

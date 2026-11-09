@@ -166,7 +166,7 @@ public class WopiSampleTests
         page.PageError += (_, error) => log.Enqueue($"error {error}");
         page.FrameNavigated += (_, frame) => log.Enqueue($"navigated {(frame.ParentFrame == null ? "top" : frame.Name)} {frame.Url}");
         page.RequestFailed += (_, request) => log.Enqueue($"request failed {request.Url} {request.Failure}");
-        // Handled, a dialog is no longer dismissed for the test; it is dismissed here as it was.
+        // A handled dialog is not dismissed by Playwright, so the handler dismisses it.
         page.Dialog += async (_, dialog) =>
         {
             log.Enqueue($"dialog {dialog.Type} {dialog.Message}");
@@ -305,12 +305,8 @@ public class WopiSampleTests
         await Assert.That(await again.InnerTextAsync(".wopi-status")).DoesNotContain("Read-only");
     }
 
-    static async Task<ILocator> OpenParagraphAsync(IPage page, IFrame frame, string text)
-    {
-        var line = frame.Locator(".text-layer span", new() { HasTextString = text }).First;
-        await line.ClickAsync();
-        return line;
-    }
+    static Task OpenParagraphAsync(IFrame frame, string text) =>
+        frame.Locator(".text-layer span", new() { HasTextString = text }).First.ClickAsync();
 
     // Waits until the text of the pages' text layers, which are built again after each layout, says so: the
     // whole of it, since what is typed into a line may be drawn in more than one span.
@@ -368,12 +364,12 @@ public class WopiSampleTests
         await WaitForAsync(bob, ".wopi-user:text-is('Demo User')");
 
         // The demo user opens MINUTES: Bob sees where, and cannot open it too.
-        await OpenParagraphAsync(first, demo, "MINUTES");
+        await OpenParagraphAsync(demo, "MINUTES");
         await WaitForAsync(demo, ".edit-box[contenteditable=true]");
         await first.Keyboard.PressAsync("End");
         await first.Keyboard.TypeAsync(" by Demo");
         await WaitForAsync(bob, ".viewer-presence[data-name='Demo User']");
-        await OpenParagraphAsync(second, bob, "MINUTES");
+        await OpenParagraphAsync(bob, "MINUTES");
         await WaitForAsync(bob, ".editor-status-note:text-is('Demo User is editing this paragraph.')");
 
         // Handed in as the demo user leaves it with Escape, the text reaches Bob. (A click on blank paper
@@ -383,7 +379,7 @@ public class WopiSampleTests
 
         // Bob types elsewhere; the demo user sees it once Bob hands it in.
         var other = await bob.Locator(".text-layer span").Nth(10).InnerTextAsync();
-        await OpenParagraphAsync(second, bob, other.Trim());
+        await OpenParagraphAsync(bob, other.Trim());
         await WaitForAsync(bob, ".edit-box[contenteditable=true]");
         await second.Keyboard.PressAsync("End");
         await second.Keyboard.TypeAsync(" by Bob");

@@ -9,7 +9,7 @@ static class DefaultFontSettings
     /// Factory default for <see cref="DefaultFont"/>: the resolver-safe last resort. Morph ships
     /// the four standard Aptos faces as embedded resources, so this resolves on every host,
     /// including Linux/macOS machines with no fonts installed. It is also the family Word 16.0.20527
-    /// gives a style-less document (2026-11-08; the build of October gave Calibri).
+    /// gives a style-less document (probed 2026-11-08).
     ///
     /// <para>The parser's built-in family for a style-less document lives in
     /// <c>DocumentParser.builtInDefaultFontFamily</c> and only applies when neither

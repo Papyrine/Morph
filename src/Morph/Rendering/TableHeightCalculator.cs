@@ -95,13 +95,10 @@ static class TableHeightCalculator
 
         // Second pass: Apply explicit row heights (w:trHeight). "exact" (w:hRule="exact") pins the row
         // to that height verbatim; every other rule ("atLeast", or the omitted default) treats it as a
-        // FLOOR — the row still grows to fit its content, per Word. An earlier rule forced heights
-        // verbatim on any vMerge table whose rows all carried an explicit height, on the theory that
-        // such letterhead grids are authored to fixed heights; but that clamped genuinely overflowing
-        // rows — e.g. a cell whose 1-inch w:tcMar top margin dwarfs a 342-twip trHeight — so the next
-        // row rendered on top of the overflow (business-plans/08's "Prepared for:" heading collided
-        // with the contact block). Honouring atLeast everywhere matches Word and, across the corpus,
-        // improves far more pages than it shifts.
+        // FLOOR — the row still grows to fit its content, per Word, even on a vMerge letterhead grid
+        // whose rows all carry an explicit height: business-plans/08 has a cell whose 1-inch w:tcMar
+        // top margin dwarfs a 342-twip trHeight, and pinning it lands its "Prepared for:" heading on
+        // the contact block.
         //
         // The declared value is not the row's box: an atLeast floor is the content box with the row's
         // top and bottom margins outside it, and an exact height holds the top margin with the bottom
@@ -190,17 +187,11 @@ static class TableHeightCalculator
         // insideH, and the content ink starts a full border-width lower in bordered rows — Word draws the
         // edge at the boundary and insets the row-below's content under it. The same probe settled the
         // resumes/01 spacer rows (2.25pt rules over empty atLeast rows): Word's spacer row is the empty
-        // mark line + the full edge (13.97 + 2.25 = 16.22pt), which is what this pass computes — the
-        // production PDF path, which does not opt in, runs those rows 2.25pt short.
+        // mark line + the full edge (13.97 + 2.25 = 16.22pt), which is what this pass computes.
         //
-        // Interior edges are OPT-IN because the two consumers position content differently. The layout
-        // engine's PdfPainter tops content in the taller cell and its pagination then matches Word, so
-        // it asks for them. The deleted production render did NOT inset content by the top
-        // border, so growing the row there drops the extra height as blank space at the cell bottom and
-        // shifts page breaks the wrong way (measured: resumes/10 −0.205, cover-letters/05 −0.05); it
-        // keeps the outer-only behaviour until it owns the content inset too. An earlier note claimed
-        // interior edges collapse and add nothing, but that was asserted on a 1-row table (no interior
-        // edge) and the XPS disproves it.
+        // Interior edges are OPT-IN; the layout engine insets content under the top border and asks
+        // for them. They do not collapse to nothing: a 1-row table has no interior edge, and the XPS
+        // of taller ones shows each adding its width.
         // An exact row (w:hRule="exact") is exempt from all of it. ECMA-376 §17.4.81 makes that height
         // the row's height verbatim, and Word honours it against borders as it does against overflowing
         // content — it draws the edge and clips rather than growing the row. business/05's letterhead is
@@ -436,9 +427,7 @@ static class TableHeightCalculator
         {
             // Measured at exactly the width the cell render lays out at — the render path
             // subtracts the paragraph's own indents internally and draws list markers into the
-            // hanging area, so no extra marker inset belongs here (an earlier 12pt inset for
-            // numbered paragraphs measured narrower lines than the render produced, inflating
-            // row heights and splitting the layout cache per paragraph).
+            // hanging area, so no extra marker inset belongs here.
             var para = paragraphs[i];
             var lines = measurer.LayoutParagraphForMeasurement(para, contentWidth);
             var props = para.Properties;
@@ -453,11 +442,8 @@ static class TableHeightCalculator
             }
 
             // Cell padding sits between the border and the content area; paragraph
-            // spacing-before/after lives inside that content area, so the two stack.
-            // (An earlier version subtracted padding from spacing on the assumption that
-            // padding "absorbed" leading/trailing spacing, but Word doesn't collapse
-            // them — tables with explicit w:tblCellMar rendered too tight as a result.)
-            // Between consecutive paragraphs Word charges max(after, before), not the sum
+            // spacing-before/after lives inside that content area, so the two stack; Word does
+            // not collapse them. Between consecutive paragraphs Word charges max(after, before), not the sum
             // (verified against Word XPS baselines), so only the excess of this paragraph's
             // before over the previous paragraph's after adds height. w:contextualSpacing
             // drops a paragraph's own half of that gap against a same-style neighbour, exactly
@@ -516,10 +502,8 @@ static class TableHeightCalculator
             // The LAST paragraph's after-spacing stacks on the cell's bottom margin, same as
             // inter-paragraph spacing: Word sizes the row as margins + lines + full after
             // (measured on table_default_style: tblCellMar 3pt/3pt, Normal 8pt-after, one
-            // 12pt line -> Word row 31pt = 3 + 16.97 + 8 + 3; the earlier max-overlap rule
-            // predicted 28pt and rendered visibly short). That overlap rule dated from when
-            // cell line heights ran too small and a 2pt default-padding fudge inflated rows
-            // — each was calibrated against the other.
+            // 12pt line -> Word row 31pt = 3 + 16.97 + 8 + 3, where overlapping the two
+            // predicts 28pt).
             height += (float) props.SpacingAfterPoints;
             previousAfter = (float) props.SpacingAfterPoints;
             previousContextual = props.ContextualSpacing;

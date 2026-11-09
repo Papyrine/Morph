@@ -76,9 +76,8 @@ public partial class SnapshotTests
         }
     }
 
-    // Each page holds its own WASM runtime, and the tests leave theirs open. Without this the one browser
-    // grew past a hundred renderer processes over the class, and on a CI runner a late test's page could
-    // no longer boot inside its timeout.
+    // Each page holds its own WASM runtime, and the tests leave theirs open: left to accumulate, a late
+    // test's page on a CI runner could not boot inside its timeout.
     [After(Test)]
     public async Task ClosePages()
     {
@@ -300,11 +299,9 @@ public partial class SnapshotTests
     }
 
     // The app's stylesheet deliberately uses a system font stack, which resolves to Segoe UI on the Windows machine a
-    // baseline is captured on and to DejaVu on the Linux CI runner. That is a different typeface rather
-    // than sub-pixel drift, so the page screenshots' SSIM fell as the page gained text — two mobile
-    // snapshots dropped under the 0.7 threshold on CI while their HTML matched byte for byte. Pin every
-    // face to the Aptos the app already ships so a screenshot is OS-independent, and the comparison
-    // measures real layout and colour regressions instead of spending its tolerance on fonts.
+    // baseline is captured on and to DejaVu on the Linux CI runner: a different typeface rather than
+    // sub-pixel drift. Pin every face to the Aptos the app already ships so a screenshot is OS-independent,
+    // and the comparison measures real layout and colour regressions instead of spending its tolerance on fonts.
     //
     // Rewriting the stylesheet response rather than injecting a <style> keeps the captured HTML identical
     // to what the app actually serves — the HTML snapshot stays a record of the real page. Emoji still
@@ -339,8 +336,7 @@ public partial class SnapshotTests
     }
 
     // Guards the pin above: if the route pattern ever stops matching the stylesheet, the screenshots
-    // would silently revert to OS fonts and start drifting across machines again — passing locally and
-    // failing only on CI, which is exactly the failure this replaced.
+    // would silently revert to OS fonts and drift across machines, passing locally and failing only on CI.
     static async Task VerifyPinnedAsync(IPage page)
     {
         var family = await page.EvaluateAsync<string>("() => getComputedStyle(document.body).fontFamily");

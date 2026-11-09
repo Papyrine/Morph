@@ -1,4 +1,3 @@
-using System.Xml.Linq;
 using static MergeNames;
 
 /// <summary>What became of an edit merged with the others': kept as it was, kept rebased, or refused.</summary>
@@ -85,7 +84,9 @@ static class DocumentMerge
     /// in every part that holds paragraphs: what the paragraphs others have open are checked against.
     /// </summary>
     public static IEnumerable<string> Changed(byte[] @base, byte[] mine) =>
+        // ReSharper disable ArrangeObjectCreationWhenTypeNotEvident
         Changed(new PackageParts(@base), new PackageParts(mine));
+    // ReSharper restore ArrangeObjectCreationWhenTypeNotEvident
 
     static IEnumerable<string> Changed(PackageParts @base, PackageParts mine)
     {

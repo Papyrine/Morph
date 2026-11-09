@@ -6,7 +6,7 @@
 /// </summary>
 public class RepeatRenderTests
 {
-    static readonly string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+    static string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     static string Input(string format, string scenario, string extension) =>
         Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", format, scenario, $"input.{extension}");

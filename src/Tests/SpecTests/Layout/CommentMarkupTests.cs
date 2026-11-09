@@ -87,8 +87,7 @@ public class CommentMarkupTests
     {
         // Word set R1's comment in five lines, in the document's default face at 9pt. That face is
         // Aptos on Word 16.0.20527 (comments/02 has no styles part), whose XPS breaks these lines
-        // where they break here (2026-11-08); the build of October set them in Calibri, its fourth
-        // line ending "in the balloon" (224.02pt) and its first refusing "should" (225.53pt).
+        // where they break here (2026-11-08).
         var group = Group(Layout(new DocumentParser().Parse(Input("02"))).Pages[0]);
         var first = BalloonLines(group)
             .Where(_ => _.Y < 120)

@@ -4,21 +4,13 @@
 /// the file, and this guard exists to make that loud.
 ///
 /// The concrete case: `mdsnippets` walks the repo and rewrites markdown in place. `src/mdsnippets.json`
-/// shields these snapshots with `ExcludeMarkdownFiles`, a key added in MarkdownSnippets 28.4.0 — an
-/// older tool ignores it silently (unknown JSON properties bind to nothing), processes the 34
-/// snapshots under `SpecTests/Export/`, and rewrites them through `File.WriteAllText`, which emits
-/// UTF-8 WITHOUT a BOM. 28.4.1 added a skip-if-unchanged guard that also prevents it, so current
-/// tooling is doubly safe; this test covers the case where neither protection holds.
+/// shields these snapshots with `ExcludeMarkdownFiles`, a key MarkdownSnippets older than 28.4.0
+/// ignores silently, rewriting the snapshots under `SpecTests/Export/` through `File.WriteAllText`,
+/// which emits UTF-8 WITHOUT a BOM.
 ///
-/// Why it matters even though nothing visibly breaks: a stripped BOM does NOT fail the Verify
-/// comparison — verified against `MarkdownExporterTests.Headings`, which passes with its BOM removed.
-/// So the corruption is silent. The docs workflow (`.github/workflows/on-push-do-docs.yml`) runs
-/// mdsnippets and then commits whatever changed with `git commit -a`, meaning a silent rewrite of 34
-/// baselines can land on the default branch inside a commit labelled "Docs changes". Today that is
-/// blocked incidentally: `todo.md` contains banned words and is itself excluded by the same key, so a
-/// tool that ignores the key fails content validation, the step exits non-zero, and the push step
-/// (which has no `if:`) is skipped. That safety net disappears with `todo.md`, which is slated for
-/// deletion — this test is what remains.
+/// A stripped BOM does NOT fail the Verify comparison, so the corruption is silent, and the docs
+/// workflow (`.github/workflows/on-push-do-docs.yml`) commits whatever mdsnippets changed with
+/// `git commit -a`.
 ///
 /// Scope is every `*.verified.md` in the tree, not only the vulnerable 34. The snapshots under
 /// `Inputs/` are additionally covered by `ExcludeDirectories`, which predates the newer key, but the

@@ -1,7 +1,6 @@
 /// <summary>
 /// Character spacing (w:spacing in rPr) widens text during layout, causing earlier line wrapping
-/// compared to the same text without spacing. Asserted against the canonical measurer — the one
-/// layout model since the production renderers were deleted.
+/// compared to the same text without spacing.
 /// </summary>
 public class CharacterSpacingTests
 {

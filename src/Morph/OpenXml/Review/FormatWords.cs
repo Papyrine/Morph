@@ -1,7 +1,3 @@
-using System.Globalization;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Packaging;
-using DocumentFormat.OpenXml.Wordprocessing;
 using OoxmlTabStop = DocumentFormat.OpenXml.Wordprocessing.TabStop;
 
 /// <summary>
@@ -493,7 +489,7 @@ sealed class FormatWords
 
         var nowRule = now?.LineRule?.InnerText ?? "auto";
         if (now?.Line?.Value is { } line &&
-            (line != was?.Line?.Value || nowRule != (was?.LineRule?.InnerText ?? "auto")))
+            (line != was?.Line?.Value || nowRule != (was.LineRule?.InnerText ?? "auto")))
         {
             var value = Twips(line);
             items.Add("Line spacing: " + nowRule switch
@@ -574,12 +570,12 @@ sealed class FormatWords
                         definition?.StartNumberingValue?.Val?.Value ??
                         1;
             parts.Add($"Start at: {start}");
-            parts.Add("Alignment: " + (definition?.LevelJustification?.Val?.InnerText switch
+            parts.Add("Alignment: " + definition?.LevelJustification?.Val?.InnerText switch
             {
                 "center" => "Centered",
                 "right" or "end" => "Right",
                 _ => "Left"
-            }));
+            });
         }
 
         parts.Add($"Aligned at: {Centimetres(left - hanging)} cm");

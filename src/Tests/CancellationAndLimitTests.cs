@@ -5,7 +5,7 @@
 /// </summary>
 public class CancellationAndLimitTests
 {
-    static readonly string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+    static string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     static string Input(string format, string scenario) =>
         Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", format, scenario, $"input.{(format == "word" ? "docx" : format == "excel" ? "xlsx" : "pptx")}");

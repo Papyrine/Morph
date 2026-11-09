@@ -14,3 +14,4 @@ global using DocumentFormat.OpenXml;
 global using DocumentFormat.OpenXml.Packaging;
 global using DocumentFormat.OpenXml.Wordprocessing;
 global using Morph;
+global using System.Xml.Linq;

@@ -204,8 +204,8 @@ public class TableCellMarginParseTests
         await Assert.That(result.Right).IsEqualTo(57.6);
     }
 
-    // Without a table default the absent sides stay zero — the pre-fix behaviour, so tables that
-    // never set w:tblCellMar are untouched (the inheritance source is CellSpacing(0) there).
+    // Without a table default the absent sides stay zero, so tables that never set w:tblCellMar are
+    // untouched (the inheritance source is CellSpacing(0) there).
     [Test]
     public async Task TableCellMargin_PartialOverride_NoTableDefault_AbsentSidesZero()
     {
@@ -242,8 +242,8 @@ public class TableCellMarginParseTests
     // (14.4 / 18 / 14.4 / 57.6 pt). The absent top/left/right must inherit the table default; only
     // bottom is zeroed. This guards the call site that threads the table default into ParseCellMargin
     // — the parser unit tests above pass the default explicitly, so they would not catch a regression
-    // there. Before the fix the whole override collapsed to zero, dropping the 14.4pt top margin and
-    // crowding the vAlign=bottom heading against the row above (heading row 16pt vs Word's ~31.8pt).
+    // there. Without the 14.4pt top margin the vAlign=bottom heading crowds the row above (Word's
+    // heading row is ~31.8pt).
     [Test]
     public async Task PartialCellMargin_InheritsTableDefault_EndToEnd()
     {

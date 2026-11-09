@@ -65,9 +65,8 @@ public class DefaultPaperSizeTests
         await Assert.That(document.PageSettings.WidthPoints).IsEqualTo(a4LongEdgePoints).Within(0.01);
     }
 
-    // Unset keeps the pre-existing region behaviour, so no caller that never asked is moved. The
-    // harness pins DefaultPageSize.UseLetterSize = false, which is what "the region" resolves to
-    // under test.
+    // Unset keeps the region behaviour, so no caller that never asked is moved. The harness pins
+    // DefaultPageSize.UseLetterSize = false, which is what "the region" resolves to under test.
     [Test]
     public async Task Unset_KeepsTheRegionDefault()
     {
@@ -102,17 +101,10 @@ public class DefaultPaperSizeTests
     }
 
     /// <summary>
-    /// A sheet whose cells omit <c>r</c> takes the pin like any other, and the layout with it.
-    ///
-    /// It used to render portrait A4 whatever the option — and whatever the region — said, because
-    /// the implied positions were never filled in: the used range came out empty and the sheet was
-    /// skipped whole, so nothing ever reached <c>PageSettingsFor</c>. The page was blank, which is
-    /// the more serious half of the same defect.
-    ///
-    /// Found from the other side, in Verify.OpenXml: fixtures built with the OOXML SDK and no
-    /// explicit CellReference rendered A4 on a US-region CI agent where sibling fixtures rendered
-    /// Letter. Adding <c>r="A1"</c> to the one cell was enough to make both the option and the
-    /// region take effect on an otherwise identical package.
+    /// A sheet whose cells omit <c>r</c> takes the pin like any other, and the layout with it: the
+    /// implied positions are filled in, so the used range is not empty, the sheet is not skipped and
+    /// it reaches <c>PageSettingsFor</c>. Fixtures built with the OOXML SDK (as in Verify.OpenXml)
+    /// commonly omit the CellReference.
     /// </summary>
     [Test]
     [Arguments(true, 1056)]

@@ -1,6 +1,5 @@
 ﻿/// <summary>
-/// HTML pipeline benchmarks. The HtmlConverter path was previously unmeasured;
-/// these scenarios exercise the AngleSharp parser plus our HTML-to-DocumentElement
+/// HTML pipeline benchmarks. These scenarios exercise the AngleSharp parser plus our HTML-to-DocumentElement
 /// translation (rgb() colors, CSS border shorthand, inline styles).
 /// </summary>
 [MemoryDiagnoser]

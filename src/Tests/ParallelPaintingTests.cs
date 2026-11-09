@@ -8,7 +8,7 @@ public class ParallelPaintingTests
 {
     static readonly string input = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "business-plans", "12", "input.docx");
 
-    static readonly string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+    static string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     static ImageExportOptions Options(int parallelism) =>
         new() { Dpi = 48, FontDirectory = fonts, MaxDegreeOfParallelism = parallelism };

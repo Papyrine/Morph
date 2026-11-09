@@ -674,12 +674,12 @@ public partial class MorphViewer
     /// </summary>
     [JSInvokable]
     public Task OnEditHistory(bool undoable, bool redoable) =>
-        InvokeAsync(async () =>
+        InvokeAsync(() =>
         {
             if (boxUndo == undoable &&
                 boxRedo == redoable)
             {
-                return;
+                return Task.CompletedTask;
             }
 
             var typed = boxUndo != undoable;
@@ -689,8 +689,10 @@ public partial class MorphViewer
             // A step of its own to undo is typing the file does not have yet.
             if (typed)
             {
-                await OnTypingChanged.InvokeAsync(undoable);
+                return OnTypingChanged.InvokeAsync(undoable);
             }
+
+            return Task.CompletedTask;
         });
 
     // Text is selected across the pages.

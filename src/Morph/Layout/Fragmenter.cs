@@ -1,39 +1,25 @@
 ﻿/// <summary>
-/// Flows a document's block content into pages once, backend-independently — the heart of the layout
-/// engine (<c>docs/layout-engine.md</c>, step 3). Handles multi-column block flow with
-/// **line-level** page/column breaks (a paragraph too tall for the space left splits at a line boundary
-/// and continues in the next column or page, which the raster backends cannot do today) and
-/// **row-level** table breaks (a table taller than a column flows row by row, re-emitting
-/// <c>w:tblHeader</c> rows after each break). Content fills column 0 to the bottom, then column 1, and so
-/// on; the last column overflowing starts a new page. It applies the measured height-model rules from
-/// <c>src/page_counts.md</c> — max-collapse paragraph spacing, space-before dropped at an automatically
-/// broken region (column or page) top, and the empty-paragraph mark line.
+/// Flows a document's block content into pages once, backend-independently: the only layout path for
+/// every rendered output (<c>docs/layout-engine.md</c>). A paragraph too tall for the space left splits at
+/// a line boundary; a table flows row by row, repeating <c>w:tblHeader</c> rows after each break. Content
+/// fills column 0 to the bottom, then column 1, and the last column overflowing starts a new page. It
+/// applies the measured height rules of <c>src/page_counts.md</c>: max-collapse paragraph spacing,
+/// space-before dropped at an automatically broken region top, and the empty-paragraph mark line.
 ///
-/// <para>Paragraph flow places a line while its baseline clears the bottom margin, letting the last
-/// line's descent and trailing line gap encroach the margin as Word does; table pagination mirrors the
-/// raster backend's percentage tolerances so the two paginate a table identically until a canonical row
-/// measurement retires the slack.</para>
+/// <para>A line is placed while its baseline clears the bottom margin, so the last line's descent may
+/// encroach the margin as Word's does. Wrapping floats carve their exclusions out of the measure
+/// (<c>ResolveFlowBand</c>).</para>
 ///
-/// <para>Columns are equal-width within a section. A NextPage or even/odd section break starts the next
-/// section on a fresh page and adopts its geometry — page size, margins and column count — so each page
-/// carries its own <see cref="PageSettings"/> (portrait/landscape switches, per-section margins), and
-/// even/odd breaks insert a blank filler page for parity. A Continuous break switching column count flows
-/// the new columns from the break point (the newsletter masthead → multi-column body case), each column on
-/// that page topping out at the break and resetting to the page top on overflow. A multi-column section is
-/// newspaper-flowed — column 0 fills to the bottom, then column 1, and so on — when it ends the document,
-/// which matches Word (verified against three_columns, which lands its items 1-14 / 15-29 / 30 across the
-/// columns, and two_columns) and when a next-page, even-page or odd-page break ends it; a multi-column section
-/// that a *continuous* break terminates has its last page's columns balanced to equal heights instead, as
-/// Word does (validated against Word-rendered fixtures — six items across three columns become two, two,
-/// two; _probe_balance for the break types). Deferred to later slices, and noted so a document using
-/// them is not yet expected to paginate: minimal-tallest-column balancing (the greedy fill targets the
-/// average height, so uneven-height columns are approximate) and balancing a region that carries a table,
-/// shading or a border; a margin-only continuous change; float wrap exclusions (square/tight — floats
-/// themselves and floating tables lay out); and inline images inside a nested table (nested tables
-/// themselves lay out). Other non-paragraph, non-table elements are skipped for now.</para>
+/// <para>Columns are equal-width within a section. A next-page or even/odd break starts the next section
+/// on a fresh page with its own geometry (even/odd adding a parity filler); a continuous break switching
+/// column count flows the new columns from the break point. A multi-column section ended by the document
+/// or a page-starting break is newspaper-flowed (three_columns: items 1-14 / 15-29 / 30); one ended by a
+/// continuous break has its last page's columns balanced, as Word does (_probe_balance). Balancing is
+/// greedy against the average height, and a region carrying a table, shading or a border is not
+/// balanced.</para>
 ///
-/// <para>Widow/orphan control, keep-lines and keep-with-next — paragraphs, chains of them, and table
-/// rows — are placement rules; see <c>KeepsWithNext</c> for the Word-probed keep model.</para>
+/// <para>Widow/orphan control, keep-lines and keep-with-next are placement rules; see
+/// <c>KeepsWithNext</c> for the Word-probed keep model.</para>
 /// </summary>
 sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettings? compatibility = null)
 {
@@ -206,8 +192,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         PageSettings current = page;
 
         // Set in Run from the first page's reserved top, which cannot be a field initializer: HeaderReservedTop
-        // measures the header band, so it reads the caches this class owns. Three initializers used to compute
-        // that one value three times over.
+        // measures the header band, so it reads the caches this class owns.
         float contentTop;
 
         // The bottom the flow breaks against. Equal to pageContentBottom — the bottom margin — until a
@@ -277,7 +262,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // Boxes a wrapping float (wp:wrapSquare / wrapTight / wrapThrough / wrapTopAndBottom) carves out of
         // the text measure, in absolute page points. Page-scoped: cleared when a page starts, since a float
         // never carries its exclusion across a break. A wrapNone or behind-text float registers nothing —
-        // overlap is its design. Mirrors RenderContextBase's list, which the production renderers consume.
+        // overlap is its design.
         readonly List<FloatExclusion> floatExclusions = [];
         int currentColumn;
 
@@ -316,7 +301,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // True while the current page was started by a non-continuous section break — Word KEEPS a
         // paragraph's spacing-before at the top of such a page (a new page setup), unlike a page
         // reached by automatic overflow (business-plans/08's page 2 ran 22pt high without this).
-        // Mirrors the deleted production ShouldSuppressPageTopSpacingBefore's section-break carve-out.
         bool currentPageSectionStart;
 
         // The trailing after-spacing of the page that just finished. Word's flow adds a paragraph's
@@ -446,7 +430,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // The rows a footnote's body stacks into: each paragraph's spacing-before, its lines wrapped to
         // the column, and its spacing-after (the last note's after-spacing counts too — document_capture/01's
-        // note ends 8pt above the margin). A table inside a note is not laid out — rare, unprobed.
+        // note ends 8pt above the margin).
         IReadOnlyList<NoteRow> NoteRows(string id)
         {
             if (noteRowsCache.TryGetValue((id, columnWidth), out var cached))
@@ -460,8 +444,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             {
                 foreach (var element in elements)
                 {
-                    // A table in a note stands in the area whole, as one row: it was left out, its
-                    // cells' text missing from the page.
+                    // A table in a note stands in the area whole, as one row.
                     if (element is TableElement table)
                     {
                         if (NestedTableHeight(table, columnWidth) is var tableHeight and > 0)
@@ -993,10 +976,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Sets the body's top for the page being opened from the header that page will show: the
         // section's first-page header on a title page, the even header on an even page of a document
-        // that keeps both, the default otherwise (SelectVariant, as the bands themselves are picked). A
-        // page used to keep whatever the page before it reserved, so a tall first-page letterhead held
-        // every later page's body down under a header that was no longer there, and a tall default or
-        // even header under a short first one was not cleared at all.
+        // that keeps both, the default otherwise (SelectVariant, as the bands themselves are picked).
         void ReserveHeader(bool sectionFirst)
         {
             contentTop = HeaderReservedTop(current, SelectVariant(current, sectionFirst, bodies.Count + 1, isHeader: true));
@@ -1005,15 +985,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Where the body starts. A positive w:top margin is a MINIMUM (ECMA-376 §17.6.11): a header whose
         // content, laid out from the header distance, reaches past the margin pushes the body down to clear
-        // it — so a two-line header no longer overlaps the first body line. A negative w:top
-        // (TopMarginIsAbsolute) pins the body at the margin and lets the header overlap instead. The
-        // header is the one the page shows (ReserveHeader), mirroring how the deleted production render
-        // parked the body cursor below the rendered header.
-        //
-        // A header TABLE counts toward that height exactly as a paragraph does — LayoutBand stacks the two
-        // the same way, and FooterBand has always measured both. Skipping tables here left the body reserving
-        // only the header's text: a banner header whose masthead is a shaded one-column table (a protective
-        // marking over a colour bar) reserved two lines and let the first body heading land inside the bar.
+        // it. A negative w:top (TopMarginIsAbsolute) pins the body at the margin and lets the header overlap
+        // instead. The header is the one the page shows (ReserveHeader). A header TABLE counts toward that
+        // height exactly as a paragraph does, as LayoutBand stacks the two (a banner header's shaded table).
         float HeaderReservedTop(PageSettings settings, HeaderFooterContent? content)
         {
             var marginTop = (float)settings.MarginTop;
@@ -1078,21 +1052,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The page the break lands on keeps the top and bottom margins it started with; the new
                 // section's page setup governs from the NEXT page (FinishPage adopts it). Word-probed
-                // (_probe_contmargin, a 1in-bottom section continued by a 4in-bottom one and the reverse,
-                // with and without a column change): the first page fills to the FIRST section's bottom
-                // and the next opens at the second's top and stops at its bottom — so image_wrap_square's
-                // two-column tail runs to its opening section's 0.5in margin, not its own 1in.
+                // (_probe_contmargin, 1in and 4in bottoms both ways round): the first page fills to the FIRST
+                // section's bottom, so image_wrap_square's two-column tail runs to its opening 0.5in margin.
                 //
-                // A single-column continuous break into one column is otherwise a flow no-op. A new column
-                // count (the masthead → columns case) adopts the new columns now and anchors them at the
-                // break point: column 0 flows from here to the bottom, each later column tops out here too,
-                // and an overflow to the next page resets the columns to its top (FinishPage). A section
-                // that ENDS in columns anchors the next the same way even at the same count — below the
-                // balanced block, from column 0 (_probe_balance E: three columns into three, the new
-                // section's first line in column 1 under the 3/3/3 block, not in column 3). The anchor is
-                // the lowest of the columns, which is the balanced bottom, or the tallest column when the
-                // region could not be balanced. Page size stays — Word forces a page-size change to be a
-                // next-page break, never continuous.
+                // Otherwise a single-column break into one column is a flow no-op. A new column count adopts
+                // the new columns now, anchored at the break point; an overflow resets them to the next
+                // page's top (FinishPage). A section that ENDS in columns anchors the next the same way even
+                // at the same count, under the balanced block (_probe_balance E: the new section's first line
+                // in column 1 under the 3/3/3 block). The anchor is the lowest column's bottom. Page size
+                // stays: Word makes a page-size change a next-page break.
                 if (sectionBreak.NewSectionSettings is { } continuous)
                 {
                     pendingSettings = continuous;
@@ -1192,7 +1160,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // order, so filling each column to the average height (total / columns) and advancing left to right
         // reproduces Word's even split — six items across three columns become two, two, two. Only plain
         // text lines are balanced; a region carrying a table, shading or a border box is left newspaper-
-        // flowed (those move as coupled groups, a later slice). Leaves the cursor at the tallest column's
+        // flowed (those move as coupled groups). Leaves the cursor at the tallest column's
         // bottom so the following content clears the balanced block.
         void BalanceCurrentColumns()
         {
@@ -1391,8 +1359,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         PlaceFrame(frame);
                         break;
 
-                    // An HTML <hr>: a 0.75pt gray line across the content width in a 6pt slot,
-                    // mirroring the production RenderHorizontalRule geometry (line at slot middle).
+                    // An HTML <hr>: a 0.75pt gray line at the middle of a 6pt slot across the content width.
                     case HorizontalRuleElement:
                         EnsureSpaceFor(6);
                         items.Add(
@@ -1414,8 +1381,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         atRegionTop = false;
                         lastAfter = 0;
                         break;
-
-                    // Float wrap is a later slice.
                 }
 
                 // Content that takes no flow space sits between two elements without parting them, so it
@@ -1485,10 +1450,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // The page's footnote areas land at its bottom, on the body's own item list.
             EmitNoteAreas();
 
-            // A page is kept when anything was placed on it, when it is a deliberate blank left by an explicit
-            // break, or when it is the only page. Only the body is stored here; the header/footer bands are
-            // assembled once the flow finishes and the total page count is known, so a NUMPAGES field can
-            // resolve.
+            // Only the body is stored here; the bands are assembled once the page count is known, so a
+            // NUMPAGES field can resolve.
             //
             // A page holding only empty paragraphs is kept like any other: Word renders the page a trailing
             // empty paragraph overflows onto (_probe_trail2_flowblank), and mid-document too — an empty
@@ -1546,26 +1509,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         }
 
         // Drops the page's content into the middle of the margin band, for a sheet that asked to be centred
-        // down the page (printOptions/@verticalCentered — PageSettings.VerticallyCentered). It runs at page
-        // CLOSE because that is the first moment the slack is known: nothing can say how much room is left
-        // over until everything that fits has been placed.
+        // down the page (printOptions/@verticalCentered). It runs at page close, the first moment the slack
+        // is known. The BODY's extent (the grid) is measured and the floats move with it, since a sheet's
+        // drawings anchor to its cells. Centred between the MARGINS, not on the paper: org-charts-visual's
+        // 0.5in top / 1in bottom gives Excel gaps of 305px and 351px at 96 DPI, 46px apart.
         //
-        // The extent measured is the BODY's — the grid — and the page's floats are then moved by the same
-        // amount rather than measured themselves, exactly as the horizontal half works: Excel centres the
-        // print area, and a sheet's drawings anchor to its cells, so art that does not travel with the grid
-        // detaches from it. Word-measured on org-charts-visual, whose centred sheet declares a 0.5in top
-        // margin against a 1in bottom: Excel's gaps come out 305px and 351px at 96 DPI, the 46px difference
-        // being exactly the margin difference — so the content is centred between the MARGINS, not on the
-        // paper.
-        //
-        // A page too full to have slack keeps its content where it is, so on a multi-page sheet the rule
-        // degenerates to nothing on the full pages and centres only the last, short one. That IS Excel's
-        // behaviour — it centres each page independently rather than stopping once the print area spans
-        // pages. Probed directly (_probe_vcenter_*, three 30pt-row sheets differing only in how empty the
-        // last page is, since no corpus workbook overflows a centred sheet vertically): Excel puts 6 rows at
-        // gaps 446/430 on a single page, 24 rows at 136/120, and — the case in question — the 7 rows left on
-        // page 2 of a 33-row sheet at 429/413 on a 1056px page, dead centre rather than at the ~72px top
-        // margin. The engine reproduces all three.
+        // Excel centres each page independently, so a full page stays put and the short last one is
+        // centred (_probe_vcenter_*, 30pt rows: 6 rows at gaps 446/430, 24 at 136/120, and page 2 of a
+        // 33-row sheet at 429/413 on a 1056px page).
         void CentreVertically()
         {
             if (!current.VerticallyCentered || items.Count == 0)
@@ -1609,12 +1560,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // _valign3 — 24pt lines on a Letter page with a 1in top and 3in bottom margin, read off the XPS):
         //
         //   - The extent runs from the band top to the LOWEST thing on the page — text, the last paragraph's
-        //     space-after, and every float, behind-text ones included. The first paragraph's space-before
-        //     counts through the top (its line sits below it). A float above the text is not an extent
-        //     (a page-anchored box at y=10 left centring on the two text lines); one below it is (a box at
-        //     y=450 cut the slack to 54pt), and a full-page background leaves no slack at all.
-        //   - center moves everything down by half the slack, bottom by all of it — the page's floats too,
-        //     page-anchored ones included, by the same amount.
+        //     space-after, and every float, behind-text ones included; the first paragraph's space-before
+        //     counts through the top. A float above the text adds nothing (a box at y=10); one below it
+        //     does (a box at y=450 cut the slack to 54pt).
+        //   - center moves everything down by half the slack, bottom by all of it, floats included.
         //   - both (Justified) splits the slack equally between UNITS: a paragraph's lines stay together,
         //     but every paragraph and every table row is its own unit, so a table comes apart row by row
         //     (four gaps of 37.6pt on D; five of 57.6pt round a table on Q1). One unit leaves the page as is.
@@ -1887,8 +1836,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // the sectPr, or followed by a page break, gets a blank page of its own (_probe_sbo2 / _sbo3). So
         // when the mark alone overflows onto a fresh page it is taken back off it, and the section break
         // then finds the page untouched and opens the next section there rather than a page later.
-        // 28 pages across 19 corpus documents are this shape (a template's section ending in a full-page
-        // table or a filled panel); a blanket drop of every empty-paragraph page had stood in for it.
+        // 28 pages across 19 corpus documents are this shape.
         void PlaceSectionMark(ParagraphElement paragraph, float keepAfter, float closingReserve)
         {
             var pagesBefore = bodies.Count;
@@ -1963,15 +1911,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The whole header/footer story paints BELOW every body item, floats included — w:behindDoc
                 // orders a float against the body TEXT and says nothing about the bands, which are under it
-                // either way. Word-probed (_probe_footerz: two opaque page-anchored rectangles over a
-                // three-word footer, one behindDoc="1" and one behindDoc="0"; both bury their word outright
-                // while the uncovered third word proves the footer rendered, and the same pair over a line
-                // of body text shows the ordinary behind/in-front split, so the fixture is sound).
-                //
-                // The footer band used to paint LAST, over everything. That drew business-plans/13's cover
-                // footer on top of the grey title rectangle — a behind-text body float spanning 575.4pt to
-                // the page bottom — where Word has it buried; business-plans/15's TOC pages are the same
-                // shape. The header band was already ordered correctly.
+                // either way. Word-probed (_probe_footerz: opaque page-anchored rectangles, behindDoc="1"
+                // and "0", over a three-word footer both bury their word; business-plans/13's cover footer
+                // lies under its behind-text title rectangle).
                 var pageItems = backgroundImages.Count == 0 &&
                                 footerImages.Count == 0 &&
                                 headerBand.Count == 0 &&
@@ -1995,13 +1937,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // anchor paragraph laid out before the float resolves from here.
         readonly Dictionary<ParagraphElement, float> paragraphPreSpacingTops = [];
 
-        // Non-wrapping floats waiting for their anchor paragraph's first line to place. Emitting at the
-        // cursor is usually equivalent (nothing places between a float and its own paragraph), but when
-        // the anchor's first line page-breaks away the cursor value strands the float on the old page
-        // (letters/05 page 2 ran 34-54px of band error from a stranded float). Word never splits a
-        // float from its anchor paragraph — probed (_probe_float_push): a 76pt shape anchored at a
-        // page's last paragraph stays with it and CLIPS at the page edge rather than pushing the
-        // paragraph over, so the anchor's own placement is the single source of the float's page.
+        // Non-wrapping floats waiting for their anchor paragraph's first line to place, so a float follows
+        // its paragraph when that line page-breaks away (letters/05 page 2). Word never splits a float
+        // from its anchor paragraph (_probe_float_push: a 76pt shape anchored at a page's last paragraph
+        // stays with it and CLIPS at the page edge rather than pushing the paragraph over).
         readonly Dictionary<ParagraphElement, List<DocumentElement>> anchorDeferredFloats = [];
 
         // w:mirrorIndents substitutions made this run, keyed by the parse instance. Anchor-keyed
@@ -2106,9 +2045,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // paragraph's first-line placement, which pins both the anchor top and the page even when
             // the paragraph breaks to a new region first. A wrapping float emits here and now — its
             // exclusion must be registered before the anchor paragraph resolves its flow band — which
-            // keeps the cursor value; that is exact whenever the anchor does not move. (An earlier
-            // flush-at-page-end deferral shifted wedding/07 86px; flushing at the anchor's own
-            // placement keeps the old timing byte-for-byte in the no-break case.)
+            // keeps the cursor value; that is exact whenever the anchor does not move.
             if (anchor != null &&
                 !RegistersExclusion(element))
             {
@@ -2206,8 +2143,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Absolute X of a body float: a page-anchored offset is from the page's left; anything else (margin,
         // column, character) is from the content's left. A percentage offset (wp14:pctPosHOffset) resolves as
-        // that fraction of the anchor's reference width — the page for a page anchor, else the content box —
-        // mirroring the deleted production FloatingPosition. Nested-frame anchors are a later slice.
+        // that fraction of the anchor's reference width — the page for a page anchor, else the content box.
+        // Nested-frame anchors are not modelled.
         float FloatX(HorizontalAnchor anchor, double offset, double? percent)
         {
             var baseX = anchor == HorizontalAnchor.Page ? 0f : fullContentLeft;
@@ -2247,8 +2184,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         readonly record struct FloatExclusion(float Left, float Top, float Right, float Bottom, bool FullWidth, WrapTextSide Side);
 
         // Records the measure a wrapping float takes away, expanded by its wrap distances. Tight and Through
-        // wrap the image outline in Word; the rectangular extent is the approximation for both, as in
-        // production. A TopAndBottom float takes the full column width, so no text sits beside it at all.
+        // wrap the image outline in Word; the rectangular extent is the approximation for both. A TopAndBottom float takes the full column width, so no text sits beside it at all.
         void RegisterFloatExclusion(FloatingImageElement image, float left, float top, float width, float height)
         {
             if (image.BehindText)
@@ -2283,9 +2219,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         /// Where a paragraph starting at <paramref name="top"/> can lay out given the active exclusions: the
         /// widest free horizontal segment of the column beside the floats. When no usable segment exists there
         /// (a TopAndBottom band, or floats covering the whole measure) the top advances below the blocking
-        /// floats. Constrained is false when the paragraph gets the full column width. A faithful port of
-        /// RenderContextBase.ResolveFlowBand, including its band-per-paragraph granularity: Word reflows back
-        /// to the full measure below a float mid-paragraph, and neither engine models that yet.
+        /// floats. Constrained is false when the paragraph gets the full column width. The band is per
+        /// paragraph: Word reflows back to the full measure below a float mid-paragraph, which is not modelled.
         /// </summary>
         (float X, float Width, float Y, bool Constrained) ResolveFlowBand(float top)
         {
@@ -2374,18 +2309,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         }
 
         // A spreadsheet's grid with the drawings that stand over it. The drawings are emitted ahead of the
-        // grid as floats placed from its top-left corner (SheetDrawingParser), so as they come they all sit
-        // on the page the sheet starts on, however far down the sheet they are. Excel prints a drawing
-        // with the ROWS it stands over: one that a page break parts comes out in two pieces, the top at
-        // the foot of one page and the rest at the head of the next, each cut where its page's rows end.
-        // invoice-accessibility-guide's first sheet is all drawing over a few lines of grid, and Excel's
-        // second page shows the lower part of its banner, logo and thumbnail where everything here was
-        // drawn on the first and the second was blank.
-        //
-        // So the floats are taken back, the grid is placed, and each page then gets the floats shifted to
-        // where that page's rows put them, inside a clip to those rows (PlacedClipGroup). Rows a print
-        // title repeats at the head of a later page are not part of the band: the sheet carries on under
-        // them.
+        // grid as floats placed from its top-left corner (SheetDrawingParser), so they would all sit on the
+        // sheet's first page. Excel prints a drawing with the ROWS it stands over, one that a page break
+        // parts coming out in two pieces (invoice-accessibility-guide's banner, logo and thumbnail). So the
+        // floats are taken back, the grid is placed, and each page gets the floats shifted to where its rows
+        // put them, clipped to those rows (PlacedClipGroup). Repeated print-title rows are not part of the
+        // band: the sheet carries on under them.
         void PlaceSheetUnderFloats(TableElement sheet, float keepAfter)
         {
             var floats = bodyFloats.GetRange(floatRunStart, bodyFloats.Count - floatRunStart);
@@ -2511,8 +2440,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             var content = LayoutTextBoxContent(textBox, boxX, boxY);
 
-            // A rotated text box turns its content with its chrome, about the box centre — the a:xfrm
-            // rotation reached only the PlacedShape before, leaving labels/06's "ADMIT ONE" stubs flat.
+            // A rotated text box turns its content with its chrome, about the box centre (labels/06's
+            // "ADMIT ONE" stubs).
             if (textBox.RotationDegrees != 0)
             {
                 AddBodyFloat(new PlacedRotatedGroup(boxX, boxY, boxWidth, boxHeight, content, textBox.RotationDegrees), textBox.BehindText, absoluteY);
@@ -2556,8 +2485,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // A positioned text frame (w:framePr) — Word's legacy floating text block, which FrameGrouper lifts to
         // the top level. It auto-sizes to its content (an explicit w:w / w:h overrides), resolves an absolute
         // position from its anchors and alignment, and paints there without taking flow space. The frame has no
-        // fill or border of its own, so this is content placement only. Mirrors
-        // the deleted production RenderPositionedFrame, whose measurements and anchor rules it reproduces.
+        // fill or border of its own, so this is content placement only.
         void PlaceFrame(PositionedFrameElement frame)
         {
             float measuredWidth = 0;
@@ -2607,10 +2535,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             };
 
             // Word's legacy text-frame layout does not right-align these footer blocks flush to the text
-            // margin — it leaves a wide band of empty space on the right. Measured from Word's
-            // agendas-minutes/14 render (the block's right edge lands ~0.9" / ~12.2% of the content width
-            // inside the right margin); the inset is not expressed anywhere in the frame markup, so it can
-            // only be reproduced empirically. Same constant the deleted production render used.
+            // margin. Measured from Word's agendas-minutes/14 render (the block's right edge lands ~0.9" /
+            // ~12.2% of the content width inside the right margin); nothing in the frame markup says so.
             const float frameRightInsetFraction = 0.122f;
             var rightInset = anchorWidth * frameRightInsetFraction;
 
@@ -2721,8 +2647,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // set in its box by its first paragraph's w:jc (reusing the cell-content layout with a synthetic
         // paragraph), between its left and right insets. Word-probed (_probe_wordart_jc: a 400pt box at
         // 0 and 36pt insets): unset and left start at the inset, center centres, right ends at the inset.
-        // Centring it whatever the jc said moved a left-aligned header label ~8pt in. Warp presets
-        // (arch/wave/envelope/…) are a later slice; the corpus templates are all unwarped.
         IReadOnlyList<PlacedItem> LayoutWordArtText(string text, string fontFamily, double fontSizePoints, bool bold, bool italic, string? fillColorHex, TextAlignment alignment, WordArtInsets insets, float boxX, float boxY, float boxWidth, float boxHeight)
         {
             boxX += (float)insets.Left;
@@ -2909,22 +2833,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return new(x, y, (float)image.WidthPoints, (float)image.HeightPoints, data, image.RotationDegrees, image.FlipHorizontal, image.FlipVertical, image.ClipToEllipse, image.ClipSubpaths, image.Crop, Recolor: ImageRecolor.For(image.ColorEffect, image.DuotoneColorHex, image.DuotoneLightColorHex), Opacity: image.Opacity, Outline: image.Outline, Vector: vector);
         }
 
-        // The flow space a border edge occupies: its own width plus the w:space gap it holds open between
-        // the line and the rule. Zero for an edge that is not drawn.
-        //
-        // The width is what the edge DRAWS, not what w:sz declares — a multi-line style whose declared
-        // width is too small to resolve is floored up to a visible stack (BorderStroke.Extent), and
-        // charging only the declared width let those paragraphs pack tighter than Word's.
         // Word's paragraph-border box overhangs the nominal (text extent − w:space) on the SIDES only, by a
-        // constant that is not the stroke width: XPS-read on _probe_pbdrwidth / _probe_pbdrside (2026-09-04),
-        // the left rule's inner face sits 1.0pt outside the nominal and the right rule's 1.5pt outside, at
-        // every width from 1pt to 12pt, at w:space 8 and 20, under left and right indents and under a
-        // different page margin (six readings each, 0.90–0.98 and 1.50–1.55; w:space=0 alone reads ~0.2pt
-        // more on both sides). Top and bottom faces are nominal within 0.2pt, so this is a paint-side
-        // offset with no flow reserve — the vertical reserves are unchanged.
+        // constant that is not the stroke width: XPS-read on _probe_pbdrwidth / _probe_pbdrside, the left
+        // rule's inner face sits 1.0pt outside and the right's 1.5pt, at every width from 1pt to 12pt, at
+        // w:space 8 and 20, under indents and another page margin (0.90–0.98 and 1.50–1.55). Top and bottom
+        // are nominal within 0.2pt, so this is a paint-side offset with no flow reserve.
         const float borderBoxLeftOutset = 1.0f;
         const float borderBoxRightOutset = 1.5f;
 
+        // The flow space a border edge occupies: the width it DRAWS (BorderStroke.Extent, which floors a
+        // multi-line style too thin to resolve), not what w:sz declares, plus the w:space gap between the
+        // line and the rule. Zero for an edge that is not drawn.
         static float EdgeReserve(BorderEdge edge, double spacePoints)
         {
             if (BorderStroke.Draws(edge))
@@ -2957,15 +2876,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // Expanded by each edge's space — the gap Word leaves between the text and the line. The bottom
             // space and rule are fitted with the run's closing line (PlaceParagraph's closingReserve), so the
-            // box no longer overhangs the region bottom by them.
+            // box does not overhang the region bottom by them.
             //
-            // The left edge clears the HANGING INDENT as well, so a list's marker sits inside the box rather
-            // than astride its left rule. Word measures from the paragraph's leftmost extent — Word-probed
-            // seven ways (the H-probe in docs/word-features.md): against a plain indent at x=146px the box
-            // moved to 116 for a 284tw hanging and to 93 for a 511tw one, exactly the hanging in each case,
-            // and gave the SAME edge whether or not a numbering marker occupied the gutter — so this is
-            // indent-driven, not marker-driven. A first-line indent (which moves text RIGHT) never shifts it.
-            // The right edge held at 1123px throughout, so the width takes the hanging back.
+            // The left edge clears the HANGING INDENT, so a list's marker sits inside the box. Word-probed
+            // (the H-probe in docs/word-features.md): against a plain indent at x=146px the box moved to 116
+            // for a 284tw hanging and to 93 for a 511tw one, marker or no marker; a first-line indent never
+            // shifts it, and the right edge held at 1123px, so the width takes the hanging back.
             var left = ColumnLeft + (float)(run.LeftIndentPoints - run.HangingIndentPoints) - (float)run.BorderLeftSpacePoints - borderBoxLeftOutset;
             var width = borderRunWidth + (float)run.HangingIndentPoints + (float)run.BorderLeftSpacePoints + (float)run.BorderRightSpacePoints + borderBoxLeftOutset + borderBoxRightOutset;
             var top = borderRunTop - (float)run.BorderTopSpacePoints;
@@ -3080,9 +2996,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // The page this starts is a deliberate one, like a page break's, so it is kept even when all it
             // ends up holding is empty paragraphs: two empty page-break-before paragraphs in a row give Word
-            // a blank page holding the first (COMPASS's stocktake report, read back from Word 2026-09-30 —
-            // its appendix opened a page later than the engine put it, which put every TOC entry after it
-            // one low).
+            // a blank page holding the first (COMPASS's stocktake report).
             if (properties.PageBreakBefore &&
                 !AtPageTop)
             {
@@ -3095,26 +3009,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             properties = paragraph.Properties;
 
             // Space-before, collapsed with the previous paragraph's after (max, not sum) and dropped at a
-            // region top. If the collapsed gap plus the first line overflows, the line-level break below
-            // resets the cursor — the same space-before drop for the moved paragraph. w:contextualSpacing
-            // drops a paragraph's own half of the gap against a same-style neighbour (Word's memo
-            // To/From/CC block, list runs) — see ParagraphGap for the rule and its probe.
+            // region top, including when the line-level break below moves the paragraph. w:contextualSpacing
+            // drops a paragraph's own half of the gap against a same-style neighbour (ParagraphGap).
             //
-            // A paragraph that opens its page with w:pageBreakBefore keeps the excess of its before over
-            // the previous paragraph's after in compatibility modes 14 and older, as a page opened by a
-            // section break does in every mode, and keeps nothing in mode 15. Word-probed 2026-10-11
-            // (_probe_pgbrk and _probe_pgbrk_m11/12/14/15, first baselines read off the XPS): 36pt before
-            // puts the paragraph 16.2pt down its page after a 20pt after, 36pt down after none and
-            // nowhere after 50pt in modes 11, 12 and 14, and nowhere at all in mode 15. A page opened
-            // by a w:br page break keeps nothing in either mode, whether the break has a paragraph to
-            // itself or ends the previous one's run. complex_spacing's Combination 6 is the corpus case:
-            // 36pt before, after a paragraph with 20pt after, and its page sat 16pt high.
+            // A paragraph opening its page with w:pageBreakBefore keeps the excess of its before over the
+            // previous after in compatibility modes 14 and older (as after a section break, in every mode)
+            // and nothing in mode 15 (_probe_pgbrk, _probe_pgbrk_m11/12/14/15: 36pt before sits 16.2pt down
+            // after a 20pt after, 36pt after none, 0 after 50pt). A page opened by a w:br page break keeps
+            // nothing in any mode. complex_spacing's Combination 6 is the corpus case.
             //
-            // The drop is a *break* rule, not a top-of-box rule: Word applies a leading space-before on the
-            // document's own first page and only swallows it where the flow broke onto a new region. Treating
-            // the document start as a region top lost it — wordart-envelope's title sat 20pt (its w:before)
-            // high. The deleted production render drew the same distinction through its
-            // `pagesStarted <= 1` guard.
+            // The drop is a *break* rule, not a top-of-box rule: Word keeps a leading space-before on the
+            // document's first page (wordart-envelope's title sits its 20pt w:before down).
             // Word's paragraph-anchor reference is this pre-spacing position, moved below the previous
             // paragraph's kept space-after once the gap is known (see paragraphPreSpacingTops).
             paragraphPreSpacingTops[paragraph] = y;
@@ -3173,9 +3078,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             // Where this paragraph may lay out beside any wrapping float, resolved once at its first line's
-            // position and held for the whole paragraph (Word reflows to the full measure below the float
-            // mid-paragraph; neither engine models that yet). With no exclusions — every document but a
-            // wrapping-float one — this returns the full column unchanged, so nothing else moves.
+            // position and held for the whole paragraph (see ResolveFlowBand). With no exclusions it returns
+            // the full column unchanged.
             var (bandLeft, bandWidth, bandTop, bandConstrained) = ResolveFlowBand(y);
             if (bandTop > y)
             {
@@ -3192,7 +3096,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // Paragraph-border box (w:pBdr): track the first line's top and last line's bottom so a single
             // border can be stroked around the whole paragraph. If it breaks across a column or page the
-            // box would span the gap, so a break disables it (per-fragment borders are a later slice).
+            // box would span the gap, so a break disables it.
             float? borderTop = null;
             var borderBroke = false;
             var paragraphItemsStart = items.Count;
@@ -3206,24 +3110,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 //
                 // AUTO has to fit its NATURAL box — the font's single-spaced pitch — and lets only the leading
                 // an expanding multiple adds under the baseline (LaidOutLine.Overhang) hang past the margin; a
-                // compressing multiple, whose box is smaller than the natural one, fits its whole box. Word-
-                // probed 2026-09-30 by sweeping the band across a page's second line in 0.1-2pt steps
-                // (_probe_fit*, 25 configurations: Aptos, Times New Roman, Tahoma and Calibri; 11/22/24/48pt;
-                // multiples 0.5, 0.8, 1.0, 1.08, 1.15, 1.5, 2.0; separate paragraphs and w:br lines alike;
-                // compatibility modes 14, 15 and none, identically). Every threshold lands within 0.4pt of
-                // min(box, natural box): at 2.0 the 48pt Aptos line needs 58.6pt of its 117.2pt box, at 0.5
-                // the 24pt one its whole 14.6pt, and at 1.0 the box and the natural box coincide. The earlier
-                // reading — the baseline clearing the margin — kept a 24pt 1.15 line whose natural box ran
-                // 0.9pt past it, where Word moves it (_probe_valign E: 15 lines against Word's 14).
+                // compressing multiple fits its whole box. Word-probed by sweeping the band across a line in
+                // 0.1-2pt steps (_probe_fit*, 25 configurations of font, size 11-48pt, multiple 0.5-2.0 and
+                // compatibility mode): every threshold lands within 0.4pt of min(box, natural box) — at 2.0 the
+                // 48pt Aptos line needs 58.6pt of its 117.2pt box, at 0.5 the 24pt one its whole 14.6pt.
                 //
-                // Every other rule reserves the whole box. For exact that is what "exact" means, the declared
-                // height being an absolute reservation; atLeast was assumed to follow auto and does NOT — Word-probed three ways
-                // (_probe_lastline_atleast_a/b/c), it is strict at 15.5pt (Word 41, the lenient reading 42),
-                // at 21pt (30 against 31), and — the case that makes this categorical rather than a
-                // declared-value rule — ALSO strict at a declared 10pt that LOSES to Calibri's natural
-                // 13.4277pt pitch (44 against 45). That last box is the font's own, identical to what single
-                // auto produces, so the leniency belongs to the auto rule itself and not to the box's
-                // provenance.
+                // Every other rule reserves the whole box: exact by definition, and atLeast too
+                // (_probe_lastline_atleast_a/b/c: strict at 15.5pt and 21pt, and also at a declared 10pt that
+                // loses to Calibri's natural 13.4277pt pitch, so the leniency belongs to the auto rule).
                 //
                 // The first line at a region top is always taken (nothing better to do than overflow it).
                 var reserveWholeBox = properties.LineSpacingRule != LineSpacingRule.Auto;
@@ -3249,11 +3143,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                     // The line that closes a border box carries the box's bottom space and rule, and Word
                     // fits them with it: the whole line box and the reserve under it have to clear the
-                    // bottom margin, whatever the line's spacing rule (Word-probed 2026-09-30, a one-line
-                    // paragraph slid down the page: its last kept position put line bottom plus w:space
-                    // plus rule at the margin exactly, at w:space 0, 12 and 24 and for a 1pt line alike,
-                    // in compatibility modes 12 and 15; on a three-line paragraph the reserve moved the
-                    // last line, not the paragraph).
+                    // bottom margin, whatever the line's spacing rule (Word-probed, a one-line paragraph slid
+                    // down the page: exact at w:space 0, 12 and 24, in modes 12 and 15; on a three-line
+                    // paragraph the reserve moved the last line, not the paragraph).
                     if (closingReserve > 0 &&
                         lineIndex + fit == paragraphLines.Count - 1)
                     {
@@ -3284,13 +3176,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // Both apply only when a break actually falls (fit < remaining) and there is somewhere better
                 // to move to (not already a region top).
                 //
-                // The two are settled in ORDER, the orphan check acting on what the widow carry left — Word
-                // does not treat them as alternatives. A three-line paragraph with room for two is the case
-                // that separates the two readings: the carry takes it to one line here, and the orphan rule
-                // then takes that to none. Checking them as mutually exclusive branches stops after the carry
-                // and leaves behind exactly the orphan the rule exists to prevent. Verified against Word on
-                // business-plans/15's "Long-term Liabilities" bullet, where the ordered form reproduces
-                // Word's break (0/3) and the alternative form gives 1/2.
+                // The two are settled in ORDER, the orphan check acting on what the widow carry left: a
+                // three-line paragraph with room for two carries to one line here, then moves whole (Word's
+                // 0/3 on business-plans/15's "Long-term Liabilities" bullet).
                 var remaining = paragraphLines.Count - lineIndex;
 
                 // Keep with next: every remaining line fits, but what has to share the last line's page
@@ -3381,7 +3269,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var line = paragraphLines[placedIndex];
                     // The float band's left edge when one narrowed this paragraph, else the column's — read
                     // per line, so a paragraph spilling into the next column follows it. A banded paragraph
-                    // keeps its band even then, matching the scope production holds open across the wrap.
+                    // keeps its band even then.
                     var indentLeft = (bandConstrained ? bandLeft : ColumnLeft) + (float)properties.LeftIndentPoints;
                     var firstLineShift = FirstLineIndentOffset(properties, placedIndex);
                     var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
@@ -3399,9 +3287,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                     // Line numbering (w:lnNumType): every counted body line carries its ordinal in
                     // the left margin, right-aligned DistancePoints left of the text column, at the
-                    // line's own font — restored 2026-08-19 (the deleted production TextRenderers
-                    // drew these; the engine did not, so the gutters vanished in the flip).
-                    // Suppressed paragraphs (w:suppressLineNumbers) neither draw nor count.
+                    // line's own font. Suppressed paragraphs (w:suppressLineNumbers) neither draw nor count.
                     if (current.LineNumbers is { } lineNumbers &&
                         !properties.SuppressLineNumbers)
                     {
@@ -3479,9 +3365,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     borderRunTop = boxTop;
                     borderRunWidth = availableWidth;
                     // Where the box's shading goes in, behind its lines. A paragraph whose first
-                    // line was carried to a fresh page opens its box there, and the count taken
-                    // on the page it left is no index into the new page's items: a shaded box
-                    // that opened so threw as it closed.
+                    // line was carried to a fresh page opens its box there, where the count taken
+                    // on the page it left is no index into the new page's items.
                     borderRunItemsIndex = ReferenceEquals(paragraphItems, items) ? paragraphItemsStart : 0;
                 }
                 else if (properties.BorderBetween.IsVisible)
@@ -3520,11 +3405,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // A rotated inline picture is cut to its paragraph's band — from where the paragraph's spacing
         // before starts to where its spacing after ends — and runs past the margins sideways as far as it
-        // reaches. _probe_rotclip (2026-10-28, image_rotation/01's 45-degree 150 x 112.5pt picture in
-        // paragraphs spaced 0/0, 0/30 and 30/0, ink read off the PNG against the XPS baselines): the
-        // band was 112.8, 142.6 and 143.0pt tall, the frame plus whichever spacing the paragraph had,
-        // and the corners poking past it on the left and right were drawn. The engine drew the whole
-        // diamond, over the line above it.
+        // reaches. _probe_rotclip (image_rotation/01's 45-degree 150 x 112.5pt picture in paragraphs
+        // spaced 0/0, 0/30 and 30/0): the band was 112.8, 142.6 and 143.0pt tall, the frame plus
+        // whichever spacing the paragraph had, and the corners poking out sideways were drawn.
         void ClipRotatedPictures(int start, float top, float bottom)
         {
             for (var index = start; index < items.Count; index++)
@@ -3563,7 +3446,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // follows — see KeepAfter. Zero when that row does not keep with next.
         void PlaceTable(TableElement table, float keepAfter = 0)
         {
-            // Floating tables take no flow space (their own slice); an empty table places nothing.
+            // Floating tables take no flow space (PlaceFloatingTable); an empty table places nothing.
             if (table.Properties.IsFloating || table.Rows.Count == 0)
             {
                 return;
@@ -3606,17 +3489,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             lastStyleId = null;
             lastIsParagraph = false;
 
-            // A table that cannot fit where it stands AND has no move available to rescue it flows row by
-            // row (the raster backend's needsRowByRowRendering). Two cases reach here. One is taller than
-            // 110% of a column's content height, so no region could hold it whole. The other is sitting AT
-            // a region top, where advancing is a no-op — every path below is gated on !atRegionTop, so a
-            // table that overruns from the top used to be drawn past the bottom margin and clipped at the
-            // paper edge, silently losing its tail and a page with it (Excel's basic-business-invoice: a
-            // 774pt sheet on 734pt of A4 content, one page rendered against Excel's two). Fit is
-            // TableFitsHere's: strict for a Word table, and for a spreadsheet grid the shared 2% slack, so
-            // a grid that squeezes under that rounding tolerance still stays whole.
-            // A table that merely misses the space LEFT is deliberately not routed here — the exact-row
-            // pre-advance and the routing below get first refusal on it.
+            // A table that cannot fit where it stands AND has no move to rescue it flows row by row: one
+            // taller than 110% of a column's content height, or one overrunning from a region top, where
+            // every move below is a no-op (Excel's basic-business-invoice: a 774pt sheet on 734pt of A4
+            // content, two pages). Fit is TableFitsHere's. A table that merely misses the space LEFT goes
+            // to the routing below instead.
             if (totalHeight > contentHeight * 1.10f ||
                 (atRegionTop &&
                  !TableFitsHere(table, totalHeight, atTop: true)))
@@ -3628,10 +3505,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // An exact-height row is a verbatim box Word never lets cross the margin — and it never lifts
             // the rows BEFORE it either: a table carrying one that misses the hard remainder flows row by
             // row, keeping the rows that fit and moving the exact row that does not, whole
-            // (table_layout_tall_row, Word's reference: the 80pt company row stays on page 1 and the 530pt
-            // letter row opens page 2; the whole-table lift this replaces carried both, and the
-            // recipient block landed four lines low). Ahead of the slack-tolerant routing below, since
-            // the 2% slack is exactly what let a 610pt table into a 600pt remainder.
+            // (table_layout_tall_row: the 80pt company row stays on page 1 and the 530pt letter row opens
+            // page 2). Ahead of the slack-tolerant routing below, whose 2% would let a 610pt table into a
+            // 600pt remainder.
             if (!atRegionTop &&
                 HasExactRow(table) &&
                 totalHeight > contentBottom - y)
@@ -3643,11 +3519,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // A table that merely does not fit the space left ALSO flows row by row — Word's own behaviour
             // (probed: _probe_cantsplit_fit_off splits the boundary row 13/7 where the whole-table move put
             // all 20 lines overleaf; LibreOffice's SwTabFrame::Split deadline is likewise the remaining
-            // area, not a page height). Two earlier attempts at this routing were reverted on corpus
-            // damage; the piece both lacked is the split-acceptance test in PlaceSplitRow, which turns the
-            // pathological splits (unbreakable content force-placed into the remainder, or a trHeight floor
-            // mistaken for content) back into whole-row moves. What fits is TableFitsHere's call: strictly
-            // for a Word table, with the whole-table move's slack for a spreadsheet grid.
+            // area). PlaceSplitRow's acceptance test turns a pathological split back into a whole-row move.
             if (!atRegionTop &&
                 !TableFitsHere(table, totalHeight, atTop: false))
             {
@@ -3656,13 +3528,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             // A declared row FLOOR is strict against the hard bottom on the whole-table path too, as it is
-            // on the row-by-row path: _probe_floorfit_enddoc (a 30pt atLeast floor into a 24pt remainder,
-            // whole-table path) stayed on the page through the 4% the slack fits below allow — the move's
-            // 2% off the height against HasSpaceFor's 2% past the bottom — where Word moves it, as it did
-            // in every controlled floor fixture (_probe_floorfit_single/_last/_mid). Content keeps the
-            // slack: only the sum of the rows' declared heights is tested, so a table that fits by its
-            // content and misses only by rounding still squeezes on as before. Placed AFTER the row-by-row
-            // routing, so a long floored table still flows from where it stands rather than moving whole.
+            // on the row-by-row path: Word moves a 30pt atLeast floor out of a 24pt remainder
+            // (_probe_floorfit_enddoc, and _single/_last/_mid), which the slack below would keep. Only the
+            // declared heights are tested, so content keeps the slack. After the row-by-row routing, so a
+            // long floored table still flows from where it stands.
             if (!atRegionTop &&
                 DeclaredRowFloors(table) > contentBottom - y)
             {
@@ -3695,14 +3564,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Whether a table of this height fits from the cursor. Word's fit is strict: a row stays on the page
         // only while its whole box — top padding, full lines, the last paragraph's after-spacing and the
-        // bottom padding — clears the bottom margin, and a table fits when its rows do. Word-probed
-        // 2026-09-30, a borderless table slid down the page: its last kept position put the row's bottom on
-        // the margin exactly with no padding, with 20pt of bottom padding, with 20pt of after-spacing, and
-        // as the last of three rows, in compatibility modes 12 and 15 alike; a three-line row's first
-        // fragment needed its first line and its padding. The 2% slack this routing used to give every
-        // table let one overhang the margin where Word moves the row — COMPASS's stocktake report put two
-        // option rows 21pt past it and ran a page short of Word from there on. Taking it away moved no Word
-        // document in the corpus but resumes/13, onto Word's pages.
+        // bottom padding — clears the bottom margin, and a table fits when its rows do. Word-probed with a
+        // borderless table slid down the page: the row's bottom on the margin exactly with no padding, with
+        // 20pt of bottom padding or after-spacing, and as the last of three rows, in modes 12 and 15; a
+        // three-line row's first fragment needed its first line and its padding (COMPASS's stocktake
+        // report is the corpus case).
         //
         // A spreadsheet grid keeps the slack (TableProperties.IsSheetGrid): at a region top a grid may
         // overrun by HasSpaceFor's 2%, and below one by the 4% of the whole-table move.
@@ -3789,43 +3655,20 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     broke = true;
                 }
 
-                // A row taller than a whole empty region cannot be rescued by moving it — it would overflow
-                // wherever it went, drawing over the footer and clipping at the page edge. Word splits such a
-                // row at a line boundary and continues it overleaf. Rows that DO fit keep the move-whole
-                // behaviour below, which matches Word across the rest of the corpus.
-                // A row that merely does not fit the space left is split too — EXCEPT a w:hRule="exact" one,
-                // whose height is a verbatim box rather than a measure of its content (ECMA-376 §17.4.81).
-                // Splitting one lets its sparse content collapse into the space left and the reservation
-                // vanishes: table_layout_tall_row is two exact rows (80pt and 530pt) that Word carries onto a
-                // second page, and splitting the tall one folded the document back to a single page.
-                // Fit against the remainder is EXACT, not HasSpaceFor's 2% slack: a row fits or it
-                // moves, which is Word's rule (LibreOffice's split deadline is likewise the remaining
-                // area verbatim, widorp.cxx:134/157). Measured on a 1216-row summary table spanning 52
-                // landscape pages (2026-08-19): the slack there is 9.6pt against a 17.7pt row, so a
-                // boundary row 1.5pt past the margin stayed put where Word moves it — one extra row kept
-                // on roughly every fourth page, compounding to a whole page lost by the table's end and
-                // every PAGEREF below the table resolving one page low. Strict fit reproduces Word's
-                // row-by-row page boundaries on that table exactly, and the corpus stays at 330/330
-                // page-count matches. Zeroing HasSpaceFor globally instead costs three scenarios
-                // (business-plans/15, newsletters/09, resumes/06), whose keeps ride the whole-table and
-                // merge-head slack — both untouched here.
-                // An earlier strict-fit attempt cost business-plans/15 a page by splitting rows the move
-                // path would have kept; the piece it lacked was PlaceSplitRow's split-acceptance test,
-                // which now turns those pathological splits back into whole-row moves.
-                // The height is the row's FULL height, an atLeast w:trHeight floor included. A content-only
-                // fit was briefly landed off a letters/04 in-situ reading ("Word keeps a floored row whose
-                // content fits the remainder") and is REFUTED: all four controlled fixtures
-                // (_probe_floorfit_single/_last/_mid/_enddoc, 2026-08-07) show Word MOVING a floored row
-                // whose floor misses the space whatever its content does. letters/04's keep is upstream
-                // height drift: Word's letter runs ~50pt more compact, so the floor simply FITS in Word's
-                // layout — and the engine keeps its one-page count through the whole-table move's slack.
+                // A row taller than a whole empty region cannot be rescued by moving it, so Word splits it
+                // at a line boundary and continues it overleaf. A row that merely misses the space left is
+                // split too — EXCEPT a w:hRule="exact" one, a verbatim box (ECMA-376 §17.4.81) Word carries
+                // whole (table_layout_tall_row's 80pt and 530pt rows land on two pages).
+                // Fit against the remainder is EXACT, with no slack (LibreOffice's split deadline is likewise
+                // the remaining area, widorp.cxx:134/157): on a 1216-row table over 52 landscape pages, 2%
+                // slack (9.6pt against a 17.7pt row) kept a boundary row 1.5pt past the margin where Word
+                // moves it, a page lost by the table's end. The height is the row's FULL height, an atLeast
+                // floor included: Word moves a floored row whose floor misses the space whatever its content
+                // does (_probe_floorfit_single/_last/_mid/_enddoc).
                 //
-                // A row carrying a vertical merge is exempt from the strict test: a merge span is one
-                // drawn unit and Word clips its overflow at the paper edge rather than moving it
-                // (resumes/06's bar span — the tie rule below stacks the continuations for the same
-                // reason), so its HEAD keeps HasSpaceFor's shared slack. Without the exemption,
-                // resumes/06's span head at 1.1pt over the margin moved to a fresh page and re-split the
-                // document 3 pages into 6.
+                // A row carrying a vertical merge is exempt: a merge span is one drawn unit whose overflow
+                // Word clips at the paper edge rather than moving it, so its HEAD keeps HasSpaceFor's slack
+                // (resumes/06's span head, 1.1pt over the margin, stays).
                 var overflows = HasMergedCell(row)
                     ? !HasSpaceFor(rowHeight)
                     : y + rowHeight > contentBottom;
@@ -3934,13 +3777,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // With allowReject, a first fragment offered only the REMAINDER of a region must genuinely split to
         // stand: some cell has to continue overleaf, and what was placed has to fit the space. Otherwise the
         // split is rejected — nothing is emitted, false comes back, and the caller moves the row whole. This
-        // is LibreOffice's lcl_RecalcSplitLine acceptance (a rejected split retries without splitting the
-        // row), and it is what the two reverted trigger widenings lacked: without it, a cell whose content
-        // cannot break (a nested table — LayoutCellFragment places one whole) was force-placed overflowing
-        // the remainder, and a row whose w:trHeight floor was the only thing that did not fit was "split"
-        // into a content-sized stub that dropped the floor. A fragment built after the sliver advance is
-        // exempt — it has a whole region, and a non-continuing fragment there is the carried-whole-row case
-        // (_probe_trail2_nested: authored floor honoured at the region top).
+        // is LibreOffice's lcl_RecalcSplitLine acceptance. It keeps a cell whose content cannot break (a
+        // nested table, which LayoutCellFragment places whole) from being force-placed over the remainder,
+        // and a row whose floor alone misses from being cut to a stub. A fragment built after the sliver
+        // advance is exempt: it has a whole region, and a non-continuing fragment there is the carried-whole-
+        // row case (_probe_trail2_nested: authored floor honoured at the region top).
         bool PlaceSplitRow(TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, int headerCount, bool allowReject)
         {
             var row = table.Rows[rowIndex];
@@ -3956,7 +3797,6 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // header rows, which it then overruns the bottom margin by. XPS-read on _probe_rowsplit
             // (2026-11-01, 6pt rules): floors of 1000 and 1200pt both draw 648.1pt rule to rule on a
             // 648pt region, and 648.1 again under a 31pt repeated header, ending 31pt past the margin.
-            // Placed in the space left it stood at its content's height on the first page.
             var floorOversize = !row.IsExactHeight &&
                                 TableLayout.DeclaredRowHeight(row, table.Properties) is { } rowFloor &&
                                 rowFloor > contentHeight;
@@ -3976,17 +3816,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 // w:tblHeader rows re-emit above every fragment that follows a break — the continuations, and
-                // ALSO a first fragment the sliver advance just carried to a fresh region. That advance is the
-                // same page break EnsureSpaceFor produces on the unsplit path, which re-emits headers; missing
-                // it here cost business-plans/13's continuation pages their three repeated header rows
-                // ("Start-up costs" / agency / column headers) whenever the fit trigger routed the boundary
-                // row through this path, leaving every following page to start bare at a data row.
-                // Snapshotted BEFORE the repeat below, because repeated headers do not stop the row that
-                // follows them from being a row CARRIED WHOLE TO A FRESH REGION — the case BuildRowFragment's
-                // w:trHeight floor is for. Reading atRegionTop after the loop saw the header rows' own
-                // atRegionTop = false and dropped the floor, which cost business-plans/13's page 20 its
-                // first data row: content-sized at 11pt against Word's declared 21.6pt, shifting the eight
-                // rows below it 23px up the page (measured, 150 DPI).
+                // ALSO a first fragment the sliver advance just carried to a fresh region, as EnsureSpaceFor's
+                // break does on the unsplit path (business-plans/13's continuation pages).
+                // Snapshotted BEFORE the repeat below: repeated headers do not stop the row after them being
+                // one CARRIED WHOLE TO A FRESH REGION, which is when BuildRowFragment honours the w:trHeight
+                // floor (business-plans/13's page 20: 21.6pt, not 11pt content).
                 var carriedToRegionTop = atRegionTop;
                 if ((!isFirstFragment || advanced) &&
                     headerCount > 0 &&
@@ -4027,13 +3861,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // A row with a declared height splits only where that height fits the space left: the
                 // floor is owed to the row's first piece, and a remainder too short for it sends the
-                // whole row on however much of its content would have fitted. Word-probed 2026-10-11
-                // (_probe_floorsplit_*: twelve one-line paragraphs, 240pt, in a one-cell row behind
-                // filler that leaves a known remainder): with 68pt left the row splits three lines
-                // and nine under no floor and under a 40pt one, and moves whole under a 100pt floor,
-                // alone in its table or second in it, as twelve paragraphs or as one; with 128pt left
-                // the 100pt-floored row splits six and six. business-plans/15 opens its seventh page
-                // on such a row, which split here and left the page a paragraph's last line.
+                // whole row on however much of its content would have fitted. Word-probed
+                // (_probe_floorsplit_*: twelve one-line paragraphs, 240pt, in a one-cell row): with 68pt
+                // left the row splits 3/9 under no floor and under a 40pt one, and moves whole under a
+                // 100pt floor; with 128pt left the 100pt-floored row splits 6/6. business-plans/15 opens
+                // its seventh page on such a row.
                 if (allowReject &&
                     isFirstFragment &&
                     !advanced &&
@@ -4045,12 +3877,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // A row the sliver advance carried to a fresh region, and which that region holds whole,
                 // was not split at all: it is an ordinary row at the head of its page and is placed as
-                // one. A fragment closes itself with a bottom rule of its own (BuildRowFragment), which
-                // an unsplit row does not pay — the rule under it is the next row's top edge — so placed
-                // as a fragment it stood one rule too tall and everything under it on the page that much
-                // low. Read off Word's XPS (copies of table_multipage and header_row_repeat/01,
-                // 2026-10-11): the first row of a continuation page is pitched as every other row, 28.2pt
-                // behind 3pt rules where the fragment made 31.0, and 25.8 behind 0.5pt rules against 26.0.
+                // one: a fragment closes itself with a bottom rule of its own (BuildRowFragment), which an
+                // unsplit row does not pay. Read off Word's XPS (copies of table_multipage and
+                // header_row_repeat/01): the first row of a continuation page is pitched as every other
+                // row, 28.2pt behind 3pt rules where a fragment makes 31.0, and 25.8 behind 0.5pt against 26.0.
                 if (isFirstFragment &&
                     advanced &&
                     finished &&
@@ -4074,8 +3904,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     // The fragment that ends the row closed itself with its own rule, and the next row
                     // opens on that same rule rather than drawing its own under it: _probe_rowsplit's
-                    // split row ends overleaf on ONE 6pt rule (378.05-384.05) before the next row, where
-                    // the two stacked stood the rows below 6pt low.
+                    // split row ends overleaf on ONE 6pt rule (378.05-384.05) before the next row.
                     if (rowIndex < table.Rows.Count - 1 &&
                         !TableHeightCalculator.IsPinnedExact(row))
                     {
@@ -4092,10 +3921,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         }
 
         // One fragment of a split row: the same geometry as BuildRow, but each cell lays out only what fits in
-        // <paramref name="available"/> starting from its own carried split point. A cell that continues
-        // overleaf drops its bottom border and a fragment that is not the first drops its top border, so the
-        // split edge draws no rule — Word runs the cell's sides through the break and closes the box only at
-        // the row's real end.
+        // <paramref name="available"/> starting from its own carried split point. Every fragment draws its
+        // whole box, split edges included (FragmentBorders).
         (PlacedTableRow Row, CellSplitPoint?[] Continuations, float Height, float ContentHeight) BuildRowFragment(
             float rowY,
             TableElement table,
@@ -4119,13 +3946,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // A fragment pays for its own horizontal edges, exactly as TableHeightCalculator's collapse pass
             // charges an unsplit row for its outer top and bottom: Word draws each edge on the boundary and
-            // insets the content below it, so the edges come out of what the cells have to fill. Word closes
-            // every fragment with a rule and reopens the next one with another, so both are charged on every
-            // fragment rather than only at the row's real ends. Without this the budget over-reports by the
-            // two edge widths, which is a whole extra line whenever the content divides the region evenly —
-            // _probe_cantsplit_tall_off is exactly that case: 648pt of region against 12pt lines, where the
-            // unpaid budget takes 54 lines to Word's 53. An exact row is exempt, mirroring the height model,
-            // since ECMA-376 §17.4.81 makes its height verbatim against borders as against content.
+            // insets the content below it, so the edges come out of what the cells have to fill — on every
+            // fragment, since Word closes each with a rule and reopens the next with another
+            // (_probe_cantsplit_tall_off: 648pt of region against 12pt lines holds Word's 53, not 54). An
+            // exact row is exempt, its height verbatim against borders as against content (§17.4.81).
             var chargesEdges = !TableHeightCalculator.IsPinnedExact(row);
             var topEdge = chargesEdges ? TableHeightCalculator.TopEdgeReserve(table, colCount, rowIndex) : 0f;
             var bottomEdge = chargesEdges ? TableHeightCalculator.HorizontalBorderWidth(table, colCount, rowIndex, top: false) : 0f;
@@ -4195,21 +4019,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // Every fragment shrinks to what it actually used, the one that carries on included — Word closes
             // it tight around its content rather than stretching it to the region bottom (_probe_cantsplit_
             // tall_off: Word's closing rule sits at 708.96 against a 720pt content bottom, hard against the
-            // 53 lines it holds, not 11pt below them). Only the drawn box is at stake: the cursor moves to
-            // the next region straight after a continuing fragment either way.
+            // 53 lines it holds).
             var fragmentHeight = Math.Min(available, usedHeight + horizontalEdges);
 
             // A whole row CARRIED TO A REGION TOP keeps its authored atLeast floor (w:trHeight): Word
-            // places such a row at its declared height — probed with a 100pt row of ~25pt content
-            // (_probe_trail2_nested/_bordered), where the paragraph after the table starts at 174.72pt,
-            // margin plus the full declared height, against 99.36 for the content-sized fragment. The floor
-            // is deliberately NARROW, each widening having been tried and adjudicated away from Word:
-            // the calculator's full rowHeights model regressed even floor-less scenarios
-            // (header_row_repeat/01 and table_multipage author no trHeight — actual layout beats the model's
-            // estimate), and applying the authored floor to a row SQUEEZED into the page-bottom remainder
-            // without advancing regressed business-plans/13 on every backend, while business/03 — whose
-            // floored rows land at region tops, the probed geometry — improved. A row split across regions
-            // fills by content; no probe covers distributing a declared height across fragments.
+            // places such a row at its declared height (_probe_trail2_nested/_bordered: a 100pt row of ~25pt
+            // content puts the paragraph after the table at 174.72pt, against 99.36 content-sized). Only
+            // there: a row squeezed into a page-bottom remainder, or split across regions, fills by content
+            // (no probe covers distributing a declared height across fragments).
             if (isFirstFragment &&
                 atRegionStart &&
                 !anyContinues &&
@@ -4232,18 +4049,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return (new(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight, usedHeight + horizontalEdges);
         }
 
-        // Every fragment draws its whole box, split edges included. This read the other way until Word was
-        // asked directly (_probe_cantsplit_tall_off): Word CLOSES the fragment that carries on with a rule at
-        // 708.96 and REOPENS the continuation with another at 72.00, rather than running the cell's sides
-        // through the break and boxing only the row's real ends. The edges are charged to the fragment's
-        // content budget above, so the rules and the space they occupy stay in step.
+        // Every fragment draws its whole box, split edges included: Word CLOSES the fragment that carries on
+        // with a rule at 708.96 and REOPENS the continuation with another at 72.00 (_probe_cantsplit_tall_off).
+        // The edges are charged to the fragment's content budget (BuildRowFragment).
         static CellBorders? FragmentBorders(TableCell cell, TableElement table, int rowIndex, int gridColIndex, int colCount, TableRow row) =>
             TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
 
-        // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
-        // laid-out content. Cell geometry mirrors the deleted production RenderTableRow so the tree matches the
-        // raster backend's grid — merge-continuation cells contribute nothing (the originating cell covers
-        // them), and a merge-restart cell's box spans the merged rows' heights.
         // The width of the grid columns a row's w:gridBefore leaves empty — where its first cell starts.
         static float LeadingGridWidth(float[] colWidths, int gridBefore)
         {
@@ -4259,6 +4070,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return width;
         }
 
+        // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
+        // laid-out content. Merge-continuation cells contribute nothing (the originating cell covers them),
+        // and a merge-restart cell's box spans the merged rows' heights.
         PlacedTableRow BuildRow(float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
         {
             var row = table.Rows[rowIndex];
@@ -4357,7 +4171,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // third hidden. Any other row grows to its content, so nothing runs out of its foot —
                 // except a rotated cell, whose text asks nothing of the row (MeasureVerticalCellHeight)
                 // and is cut at the box: _probe_rotated's 72pt "Header" alone in its row shows only the
-                // part of the "H" inside the row, where the render drew it up over the line above.
+                // part of the "H" inside the row.
                 var clipVertically = cell.Properties.ClipOverflow || row.IsExactHeight || cell.Properties.TextDirection != CellTextDirection.LeftToRight;
 
                 // A vertical merge takes its top from the head, its bottom from its LAST cell and each
@@ -4479,13 +4293,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Cell-anchored behind-text shapes resolved to absolute boxes: the offset is measured from the
         // cell's top-left (Word anchors these to the cell frame). Solid, gradient, outline and image
-        // fills render (an image-fill shape paints as a plain image, mirroring the body-float case —
-        // brochures/04's construction photo is one, silently dropped before this); in-front-of-text
-        // floats and the paragraph-anchor walk that positions non-cell-top floats are later slices
-        // (each painter's PaintShape skips what it cannot draw). With behindText false the same resolver
-        // returns the IN-FRONT shapes, which the caller paints after the cell's text — brochures/06's
-        // hot-air balloons, a group of freeforms in front of each grey panel's paragraphs, were dropped
-        // until then (the only in-front cell shapes in the corpus).
+        // fills render, an image-fill shape as a plain image as for body floats (brochures/04's
+        // construction photo); the paragraph-anchor walk that would position non-cell-top floats is not
+        // modelled. With behindText false the same resolver returns the IN-FRONT shapes, which the caller
+        // paints after the cell's text (brochures/06's hot-air balloons).
         static IReadOnlyList<PlacedItem> ResolveCellFloatShapes(TableCell cell, float cellX, float cellY, bool behindText = true)
         {
             if (cell.Floats.Count == 0)
@@ -4550,10 +4361,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // A table's column widths and row heights at one measure. Both derive only from the table, that
         // width and the measurer, and every caller treats them as read-only, so they are computed once per
-        // (table, width) and shared. The repeat this removes is per PAGE: a header or footer table has its
-        // height measured to reserve the band (HeaderReservedTop / FooterBand) and is then laid out again by
-        // LayoutNestedTable, and both halves ran the full autofit and row-height math on every page of the
-        // document. A floating table pays a similar pair — the column widths that size it, then the layout.
+        // (table, width) and shared: a header or footer table is measured to reserve its band and laid out
+        // again (LayoutNestedTable) on every page, and a floating table is sized and then laid out.
         readonly Dictionary<(TableElement Table, float Width), (float[] ColWidths, float[] RowHeights)> tableGeometryCache = [];
 
         (float[] ColWidths, float[] RowHeights) TableGeometry(TableElement table, int colCount, float width)
@@ -4616,8 +4425,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         /// <summary>
         /// Lays a cell's content out from <paramref name="start"/>, stopping once <paramref name="budget"/>
-        /// points of height are used. A null budget places everything — the whole-row case, byte-identical to
-        /// before row splitting existed. With a budget the return carries the point the content reached, so
+        /// points of height are used. A null budget places everything — the whole-row case. With a budget
+        /// the return carries the point the content reached, so
         /// the caller can continue the cell on the next page; <c>null</c> means the cell finished.
         /// At least one line is always placed, so a budget too small to hold anything still advances.
         /// </summary>
@@ -4647,9 +4456,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             // Paragraph-border run (w:pBdr) within the cell — the same group law the page flow applies
             // through SharesBorderGroupWith: consecutive same-bordered paragraphs share ONE box, stroked
-            // when the run ends, with w:between ruling the internal boundaries. cover-letters/10's date
-            // cell is the shape that demanded it: three Heading2 paragraphs whose STYLE carries a top
-            // rule draw a single rule above the first, which the cell path silently dropped.
+            // when the run ends, with w:between ruling the internal boundaries (cover-letters/10's date
+            // cell: three Heading2 paragraphs whose STYLE carries a top rule draw one rule above the first).
             // TableHeightCalculator.MeasureCellHeight charges the same reserves so measure = placement.
             ParagraphProperties? cellBorderRun = null;
             var cellBorderRunItemsIndex = 0;
@@ -4674,9 +4482,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var boxHeight = cellBorderRunBottom - cellBorderRunTop + (float)run.BorderTopSpacePoints + (float)run.BorderBottomSpacePoints;
 
                 // The run's shading fills the whole box, out to the rules, behind its member lines — as
-                // FlushBorderRun does in the page flow. Cell paragraphs had none at all: brochures/06's
-                // QuoteAlt/QuoteSource box, an olive w:shd under white text, drew as a bare outline with
-                // its quote invisible.
+                // FlushBorderRun does in the page flow (brochures/06's QuoteAlt/QuoteSource box, an olive
+                // w:shd under white text).
                 if (!string.IsNullOrEmpty(run.BackgroundColorHex))
                 {
                     lines.Insert(cellBorderRunItemsIndex, new PlacedShading(boxLeft, boxTop, boxWidth, boxHeight, run.BackgroundColorHex));
@@ -4775,8 +4582,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var wordArtWidth = Math.Min((float)cellWordArt.WidthPoints, contentWidth);
 
                     // The box stands in the cell where its paragraph's w:jc puts it, as it does in the
-                    // page flow (PlaceWordArt). Set at the cell's left edge whatever the paragraph
-                    // said, wedding/08's centred ampersand badge stood 43pt left of the names over it.
+                    // page flow (PlaceWordArt): wedding/08's centred ampersand badge.
                     var wordArtLeft = contentLeft + AlignmentOffset(cellWordArt.Alignment, contentWidth, wordArtWidth);
                     if (cellWordArt.Transform != WordArtTransform.None)
                     {
@@ -4839,13 +4645,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // Space-before, collapsed with the previous paragraph's after (max, not sum). Unlike page
                 // flow, a cell's FIRST paragraph keeps its space-before — TableHeightCalculator sizes the
-                // cell with it, so the content must be positioned with it too or it floats to the top and
-                // leaves the gap at the bottom. w:contextualSpacing drops a paragraph's own half of the gap
-                // against a same-style neighbour in a cell exactly as in the page flow (ParagraphGap;
-                // cover-letters/09's Address block: five 42pt-after contextual paragraphs rendered 42pt
-                // apart instead of tight). TableHeightCalculator once measured WITHOUT the collapse,
-                // leaving the row oversized by every suppressed gap; it applies the same rule, so measure
-                // and placement agree.
+                // cell with it, so the content is positioned with it too. w:contextualSpacing drops a
+                // paragraph's own half of the gap against a same-style neighbour as in the page flow
+                // (ParagraphGap; cover-letters/09's Address block of five 42pt-after contextual paragraphs
+                // sits tight), and TableHeightCalculator applies the same rule.
                 // Where the paragraph's own space-before begins, which a change bar on its first line
                 // takes in (ChangeBar).
                 var spaceTop = cellY;
@@ -4858,14 +4661,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // The top of a cell continued from the page before. A paragraph resumed part-way
                     // through has no spacing left to take. One that STARTS here takes only what its
                     // space-before adds beyond the space-after of the paragraph the page before ended
-                    // on: that after was laid down there, and the excess is all the gap ever owed this
-                    // one (ParagraphGap). Word-probed 2026-10-11 (_probe_cellcont_*: a cell of
-                    // one-line paragraphs split across pages, first baseline overleaf read off the
-                    // XPS against a cell with no spacing at 89.5pt): 30pt before with nothing after
-                    // opens at 118.9, with 20pt after at 99.7, with 30pt after at 89.5, and 20pt
-                    // before with 30pt after at 89.5, in compatibility modes 12, 14 and 15 alike; a
-                    // 30pt-before paragraph cut by the break carries on at 89.5. The whole before was
-                    // charged here in both cases, which stood business-plans/15's page 17 5pt low.
+                    // on (ParagraphGap). Word-probed (_probe_cellcont_*, first baseline overleaf against
+                    // 89.5pt with no spacing): 30pt before opens at 118.9 after nothing, 99.7 after 20pt
+                    // and 89.5 after 30pt, in modes 12, 14 and 15; a 30pt-before paragraph cut by the
+                    // break carries on at 89.5 (business-plans/15's page 17).
                     if (resumeLine == 0)
                     {
                         var ending = elementIndex > 0
@@ -4913,7 +4712,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var availableWidth = contentWidth - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
 
                 // How many of the paragraph's remaining lines this fragment takes. Without a budget that is
-                // all of them (the whole-row path, unchanged). With one, count what fits — always at least
+                // all of them (the whole-row path). With one, count what fits — always at least
                 // one line, so a fragment can never come out empty and loop forever — then apply the same
                 // keep-lines and widow/orphan rules PlaceParagraph uses for the page flow, so a paragraph
                 // breaks at the same place whether it sits in the flow or inside a splittable row.
@@ -4956,13 +4755,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         else if (properties.WidowControl &&
                                  remaining >= 2)
                         {
-                            // Word settles the two rules in order and lets the second act on the first's
-                            // result. A widow — one line alone at the top of the next page — is fixed by
-                            // carrying a second line down to join it; if that leaves a lone line behind, the
-                            // orphan rule then moves the whole paragraph. business-plans/15's three-line
-                            // "Long-term Liabilities" bullet is the case: two lines fit, the widow carry
-                            // takes it to one, and the orphan rule takes that to none — which is exactly
-                            // where Word breaks.
+                            // Widow carry first, then the orphan rule on what it left, as in PlaceParagraph.
                             if (take == remaining - 1)
                             {
                                 take = remaining - 2;
@@ -5005,7 +4798,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     // The rest of this paragraph continues on the next page. Any open run covering the
                     // PREVIOUS paragraphs still strokes (the loop-exit flush); this split paragraph's own
-                    // box is dropped, as in the flow (per-fragment borders are a later slice).
+                    // box is dropped, as in the flow.
                     continuation = new(elementIndex, resumeLine + take);
                     break;
                 }
@@ -5033,13 +4826,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     FlushCellBorderRun();
                 }
 
-                // An empty paragraph's after-spacing still separates it from the NEXT paragraph —
-                // production's bounded render advances past EmptyLineHeight + full after
-                // (PdfTextEngine.Draw's empty arm) — but a TRAILING empty's after does not count as
-                // content space for centre/bottom alignment (ParagraphHasVisibleContent in
-                // the deleted production mirror). cover-letters/09 ends its Address block with an empty
-                // 42pt-after paragraph before the salutation: dropping that gap sat the whole letter
-                // body 42pt high.
+                // An empty paragraph's after-spacing still separates it from the NEXT paragraph
+                // (cover-letters/09's empty 42pt-after paragraph before the salutation), but a TRAILING
+                // empty's after does not count as content space for centre/bottom alignment.
                 lastCellAfter = (float)properties.SpacingAfterPoints;
                 lastCellVisibleAfter = isEmpty ? 0 : lastCellAfter;
                 lastCellContextual = properties.ContextualSpacing;
@@ -5051,12 +4840,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // spacing, so the box closes at its last member's bottom.
             FlushCellBorderRun();
 
-            // The trailing after-spacing counts as content space in full — MeasureCellHeight sizes the
-            // row with it and the production render counted it in its alignment content height, so
-            // leaving it out here made every centre/bottom-aligned cell sit lower by that spacing
-            // (labels/12's bottom-aligned label cells ran exactly their 10pt after-spacing low). A
-            // trailing EMPTY paragraph's after is excluded, mirroring ParagraphHasVisibleContent. A
-            // fragment that continues overleaf has no trailing paragraph yet, so it charges none.
+            // The trailing after-spacing counts as content space in full, as MeasureCellHeight sizes the
+            // row with it (labels/12's bottom-aligned label cells). A trailing EMPTY paragraph's after is
+            // excluded. A fragment that continues overleaf has no trailing paragraph yet, so it charges none.
             if (continuation == null &&
                 !ParagraphGap.DropsCellEndAfter(row, cell))
             {
@@ -5088,14 +4874,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return (lines, continuation, cellY - contentTop);
         }
 
-        // Moves a placed line (and its inline images) down the page by an offset, for cell vertical
-        // alignment. Runs carry no Y of their own — the painter draws them at the line's baseline — so
-        // shifting Y and Baseline moves the text with the box.
-        //
-        // Everything the cell's flow placed moves: its lines, a paragraph's border box and shading, a
-        // nested table's rows, and the box of an inline text box. The last was left where it stood, so
-        // a framed word in a bottom-aligned cell kept its frame at the cell's top while its text went
-        // down without it (brochures/08's "Contoso Logo", 39pt out of its frame).
+        // Moves anything a cell's flow placed down by an offset, for cell vertical alignment (ShiftItem).
         static PlacedItem ShiftDown(PlacedItem item, float offset) =>
             ShiftItem(item, offset);
 
@@ -5177,9 +4956,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // w:tblInd applies here as it does in the body. A band table is the usual way to draw a
                 // FULL-BLEED rule or colour bar, and it does that with a NEGATIVE indent: a one-column
                 // 12792-twip table indented -1593 starts 79.65pt left of a 36pt margin, i.e. off the paper,
-                // and runs the full width of the sheet. Pinning it at the band's left edge instead left the
-                // bar starting at the margin and overhanging the right edge — a banner visibly inset on one
-                // side and clipped on the other.
+                // and runs the full width of the sheet.
                 if (element is TableElement bandTable)
                 {
                     var (tableItems, tableHeight) = LayoutNestedTable(bandTable, left + (float)bandTable.Properties.IndentPoints, bandY, width);
@@ -5392,9 +5169,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // field's own \* switch format or else the section's w:pgNumType/@w:fmt), the document total
         // (NUMPAGES) or the section's pages (SECTIONPAGES), cloning only the paragraphs that carry a
         // field. A "Page N of M" footer reads correctly across sections. A field inside a band TABLE is
-        // substituted too — business-plans/10's footer sets its PAGE field in the right-hand cell of a
-        // three-cell table, and kept the field's cached "1" on every page until the cells were walked.
-        // Only a table that holds a field is rebuilt, so the others keep their identity (and with it the
+        // substituted too (business-plans/10's footer table). Only a table that holds a field is rebuilt, so the others keep their identity (and with it the
         // geometry cache, TableGeometry).
         static IReadOnlyList<DocumentElement> SubstitutePageFields(IReadOnlyList<DocumentElement> elements, PageNumbering numbering, string? sectionFormat) =>
             MapPageFields(elements, _ => _.WithText(FieldText(_, numbering, sectionFormat)));
@@ -5587,8 +5362,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // Resolves a header's behind-text floating images and shapes to absolute page positions. The
         // full-page decorative frames of letter/label templates are anchored here — page/margin/column
         // horizontally, at the header paragraph vertically — and a header-band-top estimate suffices since
-        // they span the whole page. Front-text (foreground) header art is a later slice; header/footer
-        // text and band tables lay out in LayoutBand.
+        // they span the whole page. Header/footer text and band tables lay out in LayoutBand.
         IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings settings, bool isFooter)
         {
             if (band == null)
@@ -5631,13 +5405,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             foreach (var element in band.Elements)
             {
-                // Front-of-text band images are admitted on the same terms as front-of-text band
-                // shapes below: a logo anchored in the header is overwhelmingly written behindDoc="0"
-                // (Word's default when you drop a picture into a header and set Square/None wrapping),
-                // and the behind-only gate dropped it silently — a right-aligned letterhead logo simply
-                // never appeared. Painting it with the rest of the band is right for the same reason it
-                // is right for shapes: the band paints before the body, and header art sits above the
-                // body's top margin, so front/behind ordering against body text almost never arises.
+                // Front-of-text band images are admitted, as band shapes are below: a header logo is
+                // usually behindDoc="0" (Word's default), and the band paints under the body either way.
                 if (element is FloatingImageElement image &&
                     IsDrawable(image))
                 {
@@ -5649,10 +5418,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var (shapeX, shapeY) = Position(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent, shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent);
                     // An image-fill shape paints as a plain image (PaintShape skips image fills); a solid,
                     // gradient or outlined shape paints as a PlacedShape — mirroring the body-float shape cases.
-                    // Front-of-text band shapes are admitted too: production painted the whole header before
-                    // the body, so its front-text shapes also sat under the body content — cards/05's two
-                    // 0.5pt fold-guide rules (a full-height vertical and a full-width horizontal, both
-                    // front-text page-anchored header shapes) were silently dropped by the behind-only gate.
+                    // Front-of-text band shapes are admitted too (cards/05's 0.5pt fold-guide rules).
                     if (shape.ImageData is { Length: > 0 } shapeImage &&
                         shape.ImageContentType != "image/svg+xml")
                     {
@@ -5668,8 +5434,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
                 // A band's anchored single-paragraph wps text box — a running-header title, a footer label —
                 // reaches here as floating WordArt (ParseWordArt claims it before ParseTextBox sees it) and is
-                // placed as PlaceFloatingWordArt places a body one, from the band's anchors. Without this
-                // branch it was dropped silently (issue #194).
+                // placed as PlaceFloatingWordArt places a body one, from the band's anchors.
                 else if (element is FloatingWordArtElement wordArt)
                 {
                     var (boxX, boxY) = Position(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.HorizontalPositionPercent, wordArt.VerticalAnchor, wordArt.VerticalPositionPoints, wordArt.VerticalPositionPercent);
@@ -5735,9 +5500,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             };
         }
 
-        // Advances to the next column or page when the height will
-        // not fit in the space left (a 2% rounding slack via HasSpaceFor), unless already at a region top
-        // or the height exceeds a whole column. Returns whether it broke.
+        // Advances to the next column or page when the height will not fit in the space left (a 2% rounding
+        // slack via HasSpaceFor), unless already at a region top or the height exceeds a whole column.
+        // Returns whether it broke.
         bool EnsureSpaceFor(float height)
         {
             if (height > contentHeight || atRegionTop || HasSpaceFor(height))
@@ -5753,8 +5518,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
         // Keep with next (w:keepNext) holds an element's end on the page of what follows it: a paragraph's
         // last line with the next element's first, a kept table row with the row below it — or, the last
-        // row, with what follows the table. Word-probed through its own pagination (a probe document built
-        // over COM, each paragraph's and row's page read back), 2026-09-30:
+        // row, with what follows the table. Word-probed over COM, each paragraph's and row's page read back:
         //
         //   - a kept paragraph that can split carries only its widow tail over: six lines went 4/2 and four
         //     went 2/2, one line crossing without widow control. One that cannot split — three lines under
@@ -6201,9 +5965,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         }
 
         // The list marker as a placed run: its text in the bullet or number font, a hanging indent to the
-        // left of the text (or right-aligned just before it when there is no hanging indent). Font, colour
-        // and position mirror PdfTextEngine's marker placement; the paragraph's LeftIndent already sets the
-        // text edge, so the marker offsets back from there.
+        // left of the text (or right-aligned just before it when there is no hanging indent). The
+        // paragraph's LeftIndent already sets the text edge, so the marker offsets back from there.
         PlacedRun MarkerRun(ParagraphElement paragraph, NumberingInfo numbering, float markerX)
         {
             var markerProperties = measurer.Drawn(CanonicalParagraphMeasurer.MarkerProperties(paragraph, numbering));
@@ -6211,18 +5974,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return new(markerX, markerWidth, numbering.Text, markerProperties);
         }
 
-        // Where a line is drawn, against where the flow lays it (y and baseline): a line Word lays out
-        // reserving nothing but draws as reserving (LaidOutLine.DrawPad) is drawn as tall as a reserving
-        // line, its baseline the reserve lower, and every later line of its paragraph lower by the whole
-        // growth — drawShift carries that down the paragraph. The flow itself never moves.
-        // Word's change bar beside a revised line (PlacedLine.ChangeBar). Word-probed 2026-11-07
-        // (_probe_changebars: three-line 16pt paragraphs each carrying one kind of revision, then the
-        // same at 24pt before and after, the bars read off the 150 DPI render): a run inserted, deleted
-        // or reformatted bars its own line; a paragraph's changed properties bar its first line and its
-        // revised mark its last. A bar on a paragraph's first line takes in the space the paragraph keeps
-        // before it, from spaceTop where that space begins (the excess over the previous paragraph's
-        // after, ParagraphGap; none at a page top), and one on its last line the paragraph's space
-        // after — an insertion on a last line reached the same 8pt below it as a revised mark did.
+        // Word's change bar beside a revised line (PlacedLine.ChangeBar). Word-probed (_probe_changebars:
+        // three-line 16pt paragraphs each carrying one kind of revision, then with 24pt before and after):
+        // a run inserted, deleted or reformatted bars its own line; a paragraph's changed properties bar its
+        // first line and its revised mark its last. A first-line bar takes in the space the paragraph keeps
+        // before it, from spaceTop (the excess over the previous after, ParagraphGap; none at a page top),
+        // and a last-line bar the paragraph's space after.
         static (float Top, float Bottom)? ChangeBar(ParagraphElement paragraph, int lineIndex, int lineCount, IReadOnlyList<PlacedRun> runs, float top, float height, float? spaceTop, double after)
         {
             var first = lineIndex == 0;
@@ -6238,6 +5995,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             return (barTop, top + height + (last ? (float)after : 0));
         }
 
+        // Where a line is drawn, against where the flow lays it (y and baseline): a line Word lays out
+        // reserving nothing but draws as reserving (LaidOutLine.DrawPad) is drawn as tall as a reserving
+        // line, its baseline the reserve lower, and every later line of its paragraph lower by the whole
+        // growth — drawShift carries that down the paragraph. The flow itself never moves.
         static (float Y, float Height, float Baseline) DrawnLine(LaidOutLine line, float y, float baseline, ref float drawShift)
         {
             var top = y + drawShift;

@@ -17,7 +17,7 @@ using System.Xml.Linq;
 /// an embedded image, text, a dashed stroke, a stroke squashed by its transform, a group made
 /// translucent over shapes that overlap — any of these in the part of the document that is
 /// actually drawn, and <see cref="Read"/> returns no drawing and names it. The caller then paints
-/// the PNG, as every backend did for every document before this reader. That is the whole
+/// the PNG. That is the whole
 /// contract: a picture is drawn from its SVG entire, or from its PNG, never from part of its SVG.
 /// </summary>
 sealed class SvgReader

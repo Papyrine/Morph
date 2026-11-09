@@ -1,7 +1,3 @@
-using System.Collections.Concurrent;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-
 /// <summary>
 /// The coauthoring sessions of this application, one per file being edited, and the pages in each. They are
 /// held in memory: the pages editing a file have to reach the same instance of the application, and an
@@ -53,10 +49,10 @@ sealed class CoauthorSessions(WopiRequests requests, TimeProvider time, IOptions
         return false;
     }
 
-    public async Task LeaveAsync(CoauthorSession session, CoauthorConnection connection)
+    public Task LeaveAsync(CoauthorSession session, CoauthorConnection connection)
     {
         connections.TryRemove(connection.Id, out _);
-        await session.LeaveAsync(connection);
+        return session.LeaveAsync(connection);
     }
 
     void Closed(CoauthorSession session)

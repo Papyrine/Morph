@@ -1,7 +1,5 @@
 using System.Net.ServerSentEvents;
 using System.Threading.Channels;
-using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
 
 /// <summary>What a commit came to: kept as sent, kept merged with others' edits, refused, or sent against a version no longer kept.</summary>
 sealed record CommitReply(string Result, long Version, string? Patch = null, string? Reason = null, string? Paragraph = null, string? By = null);
@@ -378,7 +376,7 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         if (connections.Count == 0 &&
             closing == null)
         {
-            closing = time.CreateTimer(_ => Later(() => CloseAsync(force: false, CancellationToken.None)), null, Grace, Timeout.InfiniteTimeSpan);
+            closing = time.CreateTimer(_ => Later(() => CloseAsync(force: false, Cancel.None)), null, Grace, Timeout.InfiniteTimeSpan);
         }
     }
 
@@ -534,7 +532,7 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         {
             autosave?.Dispose();
             autosave = null;
-            await PutAsync(exit: false, CancellationToken.None);
+            await PutAsync(exit: false, Cancel.None);
         }
         finally
         {
@@ -561,8 +559,7 @@ sealed class CoauthorSession(Uri file, WopiRequests requests, TimeProvider time,
         try
         {
             var answer = await PutFileAsync(token, headers, cancel);
-            if (answer.Status == 409 &&
-                answer.Unlocked)
+            if (answer is { Status: 409, Unlocked: true })
             {
                 using var relocked = await requests.SendAsync(file, token, "Lock", lockId, cancel: cancel);
                 if (relocked.IsSuccessStatusCode)

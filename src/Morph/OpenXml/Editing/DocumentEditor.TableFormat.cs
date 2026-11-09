@@ -344,8 +344,11 @@ static partial class DocumentEditor
                     }
 
                     start ??= new(run, unit.Start);
-                    end = unit.Editable &&
-                          unit.Cells.Count > 0 &&
+                    end = unit is
+                          {
+                              Editable: true,
+                              Cells.Count: > 0
+                          } &&
                           ordinals.TryGetValue(unit.Cells[^1].Source, out var last)
                         ? new(last, unit.Cells[^1].Position + 1)
                         : new(run, unit.Start + 1);

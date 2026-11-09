@@ -1,5 +1,3 @@
-using System.Threading.Channels;
-
 /// <summary>
 /// One editor or viewer in a coauthoring session: a page that joined it with its own token. Its id is the
 /// secret its requests name it by, handed out only to a token the host accepted.
@@ -27,11 +25,12 @@ sealed class CoauthorConnection(string id, string userId, string userName, strin
     public long Version { get; set; }
 
     /// <summary>The session's state, the latest only, for its event stream to send.</summary>
-    public Channel<string> Events { get; } = Channel.CreateBounded<string>(
-        new BoundedChannelOptions(1)
-        {
-            FullMode = BoundedChannelFullMode.DropOldest
-        });
+    public Channel<string> Events { get; } =
+        Channel.CreateBounded<string>(
+            new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.DropOldest
+            });
 
     /// <summary>How many event streams it has open: none for a while, and it has gone.</summary>
     public int Streams { get; set; }

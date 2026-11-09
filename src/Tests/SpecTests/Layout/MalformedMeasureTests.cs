@@ -7,15 +7,12 @@ using W = DocumentFormat.OpenXml.Wordprocessing;
 /// </summary>
 /// <remarks>
 /// <para>
-/// Reported against 1.4.0 by an external fuzzer: a sub-1KB document whose single run declares
-/// <c>w:sz="-2147483647"</c> and is followed by a tab with a <c>dot</c> leader. The size multiplies
-/// every advance in the paragraph, so one character put the pen at roughly -5.7e8pt; the leader then
-/// spanned the whole distance and the painters tiled it with 166 million dots. In PDF, where each
-/// glyph appends to the content stream, that exhausts memory — the report was an OOM, and the
-/// captured stack was <c>StringBuilder.ToString</c> under <c>XGraphicsPdfRenderer.GetContent</c>.
+/// A fuzzed document whose single run declares <c>w:sz="-2147483647"</c>, followed by a tab with a
+/// <c>dot</c> leader, puts the pen at roughly -5.7e8pt; unbounded, the leader tiles that with 166
+/// million dots, which exhausts memory in PDF.
 /// </para>
 /// <para>
-/// The fix is two layers, and they are tested separately because neither subsumes the other:
+/// Two layers bound it, tested separately because neither subsumes the other:
 /// </para>
 /// <para>
 /// 1. <c>OoxmlUnits.FontSizeHalfPointsToPoints</c> rejects out-of-schema sizes at the parse, which
@@ -25,9 +22,7 @@ using W = DocumentFormat.OpenXml.Wordprocessing;
 /// 2. <c>LeaderTiling</c> clips the tiling to the page, which keeps the painters finite whatever the
 /// pen does. This is NOT redundant: <c>w:spacing</c> (character spacing) reaches the same pen through
 /// a different attribute, and it is schema-legal when negative, so it cannot be clamped away the way
-/// an unsigned size can. Measured on the pre-fix build, a document differing from the report only in
-/// using <c>w:spacing="-2147483647"</c> instead of <c>w:sz</c> also exhausted memory in PDF and
-/// ImageSharp, and took SkiaSharp 35 seconds. Layer 2 alone brings that to ~50ms.
+/// an unsigned size can.
 /// </para>
 /// </remarks>
 public class MalformedMeasureTests
@@ -35,8 +30,8 @@ public class MalformedMeasureTests
     static readonly string fontsDirectory = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     /// <summary>
-    /// The report's own document, end to end. The assertion is a budget rather than an exact size:
-    /// what is being pinned is that the work is bounded, and pre-fix this did not complete at all.
+    /// The fuzzed document, end to end. The assertion is a budget rather than an exact size: what is
+    /// being pinned is that the work is bounded.
     /// </summary>
     [Test]
     [Arguments("sz", "-2147483647")]
@@ -97,12 +92,10 @@ public class MalformedMeasureTests
     }
 
     /// <summary>
-    /// The same clamp closing a second, unreported crash found while probing the report: a
-    /// non-numeric <c>w:sz</c> in <c>docDefaults</c>. Three of the six size-parse sites read it with a
-    /// bare <c>double.Parse</c>, so anything non-numeric threw <see cref="FormatException"/> out of
-    /// every entry point — measured pre-fix on all five outputs. The report's own document does not
-    /// reach those sites: with no styles part it resolves through the one site that already used
-    /// TryParse, which is why this needs its own fixture rather than another value on the one above.
+    /// The same clamp at the <c>docDefaults</c> size-parse sites: a non-numeric <c>w:sz</c> there must
+    /// fall back rather than throw <see cref="FormatException"/> out of every entry point. The fuzzed
+    /// document does not reach those sites (with no styles part it resolves through another), which is
+    /// why this needs its own fixture rather than another value on the one above.
     /// </summary>
     [Test]
     [Arguments("GARBAGE")]

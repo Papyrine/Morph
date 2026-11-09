@@ -14,8 +14,8 @@
 // under the reader without moving them.
 //
 // Editing a Word document's text is the third of the kind. The typing itself is the script's
-// (morph-edit.js lays an editor over the paragraph, and nothing crosses to .NET while the reader types);
-// which paragraph a click is in, what it holds and what becomes of it afterwards are .NET's.
+// (morph-edit.js, whose header says how); which paragraph a click is in, what it holds and what becomes
+// of it afterwards are .NET's (MorphViewer.Edit.cs).
 
 import { ensureFonts, buildTextLayer, clearTextLayer, textRange, textOffset, textLength, isBuilt, setMarks as showMarks } from './morph-text.js';
 import { ParagraphEditor, wordKey } from './morph-edit.js';

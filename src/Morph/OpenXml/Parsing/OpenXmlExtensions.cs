@@ -1,8 +1,5 @@
 using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 
-/// <summary>
-/// Extension methods for OpenXML types to reduce code duplication in parsers.
-/// </summary>
 static class OpenXmlExtensions
 {
     /// <summary>
@@ -29,10 +26,6 @@ static class OpenXmlExtensions
     }
 
     /// <summary>
-    /// Returns true when an OnOff-style element is present and not explicitly set to false.
-    /// OOXML semantics: a bare element (no w:val) is "on", w:val="false"/"0" is "off".
-    /// </summary>
-    /// <summary>
     /// The part a relationship id names, or null when the host has no such relationship. A package whose
     /// relationships part is missing or stale names ids that resolve to nothing, and
     /// <see cref="OpenXmlPartContainer.GetPartById"/> throws for each; Word opens such a file with the
@@ -49,6 +42,10 @@ static class OpenXmlExtensions
         return part;
     }
 
+    /// <summary>
+    /// Returns true when an OnOff-style element is present and not explicitly set to false.
+    /// OOXML semantics: a bare element (no w:val) is "on", w:val="false"/"0" is "off".
+    /// </summary>
     public static bool IsOn(this OnOffType? element) =>
         element != null &&
         element.Val?.Value != false;
@@ -56,7 +53,6 @@ static class OpenXmlExtensions
     /// <summary>
     /// Extracts dimensions from a Drawing element (works with both Inline and Anchor).
     /// </summary>
-    /// <returns>Tuple of (widthPoints, heightPoints) or null if dimensions cannot be extracted.</returns>
     public static (double widthPoints, double heightPoints)? GetDimensions(this Drawing drawing)
     {
         var inline = drawing.GetFirstChild<DW.Inline>();
@@ -79,9 +75,6 @@ static class OpenXmlExtensions
         return (widthEmu.EmuToPoints(), heightEmu.EmuToPoints());
     }
 
-    /// <summary>
-    /// Extracts dimensions from an Extent element.
-    /// </summary>
     public static (double widthPoints, double heightPoints)? GetDimensions(this DW.Extent? extent)
     {
         if (extent == null)
@@ -101,14 +94,10 @@ static class OpenXmlExtensions
     }
 
     /// <summary>
-    /// Parses positioning information from an Anchor element.
+    /// Parses positioning information from an Anchor element, adding <paramref name="offsetX"/> and
+    /// <paramref name="offsetY"/> (points). Without <paramref name="page"/> there is no <c>wp:align</c>
+    /// fold, and an alignment-positioned anchor keeps the reference-origin position.
     /// </summary>
-    /// <param name="anchor">The anchor element to parse.</param>
-    /// <param name="offsetX">Optional X offset to add to the position (in points).</param>
-    /// <param name="offsetY">Optional Y offset to add to the position (in points).</param>
-    /// <param name="page">Section page metrics enabling the <c>wp:align</c> fold; when null,
-    /// alignment-positioned anchors keep the reference-origin position (legacy behaviour).</param>
-    /// <returns>Positioning information including positions and anchor types.</returns>
     public static AnchorPositioning ParsePositioning(this DW.Anchor anchor, double offsetX = 0, double offsetY = 0, PageSettings? page = null)
     {
         var hPosPoints = offsetX;
@@ -178,8 +167,7 @@ static class OpenXmlExtensions
             vPctOffset = pctOffset;
 
             // Vertical wp:align folds only against page/margin boxes — paragraph- and
-            // line-relative alignment needs the flow position, which parse time doesn't
-            // have (and render-side ResolveShapeY already approximates those anchors).
+            // line-relative alignment needs the flow position, which parse time doesn't have.
             if (emuOffset == null &&
                 pctOffset == null && page != null &&
                 ReadAlignValue(posV) is { } alignV &&

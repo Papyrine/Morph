@@ -4,10 +4,6 @@
 /// font library involved, so every backend paginates from identical numbers rather than from
 /// SkiaSharp / SixLabors.Fonts / PdfSharp metrics that diverge (the root cause of the page-count
 /// knife-edges in <c>src/page_counts.md</c>).
-///
-/// <para>This is the growth point for step 1 of the migration. Today it owns line height — validated
-/// against Word's XPS-measured pitch. Glyph-advance measurement and line breaking attach here next,
-/// on top of the advance tables the <see cref="FontMetricsReader"/> will surface.</para>
 /// </summary>
 sealed class CanonicalTextMeasurer
 {
@@ -15,9 +11,8 @@ sealed class CanonicalTextMeasurer
     /// The laid-out height of one line at <paramref name="sizePoints"/> under Word's line-spacing rule.
     /// <see cref="LineSpacingRule.Auto"/> multiplies the single-spaced hhea pitch;
     /// <see cref="LineSpacingRule.Exactly"/> forces the value; <see cref="LineSpacingRule.AtLeast"/>
-    /// takes the larger of the pitch and the value — mirroring the raster and PDF
-    /// <c>CalculateLineHeight</c>, but computed from the canonical <see cref="FontMetrics"/> rather than
-    /// a backend font object.
+    /// takes the larger of the pitch and the value — computed from the canonical
+    /// <see cref="FontMetrics"/> rather than a backend font object.
     /// </summary>
     public static double LineHeightPoints(
         FontMetrics metrics,
@@ -76,7 +71,7 @@ sealed class CanonicalTextMeasurer
     /// 36.1 / 40.3 against 44.5 × the multiple = 26.7 / 31.2 / 35.6 / 40.1.</item>
     /// </list>
     ///
-    /// Keeping the natural ascent in both directions — which is what this did until the probe — leaves
+    /// Keeping the natural ascent in both directions leaves
     /// compressed text sitting too low in its own box by <c>ascent × (1 − multiple)</c>: 9.2pt on
     /// business-plans/13's 0.8× title, and exactly the 19px its cover title measured low.
     ///
@@ -131,16 +126,13 @@ sealed class CanonicalTextMeasurer
     /// <summary>
     /// The device-pixel em size text lays out at, <c>sizePoints * 120/72</c> — deliberately NOT rounded.
     ///
-    /// <para>This used to round to a whole pixel, which bucketed 10.5pt and 11pt onto the same 18px em
-    /// and wrapped them identically. Measuring Word directly settled it (the probe is recorded in
-    /// <c>src/page_counts.md</c>, "Ppem grain root-caused"): a run of one repeated glyph shows Word's
-    /// advances landing on whole device pixels while their *mean* tracks the plain fractional advance,
-    /// so the unrounded em is the model that fits. Rounding the em — onto a fixed 120-dpi
-    /// grid unrelated to the output resolution, at that — made the width error jump ~4% between adjacent
-    /// point sizes, and that discontinuity, not its magnitude, is what wrapped 10 / 10.5pt documents
-    /// early while 11pt behaved. The quantization that remains is
-    /// <see cref="PixelsToPoints"/> rounding the accumulated pen position once per line, and it places
-    /// things only: whether a word fits is tested on the unrounded total.</para>
+    /// <para>A run of one repeated glyph shows Word's advances landing on whole device pixels while
+    /// their *mean* tracks the plain fractional advance (<c>src/page_counts.md</c>, "Ppem grain
+    /// root-caused"), so the unrounded em is the model that fits. A rounded em buckets 10.5pt and 11pt
+    /// onto the same 18px and makes the width error jump ~4% between adjacent point sizes, which wraps
+    /// 10 / 10.5pt documents early. The quantization that remains is <see cref="PixelsToPoints"/>
+    /// rounding the accumulated pen position once per line, and it places things only: whether a word
+    /// fits is tested on the unrounded total.</para>
     ///
     /// <para>Word DRAWS on a rounded em — its XPS output declares 7.8pt (13px) for 8pt Calibri, with
     /// whole-pixel glyph advances on that grid — but it does not LAY OUT on it. Probed 2026-10-02 by
@@ -149,8 +141,7 @@ sealed class CanonicalTextMeasurer
     /// passes the measure, on 76 of 76 thresholds across Calibri, Arial, Aptos and Times New Roman at
     /// 10/11/12pt in compatibility modes 12 and 15, and an autofit column sizes to the same linear
     /// width (990 tables). The glyph positions in the XPS are presentation and say nothing about
-    /// where a line breaks: per-glyph tables memoizing them (the <c>.wordadvances</c> sidecars this
-    /// measurer read from 2026-08-30 until that probe) measured those sentences 1.6% under to 4.2%
+    /// where a line breaks: per-glyph tables memoizing them measure those sentences 1.6% under to 4.2%
     /// over. The numbers are in <c>docs/layout-engine.md</c>, "The crux".</para>
     /// </summary>
     public static double EmPixels(double sizePoints) =>
@@ -185,17 +176,16 @@ sealed class CanonicalTextMeasurer
     /// one line and quantizing once with <see cref="PixelsToPoints"/> keeps a mixed-font line on the
     /// linear track, exactly as a single-font line stays on it. <paramref name="fontWidthScale"/> is the
     /// per-conversion widening (<c>PdfExportOptions</c>/<c>ImageExportOptions.FontWidthScale</c>), applied
-    /// linearly before quantization — the same knob production's <c>RenderContextBase</c> multiplies advances by.
+    /// linearly before quantization — the same knob <c>RenderContextBase</c> carries.
     ///
     /// <para>With <paramref name="kerning"/> the GPOS pair adjustments are added in the same design
     /// units and scaled with the advances, which is how Word's layout takes them. Probed 2026-10-02:
     /// the wrap threshold of a kerned sentence sits at <c>ceil</c> of exactly this width (Calibri and
     /// Aptos at three sizes each), and ten <c>To</c> set solid make autofit columns of 185.2, 169.2 and
-    /// 154.2px at 12, 11 and 10pt Calibri where this gives 185.2, 169.7 and 154.3. The rule that stood
-    /// here before snapped the kern to 1/16px and rounded the pair's first glyph to a whole pixel, which
-    /// is how Word DRAWS a kerned pair (it was read off XPS glyph positions: 24pt <c>Ta</c> draws T at
-    /// 17.000px from an unkerned 20.042). As a layout width it gave 185.5, 166.7 and 157.9 for those
-    /// columns and put an Aptos line of 22 kerned pairs 4.3px narrow.</para>
+    /// 154.2px at 12, 11 and 10pt Calibri where this gives 185.2, 169.7 and 154.3. Word DRAWS a kerned
+    /// pair with the kern snapped to 1/16px and the first glyph rounded to a whole pixel (XPS: 24pt
+    /// <c>Ta</c> draws T at 17.000px from an unkerned 20.042), but as a layout width that gives 185.5,
+    /// 166.7 and 157.9 for those columns and puts an Aptos line of 22 kerned pairs 4.3px narrow.</para>
     ///
     /// <para>With <paramref name="ligatures"/> the font's standard ligatures are substituted first and
     /// each is measured by its own advance, as Word's layout measures them in compatibility mode 15:

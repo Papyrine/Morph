@@ -27,7 +27,7 @@ public class RevisionMarkTests
         await Assert.That(Marks(runs)).IsEqualTo("plain |+added |-dropped");
     }
 
-    // Revised text inside a link used to be left out of the paragraph altogether.
+    // Revised text inside a link stays in the paragraph.
     [Test]
     public async Task InAHyperlink()
     {

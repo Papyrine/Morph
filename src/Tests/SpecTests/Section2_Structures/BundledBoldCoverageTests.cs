@@ -124,8 +124,7 @@ public class BundledBoldCoverageTests
     /// name embeds a style word: given the one bundled Arial Rounded file — family
     /// "Arial Rounded MT Bold", <c>usWeightClass</c> 400, REGULAR bit set — DirectWrite on Windows
     /// splits the name and reports family "Arial Rounded MT" at weight 700, while FreeType in the
-    /// container reports 400. Same bytes, two answers, so a list pinned against one platform was
-    /// guaranteed to fail on the other.
+    /// container reports 400. Same bytes, two answers.
     /// </remarks>
     static List<(string Family, int Weight, string Scenario)> ResolveBoldFamilies()
     {

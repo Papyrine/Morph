@@ -1,7 +1,7 @@
 /// <summary>
 /// Tests for a text box the text does not wrap round. It floats over the page like a wrap-NONE
 /// picture, so the HTML export places it the same way — absolutely, at its own size, out of the
-/// flow — where it used to be written into the flow and take the room of its text.
+/// flow — rather than taking the room of its text in the flow.
 /// </summary>
 public class HtmlTextBoxExportTests
 {

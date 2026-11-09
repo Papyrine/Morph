@@ -4,14 +4,14 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 
 /// <summary>
 /// Excel's grid ends at row 1,048,576 and column XFD (16,384), so an index past either names no
-/// real cell. A crafted reference at int.MaxValue used to flow straight into a SheetRange, where
-/// every <c>&lt;= range.LastRow</c> walk overflowed its increment past the bound and never
-/// terminated — an infinite-loop DoS on opening the workbook (#174). Out-of-grid references are
-/// rejected at the CellReference seam instead, like any other unreadable reference.
+/// real cell. A crafted reference at int.MaxValue reaching a SheetRange would make every
+/// <c>&lt;= range.LastRow</c> walk overflow its increment and never terminate (#174), so
+/// out-of-grid references are rejected at the CellReference seam, like any other unreadable
+/// reference.
 ///
 /// Bounding the index is only half of it. An extent that stays INSIDE the grid still names up to
 /// 16,384 x 1,048,576 cells, and a sheet's <c>dimension</c> and print area are strings no cell has
-/// to substantiate — so the same 1.6KB file could still ask SheetGridBuilder for 17 billion cells.
+/// to substantiate — so a 1.6KB file could ask SheetGridBuilder for 17 billion cells.
 /// ResolveRange caps a range nothing substantiates at <see cref="SpreadsheetParser.MaxDeclaredCells"/>.
 /// </summary>
 public class GridLimitTests
@@ -87,9 +87,8 @@ public class GridLimitTests
     }
 
     /// <summary>
-    /// A print area overlapping none of the sheet's cells is not clipped by them, so it reached the
-    /// grid builder at whatever extent it declared. Measured before the cap: this shape at 1,600
-    /// rows allocated 25GB and took 52s, and the full grid it declares here is 655x that again.
+    /// A print area overlapping none of the sheet's cells is not clipped by them, so it reaches the
+    /// grid builder at whatever extent it declares; uncapped, this shape at 1,600 rows allocates 25GB.
     /// </summary>
     [Test]
     public async Task PrintAreaOutsideTheCells_IsBounded()

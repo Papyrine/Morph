@@ -1,8 +1,6 @@
 /// <summary>
 /// Shape-drawing primitives shared by <see cref="SkiaPainter"/>: group-shape colour, contour and
-/// picture drawing, and custGeom polygon paths. These lived on the production
-/// <c>TextRenderer</c>/<c>SkiaPageRenderer</c> (internal statics the painter reused so the two paths
-/// stayed pixel-identical) and moved here verbatim when the production raster path was deleted.
+/// picture drawing, and custGeom polygon paths.
 /// </summary>
 static class SkiaShapeDrawing
 {

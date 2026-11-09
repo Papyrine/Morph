@@ -139,13 +139,13 @@ static class BorderStroke
             return [];
         }
 
-        // A page frame is built exactly like a paragraph edge since 2026-09-05 — the grid-floored
-        // stack in page order, growing outward from the inner face (PageBorders.EdgeRect gives that
-        // face). XPS-read on _probe_pgbdr (single at 0.75/3/6pt, double 1.5pt, thinThickSmallGap 3pt,
+        // A page frame is built exactly like a paragraph edge — the grid-floored stack in page
+        // order, growing outward from the inner face (PageBorders.EdgeRect gives that face).
+        // XPS-read on _probe_pgbdr (single at 0.75/3/6pt, double 1.5pt, thinThickSmallGap 3pt,
         // text and page offsets): a 0.75pt single draws 0.6, a 1.5pt double 1.2/1.2/1.2, and the
         // thin/thick family keeps page order on every edge — the thick line outermost on the top and
-        // left, INNERMOST on the bottom and right — where the PNG-probed page model it replaces drew
-        // the declared width unfloored and the thin line outside.
+        // left, INNERMOST on the bottom and right — not the declared width unfloored with the thin
+        // line outside.
         return ParagraphBands(style, totalWidth, trailingEdge);
     }
 
@@ -629,7 +629,7 @@ static class BorderStroke
     /// <see cref="RunBorderBelowScale"/> of it below. Horizontally the box grows outward from the glyph run by the same inset, into the
     /// reserve the measurer holds open on each side of a bordered run
     /// (<see cref="RunBorderGlyphInset"/>) — Word pushes the glyphs right by it, and so does the
-    /// engine since 2026-09-05.
+    /// engine.
     /// </summary>
     internal static (double X, double Y, double Width, double Height) RunBorderBox(BorderEdge edge, double runX, double runWidth, double lineY, double lineHeight, double linePad, bool reserves = true)
     {

@@ -334,9 +334,8 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
     /// An autonumbered paragraph's marker: its number in the <c>a:buAutoNum/@type</c> scheme, which
     /// names the counter (<c>arabic</c>, <c>alphaLc</c>/<c>alphaUc</c>, <c>romanLc</c>/<c>romanUc</c>)
     /// and what surrounds it (<c>Period</c> "1.", <c>ParenR</c> "1)", <c>ParenBoth</c> "(1)",
-    /// <c>Plain</c> "1"). Every marker was "1." until the counter landed — Basic.pptx's five Q&amp;A
-    /// tips drew 1. 1. 1. 1. 1. A scheme outside those (the East Asian and circled numerals) counts
-    /// in arabic.
+    /// <c>Plain</c> "1"). A scheme outside those (the East Asian and circled numerals) counts in
+    /// arabic.
     /// </summary>
     static NumberingInfo AutoNumber(NumberingInfo numbering, A.AutoNumberedBullet autoNumber, int number)
     {

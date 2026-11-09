@@ -6,15 +6,13 @@
 /// because TUnit cannot filter on parameter values, so running one format's scenarios needs its own
 /// test class over its own root.
 ///
-/// Nesting the format level under <c>Inputs/</c> rather than using sibling <c>InputsWord/</c>
-/// directories keeps every <c>src/Tests/Inputs/**</c> pattern working untouched — the CI
-/// received-file upload, <c>regenerate-baselines.sh</c>, and the received-file sweeps all want the
-/// whole corpus and do not care about format.
+/// Nesting the format level under <c>Inputs/</c> keeps every <c>src/Tests/Inputs/**</c> pattern
+/// (the CI received-file upload, <c>regenerate-baselines.sh</c>, the received-file sweeps) covering
+/// the whole corpus.
 ///
 /// <see cref="ScenarioName"/> reports a path relative to the FORMAT root, not to <c>Inputs/</c>, so
-/// a scenario stays named <c>resumes/01</c> rather than <c>word/resumes/01</c>. That keeps the
-/// generated <c>compare.md</c> headings and the <c>BaselineHealthTests</c> allow-list keys stable
-/// across the move.
+/// a scenario is named <c>resumes/01</c> rather than <c>word/resumes/01</c> in the generated
+/// <c>compare.md</c> headings and the <c>BaselineHealthTests</c> allow-list keys.
 /// </summary>
 static class ScenarioInputs
 {
@@ -55,8 +53,7 @@ static class ScenarioInputs
     /// <summary>
     /// How many pages of a scenario are rendered and baselined, or null for "all of them".
     ///
-    /// The DOCX corpus is uncapped — its scenarios are mostly one or two pages, and capping would
-    /// discard existing baselines for no gain. The deck corpus is capped because 40 decks hold 450
+    /// The DOCX corpus is uncapped — its scenarios are mostly one or two pages. The deck corpus is capped because 40 decks hold 450
     /// slides, and each rendered page costs four PNGs (Skia, ImageSharp, the PDF page, and the
     /// PowerPoint reference). The first slides carry a deck's distinct layouts — title, then the
     /// first content layouts — while later ones are largely repeats of those.
@@ -158,7 +155,7 @@ static class ScenarioInputs
             return Path.GetFileName(directory);
         }
 
-        // Drop the leading format segment so names stay stable across the corpus split.
+        // Drop the leading format segment.
         var segments = relative.Replace('\\', '/').Split('/');
         if (segments.Length > 1)
         {

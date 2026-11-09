@@ -66,7 +66,7 @@ static class IdRemap
         foreach (var relationships in RelationshipsParts(mine))
         {
             var changed = false;
-            foreach (var relationship in mine.Root(relationships)!.Elements(MergeNames.Relationships + "Relationship"))
+            foreach (var relationship in mine.Root(relationships)!.Elements(Relationships + "Relationship"))
             {
                 if (string.Equals(PackageParts.Target(relationships, relationship), from, StringComparison.OrdinalIgnoreCase))
                 {
@@ -202,7 +202,7 @@ static class IdRemap
     }
 
     static IEnumerable<XElement> Relations(XElement? root) =>
-        root?.Elements(MergeNames.Relationships + "Relationship") ?? [];
+        root?.Elements(Relationships + "Relationship") ?? [];
 
     static bool Same(string relationships, XElement first, XElement second) =>
         (string?) first.Attribute("Type") == (string?) second.Attribute("Type") &&

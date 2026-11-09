@@ -6,12 +6,8 @@ using DocumentFormat.OpenXml.Packaging;
 /// run the same <c>ToToToToToToToToToTo</c> read off Word's XPS against directly formatted references
 /// (a kerned T advances 19px at 28pt Calibri, an unkerned one 23). Kerning cascades like any other run
 /// property — document default, table style, paragraph style with its basedOn chain, character style,
-/// the run's own <c>w:rPr</c> — and a package with no docDefaults kerns on every rung.
-///
-/// <para>The parser used to take the threshold from docDefaults or the run's own <c>w:rPr</c> and
-/// from nowhere else, and a run with no <c>w:rPr</c> in a paragraph whose style is defined got none at
-/// all: most body text measured unkerned, and broke a word before Word's wherever the kern was what
-/// let the word fit.</para>
+/// the run's own <c>w:rPr</c> — and a package with no docDefaults kerns on every rung. Body text
+/// measured unkerned breaks a word before Word's wherever the kern is what lets the word fit.
 /// </summary>
 public class KerningCascadeTests
 {

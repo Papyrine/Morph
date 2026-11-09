@@ -379,7 +379,7 @@ sealed class SkiaRenderContext(
     }
 
     // The scale factors come from the un-truncated float destination size (the bitmap itself is
-    // int-sized) — matching what the draw sites historically computed from their SKRect.
+    // int-sized).
     SKBitmap? RasterizeSvg(byte[] svgData, float width, float height, ImageCrop? crop, bool originAdjusted)
     {
         var picture = GetSvgPicture(svgData);

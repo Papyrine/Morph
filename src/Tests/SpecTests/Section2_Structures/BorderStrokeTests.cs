@@ -233,11 +233,10 @@ public class BorderStrokeTests
     [Test]
     public async Task Every_band_stacks_outward_so_none_intrudes_on_the_content()
     {
-        // The bug this guards: bands used to straddle the box, so a wide stack put its innermost
-        // line INSIDE the text — a `triple` box rendered its label as "riple" — and each band was
-        // drawn across the original box extent, leaving the corners open and the vertical bands
-        // sticking out as stubs. Offsets are outward-only and the painters expand each band's span
-        // by the same amount, which closes them into concentric rectangles.
+        // Bands that straddle the box put a wide stack's innermost line INSIDE the text, and bands
+        // drawn across the original box extent leave the corners open. Offsets are outward-only and
+        // the painters expand each band's span by the same amount, which closes them into concentric
+        // rectangles.
         foreach (var style in new[]
                  {
                      BorderLineStyle.Double, BorderLineStyle.Triple, BorderLineStyle.ThinThickLargeGap,

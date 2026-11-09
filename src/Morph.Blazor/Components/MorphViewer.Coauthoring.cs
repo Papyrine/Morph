@@ -1,15 +1,15 @@
 namespace Morph;
 
 // Coauthoring: several people editing one document at once, through a session on the server (Coauthor,
-// and Morph.Wopi's CoauthorSession). The editor edits as it does alone — every edit still file → parse →
-// layout — and Coauthor commits each file ShowAsync shows. What comes back from the session is shown
-// through ShowAsync too, as an adoption: no step of undo, and not committed again.
+// which says what is committed and when, and Morph.Wopi's CoauthorSession). Every edit is still file →
+// parse → layout, and Coauthor commits each file ShowAsync shows. What comes back from the session is
+// shown through ShowAsync too, as an adoption: no step of undo, and not committed again.
 //
-// Others' edits are never shown in the middle of typing: the paragraph being typed stays as it is until it
-// is handed in, or has been left alone a while, when it is handed in, the version shown, and the paragraph
-// opened again at the caret, found by its id. Opening a paragraph asks the session for it first, and one
-// someone else has open is theirs until they leave it. Undo takes back the reader's own edit, from the file
-// as others have edited it since (DocumentMerge).
+// The paragraph being typed stays as it is until it is handed in, or has been left alone a while, when
+// it is handed in, the session's version shown, and the paragraph opened again at the caret, found by its
+// id. Opening a paragraph asks the session for it first, and one someone else has open is theirs until
+// they leave it. Undo takes back the reader's own edit, from the file as others have edited it since
+// (DocumentMerge).
 //
 // MorphWopi starts it (Coauthor); the viewer alone never coauthors.
 public partial class MorphViewer : ICoauthorEditor

@@ -1,11 +1,8 @@
 /// <summary>
 /// The per-conversion <c>FontWidthScale</c> (<see cref="PdfExportOptions.FontWidthScale"/> /
-/// <see cref="ImageExportOptions.FontWidthScale"/>, the knob production's <c>RenderContextBase</c> multiplies
-/// glyph advances by) is now honoured by the engine measurer — docs/layout-engine.md, step 5 Phase A.
-/// The <see cref="CanonicalTextMeasurer"/> previously ignored it, so a conversion that set
-/// <c>FontWidthScale != 1</c> got scaled text from production but unscaled text from the engine — a latent
-/// divergence once raster defaults to the engine. These guard that the scale widens advances linearly and that
-/// the measurer threads it from its constructor.
+/// <see cref="ImageExportOptions.FontWidthScale"/>) multiplies glyph advances in the
+/// <see cref="CanonicalTextMeasurer"/>. These guard that the scale widens advances linearly and that the
+/// measurer threads it from its constructor.
 /// </summary>
 public class CanonicalFontWidthScaleTests
 {

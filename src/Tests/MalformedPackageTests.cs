@@ -12,7 +12,7 @@
 /// </summary>
 public class MalformedPackageTests
 {
-    static readonly string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+    static string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     static byte[] Original(string scenario) =>
         File.ReadAllBytes(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", scenario, "input.docx"));

@@ -6,7 +6,7 @@
 /// run position comes from the tree the <c>Fragmenter</c> already produced, so there is no measurement and
 /// no pagination here. The tree is in points and Skia draws in pixels, so every coordinate scales by
 /// <see cref="RenderContextBase.PointsToPixels"/>. One RGBA8888 bitmap per page is encoded to PNG and
-/// streamed through the same page callback the production <c>SkiaPageRenderer</c> uses.
+/// streamed through the page callback.
 ///
 /// <para>Covers the block/table/column subset: paragraph text with its run
 /// decorations, tables (cell shading, content, borders), paragraph shading and borders, inline images, tab
@@ -502,9 +502,8 @@ static class SkiaPainter
         }
 
         // A picture stored as SVG is drawn from the drawing the reader made of it (PlacedImage.Vector),
-        // and its raster fallback is then never decoded. Until 2026-10-12 this painter drew the
-        // fallback for every inline and floating picture: the layout engine handed it nothing else,
-        // so icons_multiple's red and green stars — whose fallbacks are one blue PNG — came out blue.
+        // and its raster fallback is then never decoded: icons_multiple's red and green stars have
+        // one blue PNG as their fallback.
         SKBitmap? bitmap = null;
         if (image.Vector == null &&
             (image.Data is not { } data || (bitmap = context.GetBitmap(data)) == null))
@@ -514,12 +513,10 @@ static class SkiaPainter
 
         // An a:srcRect crop draws through the shared helper, so an engine-painted picture matches the
         // group-picture path. business-plans/13's cover photo is one: 15% off each side and 1.2% off the
-        // top, which Skia alone ignored — ImageSharp and PDF already routed Crop into their own draws,
-        // and the uncropped stretch was 79% of that page's error against Word.
+        // top.
         //
         // a:xfrm rotation and flips transform about the box centre, exactly as PdfPainter.PaintImage
-        // does — this painter drew rotated inline images UPRIGHT until 2026-08-19 (image_rotation/01
-        // showed a plain rectangle against the other backends' diamonds).
+        // does (image_rotation/01).
         //
         // The blip's effects — Word's Recolor gallery (a:duotone / a:grayscl / a:lum) and the
         // a:alphaModFix transparency — ride on the draw paint, so the pixels are filtered on their
@@ -683,13 +680,10 @@ static class SkiaPainter
         canvas.DrawRect(SKRect.Inflate(box, strokeWidth / 2, strokeWidth / 2), strokePaint);
     }
 
-    // EMU per point (914400 EMU/inch ÷ 72 pt/inch), matching TextRenderer — a group member's a:ln/@w is
-
     // An inline shape group (a grouped drawing embedded in a run): its child shapes scaled from the group's
-    // child coordinate space into the inline box, painted back to front. A verbatim port of
-    // SkiaShapeDrawing.RenderInlineShapeGroup that reuses the same colour/contour/primitive/picture helpers, so
-    // the engine paints an inline group pixel-identically to production. The placed box is already in points
-    // with its top at Y (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
+    // child coordinate space into the inline box, painted back to front with SkiaShapeDrawing's
+    // colour/contour/primitive/picture helpers. The placed box is already in points with its top at Y
+    // (the fragmenter set Y = baseline − height), so no baseline subtraction is needed.
     static void PaintInlineGroup(SkiaRenderContext context, SKCanvas canvas, PlacedImage placed)
     {
         var group = placed.ShapeGroup!;
@@ -818,10 +812,6 @@ static class SkiaPainter
         canvas.Restore();
     }
 
-    // A behind-text floating shape: fill and outline of its freeform contours (reusing the production
-    // subpath geometry) or its preset rect/ellipse box. Fill is a solid colour or a linear gradient
-    // (built the same way as the production SkiaPageRenderer). Image-fill shapes never reach here — the
-    // Fragmenter routes them to PlacedImage — so ImageData is a defensive skip.
     // Gives a stroke its preset dash (a:prstDash): the pattern is in multiples of the stroke's own
     // width, and a dashed stroke ends each dash flat, as Word draws it. Returns the effect for the
     // caller to dispose, or null for a solid stroke.
@@ -838,6 +828,9 @@ static class SkiaPainter
         return effect;
     }
 
+    // A behind-text floating shape: fill and outline of its freeform contours or its preset
+    // rect/ellipse box. Fill is a solid colour or a linear gradient. Image-fill shapes never reach
+    // here — the Fragmenter routes them to PlacedImage — so ImageData is a defensive skip.
     static void PaintShape(SkiaRenderContext context, SKCanvas canvas, PlacedShape placed)
     {
         var shape = placed.Shape;
@@ -938,7 +931,7 @@ static class SkiaPainter
         }
     }
 
-    // A linear gradient across the shape's bounding box, matching SkiaPageRenderer: angle 0° points along
+    // A linear gradient across the shape's bounding box: angle 0° points along
     // +X (OOXML a:lin/@ang), the stops run corner-to-corner through the box centre. The caller owns and
     // disposes the returned paint and its shader.
     static SKPaint BuildGradientPaint(GradientFill gradient, float x, float y, float width, float height)

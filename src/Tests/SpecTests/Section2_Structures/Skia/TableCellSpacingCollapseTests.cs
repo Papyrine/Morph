@@ -1,10 +1,8 @@
 /// <summary>
 /// Guards the inter-paragraph spacing collapse inside table cells:
 /// <see cref="TableHeightCalculator.MeasureCellHeight"/> charges max(after, before) between
-/// consecutive paragraphs, not the sum (verified against Word XPS baselines). Asserted against the
-/// canonical measurer — the one measurement model since the production renderers were deleted; the
-/// engine's cell content is placed from the same measurement, so measure/render agreement holds by
-/// construction.
+/// consecutive paragraphs, not the sum (verified against Word XPS baselines). The engine's cell
+/// content is placed from the same measurement, so measure/render agreement holds by construction.
 /// </summary>
 public class TableCellSpacingCollapseTests
 {

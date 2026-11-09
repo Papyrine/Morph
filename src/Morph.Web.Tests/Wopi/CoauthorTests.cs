@@ -65,11 +65,11 @@ public class CoauthorTests
         public Editor Editor => editor;
 
         // Edits the editor's document, and tells coauthoring, as MorphViewer does after every edit.
-        public async Task EditAsync(Func<byte[], byte[]> edit)
+        public Task EditAsync(Func<byte[], byte[]> edit)
         {
             editor.Current = edit(editor.Current!);
             coauthor.Changed();
-            await coauthor.SyncAsync();
+            return coauthor.SyncAsync();
         }
 
         public ValueTask DisposeAsync() =>

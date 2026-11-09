@@ -11,14 +11,9 @@
 ///     limit 12  3m05s      limit 20  3m05s      limit 48 (default)  3m48s
 ///     limit 16  3m08s      limit 24  3m12s
 ///
-/// Anything from 1x to 2x cores is flat and the default is the outlier. Absolute times drift
-/// a lot with machine conditions — the same configuration measured anywhere from 3m05s to
-/// 3m47s across one session — so only compare runs made back to back. A later control pair
-/// put the default at 3m57s against 3m37s, i.e. the same direction at 9% rather than 23%.
-/// Take the win as real but its size as anywhere in that range.
-///
-/// This sets the low end of the flat band, where memory pressure is lowest — with 48 in
-/// flight the run held dozens of multi-megabyte page bitmaps and Chromium instances at once.
+/// Anything from 1x to 2x cores is flat and the default is the outlier, by between 9% and 23%.
+/// Absolute times drift a lot with machine conditions, so only compare runs made back to back.
+/// This sets the low end of the flat band, where memory pressure is lowest.
 ///
 /// The floor keeps a small CI runner from serialising down to its own core count, since a
 /// meaningful share of the work happens in Playwright's browser processes rather than in

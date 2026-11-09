@@ -33,9 +33,8 @@ enum ColorTransformKind
 /// the OOXML thousandths-of-a-percent encoding: <c>val="50000"</c> arrives here as <c>0.5</c>.
 /// </summary>
 /// <remarks>
-/// Full precision on purpose. The value used to be squeezed through a 0-255 byte on the way in,
-/// which quantised <c>val="50000"</c> to 127/255 = 0.498 and lost the distinction between, say,
-/// <c>104999</c> and <c>105000</c> entirely.
+/// Full precision on purpose: a 0-255 byte would quantise <c>val="50000"</c> to 127/255 = 0.498 and
+/// lose the distinction between, say, <c>104999</c> and <c>105000</c> entirely.
 /// </remarks>
 readonly record struct ColorTransform(ColorTransformKind Kind, double Value)
 {
@@ -50,8 +49,7 @@ readonly record struct ColorTransform(ColorTransformKind Kind, double Value)
     /// Worth detecting rather than applying: Word writes plenty of them (the corpus carries 250
     /// <c>a:shade val="100000"</c> and 36 <c>a:satMod val="100000"</c>), and applying one is not
     /// free. Both spaces quantise back to a byte per channel, so a nominal no-op that takes the
-    /// round trip can still shift a channel by one — which is exactly what it did across 176
-    /// corpus pages before this guard existed.
+    /// round trip can still shift a channel by one, as it did across 176 corpus pages.
     /// </remarks>
     // ReSharper disable once CompareOfFloatsByEqualityOperator — the value is an exact quotient of
     // integers, so the identity cases land on exactly 1.0 and 0.0.

@@ -254,7 +254,7 @@ public class PageVerticalAlignmentTests
     public async Task A_page_float_after_its_anchor_paragraph_stays_on_that_page()
     {
         // The drawing follows its paragraph's text, so the anchor has laid out before the float reaches
-        // the flow. It used to wait for that anchor's first line forever and land on the last page.
+        // the flow; waiting for that anchor's first line would land it on the last page.
         var anchor = P("anchored");
         var document = fragmenter.Layout(
             [anchor, PageFloat(anchor, 300), new PageBreakElement(), P("later")],

@@ -287,7 +287,7 @@ public class SheetPaginationTests
     /// <summary>
     /// A drawing that ends on a cell boundary, or a hair past one, stops at that boundary: the cell
     /// past it is not part of the sheet. A quarter of a point over is what the corner art of the
-    /// corpus's check-register has, and a whole empty column was drawn for it.
+    /// corpus's check-register has, which must not draw a whole empty column.
     /// </summary>
     [Test]
     [Arguments(0)]

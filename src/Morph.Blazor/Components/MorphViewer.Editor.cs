@@ -61,8 +61,7 @@ public partial class MorphViewer
         int[] place;
         try
         {
-            // No place at all is no place, as an empty one is.
-            place = await viewer.EditTargetAsync() ?? [];
+            place = await viewer.EditTargetAsync();
         }
         catch (JSDisconnectedException)
         {

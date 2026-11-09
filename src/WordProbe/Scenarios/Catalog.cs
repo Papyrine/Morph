@@ -1,6 +1,6 @@
 // Every family in the order the markdown shows them and the run visits them. A new family is one entry
 // here plus a static class under Families/; its marker pair in src/word-behavior.md is where its results
-// land (until then they render under Unfiled).
+// land (without one they render under Unfiled).
 static class Catalog
 {
     public static IReadOnlyList<FamilyDefinition> Families { get; } =

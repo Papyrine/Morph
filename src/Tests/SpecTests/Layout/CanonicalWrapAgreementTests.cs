@@ -33,15 +33,9 @@ public class CanonicalWrapAgreementTests
     [Test]
     public async Task Canonical_wrap_agrees_with_the_raster_backend_on_corpus_paragraphs()
     {
-        // EVERY input, not a sample. This used to take every 3rd of the first 120 in ordinal path
-        // order, which made the measured population depend on corpus MEMBERSHIP and on the PLATFORM:
-        // adding `border_style_variants` shifted the stride onto a different 120 documents and the
-        // rate read 96.2% against the 97% gate, while the same tree passed on Windows because
-        // ordinal ordering sorts '\' and '/' differently and the two OSes therefore sampled
-        // different sets. Nothing about the measurer had changed either time. Over the whole corpus
-        // the rate clears the gate, so the subsample was also hiding the stronger result it was
-        // meant to approximate. 325 inputs cost ~11s against the subsample's ~4s, which is free
-        // beside a ~2m40s suite this runs inside.
+        // EVERY input, not a sample: a subsample makes the measured population depend on corpus
+        // MEMBERSHIP and on the PLATFORM (ordinal ordering sorts '\' and '/' differently), so the rate
+        // could cross the gate with nothing about the measurer changed. The whole corpus costs ~11s.
         var inputs = Directory.GetFiles(inputsDirectory, "input.docx", SearchOption.AllDirectories)
             .OrderBy(_ => _, StringComparer.Ordinal)
             .ToList();
@@ -138,9 +132,7 @@ public class CanonicalWrapAgreementTests
 
         await Assert.That(compared).IsGreaterThan(100);
         // Measured at 97.1% over the whole corpus, 404 of 416 paragraphs, with every face in the
-        // population. Between 2026-08-30 and 2026-10-02 the faces that measured on .wordadvances
-        // sidecars sat outside this gate, which took it down to 37 paragraphs; the sidecars are gone
-        // and those faces are back. The twelve residuals are near-fit lines where the two width
+        // population. The twelve residuals are near-fit lines where the two width
         // sources land either side of the measure: Arial 12pt (four, in one document), Calibri
         // (three), and one each of Calibri Light, Century Gothic, Trebuchet MS, Avenir Next LT Pro
         // Light and Aptos. Word breaks on the linear width this measurer uses

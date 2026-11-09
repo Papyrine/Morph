@@ -4,13 +4,8 @@
 /// (<c>SkiaRenderContext</c>, <c>ImageSharpRenderContext</c>, <c>PdfRenderContext</c>) add the font,
 /// brush and image caches over their own drawing library.
 ///
-/// <para>This used to carry the pagination state as well — the flow cursor, page and column advance,
-/// header/footer reservation, float-wrap exclusions, contextual-spacing carry, page numbering and line
-/// numbering — because the production page renderers paginated as they drew. The layout engine
-/// separates the two: the <c>Fragmenter</c> decides every position up front and each painter draws the
-/// resulting <c>LaidOutDocument</c> without measuring or advancing anything. All of that state went
-/// with the production renderers (step 8.5 of <c>docs/layout-engine.md</c>); the engine holds
-/// the equivalents as its own locals, where they cannot leak between pages.</para>
+/// <para>It carries no pagination state: the <c>Fragmenter</c> decides every position up front and
+/// each painter draws the resulting <c>LaidOutDocument</c> without measuring or advancing anything.</para>
 /// </summary>
 abstract class RenderContextBase
 {

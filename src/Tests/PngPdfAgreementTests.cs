@@ -8,7 +8,7 @@ using Morph.PDFium;
 /// </summary>
 public class PngPdfAgreementTests
 {
-    static readonly string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
+    static string fonts = Path.GetFullPath(Path.Combine(ProjectFiles.ProjectDirectory, "..", "Fonts"));
 
     static string Input(string scenario) =>
         Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", scenario, "input.docx");

@@ -194,7 +194,7 @@ public class CanonicalParagraphMeasurerTests
     {
         // A blank spacer paragraph parked over a zero-length 11pt run whose font differs from the 8pt
         // paragraph mark (resumes/11's contact-block spacers, a deleted-text artefact). Word sizes the
-        // line by the mark, not the phantom run — matching PdfTextEngine.EmptyLineHeight.
+        // line by the mark, not the phantom run.
         var overPhantomRun = new ParagraphElement
         {
             Runs =

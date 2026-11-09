@@ -1,6 +1,5 @@
-// The selectable text layer — the technique PDF.js uses to make a rendered page selectable. The page stays
-// a picture; over it sits a transparent copy of every run of text, placed where the painter drew it, so the
-// browser can select, copy and find it. The runs arrive from .NET (TextLayerBuilder) as JSON in points.
+// The selectable text layer, PDF.js's technique. The runs arrive from .NET as JSON in points;
+// TextLayerBuilder, which writes it, says how the layer works and what the JSON holds.
 //
 // Layout rules, each learned the hard way:
 // - One absolutely positioned element per LINE, its runs inline. The browser's find cannot match across

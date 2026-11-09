@@ -303,9 +303,8 @@ public class FontHelperTests
     [Test]
     public async Task GetCandidateNames_Semilight_StrippedToBase()
     {
-        // Regression: " Semilight" suffix used to be missing from StyleSuffixes,
-        // leaving Stripped=null and breaking resolver fallback when SkiaSharp
-        // collapses "Segoe UI Semilight" to "Segoe UI" weight 400.
+        // " Semilight" must be in StyleSuffixes: without it Stripped is null, breaking resolver
+        // fallback when SkiaSharp collapses "Segoe UI Semilight" to "Segoe UI" weight 400.
         var c = FontHelpers.GetCandidateNames("Segoe UI Semilight");
         await Assert.That(c.Original).IsEqualTo("Segoe UI Semilight");
         await Assert.That(c.Original).IsEqualTo("Segoe UI Semilight");

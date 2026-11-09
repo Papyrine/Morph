@@ -374,22 +374,17 @@ static class TableLayout
 
         // w:tblGrid defines the columns and the per-cell w:tcW is advisory, so the grid wins when they
         // disagree. labels/13 is the proof: its grid is 11376 twips, exactly the text column, while its
-        // cells declare 11724 (+17.4pt). Word lays the sheet out at the grid. Reading the tcW sum
-        // instead only looked right while over-wide tables were squeezed back to the column — the
-        // squeeze was cancelling the wrong width, and removing it exposed the label columns running off
-        // the page.
+        // cells declare 11724 (+17.4pt). Word lays the sheet out at the grid; read from the tcW sum
+        // the label columns run off the page.
         //
-        // This held only for FIXED-layout tables until 2026-08-06, which left an autofit table's grid on
-        // the floor: the loop below takes a width only from a single-span cell carrying an explicit
-        // w:tcW, so a column covered exclusively by spanned cells stayed at zero and then split the
-        // leftover evenly with its neighbours. newsletters/06's newspaper tables declare a grid of
-        // [42.4, 141.6, 14.0, 9.0, 157.5, 13.5, 4.5, 7.3, 150.2]pt and came out
-        // [42.4, 35.3, 35.3, 35.3, 157.5, 13.5, 35.3, 35.3, 150.2] — five columns flattened to their
-        // 176.4pt total divided five ways. The middle newspaper column rendered 114pt wide against
-        // Word's 156, so its text wrapped far longer, inflating one row by 88-210pt until two of the
-        // four page-tables overflowed the 745.75pt content height and spilled a row onto an extra page
-        // (6 pages against Word's 4). An authored grid is Word's starting point under autofit too:
-        // autofit adjusts columns to their content, it does not discard the grid.
+        // An authored grid is Word's starting point under autofit too: autofit adjusts columns to
+        // their content, it does not discard the grid. The loop below takes a width only from a
+        // single-span cell carrying an explicit w:tcW, so without the grid a column covered only by
+        // spanned cells stays at zero and splits the leftover evenly with its neighbours.
+        // newsletters/06's newspaper tables declare [42.4, 141.6, 14.0, 9.0, 157.5, 13.5, 4.5, 7.3,
+        // 150.2]pt; ignoring the grid flattens five columns to their 176.4pt total divided five ways,
+        // the middle column draws 114pt against Word's 156, and the document runs to 6 pages against
+        // Word's 4.
         var gridIsAuthoritative = gridWidths is {Count: > 0};
 
         var hasExplicitWidths = false;
@@ -911,7 +906,7 @@ static class TableLayout
                 // Detached spacing (w:tblCellSpacing / HTML cellspacing) insets each cell's box
                 // inside its slot, so the slot must carry the content width PLUS those insets —
                 // without this term the spacing is paid out of the text measure and the columns
-                // re-wrap, which is what sank two earlier attempts at HTML per-cell borders.
+                // re-wrap.
                 horizontalChrome += (float) CellSpacingInsets(tableProps, gridColIndex, span, colCount).Horizontal;
 
                 var (cellPref, cellMin) = MeasureCellContentWidth(cell, measurer, preferred);
@@ -1006,9 +1001,9 @@ static class TableLayout
     // Vertical-merge occupancy, one pass per table: row index → the starting grid columns of
     // that row's vMerge-Continue cells. The span/height lookups walk rows through this map
     // instead of rescanning each row's cells from column zero for every Restart cell, which
-    // was O(rows² × cells) on merge-heavy tables. A row accumulates into a merge run exactly
+    // is O(rows² × cells) on merge-heavy tables. A row accumulates into a merge run exactly
     // when a cell STARTS at the merge's grid column and is a Continue — a row whose cells jump
-    // past the column ends the run, same as the old scan. Weakly keyed per parsed table, so
+    // past the column ends the run. Weakly keyed per parsed table, so
     // concurrent conversions and repeated measure/render passes share one map.
     static readonly ConditionalWeakTable<TableElement, HashSet<int>[]> verticalMergeContinueStarts = [];
 

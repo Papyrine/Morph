@@ -2,11 +2,9 @@
 /// Covers the OOXML rule that a shape's <c>&lt;a:grpFill/&gt;</c> inherits the fill of its ancestor
 /// <c>wpg:wgp</c> group (the group's <c>a:solidFill</c>). brochures/06's decorative clusters — its
 /// accent stripes and its hot-air-balloon line-art — fill the whole group once and let each child
-/// rectangle defer via <c>a:grpFill</c>. The inline-group parser previously read only a shape's own
-/// <c>a:solidFill</c>, so every grpFill child resolved to no fill and drew as nothing (their outline
-/// is <c>a:noFill</c> too), dropping those decorations from every backend. The floating-shape path
-/// already resolved grpFill (<see cref="ShapeNoFillTests"/>'s sibling scenarios / labels/07); this
-/// guards the same resolution on the inline path.
+/// rectangle defer via <c>a:grpFill</c>; their outline is <c>a:noFill</c> too, so a child that
+/// resolved no fill would draw as nothing. The floating-shape path resolves grpFill too
+/// (<see cref="ShapeNoFillTests"/>'s sibling scenarios / labels/07); this guards the inline path.
 /// </summary>
 public class InlineGroupGroupFillTests
 {

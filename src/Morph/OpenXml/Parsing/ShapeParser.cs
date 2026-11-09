@@ -3,9 +3,6 @@ using DW = DocumentFormat.OpenXml.Drawing.Wordprocessing;
 using WPG = DocumentFormat.OpenXml.Office2010.Word.DrawingGroup;
 using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 
-/// <summary>
-/// Parses shape elements from Word documents.
-/// </summary>
 static class ShapeParser
 {
     /// <summary>
@@ -23,7 +20,6 @@ static class ShapeParser
             return result;
         }
 
-        // Get anchor dimensions (target size after transform)
         var extent = anchor.Extent;
         if (extent == null)
         {
@@ -42,11 +38,9 @@ static class ShapeParser
         // walk passes for the same drawing — the dual-parse dedup compares folded positions.
         var positioning = anchor.ParsePositioning(page: alignmentPage);
 
-        // Check for WordprocessingGroup
         var wgp = drawing.Descendants<WPG.WordprocessingGroup>().FirstOrDefault();
         if (wgp != null)
         {
-            // Get group transform info for applying to individual shapes
             var grpSpPr = wgp.GetFirstChild<WPG.GroupShapeProperties>();
             var grpXfrm = grpSpPr?.GetFirstChild<A.TransformGroup>();
 
@@ -120,9 +114,6 @@ static class ShapeParser
         return result;
     }
 
-    /// <summary>
-    /// Parses a standalone shape using anchor dimensions directly.
-    /// </summary>
     static FloatingShapeElement? ParseStandaloneShape(
         WPS.WordprocessingShape wsp,
         ThemeColors? themeColors,
@@ -144,7 +135,6 @@ static class ShapeParser
                        ?? PresetShapeGeometry.TryBuild(shapeProps.GetFirstChild<A.PresetGeometry>(), widthPoints, heightPoints);
         var (rotation, flipH, flipV) = ExtractTransform(shapeProps.GetFirstChild<A.Transform2D>());
 
-        // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         if (solidFill != null)
         {
@@ -262,12 +252,9 @@ static class ShapeParser
             }
         }
 
-        // A shape can take its fill from the style's a:fillRef rather than spPr — Word writes that
-        // for a template's accent bands, e.g. business-plans/13's full-width cover band is a rect
-        // with <a:ln><a:noFill/> whose colour lives only in <wps:style><a:fillRef><a:schemeClr>.
-        // The line path already consults lnRef (ExtractLineStyle); without the same for the fill
-        // these bands resolved no fill and fell through to the outline-only path, which dropped
-        // them because there is no line either.
+        // A shape can take its fill from the style's a:fillRef rather than spPr, as a template's
+        // accent bands do: business-plans/13's cover band is a rect with <a:ln><a:noFill/> whose
+        // colour lives only in <wps:style><a:fillRef><a:schemeClr>, and has no line to draw either.
         var refFill = ResolveFillReferenceColor(wsp, themeColors);
         if (refFill != null)
         {
@@ -903,7 +890,6 @@ static class ShapeParser
             }
         }
 
-        // Try solid fill first
         var solidFill = shapeProps.GetFirstChild<A.SolidFill>();
         if (solidFill != null)
         {
@@ -1098,16 +1084,13 @@ static class ShapeParser
             // Get the actual XML value (e.g., "tx2" not "Text2")
             var schemeValue = ((IEnumValue) schemeClr.Val.Value).Value;
 
-            // Check for alpha - if nearly invisible, skip this shape
-            // Only skip shapes that are less than 5% opaque (nearly invisible)
+            // A shape less than 5% opaque is skipped
             var alphaEl = schemeClr.GetFirstChild<A.Alpha>();
             if (alphaEl?.Val is { HasValue: true, Value: < 5000 })
             {
-                // Skip nearly invisible shapes
                 return null;
             }
 
-            // Extract all color transforms
             var transforms = ExtractColorTransforms(schemeClr);
 
             return themeColors.ResolveColor(schemeValue, transforms);
@@ -1245,7 +1228,6 @@ static class ShapeParser
             return (null, null);
         }
 
-        // Try to get the image part
         if (hostPart.PartOrNull(embedAttribute) is not ImagePart imagePart)
         {
             return (null, null);

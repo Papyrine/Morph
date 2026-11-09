@@ -4,8 +4,7 @@ using DocumentFormat.OpenXml.Packaging;
 /// The indent of a style that switches numbering off, Word-probed on <c>_probe_numoff</c> (first glyph
 /// x of each line read off the XPS, against a base style numbered at <c>left=1440 hanging=720</c>):
 /// such a style drops the indent its BASE declared beside the numbering and then applies its own
-/// <c>w:ind</c> like any other style. The own indent used to go with the numbering, which set
-/// resumes/07's "College info" lines at the margin where Word indents them 18pt.
+/// <c>w:ind</c> like any other style — Word indents resumes/07's "College info" lines 18pt.
 /// </summary>
 public class NumberingOffStyleIndentTests
 {

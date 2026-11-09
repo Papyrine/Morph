@@ -11,10 +11,9 @@ using P = DocumentFormat.OpenXml.Presentation;
 /// substitution colour is the very placeholder being substituted — has nothing to substitute.
 /// PowerPoint falls back to DrawingML's default colour and paints the slide solid black.
 ///
-/// <see cref="ThemeColors.ResolveColor(string, ColorTransforms)"/> used to return null for it, which
-/// took the whole background down with it: <c>SlideShapeParser.ResolveBackground</c> drops the
-/// element when its colour does not resolve, so the slide rendered on the bare white canvas. A deck
-/// PowerPoint shows as solid black came out clean, which hides the defect rather than showing it.
+/// <see cref="ThemeColors.ResolveColor(string, ColorTransforms)"/> must resolve it:
+/// <c>SlideShapeParser.ResolveBackground</c> drops the element when its colour does not resolve,
+/// leaving the slide on the bare white canvas.
 /// </summary>
 public class SlideBackgroundPlaceholderColorTests
 {

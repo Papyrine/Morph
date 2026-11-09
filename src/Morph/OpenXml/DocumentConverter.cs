@@ -1,11 +1,8 @@
 ﻿namespace Morph;
 
 /// <summary>
-/// Abstract base for the DOCX → raster converters (<c>SkiaDocumentConverter</c> and
-/// <c>ImageSharpDocumentConverter</c>). Also exposes the backend-free text exporters
-/// (<see cref="ConvertToHtml(string, HtmlExportOptions?)"/>, <see cref="ConvertToMarkdown(string, MarkdownExportOptions?)"/>)
-/// for callers that only need HTML or Markdown out of a DOCX. For multi-format export from a single
-/// parse, see <see cref="WordDocument"/>.
+/// Abstract base for the DOCX → PNG converters, and home of the backend-free HTML and Markdown
+/// exporters. For several formats from one parse, see <see cref="WordDocument"/>.
 /// </summary>
 public abstract class DocumentConverter
 {
@@ -84,10 +81,8 @@ public abstract class DocumentConverter
         var paragraphPages = ParagraphPages(document, options);
 
         // A bookmark knows the paragraph it sits in; layout knows where that paragraph landed.
-        // Joining the two is the whole trick. It was joined by counting paragraphs, which never
-        // agreed for long: a table's cells hold paragraphs too, and a w:p a break divides is
-        // several paragraphs of the model, or none, so every bookmark after one landed on some
-        // other paragraph's page.
+        // Counting paragraphs instead does not agree: a table's cells hold paragraphs too, and a
+        // w:p a break divides is several paragraphs of the model, or none.
         foreach (var bookmark in document.Bookmarks)
         {
             if (bookmark.Paragraph is not { } paragraph ||
@@ -143,21 +138,11 @@ public abstract class DocumentConverter
         }
     }
 
-    // Every placed line under these items, a table cell's included. A cell's lines hang off its
-    // PlacedTableRow rather than sitting on the page, so reading only the top level leaves every
-    // paragraph inside a table out of the map below — and a bookmark anchored there comes back with
-    // no page at all rather than a wrong one, which a caller writing a PAGEREF renders as the
-    // field's placeholder text. Measured on a 316-paragraph report: 199 of its paragraphs resolved
-    // and the 117 that did not were exactly the ones in tables, so a summary table cross-referencing
-    // its own rows resolved nothing.
-    //
-    // This is the mirror of Flatten above, which already counts cell paragraphs on the ordinal side
-    // of the join — the two sides disagreed about table content in opposite directions, and the
-    // ordinal side was the one that was right. The recursion is real rather than one level deep
-    // because a cell can hold a table of its own.
-    //
-    // Floating text boxes and frames need no case: PlaceTextBox and PlaceFrame add their content to
-    // the page as body floats, so those lines are already top-level items here.
+    // Every placed line under these items, a table cell's included (recursively, as a cell can hold a
+    // table). A cell's lines hang off its PlacedTableRow rather than sitting on the page, so reading
+    // only the top level leaves a bookmark in a table with no page, which a caller writing a PAGEREF
+    // renders as the field's placeholder text. Floating text boxes and frames need no case:
+    // PlaceTextBox and PlaceFrame add their content to the page as body floats.
     internal static IEnumerable<PlacedLine> Lines(IEnumerable<PlacedItem> items)
     {
         foreach (var item in items)

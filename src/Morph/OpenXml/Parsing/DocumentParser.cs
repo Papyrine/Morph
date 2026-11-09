@@ -20,16 +20,10 @@ using WPS = DocumentFormat.OpenXml.Office2010.Word.DrawingShape;
 [SuppressMessage("Style", "IDE0306:Simplify collection initialization")]
 sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize = null, bool captureSources = false, CultureInfo? culture = null)
 {
-    // Conversion constants
-
-
     // Word's built-in defaults, supplied when a document declares no styles part or no
     // docDefaults at all: APTOS 12pt with w:spacing w:line="278" w:lineRule="auto" w:after="160".
-    // The family follows the Word build. References rendered before 2026-08 are set in Aptos; the
-    // build of October gave Calibri (Word drew a bare three-part package's sample 632x21px at
-    // 150 DPI, its own explicit Calibri 12 exactly, and Styles("Normal").Font read Calibri 12), and
-    // the 105 references then in Aptos were regenerated on 2026-10-02; Word 16.0.20527 gives Aptos
-    // 12pt again — Styles("Normal").Font reads Aptos 12 and a render embeds Aptos alone, in bare
+    // The family follows the Word build (an October 2026 build gave Calibri); Word 16.0.20527 gives
+    // Aptos 12pt — Styles("Normal").Font reads Aptos 12 and a render embeds Aptos alone, in bare
     // packages with no settings and at compatibility modes 14 and 15 alike — and the 147 style-less
     // references were regenerated on it on 2026-11-08 (docs/fidelity-audit.md).
     // The line pitch is unchanged by the family: Calibri's GDI cell and Aptos's hhea box are
@@ -123,10 +117,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // keeps every other document on the untouched resolution path.
     DeclaredRunProperties? tableStyleRunDefaults;
 
-    // Raw style elements by styleId, first-wins to match the Elements<Style>().FirstOrDefault
-    // scan it replaces. ParseRunProperties consults the original style XML for every run that
-    // carries w:rStyle (hyperlinks, TOC entries, note refs) to know which properties the
-    // character style explicitly defines — that was a linear styles.xml scan per run.
+    // Raw style elements by styleId, first wins. ParseRunProperties consults the original style
+    // XML for every run that carries w:rStyle (hyperlinks, TOC entries, note refs) to know which
+    // properties the character style explicitly defines.
     Dictionary<string, Style>? stylesById;
 
     // Hyperlink relationship id → resolved URL. mainPart.HyperlinkRelationships is an OfType<>
@@ -134,9 +127,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // on link-heavy documents (TOCs, bibliographies).
     Dictionary<string, string>? hyperlinkUrlsByRelId;
 
-    // One decompressed buffer per image part: every drawing referencing a part used to copy its
-    // own byte[], so repeated logos/icons retained N identical arrays in the model. Sharing one
-    // array also lets the render-side byte[]-identity caches dedupe repeats across elements.
+    // One decompressed buffer per image part, shared by every drawing that references it, so
+    // repeated logos/icons hold one array and the render-side byte[]-identity caches dedupe them.
     readonly Dictionary<OpenXmlPart, byte[]> imagePartBytes = [];
 
     // Document default text colour from w:docDefaults/w:rPrDefault/w:color (theme-resolved). The
@@ -267,9 +259,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // Document default line spacing, used when no style supplies one. Word's built-in default
     // (line=278) applies when the document declares no styles.xml, no docDefaults, or docDefaults
     // with no pPrDefault element (see ExtractDefaultParagraphProperties); a document whose
-    // docDefaults DO carry a pPrDefault, empty or without a w:line, is single-spaced —
-    // Word-probed 2026-08-04 alongside the style-path fallback above (an invented 1.08 lived
-    // here and was part of the same corpus-wide pitch drift).
+    // docDefaults DO carry a pPrDefault, empty or without a w:line, is single-spaced
+    // (Word-probed 2026-08-04).
     double defaultLineSpacingMultiplier = 1.0;
 
     // Document-wide line multiplier from docDefaults/pPrDefault/w:spacing/@w:line, read only under
@@ -286,14 +277,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     //     (agendas-minutes/07's Title and ListBullet), which is why only its Normal- and
     //     Heading1-derived paragraphs move.
     //
-    // It took three attempts to land, because honouring it alone inflated pitch on the very
-    // documents it should have fixed. It is half of a compensating pair: those documents declare
-    // docDefaults with no w:sz, so they were also rendering at 12pt where Word uses the spec's 10pt
-    // (see specDefaultFontSizePoints). brochures/05 is the archetype — Word's pitch is 10pt x 1.2,
-    // while the old code produced 12pt x 1.04, landing within 3% by cancellation, so correcting
-    // either half alone measured worse than correcting neither. The two remaining prerequisites
-    // were the table-style w:pPr cascade step and the rule that an Auto multiplier must not scale
-    // an inline image. Full ledger, with the measurements: src/page_counts.md experiments 17-21.
+    // It pairs with specDefaultFontSizePoints (those documents declare docDefaults with no w:sz:
+    // brochures/05's pitch is 10pt x 1.2), the table-style w:pPr cascade step, and an Auto
+    // multiplier never scaling an inline image. Measurements: src/page_counts.md experiments 17-21.
     double? docDefaultLineSpacingMultiplier;
 
     // Document-level w:defaultTabStop in points (720 twips = 36 pt = 0.5 inch, OOXML default).
@@ -414,7 +400,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Extract and store theme colors early (needed for background color and other theme-resolved values)
         currentThemeColors = ThemeParser.ExtractThemeColors(mainPart.ThemePart);
 
-        // Extract and store theme fonts for use during parsing
         currentThemeFonts = ThemeParser.ExtractThemeFonts(mainPart.ThemePart);
 
         // Resolve the document's default font from docDefaults (w:rPrDefault/w:rFonts). Every run
@@ -436,10 +421,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         adjustLineHeightInTable = mainPart.DocumentSettingsPart?.Settings?
             .GetFirstChild<Compatibility>()?.GetFirstChild<AdjustLineHeightInTable>() != null;
 
-        // Extract document default spacing from pPrDefault
         ExtractDefaultParagraphProperties(mainPart);
 
-        // Extract document-level default tab stop width (w:defaultTabStop in settings.xml)
         ExtractDefaultTabStop(mainPart);
 
         // Extract gutterAtTop setting (so ExtractPageSettings can apply gutter to the right margin).
@@ -488,21 +471,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             FoldRelativeSizes(body, pageSettings);
         }
 
-        // Extract style run properties (with theme color resolution)
         styleRunProperties = ExtractStyleRunProperties(mainPart);
 
-        // Extract style paragraph properties (line spacing, spacing before/after, etc.)
         styleParagraphProperties = ExtractStyleParagraphProperties(mainPart);
         tableStyleSpacing = ExtractDeclaredSpacing(mainPart, StyleValues.Table);
         paragraphStyleDeclaredSpacing = ExtractDeclaredSpacing(mainPart, StyleValues.Paragraph);
-        // Extract numbering definitions from numbering.xml
         numberingDefinitions = ExtractNumberingDefinitions(mainPart, numberingAbstractIds, numberingStartOverrides);
 
-        // Extract style numbering (styles that have numPr)
         (styleNumbering, styleNumberingOwners) = ExtractStyleNumbering(mainPart);
         styleOwnIndents = ExtractStyleOwnIndents(mainPart);
 
-        // Extract table style borders
         tableStyleBorders = ExtractTableStyleBorders(mainPart);
 
         var compatibility = ExtractCompatibilitySettings(mainPart);
@@ -549,8 +527,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // modes 12, 14 and 15 alike): a break alone in the last paragraph, or ending its text, leaves
         // one page; text after it, an empty paragraph after it, or a paragraph of text, two; two breaks
         // there, two — only the last goes. The paragraph holding nothing but the break leaves only the
-        // break here, so a break that ends the list is exactly that one. The build of October drew the
-        // blank page (explicit_break_blank_page's reference until then).
+        // break here, so a break that ends the list is exactly that one.
         if (elements.Count > 0 &&
             elements[^1] is PageBreakElement)
         {
@@ -907,14 +884,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // 10/12/24pt in a bare package), docDefaults WITHOUT w:kern disable it (the spec default 0),
     // and a docDefaults w:kern enables it at its half-point threshold.
     //
-    // That is the bottom rung of an ordinary ladder. Probed 2026-10-02 (_probe_kerncascade: 52
-    // cases over three packages, in compatibility modes 12 and 15, each read off the XPS against
-    // directly formatted references), w:kern cascades like any other run property: document
-    // default, then the table style, then the paragraph style with its basedOn chain, then the
-    // character style, then the run's own w:rPr. A rung that declares it wins outright, w:val="0"
+    // Above that, w:kern cascades like any run property (_probe_kerncascade, 2026-10-02: 52 cases,
+    // compatibility modes 12 and 15, read off the XPS): table style, paragraph style chain,
+    // character style, the run's own w:rPr. A rung that declares it wins outright, w:val="0"
     // included, and the size test is the resolved threshold's (a style declaring w:val="80" kerns
-    // its 48pt text and not its 24pt text). ExtractStyleRunProperties and ParseRunProperties
-    // carry it down.
+    // its 48pt text and not its 24pt text).
     static double ResolveDocDefaultKerningMinPoints(MainDocumentPart mainPart)
     {
         var docDefaults = mainPart.StyleDefinitionsPart?.Styles?.DocDefaults;
@@ -1369,8 +1343,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return result;
     }
 
-    // Resolves a w:color element to a 6-hex string: a theme colour (w:themeColor with optional
-    // w:themeShade/w:themeTint) via the document's colour scheme, else the direct w:val. Returns
     /// <summary>
     /// Reads a <c>w:themeShade</c>-style hex byte, or null when absent or malformed.
     /// </summary>
@@ -1390,11 +1362,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <c>w:themeFillShade</c> / <c>w:themeFillTint</c> bytes that go with it.
     /// </summary>
     /// <remarks>
-    /// The four call sites (run shading, paragraph shading, and the two inline-background paths)
-    /// each used to resolve the bare theme name and drop the shade/tint, so every tint of an accent
-    /// painted as the flat accent — Word-probed at <c>_probe_themeshade</c>, where all twelve
-    /// shaded bands rendered as their undarkened base. <c>w:color</c>'s <c>w:themeColor</c> has read
-    /// its equivalent bytes all along; this is the same reading for the fill.
+    /// Run shading, paragraph shading and both inline-background paths read it, so a tint of an
+    /// accent never paints as the flat accent (<c>_probe_themeshade</c>, twelve shaded bands). It is
+    /// <c>w:color</c>'s reading of its shade and tint bytes, for the fill.
     /// </remarks>
     string? ResolveThemeFill(Shading shadingElement)
     {
@@ -1410,6 +1380,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ThemeByte(shadingElement.ThemeFillTint));
     }
 
+    // Resolves a w:color element to a 6-hex string: a theme colour (w:themeColor with optional
+    // w:themeShade/w:themeTint) via the document's colour scheme, else the direct w:val. Returns
     // null for "auto" or an unresolved/absent value.
     string? ResolveRunColor(Color colorElement)
     {
@@ -1476,13 +1448,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             var rPrDefault = docDefaults.RunPropertiesDefault.RunPropertiesBaseStyle;
 
-            // Font family from docDefaults
             var defaultFonts = rPrDefault.GetFirstChild<RunFonts>();
             if (defaultFonts != null)
             {
                 defaultEastAsiaFontFamily = EastAsiaFontFamily(defaultFonts);
 
-                // Try theme font reference first
                 if (defaultFonts.AsciiTheme?.HasValue == true &&
                     currentThemeFonts != null)
                 {
@@ -1493,7 +1463,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         defaultFontFamily = resolvedFont;
                     }
                 }
-                // Fall back to direct font name
                 else if (defaultFonts.Ascii?.HasValue == true)
                 {
                     defaultFontFamily = defaultFonts.Ascii.Value!;
@@ -1515,11 +1484,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // First pass: collect all styles and their basedOn references
         var styles = stylesPart.Styles.Elements<Style>().ToList();
         var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Build a set of all style IDs that exist in the document
         var existingStyleIds = new HashSet<string>(
             styles
                 .Select(_ => _.StyleId?.Value)
@@ -1541,29 +1508,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     continue;
                 }
 
-                // Check if base style needs to be processed first
                 var basedOnId = style.BasedOn?.Val?.Value;
-                // Only wait for the base style if it actually exists in this document
-                // If basedOn references a non-existent style, process without waiting
+                // Wait for the base style only if it exists in this document; a basedOn naming a
+                // missing style is processed without waiting.
                 if (basedOnId != null &&
                     existingStyleIds.Contains(basedOnId) &&
                     !processed.Contains(basedOnId))
                 {
-                    // Base style not yet processed, skip for now
                     continue;
                 }
 
-                // Get base style properties if available
                 RunProperties? baseProps = null;
                 if (basedOnId != null)
                 {
                     styleProps.TryGetValue(basedOnId, out baseProps);
                 }
 
-                // Check for run properties in the style
                 var runProps = style.StyleRunProperties;
 
-                // Start with base style properties or docDefaults
                 var fontFamily = baseProps?.FontFamily ?? defaultFontFamily;
                 var fontSize = baseProps?.FontSizePoints ?? defaultFontSize;
                 var bold = baseProps?.Bold ?? false;
@@ -1579,15 +1541,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var characterSpacing = baseProps?.CharacterSpacingPoints ?? 0.0;
                 var characterScale = baseProps?.CharacterScalePercent ?? 100;
 
-                // Superscript and subscript come down the chain like the rest. Left off the style,
-                // every run that took its raise from one stood on the baseline: a note's own number in
-                // Footnote Reference (whose body citation forces its superscript, and hid this) among
-                // them.
+                // Superscript and subscript come down the chain like the rest: a note's own number
+                // in Footnote Reference takes its raise from the style.
                 var verticalAlignment = baseProps?.VerticalAlignment ?? VerticalRunAlignment.Baseline;
 
-                // The kerning threshold comes down the chain like the rest. Leaving it off the style
-                // measured every run that takes its properties from a style UNKERNED, whatever the
-                // document default said — most body text, since such a run carries no w:rPr.
+                // So does the kerning threshold: most body text carries no w:rPr and takes it from a style.
                 var kerningMinFontSize = baseProps?.KerningMinFontSizePoints ?? effectiveDefaultKerningMinPoints;
 
                 // The w14 text effects come down the chain too: menus/07's Title declares its outline
@@ -1627,15 +1585,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     continue;
                 }
 
-                // Font
                 var runFonts = runProps.GetFirstChild<RunFonts>();
                 if (runFonts != null)
                 {
-                    // First try theme font reference
                     if (runFonts.AsciiTheme?.HasValue == true &&
                         currentThemeFonts != null)
                     {
-                        // ThemeFontValues implements IEnumValue - access Value property through interface
                         var themeValue = ((IEnumValue) runFonts.AsciiTheme.Value).Value;
                         var resolvedFont = currentThemeFonts.ResolveFont(themeValue);
                         if (resolvedFont != null)
@@ -1643,35 +1598,30 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             fontFamily = resolvedFont;
                         }
                     }
-                    // Fall back to direct font name
                     else if (runFonts.Ascii?.HasValue == true)
                     {
                         fontFamily = runFonts.Ascii.Value!;
                     }
                 }
 
-                // Font size (in half-points)
                 var fontSizeElement = runProps.GetFirstChild<FontSize>();
                 if (OoxmlUnits.FontSizeHalfPointsToPoints(fontSizeElement?.Val?.Value) is { } declaredSize)
                 {
                     fontSize = declaredSize;
                 }
 
-                // Bold
                 var boldElement = runProps.GetFirstChild<Bold>();
                 if (boldElement != null)
                 {
                     bold = boldElement.IsOn();
                 }
 
-                // Italic
                 var italicElement = runProps.GetFirstChild<Italic>();
                 if (italicElement != null)
                 {
                     italic = italicElement.IsOn();
                 }
 
-                // Underline
                 var underlineElement = runProps.GetFirstChild<Underline>();
                 if (underlineElement != null &&
                     underlineElement.Val?.Value != UnderlineValues.None)
@@ -1680,7 +1630,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     underlineStyle = UnderlineStyleOf(underlineElement);
                 }
 
-                // Strikethrough
                 var strikeElement = runProps.GetFirstChild<Strike>();
                 if (strikeElement != null)
                 {
@@ -1693,21 +1642,18 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     doubleStrikethrough = doubleStrikeElement.IsOn();
                 }
 
-                // All caps
                 var capsElement = runProps.GetFirstChild<Caps>();
                 if (capsElement != null)
                 {
                     allCaps = capsElement.IsOn();
                 }
 
-                // Small caps
                 var smallCapsElement = runProps.GetFirstChild<SmallCaps>();
                 if (smallCapsElement != null)
                 {
                     smallCaps = smallCapsElement.IsOn();
                 }
 
-                // Character spacing (w:spacing in rPr)
                 var spacingElement = runProps.GetFirstChild<Spacing>();
                 if (spacingElement?.Val?.HasValue == true)
                 {
@@ -1747,13 +1693,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     color = ResolveRunColor(colorElement) ?? automaticColorSentinel;
                 }
 
-                // Background/shading color (w:shd element)
                 var shadingElement = runProps.GetFirstChild<Shading>();
                 if (shadingElement != null)
                 {
                     backgroundColor = ResolveThemeFill(shadingElement);
 
-                    // Fall back to direct fill value
                     if (backgroundColor == null &&
                         shadingElement.Fill?.HasValue == true &&
                         shadingElement.Fill.Value != "auto" &&
@@ -1941,11 +1885,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return styleProps;
         }
 
-        // First pass: collect all styles and their basedOn references
         var styles = stylesPart.Styles.Elements<Style>().ToList();
         var processed = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
-        // Build a set of all style IDs that exist in the document
         var existingStyleIds = new HashSet<string>(
             styles.Select(_ => _.StyleId?.Value).Where(id => id != null)!,
             StringComparer.OrdinalIgnoreCase);
@@ -1977,19 +1919,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     continue;
                 }
 
-                // Check if base style needs to be processed first
                 var basedOnId = style.BasedOn?.Val?.Value;
-                // Only wait for the base style if it actually exists in this document
-                // If basedOn references a non-existent style, process without waiting
+                // Wait for the base style only if it exists in this document; a basedOn naming a
+                // missing style is processed without waiting.
                 if (basedOnId != null &&
                     existingStyleIds.Contains(basedOnId) &&
                     !processed.Contains(basedOnId))
                 {
-                    // Base style not yet processed, skip for now
                     continue;
                 }
 
-                // Get base style properties if available
                 ParagraphProperties? baseProps = null;
                 if (basedOnId != null)
                 {
@@ -2005,7 +1944,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     ? inheritedUnbound
                     : (defaultLeftIndentPoints, 0d, 0d, defaultRightIndentPoints);
 
-                // Check for paragraph properties in the style
                 var paraProps = style.StyleParagraphProperties;
 
                 // Start with base style properties or document defaults (pPrDefault)
@@ -2014,23 +1952,15 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var spacingAfter = baseProps?.SpacingAfterPoints ?? defaultSpacingAfterPoints;
                 var spacingBeforeAuto = baseProps?.SpacingBeforeAuto ?? false;
                 var spacingAfterAuto = baseProps?.SpacingAfterAuto ?? false;
-                // OOXML says an absent w:spacing/@w:line is SINGLE — the font's own line box —
-                // and a Word probe confirms it directly (2026-08-04, long wrapping paragraphs
-                // in the resumes/01 and agendas-minutes/15 packages, both styles.xml-bearing:
-                // inherited pitch == explicit w:line="240" == the hhea box, for Calibri Light,
-                // Segoe UI and Aptos alike; ×1.04 would have been +1.1px/line and the measurement
-                // resolves ±0.35px). An invented 1.04 lived here for a long time because moving it
-                // to 1.0 alone once measured worse (40 better / 67 worse) — that verdict predated
-                // the Ppem, usWinAscent, interior-border and atLeast-row fixes it was compensating
-                // for, and it was the corpus-wide "~0.6-1pt/line too tall" drift vs Word.
-                // Where Word's BUILT-IN paragraph defaults are in force (no docDefaults, or none
-                // for paragraphs: see ExtractDefaultParagraphProperties) they stand under every
-                // style exactly as a declared pPrDefault would, so the fallback is the document
-                // default and not a flat 1.0. Probed 2026-10-11 (_probe_styleline_a/b/c/e): a
-                // style based on an undefined Normal, one with no basedOn at all, one that
-                // declares only w:spacing/@w:after and one that declares nothing each keep the
-                // 278/240 pitch (17.1pt at 12pt Calibri against 14.7 single), and complex_spacing's
-                // CustomStyle1 paragraphs sat at single spacing against Word's page until it was.
+                // An absent w:spacing/@w:line is SINGLE, the font's own line box (Word probe
+                // 2026-08-04, resumes/01 and agendas-minutes/15: inherited pitch == explicit
+                // w:line="240" == the hhea box, for Calibri Light, Segoe UI and Aptos alike).
+                // Where Word's BUILT-IN paragraph defaults are in force (see
+                // ExtractDefaultParagraphProperties) they stand under every style as a declared
+                // pPrDefault would (_probe_styleline_a/b/c/e, 2026-10-11: a style based on an
+                // undefined Normal, one with no basedOn, one declaring only w:after and one declaring
+                // nothing each keep the 278/240 pitch, 17.1pt at 12pt Calibri against 14.7 single;
+                // complex_spacing's CustomStyle1).
                 var lineSpacingMultiplier = baseProps?.LineSpacingMultiplier
                                             ?? docDefaultLineSpacingMultiplier
                                             ?? defaultLineSpacingMultiplier;
@@ -2042,12 +1972,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var hangingIndent = baseProps?.HangingIndentPoints ?? 0;
                 var contextualSpacing = baseProps?.ContextualSpacing ?? false;
 
-                // Pagination properties from base style. pageBreakBefore inherits like the others —
-                // an earlier note here claimed Word only honours it inline, and Word refuted that
-                // directly (_probe_bp10_nointro/_nokeep, 2026-08-07): a Heading1 whose only
-                // pageBreakBefore is the STYLE's breaks the page, and an inline w:val="0" suppresses
-                // it (_probe_bp10_pbboff). business-plans/10's "Campaign Sign-off" page 5 rides on
-                // exactly this.
+                // Pagination properties from base style. pageBreakBefore inherits like the others
+                // (_probe_bp10_nointro/_nokeep, 2026-08-07): a Heading1 whose only pageBreakBefore
+                // is the STYLE's breaks the page, and an inline w:val="0" suppresses it
+                // (_probe_bp10_pbboff); business-plans/10's "Campaign Sign-off" page 5.
                 var keepLines = baseProps?.KeepLines ?? false;
                 var keepNext = baseProps?.KeepNext ?? false;
                 var widowControl = baseProps?.WidowControl ?? true;
@@ -2102,7 +2030,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     frame = ParseParagraphFrame(styleFramePr);
                 }
 
-                // Parse alignment
                 var justification = paraProps.GetFirstChild<Justification>();
                 if (justification?.Val?.HasValue == true)
                 {
@@ -2125,7 +2052,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Parse spacing
                 var spacing = paraProps.GetFirstChild<SpacingBetweenLines>();
                 if (spacing != null)
                 {
@@ -2164,16 +2090,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                 // A style that switches numbering off (w:numPr with numId 0, or with no numId at all)
                 // drops the indent its BASE declared beside live numbering (styleIndentBound), and
-                // then applies its own w:ind like any other style. Word-probed (_probe_numoff, first
-                // glyph x read off the XPS, against a base style numbered with left=1440
-                // hanging=720): a style based on it with numId=0 and no w:ind sets both lines of a
-                // wrapped paragraph at the margin; with numId=0 and left=2160 the text starts at
-                // 108pt with no hanging; with left=2160 hanging=720 its first line starts at 72pt and
-                // its second at 108pt; and a style based on Normal with numId=0, or with only an
-                // w:ilvl, and left=1440 starts at 72pt. business-plans/08's Title is the first case
-                // (basedOn the numbered Heading 1, numId=0, both lines at the margin), and
-                // resumes/07's "College info" the second: basedOn List Bullet, numId=0, left=360, an
-                // indent this used to throw away with the numbering.
+                // then applies its own w:ind like any other style. Word-probed (_probe_numoff, XPS,
+                // base numbered with left=1440 hanging=720): numId=0 and no w:ind sets both lines
+                // of a wrapped paragraph at the margin; numId=0 and left=2160 starts at 108pt with
+                // no hanging; left=2160 hanging=720 starts at 72pt, its second line at 108pt; a
+                // style based on Normal with numId=0, or only an w:ilvl, and left=1440 starts at
+                // 72pt. business-plans/08's Title is the first case, resumes/07's "College info"
+                // (basedOn List Bullet, numId=0, left=360) the second.
                 var styleNumPr = paraProps.GetFirstChild<NumberingProperties>();
                 var hasOrphanedNumPr = styleNumPr != null &&
                                        (styleNumPr.NumberingId?.Val?.Value ?? 0) == 0;
@@ -2210,13 +2133,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     ? baseUnboundIndent
                     : (leftIndent, firstLineIndent, hangingIndent, rightIndent);
 
-                // Parse contextual spacing
                 if (paraProps.GetFirstChild<ContextualSpacing>() != null)
                 {
                     contextualSpacing = true;
                 }
 
-                // Parse pagination properties
                 if (paraProps.GetFirstChild<KeepLines>() != null)
                 {
                     keepLines = true;
@@ -2247,13 +2168,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Parse paragraph shading/background color (w:shd element)
                 var shadingElement = paraProps.GetFirstChild<Shading>();
                 if (shadingElement != null)
                 {
                     backgroundColor = ResolveThemeFill(shadingElement);
 
-                    // Fall back to direct fill value
                     if (backgroundColor == null &&
                         shadingElement.Fill?.HasValue == true &&
                         shadingElement.Fill.Value != "auto" &&
@@ -2263,7 +2182,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Parse paragraph borders (w:pBdr)
                 var borders = baseProps?.Borders;
                 var borderTopSpace = baseProps?.BorderTopSpacePoints ?? 0;
                 var borderBottomSpace = baseProps?.BorderBottomSpacePoints ?? 0;
@@ -2387,10 +2305,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var levelText = level.LevelText?.Val?.Value ?? "";
                 var numFmt = level.NumberingFormat?.Val?.Value;
 
-                // Determine if this is a bullet or numbered list
                 var isBullet = numFmt == NumberFormatValues.Bullet;
 
-                // Get font for bullet character
                 string? fontFamily = null;
                 double? fontSizePoints = null;
                 string? markerColorHex = null;
@@ -2425,7 +2341,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Get indentation
                 double leftIndent = 0;
                 double hangingIndent = 0;
                 var pPr = level.GetFirstChild<PreviousParagraphProperties>();
@@ -2437,7 +2352,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
                 }
 
-                // Get start number
                 var startNumber = level.StartNumberingValue?.Val?.Value ?? 1;
                 var lvlRestart = level.LevelRestart?.Val?.Value;
                 var rightAligned = level.LevelJustification?.Val?.Value == LevelJustificationValues.Right;
@@ -2639,7 +2553,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
-            // Check for numPr in paragraph properties
             var pPr = style.StyleParagraphProperties;
             if (pPr == null)
             {
@@ -2730,7 +2643,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
-            // Only look at table styles
             if (style.Type?.Value != StyleValues.Table)
             {
                 continue;
@@ -2741,7 +2653,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 defaultTableStyleId = styleId;
             }
 
-            // Look for table properties in the style
             var tblPr = style.StyleTableProperties;
 
             // Borders come from the w:basedOn chain, per side, like the cell padding below — a house
@@ -2798,7 +2709,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 }
             }
 
-            // Parse conditional formatting (tblStylePr) for border + shading overrides
             var conditionals = ResolveStyleConditionals(style, tableStylesById);
 
             // Resolve default cell padding by walking the w:basedOn chain — Word's built-in
@@ -2824,17 +2734,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return result;
     }
 
-    /// <summary>
-    /// Whether a table style stops its rows splitting across pages — its own <c>w:trPr/w:cantSplit</c>,
-    /// the nearest declaration on the <c>w:basedOn</c> chain winning, so a derived style can switch a
-    /// base's off with <c>w:val="0"</c>. The conditional regions' row properties are not read here.
-    /// Word honours it: an A/B on a report whose rows take cantSplit only from their table style
-    /// (2026-09-30) had Word carry a straddling three-paragraph row whole to the next page, and split
-    /// it at exactly the line boundary the engine uses once the style's cantSplit was removed.
-    /// </summary>
     // An ST_OnOffOnly w:val (w:cantSplit, w:tblHeader): absent is on, and off is "off" — or the "0" and
     // "false" writers put there though the schema allows only on/off. The SDK's typed value throws on
-    // those rather than parsing them, which took the whole document down with it.
+    // those rather than parsing them.
     static bool OnOffOnlyIsOn(EnumValue<OnOffOnlyValues>? value) =>
         value?.InnerText?.ToLowerInvariant() is not ("off" or "0" or "false");
 
@@ -2848,8 +2750,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <c>w:tblCellMar</c> of 30pt, 30pt and 5pt still took the style's 15, 15 and 30; and a cell
     /// with its own zero <c>w:tcMar</c> stood flush left. So a cell's own margins come first, then
     /// these, then the table's, then the style's <c>w:tblCellMar</c>. agendas-minutes/19's contact
-    /// table is the corpus case — its style declares 3.6pt above and below, and every row was that
-    /// much too short twice over.
+    /// table is the corpus case (3.6pt above and below).
     /// </summary>
     internal static TableCellMargin? ResolveStyleCellMargin(Style style, Dictionary<string, Style> tableStylesById)
     {
@@ -2880,6 +2781,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return null;
     }
 
+    /// <summary>
+    /// Whether a table style stops its rows splitting across pages — its own <c>w:trPr/w:cantSplit</c>,
+    /// the nearest declaration on the <c>w:basedOn</c> chain winning, so a derived style can switch a
+    /// base's off with <c>w:val="0"</c>. The conditional regions' row properties are not read here.
+    /// Word honours it (A/B on a report, 2026-09-30): a straddling three-paragraph row whose cantSplit
+    /// came only from its style went whole to the next page, and without it split at the engine's line.
+    /// </summary>
     internal static bool ResolveStyleCannotSplit(Style style, Dictionary<string, Style> tableStylesById)
     {
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -2915,9 +2823,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// block for that region declares it. Word-probed 2026-10-30 (<c>_probe_tblinherit</c>: a base
     /// first row of 20pt text on a red fill over a 6pt blue rule): a derived first row declaring only
     /// bold keeps the base's fill and rule but sets its bold at the default size, and one declaring only
-    /// a green fill keeps the 20pt text but loses the blue rule. Neither the region taken whole (which
-    /// let a derived style that only recoloured its header row drop the base's bold) nor each property
-    /// merged on its own (which kept the base's size and rule) is what Word does.
+    /// a green fill keeps the 20pt text but loses the blue rule — neither the region taken whole nor
+    /// each property merged on its own.
     /// </summary>
     internal Dictionary<TableStyleOverrideValues, ConditionalFormat>? ResolveStyleConditionals(Style style, Dictionary<string, Style> tableStylesById)
     {
@@ -3019,9 +2926,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     ///
     /// A style's own <c>w:tblPr</c> is frequently empty: the common template shape is a base style that
     /// carries the grid (top/bottom/insideH, say) and a per-variant style based on it that adds nothing
-    /// but a <c>w:tblStylePr</c> header colour. Reading only the leaf's own borders dropped every rule in
-    /// such a table — the header band still painted, so the table looked deliberately borderless rather
-    /// than broken.
+    /// but a <c>w:tblStylePr</c> header colour.
     ///
     /// A side declared as <c>w:val="none"</c> STOPS the walk for that side rather than falling through:
     /// that is a derived style switching a base's rule off, and Word honours it.
@@ -3081,23 +2986,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     }
 
     /// <summary>
-    /// Resolves a table style's default cell padding by walking the <c>w:basedOn</c> chain and
-    /// taking each side from the NEAREST ancestor that specifies it. Word merges
-    /// <c>w:tblCellMar</c> per side rather than letting the first one found replace the whole box,
-    /// and real templates lean on that: a house style that sets only top/bottom (57 twips) on top
-    /// of TableNormal's left/right (108 twips) is a common shape, and taking the first hit whole
-    /// zeroed its horizontal padding — text rendered flush against the column rules.
-    /// </summary>
-    /// <summary>
     /// The table style's whole-table <c>w:rPr</c>, resolved through <c>w:basedOn</c> — each property
     /// taken from the NEAREST ancestor that declares it, exactly as <see cref="ResolveStyleCellPadding"/>
-    /// does for the margins and <see cref="ResolveStyleBorders"/> for the sides.
-    ///
-    /// The template shape that makes this load-bearing is the same one those two exist for: a base style
-    /// carries the formatting and a per-variant style based on it adds nothing but its own
-    /// <c>w:tblStylePr</c> blocks. Reading only the leaf's <c>w:rPr</c> dropped the base's font size
-    /// entirely — a summary table whose style chain sets 9pt rendered its body cells at the document
-    /// default 11pt, which then fed the autofit measurement and skewed every column.
+    /// does for the margins and <see cref="ResolveStyleBorders"/> for the sides, and for the same
+    /// template shape: a base style carries the formatting (a summary table's 9pt, which feeds the
+    /// autofit measurement) and a per-variant style based on it adds only its <c>w:tblStylePr</c> blocks.
     /// </summary>
     internal static DeclaredRunProperties? ResolveStyleRunProperties(Style style, Dictionary<string, Style> tableStylesById)
     {
@@ -3249,6 +3142,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return lastCellRightMargin + (leftHangs ? firstCellLeftMargin : 0);
     }
 
+    /// <summary>
+    /// Resolves a table style's default cell padding by walking the <c>w:basedOn</c> chain and
+    /// taking each side from the NEAREST ancestor that specifies it. Word merges
+    /// <c>w:tblCellMar</c> per side rather than letting the first one found replace the whole box:
+    /// a house style that sets only top/bottom (57 twips) on top of TableNormal's left/right
+    /// (108 twips) is a common shape.
+    /// </summary>
     internal static CellSpacing? ResolveStyleCellPadding(Style style, Dictionary<string, Style> tableStylesById)
     {
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -3576,7 +3476,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Look up the numbering definition
         if (!numberingDefinitions.TryGetValue(numId, out var levels))
         {
             return null;
@@ -3587,7 +3486,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Generate the bullet/number text
         string text;
         string? levelNumber = null;
         if (levelDef.IsBullet)
@@ -4085,28 +3983,24 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var consecutiveHyphenLimit = 0;
         var doNotHyphenateCaps = false;
 
-        // Parse autoHyphenation
         var autoHyphen = settings.GetFirstChild<AutoHyphenation>();
         if (autoHyphen != null)
         {
             autoHyphenation = autoHyphen.IsOn();
         }
 
-        // Parse hyphenationZone
         var hyphenZone = settings.GetFirstChild<HyphenationZone>();
         if (hyphenZone?.Val?.HasValue == true)
         {
             hyphenationZonePoints = double.Parse(hyphenZone.Val.Value!) / OoxmlUnits.TwipsPerPoint;
         }
 
-        // Parse consecutiveHyphenLimit
         var consecutiveLimit = settings.GetFirstChild<ConsecutiveHyphenLimit>();
         if (consecutiveLimit?.Val?.HasValue == true)
         {
             consecutiveHyphenLimit = consecutiveLimit.Val.Value;
         }
 
-        // Parse doNotHyphenateCaps
         var doNotHyphenCaps = settings.GetFirstChild<DoNotHyphenateCaps>();
         if (doNotHyphenCaps != null)
         {
@@ -4146,7 +4040,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             };
         }
 
-        // Look for compatibilityMode in CompatSetting elements
         var compatMode = 12;
 
         foreach (var compatSetting in compat.Elements<CompatibilitySetting>())
@@ -4312,7 +4205,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         (marginLeft, marginRight) = FitMargins(marginLeft, marginRight, width);
         (marginTop, marginBottom) = FitMargins(marginTop, marginBottom, height);
 
-        // Parse column settings
         var columns = sectionProps.GetFirstChild<Columns>();
         if (columns != null)
         {
@@ -4324,20 +4216,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             columnSpacing = columns.Space.TwipsToPoints() ?? columnSpacing;
         }
 
-        // Parse different first page setting (w:titlePg)
         var differentFirstPage = sectionProps.GetFirstChild<TitlePage>() != null;
 
-        // Parse line numbering settings
         var lineNumbers = ParseLineNumberSettings(sectionProps);
 
-        // Parse document grid settings (used by Word to align text to a baseline grid).
-        // w:docGrid applies a grid only when @type asks for one — Word writes a bare
-        // <w:docGrid w:linePitch="360"/> with no @type into most documents as a stored
-        // default and applies no grid to layout. Treating that pitch as a per-line floor
-        // inflated business-plans/13's 11pt body lines to 18pt, overflowing pages Word fits.
+        // A bare w:docGrid pitch with no @type is no grid (see GridLinePitchPoints): taken as a
+        // per-line floor it set business-plans/13's 11pt body lines at 18pt.
         var documentGridLinePitchPoints = GridLinePitchPoints(sectionProps);
 
-        // Parse page borders (w:pgBorders)
         var pageBorders = ParsePageBorders(sectionProps.GetFirstChild<OoxmlPageBorders>());
 
         var verticalAlignment = ParsePageVerticalAlignment(sectionProps.GetFirstChild<VerticalTextAlignmentOnPage>());
@@ -4579,11 +4465,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // for ordinary documents free of a stamped 000000.
     static string? ComputeAutomaticRunColor(string? pageBackgroundHex)
     {
-        // NOTE the threshold here is 128, where the shading rule below measured 59. Only the shading
-        // side was probed; every corpus page background that exercises this (brochures/03's navy,
-        // luma 38) is dark enough to come out white under either number, so nothing distinguishes
-        // them yet. Word most likely applies one rule to both — worth a page-background probe before
-        // assuming otherwise.
+        // NOTE the threshold here is 128, where the shading rule below measured 59. Only shading was
+        // probed, and the corpus's page backgrounds (brochures/03's navy, luma 38) are white under
+        // either; Word most likely applies one rule to both, which wants a page-background probe.
         if (Brightness(pageBackgroundHex) is not { } brightness)
         {
             return null;
@@ -4695,14 +4579,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     string? ExtractDocumentBackgroundColor(DocumentFormat.OpenXml.Wordprocessing.Document document)
     {
-        // Look for w:background element (child of w:document)
         var background = document.GetFirstChild<DocumentBackground>();
         if (background == null)
         {
             return null;
         }
 
-        // Try explicit color first
         if (background.Color?.HasValue == true)
         {
             var colorValue = background.Color.Value;
@@ -4713,13 +4595,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Try theme color
         if (background.ThemeColor?.HasValue == true &&
             currentThemeColors != null)
         {
             var themeColorName = background.ThemeColor.Value.ToString();
 
-            // Parse tint/shade values (hex strings to bytes)
             byte? tint = null;
             byte? shade = null;
 
@@ -4782,17 +4662,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // footer line and decimal_tabs/01's rows each sit exactly the built-in spacing below a
         // zero-spacing render (row pitch 46.5px vs the 25.5px bare line at 150 DPI). An EMPTY
         // <w:pPrDefault/> is different — it is an explicit "no paragraph defaults" and Word
-        // reads it as zero: wordart declares one and its reference is tight (a built-in
-        // fallback there regressed pages 5-15 by +0.01..+0.045 AE).
+        // reads it as zero: wordart declares one and its reference is tight.
         //
-        // Whether the package defines a default paragraph style makes no difference. Probed
-        // 2026-10-11 (_probe_styleline_a to _e, five packages differing only in this part's
-        // defaults, each paragraph's pitch and after-spacing read off the XPS baselines): with
-        // an rPrDefault and no pPrDefault, an unstyled paragraph is pitched 17.4pt and followed
-        // by 8pt whether Normal is defined (and empty) or not, against 14.7pt and nothing under
-        // an empty pPrDefault. A rule that a defined Normal suppresses the built-in stood here
-        // until then; the four fixtures it was read off (resumes/13, cover-letters/03,
-        // letters/09, wedding/05) all carry an EMPTY pPrDefault, which is what makes them tight.
+        // Whether the package defines a default paragraph style makes no difference
+        // (_probe_styleline_a to _e, 2026-10-11, XPS): with an rPrDefault and no pPrDefault, an
+        // unstyled paragraph is pitched 17.4pt and followed by 8pt whether Normal is defined (and
+        // empty) or not, against 14.7pt and nothing under an empty pPrDefault. resumes/13,
+        // cover-letters/03, letters/09 and wedding/05 are tight because their pPrDefault is EMPTY.
         if (docDefaults.ParagraphPropertiesDefault == null)
         {
             defaultSpacingAfterPoints = builtInSpacingAfterPoints;
@@ -4810,7 +4686,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         var pPr = pPrDefault.ParagraphPropertiesBaseStyle;
 
-        // Spacing defaults
         var spacing = pPr.SpacingBetweenLines;
         if (spacing != null)
         {
@@ -4829,7 +4704,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Indentation defaults
         var indentation = pPr.Indentation;
         if (indentation != null)
         {
@@ -5281,12 +5155,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// <summary>
     /// A row's cells in document order, unwrapping any cell-level content control. Word wraps a
     /// templated cell in <c>w:sdt</c> (an <see cref="SdtCell"/> whose <see cref="SdtContentCell"/>
-    /// holds the real <c>w:tc</c>), and reading only the row's DIRECT <c>w:tc</c> children dropped
-    /// those cells and everything in them — menus/03's "EVENT TITLE", resumes/19's Skills list and
-    /// wedding/11's venue block all live in one. The direct count also UNDER-shoots the grid
-    /// (newsletters/09 has a row of 4 direct cells against an 11-column grid), so the survivors
-    /// stretched to the wrong widths; unwrapping restores the exact grid column count. Order is
-    /// preserved so a row that mixes plain and wrapped cells keeps its left-to-right layout.
+    /// holds the real <c>w:tc</c>): menus/03's "EVENT TITLE", resumes/19's Skills list and
+    /// wedding/11's venue block live in one, and newsletters/09 has a row of 4 direct cells against
+    /// an 11-column grid. Order is preserved so a row that mixes plain and wrapped cells keeps its
+    /// left-to-right layout.
     /// </summary>
     static IEnumerable<DocumentFormat.OpenXml.Wordprocessing.TableCell> RowCells(
         DocumentFormat.OpenXml.Wordprocessing.TableRow row)
@@ -5329,7 +5201,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Parse table grid (column widths)
         List<double>? gridColumnWidths = null;
         var tableGrid = table.GetFirstChild<TableGrid>();
         if (tableGrid != null)
@@ -5386,12 +5257,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var tblCellMar = tableProps.GetFirstChild<TableCellMarginDefault>();
             if (tblCellMar != null)
             {
-                // Merges with the table style's padding PER SIDE — a document that states only
-                // top/bottom keeps the style's left/right. Verified against Word with a probe
-                // (docs/word-features.md, Cell Padding): a table whose w:tblCellMar carried only
-                // top/bottom rendered at the style chain's 108-twip horizontal padding, identical
-                // to the same table with no w:tblCellMar at all, while an explicit left/right of 0
-                // rendered flush. So absent is not zero here either.
+                // Merges with the table style's padding PER SIDE (Word probe, docs/word-features.md,
+                // Cell Padding): a w:tblCellMar of only top/bottom kept the style chain's 108-twip
+                // horizontal padding, while an explicit left/right of 0 rendered flush.
                 defaultCellPadding = MergeTableCellMargin(tblCellMar, styleInfo?.DefaultCellPadding);
             }
 
@@ -5511,9 +5379,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                             break;
                         case Table nestedTable:
                             // A floating table stays in its cell, which places it at its offset
-                            // from there (Fragmenter.LayoutCellFragment). Lifted to the end of the
-                            // document, labels/09's ticket numbers landed below the last ticket, off
-                            // the page.
+                            // from there (Fragmenter.LayoutCellFragment; labels/09's ticket numbers).
                             if (ParseTable(nestedTable, mainPart) is { } nested)
                             {
                                 cellContent.Add(nested);
@@ -5549,7 +5415,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // than clearing keeps a nested table's cells from stripping the outer cell's context.
                 tableStyleRunDefaults = outerTableStyleRun;
 
-                // Get cell properties
                 double? width = null;
                 double? widthFraction = null;
                 string? bgColor = null;
@@ -5623,7 +5488,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Parse grid span (number of columns this cell spans)
                 var gridSpan = 1;
                 var gridSpanElement = cellProps?.GetFirstChild<GridSpan>();
                 if (gridSpanElement?.Val?.HasValue == true)
@@ -5631,8 +5495,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     gridSpan = ClampGridSpan(gridSpanElement.Val.Value);
                 }
 
-                // Parse vertical alignment (w:vAlign). Direct cell w:vAlign wins; otherwise
-                // fall back to the table style's whole-table tcPr (e.g. FormTable's vAlign="center").
+                // Direct cell w:vAlign wins; otherwise the table style's whole-table tcPr
+                // (e.g. FormTable's vAlign="center").
                 var verticalAlign = styleInfo?.VerticalAlignment ?? CellVerticalAlignment.Top;
                 var vAlignElement = cellProps?.GetFirstChild<TableCellVerticalAlignment>();
                 if (vAlignElement?.Val?.HasValue == true)
@@ -5652,7 +5516,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Parse text direction (w:textDirection)
                 var textDirection = CellTextDirection.LeftToRight;
                 var textDirElement = cellProps?.GetFirstChild<TextDirection>();
                 if (textDirElement?.Val?.HasValue == true)
@@ -5668,7 +5531,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     }
                 }
 
-                // Parse vertical merge (w:vMerge)
                 var verticalMerge = VerticalMergeType.None;
                 var vMergeElement = cellProps?.GetFirstChild<VerticalMerge>();
                 if (vMergeElement != null)
@@ -5836,7 +5698,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 gridColIndex += gridSpan;
             }
 
-            // Parse row properties for height
             double? rowHeight = null;
             var isExactHeight = false;
             var isHeader = false;
@@ -5886,12 +5747,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         Left = ParseBorderEdge(exBorders.GetFirstChild<LeftBorder>())
                     };
 
-                    // An override stored only when VISIBLE loses the explicit suppression case:
-                    // w:insideH/w:insideV val="none" parses invisible, and skipping it let the
-                    // table style's inside borders resurface on rows that switched them off —
-                    // newsletters/04's layout tables nil every row's borders through w:tblPrEx and
-                    // still grew column dividers and byline rules Word never draws. Present = the
-                    // row spoke, whatever it said.
+                    // Present = the row spoke, whatever it said: an invisible w:insideH/w:insideV
+                    // (val="none") switches the table style's off. newsletters/04's layout tables
+                    // nil every row's borders through w:tblPrEx.
                     if (exBorders.GetFirstChild<InsideHorizontalBorder>() != null)
                     {
                         rowOverrideInsideH = ParseBorderEdge(exBorders.GetFirstChild<InsideHorizontalBorder>());
@@ -5906,12 +5764,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 var exCellMar = tblPrEx.GetFirstChild<TableCellMarginDefault>();
                 if (exCellMar != null)
                 {
-                    // Merges with the table's resolved padding PER SIDE, like every other level of
-                    // the cascade. Verified against Word with a probe (docs/word-features.md, Cell
-                    // Padding): over a table default of 360 twips with a style chain of 108, a row
-                    // whose w:tblPrEx stated only top/bottom rendered at 360 horizontally —
-                    // identical to a row with no w:tblPrEx at all, and visibly taller, so the
-                    // element WAS honoured. Not 108 (the style) and not 0.
+                    // Merges with the table's resolved padding PER SIDE (Word probe,
+                    // docs/word-features.md, Cell Padding): over a table default of 360 twips and a
+                    // style chain of 108, a row stating only top/bottom rendered 360 horizontally.
                     rowOverrideCellPadding = MergeTableCellMargin(exCellMar, effectiveCellPadding);
                 }
             }
@@ -5938,7 +5793,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Parse table properties
         CellBorders? defaultBorders = null;
         BorderEdge? insideHBorder = null;
         BorderEdge? insideVBorder = null;
@@ -5946,7 +5800,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (tableProps != null)
         {
-            // Parse table-level borders (w:tblBorders)
             var borders = tableProps.GetFirstChild<TableBorders>();
             if (borders != null)
             {
@@ -5990,7 +5843,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 }
             }
 
-            // Parse table indent: the table's own w:tblInd over the style chain's.
+            // The table's own w:tblInd over the style chain's.
             var tblInd = tableProps.GetFirstChild<TableIndentation>();
             if (tblInd?.Width?.HasValue == true)
             {
@@ -6008,7 +5861,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var lastCellRightMargin = lastCell?.Padding?.Right ?? rows[0].OverrideCellPadding?.Right ?? effectiveCellPadding?.Right ?? 0;
         var widthOverhang = ResolveTableWidthOverhang(compatibilityMode, declaredIndent, defaultCellPadding != null, firstCellLeftMargin, lastCellRightMargin);
 
-        // Parse w:tblCellSpacing — non-zero switches the table to the detached-border model.
+        // A non-zero w:tblCellSpacing switches the table to the detached-border model.
         // Falls back to the table style's tblCellSpacing when the document doesn't override.
         var cellSpacingPoints = ReadTableCellSpacing(tableProps);
         if (cellSpacingPoints == 0)
@@ -6016,7 +5869,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             cellSpacingPoints = styleInfo?.CellSpacingPoints ?? 0;
         }
 
-        // Parse table layout type (w:tblPr/w:tblLayout/@type)
         var isAutoFit = true;
         var tableLayoutEl = tableProps?.GetFirstChild<DocumentFormat.OpenXml.Wordprocessing.TableLayout>();
         if (tableLayoutEl?.Type?.Value is { } layoutType)
@@ -6024,7 +5876,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             isAutoFit = layoutType != TableLayoutValues.Fixed;
         }
 
-        // Parse table-level horizontal alignment (w:tblPr/w:jc)
         var alignment = TextAlignment.Left;
         var tableJustification = tableProps?.GetFirstChild<TableJustification>();
         if (tableJustification?.Val?.HasValue == true)
@@ -6064,10 +5915,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // For tables without an explicit w:tblCellMar and no inherited style padding,
                 // vertical padding is 0, per the OOXML spec AND per Word's real render: an
                 // unstyled row measures exactly font-line + spacing-after (simple_table row
-                // pitch 52.02px at 150 DPI = 12pt Aptos line 16.97pt + 8pt after — no
-                // breathing room). An earlier 2pt top/bottom fudge here compensated for the
-                // built-in Normal line height being too small (11pt x 1.08 instead of Word's
-                // 12pt x 278/240); with that fixed, the fudge overshot every unstyled row.
+                // pitch 52.02px at 150 DPI = 12pt Aptos line 16.97pt + 8pt after).
                 DefaultCellPadding = effectiveCellPadding ?? new CellSpacing(0),
                 DefaultCellPaddingDeclared = effectiveCellPadding != null,
                 DefaultCellMargin = defaultCellMargin ?? new CellSpacing(0),
@@ -6226,9 +6074,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// table default rather than collapsing to zero. <paramref name="tableDefault"/> supplies that
     /// per-side fallback (the document's <c>w:tblCellMar</c>, then the table style's). Returns null
     /// only when the override carries no sides at all, letting the caller fall back to the table
-    /// default wholesale. Without this a partial override — e.g. a cover template's
-    /// <c>&lt;w:tcMar&gt;&lt;w:bottom w:w="0"/&gt;&lt;/w:tcMar&gt;</c> on a vAlign=bottom heading —
-    /// dropped the inherited top margin, crowding the heading against the row above (business-plans/04).
+    /// default wholesale. business-plans/04's cover heading (vAlign=bottom,
+    /// <c>&lt;w:tcMar&gt;&lt;w:bottom w:w="0"/&gt;&lt;/w:tcMar&gt;</c>) keeps the inherited top margin.
     /// </summary>
     internal static CellSpacing? ParseCellMargin(TableCellMargin margin, CellSpacing? tableDefault = null)
     {
@@ -6320,8 +6167,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
 
             rebuilt ??= [.. paragraph.Runs];
-            // WithProperties preserves every member — the previous manual copy silently dropped
-            // hyperlink targets, footnote/endnote ids and page-field markers from recoloured runs.
+            // WithProperties preserves every member: hyperlink targets, note ids, page-field markers.
             rebuilt[i] = run.WithProperties(
                 run.Properties with
                 {
@@ -6404,7 +6250,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return BorderEdge.None;
         }
 
-        // Parse border properties
         var width = 0.5;
         if (border.Size?.HasValue == true)
         {
@@ -6421,7 +6266,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         else if (border.ThemeColor?.HasValue == true &&
                  currentThemeColors != null)
         {
-            // Try to resolve theme color - use IEnumValue.Value instead of ToString()
             var themeColorValue = ((IEnumValue) border.ThemeColor.Value).Value;
             color = currentThemeColors.ResolveColor(themeColorValue);
         }
@@ -6438,10 +6282,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    // Every ST_Border line style is carried through distinctly. Folding them into a handful of
-    // buckets lost the stroke AND silently merged adjacent paragraphs that declared different
-    // styles into one border box, because the grouping test compares border records for equality
-    // (see BorderLineStyle). Anything genuinely unknown still falls back to a plain line.
+    // Every ST_Border line style is carried through distinctly: besides the stroke, the paragraph
+    // border grouping compares border records for equality (see BorderLineStyle), so two styles
+    // folded together would merge into one box. Anything genuinely unknown falls back to a plain line.
     static BorderLineStyle MapBorderStyle(BorderValues? val)
     {
         if (val == null) return BorderLineStyle.Single;
@@ -6562,11 +6405,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// Whether a mid-paragraph flush would emit anything worth calling a paragraph.
     ///
     /// Anchored art splits a paragraph's runs so the art keeps its place in document order. Runs made
-    /// only of tabs are not a paragraph though: flushing them strands the tab from the text it was
-    /// advancing, so the continuation restarts at the indent — which is how a header whose marking is
-    /// centred by a leading <c>w:tab</c> against a centre stop ended up hard against the left margin,
-    /// the art between them being an anchored decorative rule. It also left a phantom blank line behind.
-    /// Holding them back costs no ordering, since the art they surround is out of flow anyway.
+    /// only of tabs are not a paragraph though: flushed, the tab is stranded from the text it advances
+    /// (a header marking centred by a leading <c>w:tab</c>, an anchored rule between them, lands at the
+    /// left margin under a phantom blank line). Holding them back costs no ordering, since the art they
+    /// surround is out of flow anyway.
     /// </summary>
     static bool IsTabOnly(List<Run> runs)
     {
@@ -6585,10 +6427,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     {
         var result = new List<DocumentElement>();
 
-        // Note: PageBreakBefore is now handled via paragraph properties in RenderParagraph
-        // to avoid double page breaks (the property is parsed in ParseParagraphProperties)
-
-        // Check for section break in paragraph properties
         var paraProps = para.ParagraphProperties;
         var sectionProps = paraProps?.GetFirstChild<SectionProperties>();
         SectionBreakElement? sectionBreak = null;
@@ -6599,7 +6437,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         var runs = new List<Run>();
 
-        // Get paragraph style ID for style-based property resolution
         var paragraphStyleId = paraProps?.ParagraphStyleId?.Val?.Value;
         var inScopedPart = para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any()
                            || para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.Header>().Any()
@@ -6771,8 +6608,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             switch (child)
             {
                 case SdtRun sdtRun:
-                    // Content control (structured document tag)
-                    // Check if this is a specific control type that should be rendered as a ContentControlElement
                     if (IsContentControlType(sdtRun))
                     {
                         // Emit current paragraph content before the content control
@@ -6800,7 +6635,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     var sdtRunContent = sdtRun.SdtContentRun;
                     if (sdtRunContent != null)
                     {
-                        // Parse each run inside the content control and add inline
                         foreach (var sdtChildRun in sdtRunContent.Descendants<OoxmlRun>())
                         {
                             // Page-number fields (Word wraps them in a "Page Numbers" content
@@ -6810,7 +6644,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                 continue;
                             }
 
-                            // Check for breaks within the run
                             var breakElement = sdtChildRun.GetFirstChild<Break>();
                             if (breakElement != null)
                             {
@@ -6862,9 +6695,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                     });
                             }
 
-                            // Check for drawings (images/icons) within the SdtRun child.
-                            // Collected once — the drawing loop and the text-content guard
-                            // below used to walk the same subtree twice.
+                            // Drawings (images/icons) within the SdtRun child, collected once for
+                            // the drawing loop and the text-content guard.
                             List<Drawing>? sdtRunDrawings = null;
                             foreach (var drawing in sdtChildRun.Descendants<Drawing>())
                             {
@@ -6906,7 +6738,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // Cell-level content control - extract runs from its content
                     foreach (var sdtCellRun in sdtCell.Descendants<OoxmlRun>())
                     {
-                        // Check for breaks within the run
                         var cellBreakElement = sdtCellRun.GetFirstChild<Break>();
                         if (cellBreakElement != null)
                         {
@@ -6964,7 +6795,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // Block-level content control - extract runs from its content
                     foreach (var sdtBlockRun in sdtBlock.Descendants<OoxmlRun>())
                     {
-                        // Check for breaks within the run
                         var blockBreakElement = sdtBlockRun.GetFirstChild<Break>();
                         if (blockBreakElement != null)
                         {
@@ -7066,11 +6896,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     break;
 
                 // Tracked changes render as Word PRINTS them, which is the All Markup view: an
-                // insertion underlined and a deletion struck through, both in the revision colour,
-                // not silently accepted. Word's own render of tracked_changes/01 shows "inserted"
-                // red underlined and "removed." red struck through — dropping the deletion lost
-                // text that is on the page. The revision metadata stays on
-                // ParsedDocument.TrackedChanges either way.
+                // insertion underlined and a deletion struck through, both in the revision colour
+                // (tracked_changes/01). The revision metadata stays on ParsedDocument.TrackedChanges.
                 //
                 // A move is a deletion where the text was and an insertion where it went, and is
                 // drawn as the two. (Word's own markup sets a move apart in green with doubled
@@ -7158,8 +6985,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // inline ("Name: Enter your name" on one line, form_text_fields/form_dropdowns
                     // expected renders), and that cached text lives in the ordinary runs between
                     // the field's separate/end — falling through to the field plumbing below lets
-                    // it flow exactly like Word. Emitting the widget drew a chrome box AND the
-                    // cached text, double-rendering the value.
+                    // it flow exactly like Word.
 
                     // PAGE/NUMPAGES/SECTIONPAGES field plumbing (fldChar/instrText) carries no text
                     // and is consumed here; the field's cached result is captured and re-emitted as
@@ -7169,9 +6995,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         break;
                     }
 
-                    // One walk over the run's subtree collects everything the branches below
-                    // need — this block used to re-traverse it three times (drawings loop,
-                    // drawing-presence check, break scan) for every run in the document.
+                    // One walk over the run's subtree collects everything the branches below need.
                     List<Drawing>? runDrawings = null;
                     var hasPageOrColumnBreak = false;
                     foreach (var descendant in run.Descendants())
@@ -7190,10 +7014,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // The text gathered ahead of a drawing is closed off as a paragraph of its own only
                     // when the drawing takes a place in the flow (an inline WordArt box, ink). Floating
                     // art is lifted out of the line: the text either side of its anchor is still ONE
-                    // paragraph on one line, and closing it at the anchor turned the rest into a second
-                    // paragraph with a line of its own. brochures/06's second page opens on a 4pt
-                    // paragraph holding a space, an anchored group and another space, and stood a
-                    // line (4.9pt) low of Word's for it.
+                    // paragraph on one line (brochures/06's second page opens on a 4pt paragraph
+                    // holding a space, an anchored group and another space).
                     void EndParagraphAhead(IReadOnlyList<DocumentElement> drawn)
                     {
                         if (runs.Count == 0 ||
@@ -7228,16 +7050,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         var isInlineGroup = hasGroup &&
                                             drawing.Descendants().Any(_ => _.LocalName == "inline");
 
-                        // A FRONT-of-text anchored drawing whose art is a blip-filled or solid
+                        // A FRONT-of-text anchored drawing whose art is a blip-filled, solid or line
                         // text-free wsp reaches neither ShapeParser (behindDoc-only) nor the
-                        // pic-based image path — newsletters/08's cover photo is a front-anchored
-                        // standalone blip-filled freeform, resumes/10's accent circle a
-                        // front-anchored solid custGeom. The same hole swallowed standalone LINE
-                        // connectors, which carry a stroke but no fill at all (cards/01's header
-                        // fold/cut guides are front-anchored full-page dashed lines). Route them
-                        // through the walk; for behindDoc standalones ShapeParser already emitted
-                        // a copy and the position/size dedup below eats the walk's twin.
-                        // Text-CARRYING solid shapes stay on the ParseTextBox path further down.
+                        // pic-based image path, so it goes through the walk (newsletters/08's cover
+                        // photo, resumes/10's accent circle, cards/01's dashed fold guides). For
+                        // behindDoc standalones ShapeParser already emitted a copy and the
+                        // position/size dedup below eats the walk's twin. Text-CARRYING solid shapes
+                        // stay on the ParseTextBox path further down.
                         var hasAnchoredFillShape =
                             drawing.GetFirstChild<DW.Anchor>() != null &&
                             drawing.Descendants<WPS.WordprocessingShape>().Any(shape =>
@@ -7250,18 +7069,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         if ((shapeElements.Count > 0 || hasGroup || hasAnchoredFillShape) &&
                             !isInlineGroup)
                         {
-                            // For grouped drawings anchored inside table cells the DocumentParser
-                            // walk below owns the children: its nested-group transform math resolves
-                            // each child's page position and size correctly, while ShapeParser's flat
-                            // anchor-extent scaling emits the same shapes oversized at group-local
-                            // positions (business/05's corner tiles rendered 2.4x too big over the
-                            // body text) — and the position+size dedup can't catch those pairs, the
-                            // sizes differ. Body-level grouped drawings keep the long-standing
-                            // dual-parser + dedup behaviour: for several templates ShapeParser's flat
-                            // scaling is the correct one there (agendas-minutes/02, newsletters/01/12,
-                            // wedding/11 regressed badly under blanket doc-parser authority), and
-                            // cell-anchored groups never rendered at all before the hoist, so only
-                            // they can safely switch owner.
+                            // For grouped drawings anchored inside table cells the walk below owns the
+                            // children: its nested-group transform math is right, while ShapeParser's
+                            // flat anchor-extent scaling emits them oversized at group-local positions
+                            // (business/05's corner tiles, 2.4x) that the size-sensitive dedup cannot
+                            // pair. Body-level groups keep the dual-parser + dedup: there ShapeParser's
+                            // flat scaling is right (agendas-minutes/02, newsletters/01/12, wedding/11).
                             var cellGroup = hasGroup &&
                                             para.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any();
 
@@ -7406,10 +7219,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                                     {
                                         // The picture's run is set in the run's own font like any other:
                                         // what a line keeps under a picture, and the pitch of a line a
-                                        // thin rule stands alone on, are that font's. Given the document
-                                        // default instead, resumes/09's sidebar rules (a 0.7pt rectangle
-                                        // in a 9.5pt heading style) each took an 11pt Aptos line, 2pt too
-                                        // tall, and the sidebar ran 13px low by its foot.
+                                        // thin rule stands alone on, are that font's (resumes/09's sidebar
+                                        // rules: a 0.7pt rectangle in a 9.5pt heading style).
                                         var inlineRun = TryParseInlineImageRun(drawing, mainPart, ParseRunProperties(run.RunProperties, mainPart, paragraphStyleId));
                                         if (inlineRun != null)
                                         {
@@ -7571,20 +7382,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Floating decorative art — behind-text or in-front, a shape or a picture — is lifted out of
-        // the flow, so a paragraph that produced only that is still an empty paragraph as far as line
-        // height goes — its mark takes a line exactly as it would have if the drawing had produced
-        // nothing at all. Testing `result.Count == 0` alone made that line appear or vanish depending
-        // on whether the shape parser happened to understand the drawing (resumes/10's front-anchored
-        // accent circles collapsed their anchor paragraphs' lines that way).
-        //
-        // FloatingImageElement belongs here as much as FloatingShapeElement, and reading only the
-        // latter left a picture-anchoring paragraph matching NO branch below, silently losing its
-        // mark. business-plans/13's cover lifts out one image and one shape from a single paragraph
-        // and so lost a whole line, carrying its title and subtitle ~24pt up the page. A floating
-        // text box or WordArt leaves the flow the same way: cards/02's ticket group lifts out a text
-        // box among its shapes, and its anchor paragraph's 25pt mark line vanished, carrying both
-        // tickets' tables up the page by it.
+        // Floating art — behind-text or in-front; a shape, picture, text box or WordArt — is lifted
+        // out of the flow, so a paragraph that produced only that is still an empty paragraph whose
+        // mark takes a line, whether or not the shape parser understood the drawing (resumes/10's
+        // accent circles, business-plans/13's cover image and shape, cards/02's ticket text box).
         var onlyFloatingArt = result.Count > 0 &&
                               result.All(_ => _ is FloatingShapeElement or FloatingImageElement or FloatingTextBoxElement or FloatingWordArtElement);
 
@@ -7600,12 +7401,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // CONTINUOUS break draws no line either — only its spacing survives (Word-probed; see
             // ParagraphElement.IsSectionBreakMark).
             //
-            // Restricted to continuous breaks because that is what the probe measured: the gap between
-            // the paragraphs either side is only observable when both sit on the same page. For a
-            // next-page break the mark ends the outgoing page, where its line would instead decide
-            // whether the preceding content still fits — a different question, and one that moved
-            // sample.docx from 6 pages to 5 with no Word reference to adjudicate it. Left alone until
-            // it is probed on its own terms.
+            // Restricted to continuous breaks because that is what the probe measured. A next-page
+            // mark ends the outgoing page, where its line decides whether the content before it fits —
+            // unprobed (it moved sample.docx from 6 pages to 5 with no Word reference to settle it).
             result.Add(
                 new ParagraphElement
                 {
@@ -7635,10 +7433,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // placeholder" pattern) but carries explicit spacing-after — Word honours
             // that spacing so the following block sits the correct distance below.
             // Emit a marker paragraph (IsAnchorOnlyMark), laid out with a line like any mark,
-            // that keeps its spacing-before too. It was collapsed here on the theory that
-            // Word allocates no line for the mark, but Word's XPS of agendas-minutes/14
-            // (2026-10-27) puts the first baseline 3.25pt below the engine's, the 3pt
-            // w:before the collapse dropped, and every line under it 2.9pt low with it.
+            // that keeps its spacing-before too (Word's XPS of agendas-minutes/14, 2026-10-27:
+            // its 3pt w:before stands above the first baseline).
             result.Add(
                 new ParagraphElement
                 {
@@ -7652,11 +7448,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         {
             // A paragraph that ENDS at a column break still has its mark, and Word places it at
             // the top of the NEXT column as a line of its own — the following paragraph starts one
-            // line (plus this paragraph's after-spacing) further down. column_breaks and
-            // mixed_breaks both had post-break content a line high against Word's references.
-            // Deliberately NOT done for page breaks: page counts are Word-exact today and the
-            // page-break mark interacts with FinishPage's blank-page rules (see the sectPr note
-            // above) — that flip needs its own adjudication.
+            // line (plus this paragraph's after-spacing) further down (column_breaks, mixed_breaks).
+            // Deliberately NOT done for page breaks: the page-break mark interacts with FinishPage's
+            // blank-page rules (see the sectPr note above) and needs its own adjudication.
             result.Add(
                 new ParagraphElement
                 {
@@ -7747,8 +7541,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // A bookmark is on the page its w:p begins on, so it is tied to the first paragraph that w:p
-        // was read as. Counting w:p elements instead found the wrong paragraph after any w:p a break
-        // made into more paragraphs or none.
+        // was read as (a break can make a w:p more paragraphs, or none).
         if (bookmarkParagraphs?.ContainsKey(para) == true)
         {
             bookmarkParagraphs[para] = result.OfType<ParagraphElement>().FirstOrDefault();
@@ -7995,9 +7788,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // Standalone inline connector — a single <wps:wsp> with prstGeom prst="line" sitting
-        // directly under <a:graphicData> (no wpg:wgp wrapper). Used by some templates for
-        // section divider rules between sub-headings; without this branch the line is silently
-        // dropped because it has no <pic> child.
+        // directly under <a:graphicData> (no wpg:wgp wrapper, no <pic> child). Used by some
+        // templates for section divider rules between sub-headings.
         var standaloneWsp = drawing.Descendants<WPS.WordprocessingShape>().FirstOrDefault();
         if (standaloneWsp != null &&
             ShapeParser.IsLineShape(standaloneWsp.GetFirstChild<WPS.ShapeProperties>()))
@@ -8008,8 +7800,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Standalone inline picture- or fill-shape — a single <wps:wsp> sitting directly
         // under <a:graphicData> with no wpg:wgp wrapper, carrying either an <a:blipFill>
         // (Word's "fill a shape with a picture" — cover-letters/09's circular profile photo)
-        // or an ordinary solid fill (cover-letters/10's custGeom logo). Without this branch
-        // both are silently dropped because the drawing has no <pic> child either.
+        // or an ordinary solid fill (cover-letters/10's custGeom logo).
         // The gate admits a style-referenced fill too (wps:style/a:fillRef), not just a fill named
         // directly in spPr — see ParseInlineSingleShapeRun — and an unfilled shape whose outline is
         // its whole mark (brochures/04's stroked roof chevrons), so long as it is not a text box.
@@ -8060,8 +7851,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // But where the drawing's own wp:extent disagrees with the picture's a:ext, Word draws and
         // lays the picture out at the drawing's: newsletters/02's photo declares 320.65 x 186.94pt
         // there and 324.5 x 189.2 in its a:ext, and Word's XPS draws it 320.58 x 186.9 (2026-10-31).
-        // At the a:ext its line stood 2.3pt taller and the article under it sat 4px low. Eight
-        // corpus pictures disagree, every one by 0.3-1.3%, the drawing's the smaller.
+        // Eight corpus pictures disagree, every one by 0.3-1.3%, the drawing's the smaller.
         if (rotationDegrees == 0 &&
             drawing.Descendants<DW.Extent>().FirstOrDefault() is {Cx.Value: > 0, Cy.Value: > 0} drawingExtent)
         {
@@ -8083,8 +7873,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var crop = ReadCrop(blipFill);
         var (clipToEllipse, clipSubpaths) = ReadPictureClip(spPr);
 
-        // a:grayscl / a:duotone on the pic's blip — brochures/03's grey circle photo is an
-        // inline pic whose greyscale was silently dropped on this path.
+        // a:grayscl / a:duotone on the pic's blip (brochures/03's grey circle photo is an inline pic).
         var inlineBlip = blipFill.Descendants().FirstOrDefault(_ => _.LocalName == "blip");
         var (inlineColorEffect, inlineDuotoneColorHex, inlineDuotoneLightColorHex) = ReadBlipColorEffect(
             inlineBlip,
@@ -8096,7 +7885,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Create a Run with inline image data
         return new()
         {
             Text = "",
@@ -8325,10 +8113,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                 // a:grpFill defers the fill to the ancestor group's a:solidFill — Word's brochure
                 // templates paint a whole cluster (brochures/06's accent stripes, its balloon
-                // silhouette) by filling the wpg:wgp once and letting each rect inherit it. Reading
-                // only the shape's own a:solidFill left every grpFill child with no colour, so they
-                // drew as nothing (their outline is a:noFill too). Mirror the floating path's
-                // resolution (ParseSolidFillShape) so inline groups pick up the same cluster colour.
+                // silhouette) by filling the wpg:wgp once and letting each rect inherit it. Mirrors
+                // the floating path's resolution (ParseSolidFillShape).
                 var explicitNoFill = shapeProps.GetFirstChild<A.NoFill>() != null;
                 var fill = explicitNoFill ? null : shapeProps.GetFirstChild<A.SolidFill>();
                 if (fill == null &&
@@ -8342,7 +8128,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
                 // A wps:wsp can be picture-filled the same way a pic:pic is (Word's "fill a
                 // shape with a picture" — newsletters/03 stores its inset photos as blip-filled
-                // rects inside inline groups). Reading only a:solidFill left them invisible.
+                // rects inside inline groups).
                 var wspBlipFill = shapeProps.GetFirstChild<A.BlipFill>();
                 var blipImage = wspBlipFill != null ? ReadBlipImage(wspBlipFill, hostPart) : null;
 
@@ -8467,7 +8253,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// (<see cref="ChartReader"/>), which layout composes into the box with its title, legend, axes and
     /// data labels (<c>ChartComposer</c>) for every chart kind the reader knows. A pie or doughnut also
     /// keeps its slices as an inline group (<see cref="PieSliceRun"/>), which is how the HTML exporter
-    /// draws it. A chart the reader cannot read keeps just those slices when it has any, as before.
+    /// draws it. A chart the reader cannot read keeps just those slices when it has any.
     /// </summary>
     Run? ParseInlineChartRun(Drawing drawing, OpenXmlElement chartReference, OpenXmlPart hostPart, RunProperties runProps)
     {
@@ -8697,7 +8483,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// is there. A member inside nested <c>wpg:grpSp</c> groups is declared in the innermost one's
     /// child space, and each group on the way out scales that into its own box and turns it about
     /// its centre — newsletters/03's banner hexagons sit in a nested group drawn at 65% (one of them
-    /// turned half way round), and read flat they covered half the photo. A turn — the groups', or
+    /// turned half way round). A turn — the groups', or
     /// the member's own <c>a:xfrm/@rot</c> — is baked into the outline, so the painters need know
     /// nothing of it: the box becomes the turned outline's bounds, and the outline is restated
     /// inside that. A picture cannot be turned this way and keeps its upright box at the place the
@@ -8930,12 +8716,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         GroupDrawables(group).Skip(1).Any();
 
     /// <summary>
-    /// The shapes and pictures a <c>wpg:wgp</c> paints, in document (back-to-front) order,
-    /// flattening nested <c>wpg:grpSp</c> groups. Deliberately does not use <c>Descendants</c>:
-    /// a shape's <c>wps:txbx</c> can hold its own drawings, which belong to the text box rather
-    /// than to this group's coordinate space.
-    /// </summary>
-    /// <summary>
     /// True when any nested <c>wpg:grpSp</c> in the drawing remaps its child space — offset,
     /// scale (chOff/chExt differing from off/ext) or rotation. ShapeParser's flat scaling is
     /// only valid without such remapping.
@@ -8986,6 +8766,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return false;
     }
 
+    /// <summary>
+    /// The shapes and pictures a <c>wpg:wgp</c> paints, in document (back-to-front) order,
+    /// flattening nested <c>wpg:grpSp</c> groups. Deliberately does not use <c>Descendants</c>:
+    /// a shape's <c>wps:txbx</c> can hold its own drawings, which belong to the text box rather
+    /// than to this group's coordinate space.
+    /// </summary>
     static IEnumerable<OpenXmlElement> GroupDrawables(OpenXmlElement group)
     {
         foreach (var child in group.ChildElements)
@@ -9106,10 +8892,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // A shape can take its fill from the style's a:fillRef instead of naming one in spPr —
         // Word writes exactly that for a template's accent rules, e.g. resumes/12's coral bar under
         // "Manager" is a rect with <a:ln><a:noFill/> and its colour only in
-        // <wps:style><a:fillRef><a:schemeClr val="accent1">. The stroke already consults the style's
-        // lnRef (see ReadGroupStroke); the fill did not, so these shapes resolved no fill and were
-        // dropped before they could be drawn.
-        // An explicit a:noFill overrides the style's fill.
+        // <wps:style><a:fillRef><a:schemeClr val="accent1">, as the stroke reads its lnRef (see
+        // ReadGroupStroke). An explicit a:noFill overrides the style's fill.
         if (shapeProps.GetFirstChild<A.NoFill>() == null)
         {
             fillColorHex ??= ExtractFirstFillColor(wsp.GetFirstChild<WPS.ShapeStyle>()?.FillReference);
@@ -9183,8 +8967,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 ChildExtentX = childExtentX,
                 ChildExtentY = childExtentY,
                 // Turned about the centre of its extent, as a group is: menus/07's mint waves are
-                // custGeom rules at rot -4.55°, whose spill is the effectExtent the line reserves,
-                // and were drawn level until 2026-10-31.
+                // custGeom rules at rot -4.55°, whose spill is the effectExtent the line reserves.
                 RotationDegrees = ReadRotationDegrees(shapeXfrm),
                 Shapes = shapes
             }
@@ -9334,10 +9117,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     // a:duotone carries exactly two colour children: luminance maps onto a ramp from the FIRST
     // (shadow end) to the SECOND (highlight end). Word's Recolor gallery emits (darkColor,
-    // white); letters/02's frame instead pairs prstClr black with a tinted accent — treating
-    // the first RESOLVABLE colour as the dark end painted that frame with the highlight
-    // colour. Each child therefore consumes its position even when its colour can't be
-    // resolved; renderers default an unresolved dark end to black and light end to white.
+    // white); letters/02's frame instead pairs prstClr black with a tinted accent. Each child
+    // therefore consumes its position even when its colour can't be resolved; renderers default
+    // an unresolved dark end to black and light end to white.
     static (string? Dark, string? Light) ResolveDuotoneColors(OpenXmlElement duotone, ThemeColors? themeColors)
     {
         string? dark = null, light = null;
@@ -9523,9 +9305,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
-    /// <summary>
-    /// Parses all images from a drawing element, including multiple images in groups.
-    /// </summary>
     static OpenXmlPart ResolveHostPart(OpenXmlElement element, MainDocumentPart mainPart)
     {
         var current = element;
@@ -9574,6 +9353,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
+    /// <summary>
+    /// Parses all images from a drawing element, including multiple images in groups.
+    /// </summary>
     List<DocumentElement> ParseDrawingElements(Drawing drawing, MainDocumentPart mainPart, Dictionary<DocumentElement, OpenXmlElement>? childSources = null)
     {
         var hostPart = ResolveHostPart(drawing, mainPart);
@@ -9661,7 +9443,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
-            // Get offset within group
             long picOffsetX = 0, picOffsetY = 0;
             var off = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "off");
             if (off != null)
@@ -9671,7 +9452,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 long.TryParse(attributes.AttributeValue("y"), out picOffsetY);
             }
 
-            // Get image extent
             long picWidth = 0, picHeight = 0;
             var ext = xfrm.Elements().FirstOrDefault(_ => _.LocalName == "ext");
             if (ext != null)
@@ -9686,13 +9466,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 continue;
             }
 
-            // Get accumulated transform from all ancestor grpSp groups
+            // The accumulated transform from all ancestor grpSp groups.
             var accumTransform = GetAccumulatedTransform(pic, groupOffsetX, groupOffsetY, groupScaleX, groupScaleY, composeFlips: true);
 
-            // Apply accumulated transform to the pic's position and size
             var (finalX, finalY, finalWidth, finalHeight, groupRotationDegrees, groupFlipVertical) = accumTransform.MapRectangle(picOffsetX, picOffsetY, picWidth, picHeight);
 
-            // Convert to points
             var widthPoints = finalWidth / OoxmlUnits.EmusPerPoint;
             var heightPoints = finalHeight / OoxmlUnits.EmusPerPoint;
             var offsetXPoints = finalX / OoxmlUnits.EmusPerPoint;
@@ -9735,7 +9513,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             byte[]? rasterFallbackData = null;
             string? rasterFallbackContentType = null;
 
-            // Check for SVG extension
             var extLst = blip.Elements().FirstOrDefault(_ => _.LocalName == "extLst");
             if (extLst != null)
             {
@@ -9787,7 +9564,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var opacity = ReadBlipOpacity(blip);
             var description = ReadImageDescription(pic, drawing);
 
-            // Create the image element
             if (anchor == null)
             {
                 var imageElement = new ImageElement
@@ -9822,9 +9598,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return result;
     }
 
-    /// <summary>
-    /// Parses an anchored image with additional X/Y offset within a group.
-    /// </summary>
     // Where an anchored drawing is, under captureSources: its run's ordinal, and its place in the run
     // counted as SourceRuns counts — what the children ahead of it take. Read only; nothing is written.
     // An inline picture's drawing is found the same way.
@@ -9852,6 +9625,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return null;
     }
 
+    /// <summary>
+    /// Parses an anchored image with additional X/Y offset within a group.
+    /// </summary>
     FloatingImageElement ParseAnchoredImageWithOffset(DW.Anchor anchor, byte[] imageData, double widthPoints, double heightPoints, string? contentType, double offsetXPoints, double offsetYPoints, double rotationDegrees = 0, bool flipHorizontal = false, bool flipVertical = false, ImageCrop? crop = null, byte[]? rasterFallbackData = null, string? rasterFallbackContentType = null, string? description = null, BlipColorEffect colorEffect = BlipColorEffect.None, string? duotoneColorHex = null, string? duotoneLightColorHex = null, bool clipToEllipse = false, IReadOnlyList<IReadOnlyList<(double X, double Y)>>? clipSubpaths = null, double opacity = 1, ImageOutline? outline = null)
     {
         var positioning = anchor.ParsePositioning(offsetXPoints, offsetYPoints, anchorAlignmentPage);
@@ -9902,13 +9678,11 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     /// <summary>
     /// Reads the anchor's wrap element (wp:wrapSquare / wrapTight / wrapThrough /
-    /// wrapTopAndBottom), its side preference (@wrapText) and clearance distances. Distances
-    /// are EMU in OOXML; absent attributes mean zero clearance / both sides.
+    /// wrapTopAndBottom), its side preference (@wrapText, both sides when absent) and clearance
+    /// distances (EMU). A distance the wrap element leaves unsaid is the anchor's (wp:anchor@distL
+    /// and the rest), which is where Word writes them: image_wrap_square's picture declares its
+    /// 9pt sides on the anchor alone.
     /// </summary>
-    // How the text goes round an anchored drawing, and how far it keeps off it. A distance the wrap
-    // element leaves unsaid is the anchor's (wp:anchor@distL and the rest), which is where Word writes
-    // them: image_wrap_square's picture declares its 9pt sides on the anchor alone, and its paragraph
-    // ran up against the picture's edge where Word's stands 9pt clear.
     static (WrapType Type, WrapTextSide Side, double DistLeft, double DistTop, double DistRight, double DistBottom) ParseWrap(DW.Anchor anchor)
     {
         double Points(UInt32Value? own, UInt32Value? anchorDistance) =>
@@ -9987,7 +9761,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     /// </summary>
     FloatingTextBoxElement? ParseTextBox(Drawing drawing, MainDocumentPart mainPart)
     {
-        // Get dimensions and anchor info
         long widthEmu = 0;
         long heightEmu = 0;
 
@@ -10021,14 +9794,12 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var widthPoints = widthEmu / OoxmlUnits.EmusPerPoint;
         var heightPoints = heightEmu / OoxmlUnits.EmusPerPoint;
 
-        // Find WordprocessingShape element
         var wsp = drawing.Descendants<WPS.WordprocessingShape>().FirstOrDefault();
         if (wsp == null)
         {
             return null;
         }
 
-        // Get text content from text box
         var txbx = wsp.GetFirstChild<WPS.TextBoxInfo2>();
         if (txbx == null)
         {
@@ -10090,7 +9861,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (anchor != null)
         {
-            // Parse wrap type
             if (anchor.GetFirstChild<DW.WrapNone>() != null)
             {
                 wrapType = WrapType.None;
@@ -10146,11 +9916,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    /// <summary>
-    /// Parses ALL shapes from a drawing (handles groups with multiple shapes).
-    /// Returns both text boxes and solid fill shapes.
-    /// </summary>
-
     // True when the shape carries no renderable text: no txbx at all, or only Word's empty
     // placeholder paragraph (whitespace).
     static bool TextBoxHasNoText(WPS.WordprocessingShape wsp)
@@ -10164,6 +9929,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return !textBox.Descendants<Text>().Any(static _ => !string.IsNullOrWhiteSpace(_.Text));
     }
 
+    /// <summary>
+    /// Parses ALL shapes from a drawing (handles groups with multiple shapes).
+    /// Returns both text boxes and solid fill shapes.
+    /// </summary>
     List<DocumentElement> ParseAllShapesFromDrawing(Drawing drawing, MainDocumentPart mainPart, Dictionary<DocumentElement, OpenXmlElement>? childSources = null)
     {
         var result = new List<DocumentElement>();
@@ -10206,10 +9975,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
             var extent = anchor.Extent;
             // A group of zero-width vertical connectors legitimately has cx=0 in BOTH the
-            // anchor extent and its child space (cards/06's page-2 fold lines) — 0/0 scaling
-            // turned every child position NaN and the lines vanished. Clamp each degenerate
-            // length to 1 like GetAccumulatedTransform does for nested groups, so the
-            // degenerate axis maps through unscaled.
+            // anchor extent and its child space (cards/06's page-2 fold lines). Clamp each
+            // degenerate length to 1 like GetAccumulatedTransform does for nested groups, so the
+            // degenerate axis maps through unscaled rather than as 0/0.
             double rootExtCx = extent?.Cx ?? 1;
             double rootExtCy = extent?.Cy ?? 1;
             var rootScaleX = Math.Max(rootExtCx, 1) / Math.Max(chExtCx, 1);
@@ -10246,10 +10014,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     // Fall back to solid-fill parsing for shapes without TEXT: no txbx at all, or a
                     // txbx that is only Word's empty placeholder (templated artwork stores one in
                     // every decorative shape — labels/14's navy card bodies are roundRects with an
-                    // empty txbx, and skipping them left the whole label sheet cardless). Shapes
-                    // whose geometry is a custom-path outline render their real Subpaths now, so the
-                    // old filled-bounding-box overdraw this filter guarded against no longer occurs.
-                    // Shape geometry mirrors with its ancestors' flips (cards/03's streamer sits in
+                    // empty txbx). Shape geometry mirrors with its ancestors' flips (cards/03's streamer sits in
                     // a flipH'd nested group); the text-box path above keeps the flip-free
                     // transform.
                     var shapeTransform = GetAccumulatedTransform(wsp, chOffX, chOffY, rootScaleX, rootScaleY, composeFlips: true);
@@ -10329,7 +10094,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Get shape transform for positioning
         var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
         var xfrm = shapeProps?.GetFirstChild<A.Transform2D>();
 
@@ -10370,7 +10134,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Parse content
         var content = new List<DocumentElement>();
         foreach (var element in txbxContent.ChildElements)
         {
@@ -10399,7 +10162,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Get background color if present
         string? bgColor = null;
         var solidFill = shapeProps?.GetFirstChild<A.SolidFill>();
         if (solidFill != null)
@@ -10515,7 +10277,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         double? overrideHeight = null,
         (double Left, double Top, double Width, double Height)? groupFrame = null)
     {
-        // Get shape properties
         var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
         if (shapeProps == null)
         {
@@ -10524,8 +10285,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // A blip fill is an image texture. ShapeParser's behindDoc sweep parses these too, but
         // for walk-owned groups (cell-anchored, non-identity nesting) this walk is the only
-        // parser whose output survives the merge — bailing here dropped those photos entirely
-        // (cover-letters/09's circular profile photo lives in a cell-anchored group). Identity
+        // parser whose output survives the merge (cover-letters/09's circular profile photo
+        // lives in a cell-anchored group). Identity
         // body groups still dual-parse; the position/size dedup collapses the twins.
         byte[]? imageData = null;
         string? imageContentType = null;
@@ -10555,23 +10316,16 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // An explicit <a:noFill/> in spPr means the shape has no fill, even if the
         // wps:style contains a fillRef — the direct property always wins. It does not mean
-        // invisible: a visible stroke still draws the frame. In walk-owned groups this parser
-        // is the only one whose output survives the merge, so bailing here dropped outline-only
-        // children entirely (cards/13's white card outlines sit in translation-remapped nested
-        // groups). Text-box carriers keep ShapeParser's rule and stay skipped — their chrome
-        // belongs to the text-box path.
+        // invisible: a visible stroke still draws the frame, and in walk-owned groups this parser
+        // is the only one whose output survives the merge (cards/13's white card outlines sit in
+        // translation-remapped nested groups). Text-box carriers keep ShapeParser's rule and stay
+        // skipped — their chrome belongs to the text-box path.
         var explicitNoFill = shapeProps.GetFirstChild<A.NoFill>() != null;
         if (explicitNoFill &&
             wsp.GetFirstChild<WPS.TextBoxInfo2>() != null)
         {
             return null;
         }
-
-        // No bezier-count fallback here — the path flattener (ExtractSubpaths)
-        // now turns cubic / quadratic curves into a polyline approximation, so high-bezier
-        // custGeoms render as fillable shapes. The earlier "skip when >50 beziers" guard
-        // existed because we would otherwise have drawn the bounding rect as a solid colour
-        // overlay.
 
         // Check for solid fill in shape properties. a:grpFill defers to the ancestor group's
         // fill (labels/07's 27 collage pieces inherit their cluster group's accent colour).
@@ -10595,7 +10349,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 fillAlpha = alphaElement.Val.Value / 100000.0;
             }
 
-            // Check for direct RGB color
             var srgbClr = solidFill.GetFirstChild<A.RgbColorModelHex>();
             if (srgbClr?.Val?.HasValue == true)
             {
@@ -10603,13 +10356,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
             else
             {
-                // Check for scheme color (theme color)
                 var schemeClr = solidFill.GetFirstChild<A.SchemeColor>();
                 if (schemeClr?.Val?.HasValue == true)
                 {
-                    // This used to re-read the transform children by hand, keeping only the first of
-                    // each and quantising the value through a 0-255 byte. ExtractColorTransforms is
-                    // the same job done once, in document order and at full precision.
                     var transforms = ShapeParser.ExtractColorTransforms(schemeClr);
                     if (transforms.HasTransforms &&
                         currentThemeColors != null)
@@ -10618,7 +10367,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         fillColorHex = currentThemeColors.ResolveColor(schemeValue, transforms);
                     }
 
-                    // Fallback to original method (no transforms or ResolveColor failed)
+                    // No transforms, or ResolveColor failed.
                     if (fillColorHex == null)
                     {
                         fillColorHex = ResolveSchemeColor(schemeClr.Val.Value, mainPart);
@@ -10629,10 +10378,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // Linear gradient fill — every corpus gradient sits on a GROUP child (labels/04's
         // 90° accent bars, cover-letters/06's banner segments), reaching this walk or
-        // ShapeParser's grouped path; without this the fillRef fallback below flattened
-        // them to a solid in the theme colour. A linear gradient that extracts suppresses
-        // the fillRef fallback (the direct property wins); unmodelled radial/path gradients
-        // keep falling through to it, as they always have.
+        // ShapeParser's grouped path. A linear gradient that extracts suppresses the fillRef
+        // fallback below (the direct property wins); unmodelled radial/path gradients fall
+        // through to it.
         GradientFill? gradient = null;
         if (fillColorHex == null &&
             !explicitNoFill &&
@@ -10667,10 +10415,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // custom-geometry line segments (moveTo + lnTo) with no fill. Those must still render, so
         // don't bail purely because there's no fill; only bail when there's neither fill nor stroke.
         var (lineColorHex, lineWidthPoints, lineAlpha) = ShapeParser.ExtractLineStyle(wsp, shapeProps, currentThemeColors);
-        // Dashed outlines render through the same LineDashPattern the line connectors use, so
-        // stroke-only shapes no longer need a solid dash to count as strokeable (letters/05's
-        // dashed letterhead rules render dashed instead of staying invisible). A preset the
-        // dash table doesn't map still draws solid.
+        // Dashed outlines render through the same LineDashPattern the line connectors use
+        // (letters/05's dashed letterhead rules). A preset the dash table doesn't map draws solid.
         var strokeDashPattern = MapPresetDashPattern(
             shapeProps.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val);
         var hasStroke = lineColorHex != null &&
@@ -10682,7 +10428,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Get transform for positioning and size
         var xfrm = shapeProps.GetFirstChild<A.Transform2D>();
 
         var xPt = positioning.HorizontalPositionPoints;
@@ -10752,11 +10497,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // round2SameRect). Stroke-only shapes need them too — the outline IS the preset's
         // silhouette (letters/05's triangle) — and so do GRADIENT fills, which the guard
         // below otherwise drops for want of geometry (labels/04's light-blue hexagon
-        // accents: the hexagon builder exists, but a gradient shape carries the start
-        // colour as its fillColorHex and never reached it). Solid fills keep the Preset
-        // fast path when the preset IS a rect or ellipse; any other solid preset needs its
-        // contours too, or it fills its bounding box (cards/02's ticket stars filled as orange
-        // squares and its notched plaque tickets as plain rects).
+        // accents). Solid fills keep the Preset fast path when the preset IS a rect or
+        // ellipse; any other solid preset needs its contours too, or it fills its bounding
+        // box (cards/02's ticket stars and notched plaque tickets).
         if (subpaths == null &&
             (imageData != null || fillColorHex == null || gradient != null || !ShapeParser.HasStrokeablePresetOutline(shapeProps)))
         {
@@ -10777,10 +10520,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // Gradients render through FillShape's geometry the same way: parsed contours or a
-        // plain rect/ellipse preset. An unbuilt preset would paint its BOUNDING BOX —
-        // labels/04's hexagon accents drew as saturated gradient boxes over Word's soft
-        // hexagons, visibly worse than their previous absence — and the stroke would box
-        // the same way, so the shape drops entirely.
+        // plain rect/ellipse preset. An unbuilt preset would paint its BOUNDING BOX (labels/04's
+        // hexagon accents), and the stroke would box the same way, so the shape drops entirely.
         if (gradient != null &&
             subpaths == null &&
             !ShapeParser.HasStrokeablePresetOutline(shapeProps))
@@ -10793,7 +10534,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // Rotated and percent-positioned/sized shapes resolve differently at render and are
         // left unclipped (none of the affected templates rotate their out-of-frame pieces).
         // Image-textured shapes are exempt like pictures are: group photos legitimately
-        // overflow their frame (the reverted image frame-clip regressed +0.99).
+        // overflow their frame (clipping them measured +0.99 worse).
         if (groupFrame is { } frame &&
             imageData == null &&
             rotationDegrees == 0 &&
@@ -10836,7 +10577,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             ImageCrop = imageCrop,
             ImageTile = imageTile,
             // Solid-filled shapes stroke their <a:ln> exactly like ShapeParser's solid branch
-            // always has — the asymmetry left walk-owned filled shapes borderless
             // (letters/05's p1 triangle is a WHITE-filled custGeom whose thick teal stroke is
             // the only visible ink). Image fills stroke like ShapeParser's blip branch does
             // (a photo shape's border ring).
@@ -11125,14 +10865,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return null;
     }
 
-    /// <summary>
-    /// Parses a text box from a WordprocessingShape using accumulated transform from nested groups.
-    /// </summary>
     // A text box that resizes to its text (wps:bodyPr/a:spAutoFit) never overflows; any other hides
     // what does not fit.
     static bool HidesOverflow(WPS.WordprocessingShape wsp) =>
         wsp.GetFirstChild<WPS.TextBodyProperties>()?.GetFirstChild<A.ShapeAutoFit>() == null;
 
+    /// <summary>
+    /// Parses a text box from a WordprocessingShape using accumulated transform from nested groups.
+    /// </summary>
     FloatingTextBoxElement? ParseTextBoxFromShapeWithTransform(
         WPS.WordprocessingShape wsp,
         AnchorPositioning positioning,
@@ -11164,7 +10904,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Get shape transform for positioning
         var shapeProps = wsp.GetFirstChild<WPS.ShapeProperties>();
         var xfrm = shapeProps?.GetFirstChild<A.Transform2D>();
 
@@ -11210,7 +10949,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Parse content
         var content = new List<DocumentElement>();
         foreach (var element in txbxContent.ChildElements)
         {
@@ -11236,7 +10974,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Get background color if present
         string? bgColor = null;
         var solidFill = shapeProps?.GetFirstChild<A.SolidFill>();
         if (solidFill != null)
@@ -11279,10 +11016,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         };
     }
 
-    /// <summary>
-    /// Parses a Drawing element to extract a WordArt shape.
-    /// Returns WordArtElement for inline WordArt, FloatingWordArtElement for anchored WordArt.
-    /// </summary>
     /// <summary>
     /// True when the run's resolved colour comes from an EXPLICIT <c>w:color</c> — on the run
     /// itself, its character style chain, or its paragraph style chain — rather than the document
@@ -11334,6 +11067,10 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return ChainDeclares(runProperties?.RunStyle?.Val?.Value) || ChainDeclares(paragraphStyleId);
     }
 
+    /// <summary>
+    /// Parses a Drawing element to extract a WordArt shape.
+    /// Returns WordArtElement for inline WordArt, FloatingWordArtElement for anchored WordArt.
+    /// </summary>
     DocumentElement? ParseWordArt(Drawing drawing, MainDocumentPart mainPart, TextAlignment alignment = TextAlignment.Left, double spacingBefore = 0, double spacingAfter = 0, ParagraphProperties? hostParagraph = null)
     {
         // Get dimensions from Inline or Anchor
@@ -11369,7 +11106,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             return null;
         }
 
-        // Convert EMUs to points
         var widthPoints = widthEmu / OoxmlUnits.EmusPerPoint;
         var heightPoints = heightEmu / OoxmlUnits.EmusPerPoint;
 
@@ -11432,7 +11168,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             var runFonts = runProps.GetFirstChild<RunFonts>();
             if (runFonts != null)
             {
-                // First try theme font reference
                 if (runFonts.AsciiTheme?.HasValue == true &&
                     currentThemeFonts != null)
                 {
@@ -11443,7 +11178,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                         fontFamily = resolvedFont;
                     }
                 }
-                // Fall back to direct font name
                 else if (runFonts.Ascii?.HasValue == true)
                 {
                     fontFamily = runFonts.Ascii.Value!;
@@ -11495,9 +11229,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
 
         // An unwarped floating box holding more than one paragraph, or a table, is a text box rather than
-        // a line of WordArt: the dispatch below draws one line of all its text, which ran a footer's two
-        // paragraphs together and dropped their indents (issue #199). ParseTextBox lays it out paragraph
-        // by paragraph.
+        // a line of WordArt: the dispatch below draws one line of all its text (issue #199). ParseTextBox
+        // lays it out paragraph by paragraph.
         if (isAnchored &&
             transform == WordArtTransform.None &&
             txbxContent.ChildElements.Count(_ => _ is Paragraph or Table) > 1)
@@ -11530,7 +11263,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 // The shape's own fill paints BEHIND an inline text box; it does not colour the
                 // glyphs. ExtractFirstFillColor resolves scheme colours and their lumMod/tint
-                // transforms, which reading only a:srgbClr missed.
+                // transforms.
                 if (spPr.GetFirstChild<A.SolidFill>() is { } boxFill)
                 {
                     boxFillColor = ExtractFirstFillColor(boxFill);
@@ -11550,8 +11283,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             {
                 // No real text warp means this is Word's inline text BOX wearing the WordArt
                 // dispatch (business/06's LOGO frame): its a:ln is the box border, not a glyph
-                // stroke — rendering it as a glyph stroke faked a bold weight Word doesn't show.
-                // ExtractLineStyle resolves theme colours and the wps:style lnRef fallback.
+                // stroke. ExtractLineStyle resolves theme colours and the wps:style lnRef fallback.
                 (boxLineColor, var boxWidthPts, boxLineAlpha) = ShapeParser.ExtractLineStyle(wsp, spPr, currentThemeColors);
                 boxLineWidth = boxWidthPts ?? 0;
 
@@ -11560,10 +11292,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 // the run's RESOLVED properties — direct run rPr over the paragraph style chain over
                 // the document defaults — not the WordArt defaults the first-run read above used.
                 // menus/03's "EVENT INTRO"/"EVENT DATE" labels carry NO run rPr, so their formatting
-                // lives entirely in the Heading1 -> Normal chain (10pt, w:color FFFFFF/background1);
-                // the WordArt drew them 36pt black (invisible on the dark band). ParseRunProperties
-                // is the body path's cascade (it folds in theme fonts and the auto-colour sentinel),
-                // so a directly-formatted text box resolves to the same values it already had.
+                // lives entirely in the Heading1 -> Normal chain (10pt, w:color FFFFFF/background1).
+                // ParseRunProperties is the body path's cascade (theme fonts, the auto-colour sentinel).
                 var firstParagraph = txbxContent.Descendants<Paragraph>().FirstOrDefault();
                 var firstParagraphStyleId = firstParagraph?.ParagraphProperties?.ParagraphStyleId?.Val?.Value;
                 var firstRunProperties = txbxContent.Descendants<OoxmlRun>().FirstOrDefault()?.RunProperties;
@@ -11631,7 +11361,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 }
             }
 
-            // Check for effects
             var effectList = spPr.GetFirstChild<A.EffectList>();
             if (effectList != null)
             {
@@ -11896,9 +11625,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // with no box chrome, on the label's own line. So once the control HOLDS runs, those runs
         // are the value and flow inline. Only an EMPTY control takes the block-control path, which
         // can render what the cached content genuinely cannot supply — the checkbox glyph from its
-        // checked state, a date formatted from w:fullDate, or the grayed placeholder. (For w:text
-        // this was already the rule: the control path split a footer's paragraph around the block
-        // element, stranding the page number on its own line.)
+        // checked state, a date formatted from w:fullDate, or the grayed placeholder.
         if (props.Descendants().Any(_ => _.LocalName == "checkbox") ||
             props.GetFirstChild<SdtContentComboBox>() != null ||
             props.GetFirstChild<SdtContentDropDownList>() != null ||
@@ -12197,8 +11924,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // (ECMA-376 §17.6.22). The break this inline sectPr marks starts the FOLLOWING section, so the
         // break's type comes from the following sectPr — the same lookahead the page settings use.
         // resumes/10: section 1 authors type=continuous (its own start), sections 2-3 author none →
-        // nextPage; reading the ending sectPr rendered the whole document without section page breaks.
-        // The ending sectPr stands in only when no following sectPr exists.
+        // nextPage. The ending sectPr stands in only when no following sectPr exists.
         var typeSource = sectionProps;
         if (nextSectionProps != null &&
             nextSectionProps.TryGetValue(sectionProps, out var followingProps) &&
@@ -12615,9 +12341,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         // If no inline properties, return style defaults. The mark still sizes its line by the run
         // ladder (see the paragraphMarkFontSize block below): a bare <w:p/> spacer in a table cell has no
-        // resolved mark (the cell path omits it) and no run, so without the ladder it measured at the
-        // record's default face — letters/13's Posterama 11 spacers came out 1.2pt short each and the
-        // letter drifted a line up the page by its signature.
+        // resolved mark (the cell path omits it) and no run (letters/13's Posterama 11 spacers).
         if (props == null)
         {
             var bareMark = ParseRunProperties(null, mainPart, styleId);
@@ -12660,9 +12384,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             };
         }
 
-        // Override with inline properties. One pass over the children replaces ~20
-        // GetFirstChild probes (each restarts at FirstChild and rescans the siblings);
-        // ??= keeps GetFirstChild's first-in-document-order semantics on duplicates.
+        // Override with inline properties, read in one pass over the children; ??= keeps
+        // GetFirstChild's first-in-document-order semantics on duplicates.
         Justification? justification = null;
         SpacingBetweenLines? spacing = null;
         Indentation? indentation = null;
@@ -12798,7 +12521,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
         }
 
-        // Check if line numbers are suppressed for this paragraph
         suppressLineNumbers = suppressLineNumbersElement != null;
         suppressAutoHyphens = suppressAutoHyphensElement != null;
 
@@ -12808,7 +12530,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             contextualSpacing = true;
         }
 
-        // Parse pagination properties
         if (keepLinesElement != null)
         {
             keepLines = true;
@@ -12819,11 +12540,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             keepNext = true;
         }
 
-        // WidowControl element toggles the control - presence means off if val is false/0, on if val is true/1 or absent
+        // w:widowControl present without a w:val is on; w:val="0"/"false" turns it off.
         if (widowControlEl != null)
         {
-            // If the element exists with val="0" or val="false", widow control is disabled
-            // If val is missing or true, it's enabled (but we default to true anyway)
             var valAttribute = widowControlEl.Val;
             if (valAttribute is {HasValue: true})
             {
@@ -12831,7 +12550,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
             else
             {
-                // Presence without val means enabled
                 widowControl = true;
             }
         }
@@ -12850,17 +12568,13 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // A mirror paragraph keeps its declared indents in the model. Which side each indent lands
         // on is a PAGE-PARITY question the Fragmenter answers at placement (Word-measured,
         // _probe_mirror2 sweeping hanging/firstLine on both parities): even pages render as
-        // declared; odd pages mirror the box. An earlier probe read only line STARTS and concluded
-        // the indents were dropped entirely — every one of those observations is also produced by
-        // the mirror transform, and the right-edge measurements refute the drop.
+        // declared; odd pages mirror the box.
 
-        // Parse paragraph shading/background color (w:shd element)
         if (shadingElement != null)
         {
             string? inlineBgColor = null;
             inlineBgColor = ResolveThemeFill(shadingElement);
 
-            // Fall back to direct fill value
             if (inlineBgColor == null &&
                 shadingElement.Fill?.HasValue == true &&
                 shadingElement.Fill.Value != "auto" &&
@@ -12875,7 +12589,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Parse paragraph borders (w:pBdr)
         var borders = styleDefaults?.Borders;
         var borderTopSpace = styleDefaults?.BorderTopSpacePoints ?? 0;
         var borderBottomSpace = styleDefaults?.BorderBottomSpacePoints ?? 0;
@@ -12905,35 +12618,14 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             borderBetweenSpace = ParseBorderSpace(betweenBorder);
         }
 
-        // Parse paragraph mark font size (used for empty paragraphs). An explicit w:sz on the mark wins;
-        // failing that the mark inherits from the paragraph style chain exactly as a run would, and only
-        // then from the document default.
-        //
-        // Reading ONLY the direct child left a mark that names a font but no size inheriting nothing, so
-        // MarkProperties fell through to a bare RunProperties — the record's 11pt default. Inside a table
-        // cell that is the whole line height, because the cell path omits ParagraphMarkRunProperties and an
-        // empty cell has no run to stand in either. business-plans/15's cost table is exactly that shape:
-        // its value cells carry <w:rPr><w:rFonts w:ascii="Univers"/></w:rPr> and no w:sz, so every row was
-        // sized off an 11pt mark instead of the 9pt the chain resolves, making single-line rows 5px tall
-        // and accumulating ~46pt over the table. Word-probed: adding an explicit w:sz to those marks made
-        // Morph's rows match Word's exactly (35px against 35px), which is what pinned this.
+        // The paragraph mark's size and face, which an empty paragraph's line is measured by (inside a
+        // cell, the whole line height: the cell path omits ParagraphMarkRunProperties). Its own w:sz /
+        // w:rFonts, else the ladder a run with no rPr climbs (ParseRunProperties): document defaults, a
+        // styled table's rung, the paragraph style chain, and the defaults for an undefined style id.
+        // business-plans/15's cost table (Univers marks with no w:sz, 9pt by the chain), business-plans/13
+        // (marks whose w:rFonts names no w:ascii) and COMPASS's stocktake summary (an undefined TBLText
+        // style, 9pt from the table style; Word's layout over COM, 2026-09-30) are the cases.
         double? paragraphMarkFontSize = null;
-        //
-        // The FACE resolves the same way and matters for the same reason: the mark's line height comes
-        // from the font's own metrics, so measuring a chain-sized mark against the record's default face
-        // still gets the pitch wrong. business-plans/13 is the case that showed it — 189 of its marks
-        // declare w:rFonts carrying only eastAsiaTheme/cstheme (no w:ascii) and 316 declare w:sz with no
-        // w:rFonts at all, so in both groups the ascii face has to come from the chain.
-        //
-        // Whatever the mark does not declare it takes from the ladder a run with no rPr of its own climbs
-        // (ParseRunProperties): the document defaults, then inside a styled table the table style's rung,
-        // then the paragraph style chain — and for a style id the styles part does not define, the run's
-        // own fallback, the document defaults. Reading the paragraph chain alone missed both of those.
-        // COMPASS's stocktake summary shows the two together: its cells name a TBLText style the package
-        // never defines, and the table style carries the 9pt size, so an empty cell's mark resolved to
-        // nothing and measured at the record's default face — 13.43pt against the 11.97pt of Word's 9pt
-        // Segoe UI Semilight, making every row with an empty cell 1.13pt taller than Word's (read off
-        // Word's own layout of the report over COM, 2026-09-30).
         string? paragraphMarkFontFamily = null;
         var paragraphMarkRunProps = props.ParagraphMarkRunProperties;
         var markLadder = ParseRunProperties(null, mainPart, styleId);
@@ -12947,10 +12639,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
         else
         {
-            // A mark with no rPr at all — the bare <w:p/> spacer — still sizes its line by the ladder:
-            // letters/13's empty paragraphs sit under a Posterama 11 docDefaults, whose 14.63pt pitch the
-            // record's default face fell 1.2pt short of, and the body drifted a line up the page by the
-            // signature (Word's paragraph gaps 61px against the engine's 58.5).
+            // A mark with no rPr at all — the bare <w:p/> spacer — still sizes its line by the ladder
+            // (letters/13's empty paragraphs under a Posterama 11 docDefaults, a 14.63pt pitch).
             paragraphMarkFontSize = markLadder.FontSizePoints;
             paragraphMarkFontFamily = markLadder.FontFamily;
         }
@@ -12976,7 +12666,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // Word only honours a drop cap whose framePr also anchors the frame — its own
             // authoring always writes w:wrap/w:hAnchor/w:vAnchor beside w:dropCap. A bare
             // dropCap+lines (feature_capture/01) renders as a plain normal-size line in Word's
-            // reference, where the cap used to draw a spurious 3-line letter.
+            // reference.
             var frameAnchored = attributes.AttributeValue("wrap") != null ||
                                 attributes.AttributeValue("hAnchor") != null ||
                                 attributes.AttributeValue("vAnchor") != null;
@@ -13239,7 +12929,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         return false;
     }
 
-    // First-wins on duplicate style ids, matching the FirstOrDefault scan this replaces.
+    // First wins on duplicate style ids.
     Style? LookupStyle(MainDocumentPart mainPart, string styleId)
     {
         if (stylesById == null)
@@ -13322,8 +13012,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         }
     }
 
-    // An insertion is underlined and a deletion struck through, both recoloured. Layered over the
-    // run's own properties so its font, size and weight survive.
     RunProperties ApplyComment(RunProperties properties, OoxmlRun run)
     {
         if (commentedRuns != null &&
@@ -13349,6 +13037,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
             : properties;
 
+    // An insertion is underlined and a deletion struck through, both recoloured. Layered over the
+    // run's own properties so its font, size and weight survive.
     static RunProperties ApplyRevisionMark(RunProperties properties, RevisionMark mark) =>
         mark switch
         {
@@ -13406,9 +13096,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     ///
     /// Word-read on wedding/10, whose two checkbox runs carry <c>hint="eastAsia"</c> with an
     /// <c>eastAsia="MS Gothic"</c> and no ASCII face and render Word's MS Gothic ☐ (U+2610) like
-    /// the 134 rows that name MS Gothic outright — the render drew them light grey from the body
-    /// face's fallback; and on wedding/04, whose checkbox cells carry the bare hint and take the
-    /// docDefaults <c>eastAsia="MS Mincho"</c>.
+    /// the 134 rows that name MS Gothic outright; and on wedding/04, whose checkbox cells carry the
+    /// bare hint and take the docDefaults <c>eastAsia="MS Mincho"</c>.
     /// </summary>
     RunProperties ApplyEastAsiaHint(RunProperties properties, RunFonts? fonts, string text)
     {
@@ -13537,8 +13226,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                 case Text textElement:
                     GatherText(SourceRuns.EffectiveText(textElement.Text, textElement.Space?.Value).ReplaceSeparatorsWithSpace());
                     break;
-                // w:delText carries the text of a tracked deletion. It is a sibling type of w:t
-                // rather than a subclass, so without this a deleted run contributes nothing.
+                // w:delText carries the text of a tracked deletion: a sibling type of w:t, not a subclass.
                 case DeletedText deletedText:
                     GatherText(SourceRuns.EffectiveText(deletedText.Text, deletedText.Space?.Value).ReplaceSeparatorsWithSpace());
                     break;
@@ -13810,9 +13498,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         var characterSpacing = styleDefaults?.CharacterSpacingPoints ?? 0.0;
         var characterScale = styleDefaults?.CharacterScalePercent ?? 100;
 
-        // Override with inline properties if specified. One pass over the children replaces
-        // ~35 GetFirstChild probes (each restarts at FirstChild and rescans the siblings);
-        // ??= keeps GetFirstChild's first-in-document-order semantics on duplicate children.
+        // Override with inline properties, read in one pass over the children; ??= keeps
+        // GetFirstChild's first-in-document-order semantics on duplicate children.
         RunFonts? runFonts = null;
         FontSize? fontSizeElement = null;
         Bold? boldElement = null;
@@ -13945,7 +13632,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
         if (runFonts != null)
         {
-            // First try theme font reference
             if (runFonts.AsciiTheme?.HasValue == true &&
                 currentThemeFonts != null)
             {
@@ -13956,7 +13642,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
                     fontFamily = resolvedFont;
                 }
             }
-            // Fall back to direct font name
             else if (runFonts.Ascii?.HasValue == true)
             {
                 fontFamily = runFonts.Ascii.Value!;
@@ -14042,7 +13727,6 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         // every value in modes 12 and 14 (2026-10-30).
         var ligatures = compatibilityMode >= 15 ? ParseLigatureMode(ligaturesElement) : LigatureMode.None;
 
-        // RTL run (w:rtl)
         var runRtl = false;
         if (rtlElement != null)
         {
@@ -14075,24 +13759,21 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // An explicit w:color on the run overrides any inherited (style / docDefaults) colour.
-        // Crucially this includes w:val="auto": "automatic" means the run opts back out to Word's
-        // contrast colour (black on a light page, white on a dark w:background), so it must RESET
-        // the inherited colour rather than fall through to it — otherwise a coloured docDefaults
-        // (e.g. a card template's white text default) would leak onto runs that explicitly asked
-        // for automatic. ResolveRunColor returns null for auto / unresolved.
+        // An explicit w:color on the run overrides any inherited (style / docDefaults) colour,
+        // w:val="auto" included: "automatic" opts back out to Word's contrast colour (black on a
+        // light page, white on a dark w:background), so it RESETS the inherited colour — a card
+        // template's white docDefaults must not leak onto it. ResolveRunColor returns null for
+        // auto / unresolved.
         if (colorElement != null)
         {
             color = ResolveRunColor(colorElement) ?? automaticRunColorHex;
         }
 
-        // Background/shading color (w:shd element)
         if (shadingElement != null)
         {
             string? inlineBgColor = null;
             inlineBgColor = ResolveThemeFill(shadingElement);
 
-            // Fall back to direct fill value
             if (inlineBgColor == null &&
                 shadingElement.Fill?.HasValue == true &&
                 shadingElement.Fill.Value != "auto" &&
@@ -14119,10 +13800,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             }
         }
 
-        // Also check for run-specific style reference that overrides paragraph style
-        // IMPORTANT: Only apply properties that are EXPLICITLY defined in the character style,
-        // not inherited defaults. This ensures character styles like "Shade" (which only defines
-        // background color) don't override font size from paragraph styles like Heading1.
+        // A character style (w:rStyle) applies only the properties it EXPLICITLY defines, not
+        // inherited defaults: "Shade" (background colour only) must not override Heading1's size.
         var runStyleId = runStyleElement?.Val?.Value;
 
         // Word's print layout suppresses the Hyperlink character style inside TOC entries: a TOC
@@ -14140,11 +13819,9 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         if (runStyleId != null &&
             styleRunProperties != null && styleRunProperties.TryGetValue(runStyleId, out var runStyleProps))
         {
-            // Look up the original style definition to check which properties are explicitly defined
             var originalStyle = LookupStyle(mainPart, runStyleId);
             var originalRPr = originalStyle?.StyleRunProperties;
 
-            // Only override with run style properties that are EXPLICITLY defined in the style
             if (runFonts == null &&
                 originalRPr?.GetFirstChild<RunFonts>() != null)
             {
@@ -14161,9 +13838,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
             // §17.7.3): declared ON in a character style they FLIP the paragraph-chain state
             // rather than asserting it — resumes/18's "NotBold" style is a bare <w:b/> applied
             // inside bold Heading2 rows, and Word renders those runs regular. An explicit
-            // w:val="0" is not a toggle; it forces the property off. The XOR only diverges from
-            // the old assignment when the paragraph chain already carries the property, so a
-            // char style toggling over a plain chain behaves exactly as before.
+            // w:val="0" is not a toggle; it forces the property off.
             if (boldElement == null &&
                 originalRPr?.GetFirstChild<Bold>() is { } styleBold)
             {
@@ -14542,8 +14217,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
     // A w14 text effect declared with neither attributes nor children carries no effect, and Word
     // renders the run plain. feature_capture/01 is the case: its heading declares
     // <w14:shadow/> <w14:textOutline/> <w14:glow/> <w14:reflection/> all empty, and Word draws
-    // "All features" as plain small caps. Reading mere presence as "on" made the parsers invent
-    // Word's UI defaults, which drew a shadow copy under the text in ImageSharp and a glow in Skia.
+    // "All features" as plain small caps.
     static bool IsInertEffect([NotNullWhen(false)] OpenXmlElement? element) =>
         element is null ||
         (!element.HasAttributes &&
@@ -14553,8 +14227,8 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
         DocumentFormat.OpenXml.Office2010.Word.TextOutlineEffect? element,
         string? fillColor)
     {
-        // An outline strokes only with a fill: w14:noFill, or no fill at all, draws nothing.
-        // agendas-minutes/08's Title declares a noFill outline, which drew in the text's own colour.
+        // An outline strokes only with a fill: w14:noFill, or no fill at all, draws nothing
+        // (agendas-minutes/08's Title declares a noFill outline).
         if (IsInertEffect(element) ||
             !element.ChildElements.Any(_ => _.LocalName is "solidFill" or "gradFill"))
         {
@@ -14661,8 +14335,7 @@ sealed class DocumentParser(string? defaultFont = null, bool? useLetterPageSize 
 
     // A w14:schemeClr against the document theme, with its luminance and saturation transforms, which
     // are DrawingML's under the w14 namespace. menus/07's Title outline is accent4 at lumMod 25% and its
-    // shadow accent4 at lumMod 90%: unresolved, the outline took the text's own white and the shadow
-    // black.
+    // shadow accent4 at lumMod 90%.
     string? ResolveW14Scheme(DocumentFormat.OpenXml.Office2010.Word.SchemeColor scheme)
     {
         if (currentThemeColors == null ||

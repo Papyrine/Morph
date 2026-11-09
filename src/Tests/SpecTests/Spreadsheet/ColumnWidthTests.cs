@@ -1,10 +1,10 @@
 /// <summary>
 /// Spec tests for Excel's column-width unit (ECMA-376 §18.3.1.13), probed at A4 against printed
-/// gridlines across six faces. Two properties are pinned because each was wrong once:
+/// gridlines across six faces. Two properties are pinned:
 ///
 /// The advance is EXACT, never rounded to whole pixels — Excel's fitted unit is 7.519 for
-/// Calibri 11 against the face's 7.434, never an integer, and the earlier whole-pixel rounding
-/// cost up to 5.8% per column, worst on the faces that round UP.
+/// Calibri 11 against the face's 7.434, never an integer, and whole-pixel rounding costs up to
+/// 5.8% per column, worst on the faces that round UP.
 ///
 /// It is the widest of the digits 0-9, not the '0' — which only shows on a face with proportional
 /// figures. Of the six probed, Corbel alone has a digit wider than its zero (7.691 against 7.534),
@@ -42,9 +42,8 @@ public class ColumnWidthTests
     /// The caller's substitution map decides the unit for a family the directory cannot serve — the
     /// grid has to be measured off the face the painter will draw, and the map is what names it.
     ///
-    /// SpreadsheetParser dropped the map for a while, and the miss was invisible in both the corpus
-    /// (no scenario supplies one) and the Blazor app (its map names Aptos, which is also
-    /// DefaultFont, so the two agreed by coincidence). It shows the moment they differ: without the
+    /// Dropping the map is invisible in both the corpus (no scenario supplies one) and the Blazor app
+    /// (its map names Aptos, which is also DefaultFont). It shows the moment they differ: without the
     /// map an unresolvable family measures Aptos at 7.835, with it Georgia at 9.002 — a 15% wider
     /// column, on every output format, since the parse is shared.
     /// </summary>

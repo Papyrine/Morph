@@ -2,7 +2,7 @@
 /// How a picture stored as SVG reaches a painter: the parsers keep the SVG as the picture and the
 /// raster beside it as its fallback, and the layout engine hands the painters a
 /// <see cref="PlacedImage.Vector"/> for every SVG the reader takes — and for the rest the
-/// fallback, as it handed them for all before 2026-10-12.
+/// fallback.
 /// </summary>
 public class SvgPictureLayoutTests
 {
@@ -122,7 +122,7 @@ public class SvgPictureLayoutTests
     [Test]
     public async Task A_picture_stored_as_SVG_alone_is_placed_when_the_reader_takes_it_and_only_then()
     {
-        // No raster to fall back on: before there was a reader such a picture took no place at all.
+        // No raster to fall back on: without the reader such a picture takes no place at all.
         var placed = Images(fragmenter.Layout([Inline(redSquare, null)], Page())).Single();
         await Assert.That(placed.Vector).IsNotNull();
         await Assert.That(placed.Data).IsNull();

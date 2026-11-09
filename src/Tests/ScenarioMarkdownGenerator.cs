@@ -317,11 +317,11 @@ static class ScenarioMarkdownGenerator
     // GitHub sizes each table column to its widest non-breaking token, and images carry
     // max-width:100% so they can never widen a column. In the comparison tables the sibling
     // columns (Skia/ImageSharp, or Morph PDF) are sized by their metric label, but the Expected
-    // column's bare "Page N" is far narrower — so GitHub shrank the Expected image relative to
+    // column's bare "Page N" is far narrower — so GitHub shrinks the Expected image relative to
     // the others. Pad the Expected label with non-breaking spaces so its token matches the
-    // metric label width, equalizing the columns (and their images). The original count of 19
-    // was calibrated against GitHub's table CSS in a browser for the "ErrorMetric: 0.xxxx"
-    // label; "· SSIM: 0.xxxx" adds 15 characters, tracked arithmetically here. Because the
+    // metric label width, equalizing the columns (and their images). 19 was calibrated against
+    // GitHub's table CSS in a browser for the "ErrorMetric: 0.xxxx" label; "· SSIM: 0.xxxx"
+    // adds 15 characters. Because the
     // columns are sized by min-content it is independent of the reader's viewport width.
     static readonly string expectedLabelPadding = string.Concat(Enumerable.Repeat("&nbsp;", 34));
 

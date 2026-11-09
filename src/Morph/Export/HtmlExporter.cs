@@ -86,8 +86,7 @@ static class HtmlExporter
         }
 
         // Everything the prelude needs is known before the body is written, so the writer
-        // streams the body straight into the document builder — the whole output used to be
-        // materialized as a body string and copied into a second builder at the end.
+        // streams the body straight into the document builder.
         var doc = new StringBuilder();
         doc.Append(
             """
@@ -621,10 +620,10 @@ static class HtmlExporter
 
                 // A page-relative picture or shape the page does not open with — hung off a paragraph
                 // further down — is placed against the page's own block, so it stands where it does
-                // on its page whatever text comes before its anchor. At its anchor it was placed as
-                // far below its page's start as the anchor is: business/02's beige panel, hung off
-                // the paragraph under the MEMO title, started under the COMPANY NAME heading it
-                // backs. Only while what comes before it is paragraphs that still fit one page: the
+                // on its page whatever text comes before its anchor; placed at its anchor it stands
+                // as far below its page's start as the anchor is (business/02's beige panel, hung off
+                // the paragraph under the MEMO title, under the COMPANY NAME heading it backs).
+                // Only while what comes before it is paragraphs that still fit one page: the
                 // export does not paginate, and past a table, or a page of text, the anchor may be on
                 // Word's NEXT page — brochures/01's and newsletters/12's second-page art, placed
                 // against the block, piled onto the first page.
@@ -1022,10 +1021,8 @@ static class HtmlExporter
         /// neighbours, by the rule the layout engine was probed to (<see cref="ParagraphGap"/>):
         /// a paragraph that opts in drops its space-after against a following paragraph of its
         /// own style and its space-before against a preceding one, whether or not the neighbour
-        /// opts in. Only the after half was dropped here, so a style that sets its lines apart
-        /// with a large space-BEFORE kept it between them: business-plans/10's two cover lines
-        /// each carry 342pt before, and the second fell off the cover art onto the white page
-        /// beneath it, white on white.
+        /// opts in. Both halves matter: business-plans/10's two cover lines each carry 342pt
+        /// before, and kept between them it drops the second off the cover art, white on white.
         ///
         /// A browser collapses the margins that are left to the larger of the two, which is
         /// Word's <c>max(after, before)</c>. Word takes that maximum over the first paragraph's
@@ -1492,7 +1489,7 @@ static class HtmlExporter
         /// text before it has already passed is skipped. The export measures nothing, so the pen
         /// is a lower bound — <see cref="leastAdvanceEm"/> an em for every character — and only a
         /// stop the text has certainly passed is skipped; one it may or may not have reached is
-        /// taken, as every stop was before. business-plans/13's contents style declares four
+        /// taken. business-plans/13's contents style declares four
         /// stops, the first two 22pt and 25pt in for a number the entries do not carry: paired
         /// with the first, each entry's page number was boxed to the left of where its title
         /// ends and ran on against it.
@@ -1610,7 +1607,7 @@ static class HtmlExporter
         // Word's Auto line multiple scales the face's own single line (ascent and descent from
         // its metrics, FontMetrics.LinePitchPoints) where a CSS line-height number scales the em:
         // business-plans/07's 70pt title at 0.75 is a 64pt line in Word (0.75 x 70 x 1.2207 for
-        // Calibri Light) and was a 52.5pt one here, its second line's caps on the first's
+        // Calibri Light) and a 52.5pt one as a CSS number, its second line's caps on the first's
         // baseline; brochures/02's 36pt Franklin Gothic Demi title crowded the date under it the
         // same way. A heading lifts its uniform run size onto the <hN> (AppendHeading), so its
         // strut is its text and the em it scales is the right one; a paragraph's is not, which is
@@ -1873,7 +1870,7 @@ static class HtmlExporter
             // flow: a full-width decorative banner then consumed its own height, pushing the text
             // that follows down the document. That is how a template's white cover text ends up
             // BELOW the dark panel meant to sit behind it, rendering white-on-white and
-            // unreadable (agendas-minutes/02's masthead and roster; todo.md HTML #26). TopAndBottom
+            // unreadable (agendas-minutes/02's masthead and roster). TopAndBottom
             // is the one non-wrapping type that genuinely does take flow space — text goes above and
             // below it, never beside — so it keeps the paragraph.
             if (image.WrapType == WrapType.TopAndBottom)
@@ -2068,10 +2065,8 @@ static class HtmlExporter
         /// A page-relative anchor takes the wrapper for where its page's CONTENT starts, one top
         /// margin down the page; that is exact for art anchored at a page's first paragraph (the
         /// common template shape) and an approximation elsewhere, which beats collapsing pages
-        /// together. The wrapper stood for the page's top EDGE until 2026-10-12, which set every
-        /// page-relative drawing one top margin low against the text of its own page:
-        /// business/02's shaded panel started under the COMPANY NAME heading it backs, and
-        /// agendas-minutes/14's two top stripes lay across the title they sit above. What reaches
+        /// together. Taken for the page's top EDGE, it sets every page-relative drawing one top margin
+        /// low (business/02's shaded panel under the COMPANY NAME heading it backs). What reaches
         /// up into the margin has the body's top padding to draw in on the first page and the
         /// room <see cref="WriteBody"/> reserves on a later one.
         /// </summary>
@@ -3822,8 +3817,7 @@ static class HtmlExporter
 
         /// <summary>The opening div of a text box, carrying its chrome — fill, frame and Word's
         /// default inner inset — plus an optional positioning prefix. The chrome is what makes a
-        /// quote box or panel read as one; it was dropped entirely (bare
-        /// <c>&lt;div&gt;</c>), and cell-anchored text boxes were dropped whole.</summary>
+        /// quote box or panel read as one.</summary>
         static string TextBoxOpenTag(FloatingTextBoxElement textBox, string? positionStyle)
         {
             var style = new StringBuilder();
@@ -4203,9 +4197,7 @@ static class HtmlExporter
         // A chart is composed as the layout composes it (ChartComposer) — its bars, slices, rules and
         // markers placed shapes, written as the shape writer writes a shape, each in a viewport of its
         // own box — and its labels set as text in the boxes the composer gives them. It is placed as
-        // a floating shape is, absolutely at its anchor. Until 2026-11-01 only an inline doughnut,
-        // which Word's parser turns into a group of its slices, came through; every other chart,
-        // an Excel drawing's or a slide's, was dropped.
+        // a floating shape is, absolutely at its anchor.
         void WriteChart(FloatingChartElement chart, int depth)
         {
             var width = chart.WidthPoints;
@@ -4517,8 +4509,6 @@ static class HtmlExporter
         // Resolves a shape's box into page coordinates. The body's padding equals the page margins,
         // and CSS resolves absolutely-positioned children against the padding box, so the
         // positioning origin is the page origin and shapes place at their raw page position.
-        // Mirrors the deleted FloatingPosition.ResolveShapeBounds, which needed a render context the exporter
-        // lacks.
         static (double left, double top, double width, double height) ShapeBox(FloatingShapeElement shape, PageSettings page)
         {
             var contentWidth = page.ContentWidth;

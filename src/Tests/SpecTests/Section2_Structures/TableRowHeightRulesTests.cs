@@ -323,8 +323,8 @@ public class TableRowHeightRulesTests
         var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer());
 
         // The single row is both first and last, so it accrues BOTH outer edges. There is no
-        // artificial row-height floor (a blanket 20pt minimum was removed — it ballooned short
-        // rows), so the box is content(line 12) + top(1) + bottom(1) = 14.
+        // artificial row-height floor (a blanket minimum balloons short rows), so the box is
+        // content(line 12) + top(1) + bottom(1) = 14.
         await Assert.That(heights[0]).IsEqualTo(14f).Within(0.01f);
     }
 

@@ -5,10 +5,8 @@ extern alias Skia;
 /// face far from the requested weight, a configured fallback offering a closer weight wins instead.
 ///
 /// <c>src/Fonts</c> carries Daytona Bold and no other Daytona face, which makes it the only
-/// "family present, weight absent" example available. No scenario exercises it any more —
-/// <c>business-plans</c> 01/07/08 were re-pointed at Calibri once it emerged that their Word
-/// references had been rendered against a Daytona family Office no longer supplies — so without
-/// these tests the rule would have no coverage at all.
+/// "family present, weight absent" example available. No scenario exercises it, so without these
+/// tests the rule would have no coverage at all.
 /// </summary>
 public class FontWeightFallbackTests
 {

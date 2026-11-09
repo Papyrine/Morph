@@ -1,7 +1,7 @@
 /// <summary>
 /// A table whose declared row floors miss the space left moves whole to the next region, as Word does
 /// on every controlled floor fixture (<c>_probe_floorfit_single/_last/_mid/_enddoc</c>); a table of the
-/// same height made of content alone keeps the shared rounding slack (todo #25 residue, closed 2026-09-05).
+/// same height made of content alone keeps the shared rounding slack.
 /// </summary>
 public class TableFloorFitTests
 {

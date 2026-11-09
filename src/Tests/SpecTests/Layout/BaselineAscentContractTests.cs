@@ -5,10 +5,9 @@
 /// <c>−sTypoDescender</c> when the font sets USE_TYPO_METRICS, <c>usWinDescent</c> otherwise — and, for
 /// an East Asian face, the lower half of the extra leading Word sets such a face in.
 ///
-/// <para>This replaced two earlier rules, both measured and both wrong: the hhea ascender (0.2 em high on
-/// Calibri, whose hhea box is not its GDI cell) and then <c>usWinAscent</c> for every font regardless of
-/// the flag — which coincided with Word on faces that carry no leading (Calibri, Segoe UI, Baskerville Old
-/// Face) and was 0.071 em low on Aptos, 0.033 em on Arial, 0.19 em on Gabriola. Word-measured 2026-09-04
+/// <para>Neither the hhea ascender (0.2 em high on Calibri, whose hhea box is not its GDI cell) nor
+/// <c>usWinAscent</c> for every font regardless of the flag (right only on faces that carry no leading;
+/// 0.071 em low on Aptos, 0.033 em on Arial, 0.19 em on Gabriola) matches Word. Word-measured 2026-09-04
 /// (<c>_probe_baseline</c> / <c>_probe_baseline2</c>: 23 faces at 24/48/96pt, one face and size per page
 /// with spacing zeroed, first baseline read from the XPS <c>Glyphs</c> origin against the top margin) —
 /// the table in <see cref="Word_measured_baselines_are_reproduced_on_the_120dpi_grid"/> is that data for

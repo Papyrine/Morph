@@ -176,10 +176,9 @@ public class CanonicalFragmenterTests
     /// to the font and leaves the bare single-spaced pitch — which is NOT the auto test's box either, since
     /// the default <see cref="ParagraphProperties.LineSpacingMultiplier"/> is Word's 1.08.
     /// </summary>
-    // The 16pt page height moved 197 → 198 when the atLeast baseline was bottom-anchored
-    // (LineAscentPoints, 2026-08-19): the straddling line's ASCENT grew by the box excess, so the
-    // guard below needs one more point of page for the baseline to stay inside the margin while
-    // the box still overhangs. The fragmenter rule under test is unchanged.
+    // The atLeast baseline is bottom-anchored (LineAscentPoints), so the straddling line's ASCENT
+    // includes the box excess, and the 16pt case needs a 198pt page for the baseline to stay inside
+    // the margin while the box still overhangs.
     [Test]
     [Arguments(10, 199, 11)]
     [Arguments(16, 198, 9)]
@@ -222,9 +221,8 @@ public class CanonicalFragmenterTests
     public async Task A_carried_row_keeps_its_declared_height()
     {
         var page = Page(200);
-        // Eleven fillers reach 159.5pt, leaving half a point — too little even for the row's CONTENT
-        // (the break decision ignores the atLeast floor, see the test below), so the row advances whole
-        // to page 2 rather than leaving a fragment behind.
+        // Eleven fillers reach 159.5pt, leaving half a point — too little even for the row's CONTENT,
+        // so the row advances whole to page 2 rather than leaving a fragment behind.
         var fillers = Enumerable.Range(0, 11).Select(index => P($"Filler {index}")).ToList();
         var table = new TableElement
         {
@@ -291,9 +289,8 @@ public class CanonicalFragmenterTests
     /// four ways (<c>_probe_floorfit_single</c>/<c>_last</c>/<c>_mid</c>/<c>_enddoc</c>, 2026-08-07):
     /// a 30pt-floored row of one 12pt line offered a 24pt remainder moves in every structure — single-row
     /// table, last row, mid row, end of document — and business-plans/13's landscape pages break exactly
-    /// where the floored row's floor crosses the bottom margin. A content-only fit was briefly landed off
-    /// an in-situ letters/04 reading; that keep is upstream height drift (Word's letter runs ~50pt more
-    /// compact, so the floor simply fits), not a fit law.
+    /// where the floored row's floor crosses the bottom margin. letters/04 keeping such a row is upstream
+    /// height drift (Word's letter runs ~50pt more compact, so the floor simply fits), not a fit law.
     /// </summary>
     [Test]
     public async Task A_floored_row_whose_content_fits_but_floor_does_not_moves_whole()
@@ -532,8 +529,7 @@ public class CanonicalFragmenterTests
     /// is the case that separates the two readings: the carry drops it to one line on this page, and the
     /// orphan rule then moves the whole paragraph. Checking them as mutually exclusive branches stops
     /// after the carry and leaves behind exactly the orphan the rule exists to prevent.
-    /// No corpus document exercises this — the scenario suite is unchanged either way — so the rule is
-    /// pinned here. It was verified against Word through the equivalent path in a splittable table row
+    /// No corpus document exercises this, so the rule is pinned here. It was verified against Word through the equivalent path in a splittable table row
     /// (business-plans/15's "Long-term Liabilities" bullet, where Word breaks 0/3 and the alternative
     /// reading gives 1/2).
     /// </summary>
@@ -986,7 +982,7 @@ public class CanonicalFragmenterTests
 
     /// <summary>
     /// A page begun by page-break-before is a deliberate one: two empty page-break-before paragraphs in a
-    /// row leave Word a page holding only the first, where the blank-page drop used to discard it.
+    /// row leave Word a page holding only the first, which the blank-page drop must not discard.
     /// </summary>
     [Test]
     public async Task Two_empty_page_break_before_paragraphs_leave_a_blank_page_between_them()
@@ -1034,8 +1030,7 @@ public class CanonicalFragmenterTests
 
     /// <summary>
     /// A row taller than a whole region splits at a line boundary and continues overleaf, rather than
-    /// overflowing off the page as it used to. business-plans/15 wraps whole prose sections in one-row
-    /// tables and lost a page to that overflow.
+    /// overflowing off the page. business-plans/15 wraps whole prose sections in one-row tables.
     /// </summary>
     [Test]
     public async Task A_row_taller_than_the_page_splits_across_pages()
@@ -1131,8 +1126,7 @@ public class CanonicalFragmenterTests
 
         var document = fragmenter.Layout([paragraph], page);
 
-        // Every wrapped line is placed exactly once, and the paragraph continues onto a second page —
-        // the line-level split the raster backends cannot do.
+        // Every wrapped line is placed exactly once, and the paragraph continues onto a second page.
         await Assert.That(document.Pages.Sum(_ => _.Items.Count)).IsEqualTo(totalLines);
         await Assert.That(document.Pages.Count > 1).IsTrue();
         await Assert.That(ReferenceEquals(((PlacedLine) document.Pages[1].Items[0]).Paragraph, paragraph)).IsTrue();
@@ -1780,9 +1774,8 @@ public class CanonicalFragmenterTests
                 Elements = [banner]
             });
 
-        // A header's behind-text shape paints as a PlacedShape ahead of the body — the engine used to emit
-        // only header images and dropped shape banners (cover-letters/10's charcoal band). The painter
-        // honours the shape's fill alpha (the banner's 10% accent tint).
+        // A header's behind-text shape paints as a PlacedShape ahead of the body (cover-letters/10's
+        // charcoal band). The painter honours the shape's fill alpha (the banner's 10% accent tint).
         var shape = document.Pages[0].Items.OfType<PlacedShape>().Single();
         await Assert.That(shape.Shape.FillColorHex).IsEqualTo("262626");
         await Assert.That(shape.Shape.FillAlpha).IsEqualTo(0.1);
@@ -1984,7 +1977,7 @@ public class CanonicalFragmenterTests
     public async Task A_title_page_with_no_first_page_header_reserves_no_header_space()
     {
         // A DifferentFirstPage document with no first-page header shows nothing on page 1, so its default
-        // header must not push page 1's body down (the over-reservation that regressed business/04).
+        // header must not push page 1's body down (business/04).
         var header = new HeaderFooterContent
         {
             Elements = [P("default one"), P("default two")]
@@ -2185,7 +2178,7 @@ public class CanonicalFragmenterTests
         var firstPageLines = document.Pages[0].Items.Cast<PlacedLine>().ToList();
 
         // Both columns are used on page 1, and column 1 resumes at the content top (20pt), not column 0's
-        // running y — the region-top reset the raster backends get from MoveToNextColumn.
+        // running y.
         await Assert.That(firstPageLines.Any(_ => Math.Abs(_.X - 20f) < 0.5f)).IsTrue();
         var column1Lines = firstPageLines.Where(_ => Math.Abs(_.X - column1Left) < 0.5f).ToList();
         await Assert.That(column1Lines.Count > 0).IsTrue();
@@ -2522,9 +2515,8 @@ public class CanonicalFragmenterTests
     {
         // Word draws each collapsed interior edge on the row boundary and insets the row below it, so an
         // N-row bordered table is taller than the same table without inside borders by (N-1) x the border
-        // width. Missing this, the engine fit an extra row per page in a dense bordered table
-        // (header_row_repeat/01: 25 data rows per page vs Word's 24). The production render positions
-        // content differently, so interior borders are opt-in (addInteriorBorders) on the engine path.
+        // width. Missing it fits an extra row per page in a dense bordered table (header_row_repeat/01:
+        // Word fits 24 data rows per page, not 25).
         static TableElement ThreeRow(BorderEdge insideH) =>
             new()
             {

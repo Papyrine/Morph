@@ -36,9 +36,8 @@ static class ShapeStroke
     /// <summary>
     /// The stroke width in points for a declared <paramref name="lineWidthPoints"/>: the width
     /// itself however thin, the hairline for a declared zero, the default for none. A width under
-    /// half a point used to be raised to half a point, which drew a quarter-point accent rule at
-    /// twice Word's ink (menus/07's frame, 75 outlines across the corpus) and a 0.34pt one at half
-    /// as much again (200 outlines).
+    /// half a point is not raised to half a point: that draws a quarter-point accent rule at twice
+    /// Word's ink (menus/07's frame, 75 outlines across the corpus).
     /// </summary>
     public static double WidthPoints(double? lineWidthPoints) =>
         lineWidthPoints switch

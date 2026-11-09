@@ -117,7 +117,7 @@ static class ResultStore
     }
 
     // Windows refuses to replace a file another process has open (an editor, the indexer, a virus scan): the
-    // move is retried for a few seconds rather than ending a run on it, as it once did 107 cases into lists.
+    // move is retried for a few seconds rather than ending a run on it.
     public static void WriteAtomic(string path, string content)
     {
         var temporary = path + ".tmp";

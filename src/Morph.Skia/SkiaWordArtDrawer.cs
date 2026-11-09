@@ -1,7 +1,6 @@
 /// <summary>
-/// Draws WordArt shapes (warps, outline, shadow, glow, reflection) on an <see cref="SKCanvas"/>.
-/// Extracted verbatim from <c>SkiaPageRenderer</c> so the drawing has no page-renderer dependency:
-/// the page renderer positions the shape in the flow and delegates here, and
+/// Draws WordArt shapes (warps, outline, shadow, glow, reflection) on an <see cref="SKCanvas"/>,
+/// with no page-render dependency: the painter positions the shape and delegates here, and
 /// <see cref="SkiaWordArtRasterizer"/> draws straight onto its own transparent bitmap without
 /// running a page render.
 /// </summary>

@@ -67,12 +67,10 @@ sealed record BorderEdge
 /// ECMA-376 17.18.2 <c>ST_Border</c>, line styles only — the ~160 art borders are page-border-only
 /// and are modelled separately.
 ///
-/// <para>This used to be four values (Single/Double/Dotted/Dashed) with every other OOXML style
-/// folded into <c>Single</c>. That collapse was not only a rendering loss: because
+/// <para>Every declared style stays distinct, not only for the stroke: because
 /// <see cref="ParagraphProperties.SharesBorderGroupWith"/> compares border records for equality,
-/// paragraphs declaring DIFFERENT styles compared equal and merged into one box — the
-/// <c>border_style_variants</c> fixture's four separate three-D boxes rendered as a single
-/// rectangle. Keeping the declared style distinct fixes the grouping and the stroke together.</para>
+/// folding styles together would merge paragraphs declaring different styles into one box (the
+/// <c>border_style_variants</c> fixture's four separate three-D boxes).</para>
 /// </summary>
 enum BorderLineStyle
 {

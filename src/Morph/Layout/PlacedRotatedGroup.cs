@@ -4,10 +4,8 @@
 /// painter draws rotated by <see cref="RotationDegrees"/> about that box's centre. A table cell with
 /// <c>w:textDirection</c> lays its content out in a box of the cell's height by its width, centred on the
 /// cell, and rotates it into place (−90 for <c>btLr</c>, reading bottom to top; +90 for <c>tbRl</c>); a
-/// floating text box with an <c>a:xfrm</c> rotation lays out in its own box and rotates with its chrome.
-/// The cell direction was an engine-flip orphan — parsed onto <see cref="TableCellProperties.TextDirection"/>
-/// and drawn by the deleted production renderers, never by the engine — and a text box's rotation only
-/// reached its chrome, so labels/06's "ADMIT ONE" stubs lay flat across their ticket seams.
+/// floating text box with an <c>a:xfrm</c> rotation lays out in its own box and rotates with its chrome
+/// (labels/06's "ADMIT ONE" stubs, set across their ticket seams).
 /// </summary>
 sealed record PlacedRotatedGroup(
     float X,

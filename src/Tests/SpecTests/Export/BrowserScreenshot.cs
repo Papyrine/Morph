@@ -23,27 +23,19 @@ static class BrowserScreenshot
     /// Timeout for every browser operation that acts on the rendered page — navigation and
     /// screenshot alike.
     ///
-    /// Playwright's default is 30s. That was raised for the SCREENSHOT alone (660556c1f) after a
-    /// run of timeouts on the PowerPoint decks: a deck's Markdown export embeds every slide's
-    /// artwork inline as base64, so the page is a single strip tens of megabytes tall, and which
-    /// scenarios crossed 30s shifted between runs with scheduling. Loading that page is the same
-    /// weight as capturing it, so leaving <see cref="IPage.GotoAsync"/> on the default left half
-    /// the failure mode in place — it is applied to both here rather than to one of them.
+    /// Playwright's default of 30s is too short for the PowerPoint decks: a deck's Markdown export
+    /// embeds every slide's artwork inline as base64, so the page is a single strip tens of megabytes
+    /// tall. Loading that page is the same weight as capturing it, so it applies to both.
     ///
-    /// Generous on purpose. It is a safety net for a machine slower or busier than this one, and
-    /// an unused timeout costs nothing. The wait is on the browser; Morph has already produced its
-    /// output by this point.
+    /// Generous on purpose: an unused timeout costs nothing.
     /// </summary>
     const int pageTimeout = 180_000;
 
     /// <summary>
     /// What Chromium answers when it has no frame to hand back for a capture. It is not a timeout
-    /// and it is not about the page: one CI run failed 2 of 4483 with it, on two Markdown pages of
-    /// a few hundred bytes, 10ms apart and half a second into each, while the same commit passed
-    /// on a run started seven seconds later and two full local runs (one held to the runner's 4
-    /// cores) could not produce it. Two captures in separate contexts failing together points at
-    /// something they share rather than at either page, so the capture is made once more on a new
-    /// page, and <see cref="Report"/> says so. The second PNG goes through Verify like any other,
+    /// and it is not about the page: it strikes tiny pages rarely and unreproducibly, and captures in
+    /// separate contexts together, so the capture is made once more on a new page, and
+    /// <see cref="Report"/> says so. The second PNG goes through Verify like any other,
     /// so a retry cannot pass a rendering change.
     /// </summary>
     const string captureFailure = "Unable to capture screenshot";
@@ -133,8 +125,8 @@ static class BrowserScreenshot
         await page.EvaluateAsync("async () => { await document.fonts.ready; }");
 
         // A page wider than the window (a deck's 960pt slides are 1280px) is laid out in a window
-        // its width: in 1024px its body was squeezed to the window and every slide, which clips
-        // to its box, lost its right fifth.
+        // its width: in 1024px its body is squeezed to the window and every slide, which clips
+        // to its box, loses its right fifth.
         var pageWidth = await page.EvaluateAsync<double>(pageWidthScript);
         if (pageWidth > viewportWidth)
         {
@@ -142,8 +134,8 @@ static class BrowserScreenshot
         }
 
         // The capture is what the page draws, not the window: a full-page capture grows the window
-        // down to the content but never trims it, so cards/13's 816px letter page came with a
-        // 208px white strip beside it and cards/04's 672x480 card sat in a 1024x768 frame.
+        // down to the content but never trims it, which would leave cards/04's 672x480 card in a
+        // 1024x768 frame.
         var extent = await page.EvaluateAsync<double[]>(contentExtentScript);
         return await page.ScreenshotAsync(
             new()

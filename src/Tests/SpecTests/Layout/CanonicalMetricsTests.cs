@@ -159,9 +159,9 @@ public class CanonicalMetricsTests
 
     // Word's layout takes GPOS kerning linearly, in the same design units as the advances. The pixel
     // values are the autofit columns Word gave ten "To" set solid in Calibri with kerning on
-    // (_probe_autofit, 2026-10-02, read off the border rules). The pair rule this replaced, which
-    // snapped each kern and rounded the pair's first glyph to a whole pixel as Word DRAWS it, gave
-    // 166.7 and 157.9 for the 11 and 10pt columns.
+    // (_probe_autofit, 2026-10-02, read off the border rules). A pair rule that snaps each kern and
+    // rounds the pair's first glyph to a whole pixel, as Word DRAWS it, gives 166.7 and 157.9 for the
+    // 11 and 10pt columns.
     [Test]
     [Arguments(12, 185.2)]
     [Arguments(11, 169.2)]

@@ -19,9 +19,9 @@ public class HtmlExporterTests
 
     /// <summary>
     /// A <c>w:br</c> reaches the exporter as a newline run, which becomes a <c>&lt;br /&gt;</c>. A
-    /// paragraph of nothing but breaks is all whitespace, so it used to read as blank and be
-    /// dropped whole — collapsing nonstandard_main_part_name's Notes box, a cell whose only
-    /// content is seven breaks, to a 4px strip where Word gives it eight lines.
+    /// paragraph of nothing but breaks is all whitespace but must not be dropped as blank:
+    /// nonstandard_main_part_name's Notes box, a cell whose only content is seven breaks, gets
+    /// eight lines in Word.
     /// </summary>
     [Test]
     public Task BreakOnlyParagraph() =>

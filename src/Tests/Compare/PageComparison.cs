@@ -1,7 +1,6 @@
 /// <summary>
 /// The two per-page metrics the scenario suites record against the Word reference render. Both
-/// come from a SINGLE decode of each image — they used to live in separate helpers that decoded
-/// the same pair twice over.
+/// come from a SINGLE decode of each image.
 ///
 /// * <c>AbsoluteError</c> — the fraction of pixels that differ at all (0 = identical). Pixels
 ///   outside the overlap of two differently-sized pages count as differing, and the result is
@@ -13,13 +12,9 @@
 ///   first image's geometry, so a sub-window score would be silently wrong rather than merely
 ///   imprecise.
 ///
-/// Both were originally Magick.NET calls. SSIM moved in-repo for speed (the managed implementation
-/// is ~30× faster than Magick's SSIM metric, which added ~10 minutes to a full suite run); the
-/// absolute error followed when Magick.NET 14.15 changed
-/// <c>Compare(other, ErrorMetric.Absolute)</c> to return the RAW unnormalised error (a ~1e9 sum in
-/// Q16 units) instead of the fraction, silently rewriting every recorded metric. Keeping both here
-/// makes the recorded numbers stable across future upgrades — see docs/fidelity-audit.md; do not
-/// route them back through Magick.
+/// Keeping both in-repo makes the recorded numbers stable across library upgrades (Magick.NET's SSIM
+/// is ~30× slower, and its absolute-error metric has changed meaning between versions) — see
+/// docs/fidelity-audit.md; do not route them through Magick.
 /// </summary>
 static class PageComparison
 {
