@@ -91,9 +91,10 @@ sealed class ViewerHandle(IJSObjectReference controller) : IAsyncDisposable
 
     // Where a command the ribbon runs is to act: what is being typed is handed in first, and the caret
     // and the selection come back in paragraphs of the file (ParagraphEditor.target in morph-edit.js).
-    // Empty when no paragraph has been open since text was last selected on the pages.
-    public ValueTask<int[]> EditTargetAsync() =>
-        controller.InvokeAsync<int[]>("editTarget");
+    // Empty when no paragraph has been open since text was last selected on the pages; null where the
+    // interop hands back nothing at all (a test host's, a page going away).
+    public ValueTask<int[]?> EditTargetAsync() =>
+        controller.InvokeAsync<int[]?>("editTarget");
 
     // How long the paragraph being typed has been left alone, in milliseconds: -1 while an input method
     // composes, and a large number when none is open. Coauthoring shows others' edits once it is a while.

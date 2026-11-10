@@ -15,6 +15,7 @@ public sealed class MorphInterop(IJSRuntime jsRuntime) : IAsyncDisposable
     Task<IJSObjectReference>? import;
     Task<IJSObjectReference>? textImport;
     Task<IJSObjectReference>? viewerImport;
+    Task<IJSObjectReference>? sheetImport;
 
     Task<IJSObjectReference> Module =>
         import ??= Import(MorphAssets.Script);
@@ -71,6 +72,14 @@ public sealed class MorphInterop(IJSRuntime jsRuntime) : IAsyncDisposable
     {
         var module = await TextModule;
         await module.InvokeVoidAsync("clearTextLayer", element);
+    }
+
+    // The grid's controller over the element SheetEditor renders; see morph-sheet.js for the calls.
+    internal async Task<IJSObjectReference> AttachSheetAsync<T>(ElementReference root, DotNetObjectReference<T> callbacks)
+        where T : class
+    {
+        var module = await (sheetImport ??= Import(MorphAssets.SheetScript));
+        return await module.InvokeAsync<IJSObjectReference>("attachSheet", root, callbacks);
     }
 
     // The viewer's controller over the element MorphViewer renders; see morph-viewer.js for the calls.
@@ -145,7 +154,7 @@ public sealed class MorphInterop(IJSRuntime jsRuntime) : IAsyncDisposable
     /// <summary>Releases the imported JavaScript modules.</summary>
     public async ValueTask DisposeAsync()
     {
-        foreach (var pending in new[] { import, textImport, viewerImport })
+        foreach (var pending in new[] { import, textImport, viewerImport, sheetImport })
         {
             if (pending is null)
             {

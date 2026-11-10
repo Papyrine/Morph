@@ -166,7 +166,7 @@ sealed record ColorTransforms
 
         // A byte shade of 0 is the absent-value sentinel rather than "scale luminance to zero" —
         // a literal w:themeShade="00" never occurs.
-        if (ThemeShade is > 0 and { } shade)
+        if (ThemeShade is > 0 and var shade)
         {
             lumMod *= shade / 255.0;
         }

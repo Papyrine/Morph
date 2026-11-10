@@ -747,7 +747,7 @@ sealed partial class DocumentParser
                 // body lives in footnotes.xml / endnotes.xml (ExtractFootnotes / ExtractEndnotes);
                 // here we only record the citation position as an empty marker run so the text
                 // exporters can emit a reference and a trailing notes section.
-                case FootnoteReference { Id.Value: { } footnoteId }:
+                case FootnoteReference { Id.Value: var footnoteId }:
                     FlushText();
                     var footnoteKey = footnoteId.ToString();
                     if (!footnoteCitationNumbers.TryGetValue(footnoteKey, out var footnoteNumber))
@@ -773,7 +773,7 @@ sealed partial class DocumentParser
                             Source = SourceAt(position, atomic: true)
                         });
                     break;
-                case EndnoteReference { Id.Value: { } endnoteId }:
+                case EndnoteReference { Id.Value: var endnoteId }:
                     FlushText();
                     var endnoteKey = endnoteId.ToString();
                     if (!endnoteCitationNumbers.TryGetValue(endnoteKey, out var endnoteNumber))

@@ -3406,3 +3406,402 @@ a.wopi-crumb:hover {
     padding: 2rem;
     text-align: center;
 }
+
+/* ---- The editor's grid: an Excel workbook (SheetEditor) ----
+   The cells are paper, white whatever the theme, as a page is; the headers, bars and tabs follow it. A
+   workbook's pages stay in the editor, hidden, for printing. */
+
+.editor-sheet > .viewer-body,
+.editor-sheet > .editor-ruler {
+    display: none;
+}
+
+.sheet {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--morph-surface, #ffffff);
+}
+
+.sheet-toolbar {
+    position: relative;
+    z-index: 6;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+}
+
+.sheet-select {
+    height: 1.75rem;
+    padding: 0 0.25rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    background: var(--morph-surface, #ffffff);
+    color: inherit;
+    font: inherit;
+    font-size: 0.8125rem;
+}
+
+.sheet-font {
+    width: 9rem;
+}
+
+.sheet-size {
+    width: 3.75rem;
+}
+
+.sheet-number {
+    width: 8.5rem;
+}
+
+.sheet-text-button {
+    min-width: 1.75rem;
+    justify-content: center;
+    font-weight: 600;
+}
+
+.sheet-menu {
+    min-width: 11rem;
+}
+
+.sheet-bar,
+.sheet-findbar {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.25rem 0.5rem;
+    border-bottom: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-surface, #ffffff);
+}
+
+.sheet-name-box {
+    width: 6.5rem;
+    height: 1.625rem;
+    padding: 0 0.375rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    background: var(--morph-surface, #ffffff);
+    color: inherit;
+    font: inherit;
+    font-size: 0.8125rem;
+}
+
+.sheet-fx {
+    padding: 0 0.25rem;
+    color: var(--morph-muted, #6c757d);
+    font-style: italic;
+    font-family: Georgia, serif;
+}
+
+.sheet-formula,
+.sheet-find {
+    flex: 1;
+    min-width: 0;
+    height: 1.625rem;
+    padding: 0 0.375rem;
+    border: 1px solid var(--morph-border, #dee2e6);
+    border-radius: 3px;
+    background: var(--morph-surface, #ffffff);
+    color: inherit;
+    font: inherit;
+    font-size: 0.8125rem;
+}
+
+.sheet-find {
+    flex: 0 1 20rem;
+}
+
+.sheet-formula:focus,
+.sheet-name-box:focus,
+.sheet-find:focus {
+    outline: 2px solid var(--morph-primary, #2b579a);
+    outline-offset: -1px;
+}
+
+.sheet-scroll {
+    position: relative;
+    /* Its own stacking context, so the sticky headers never rise over the toolbar's menus. */
+    isolation: isolate;
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    background: #ffffff;
+    color: #000000;
+}
+
+.sheet-canvas {
+    display: grid;
+    position: relative;
+}
+
+.sheet-corner,
+.sheet-column-heads,
+.sheet-row-heads {
+    background: #f3f3f3;
+    color: #444444;
+}
+
+.sheet-corner {
+    position: sticky;
+    top: 0;
+    left: 0;
+    z-index: 8;
+    grid-area: 1 / 1;
+    border-right: 1px solid #c8c8c8;
+    border-bottom: 1px solid #c8c8c8;
+    cursor: cell;
+}
+
+.sheet-column-heads {
+    position: sticky;
+    top: 0;
+    z-index: 7;
+    grid-area: 1 / 2;
+    border-bottom: 1px solid #c8c8c8;
+}
+
+.sheet-row-heads {
+    position: sticky;
+    left: 0;
+    z-index: 7;
+    grid-area: 2 / 1;
+    border-right: 1px solid #c8c8c8;
+}
+
+.sheet-head {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    font: 0.75rem/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+    user-select: none;
+}
+
+.sheet-column-heads .sheet-head {
+    top: 0;
+    height: 100%;
+    border-right: 1px solid #d4d4d4;
+    cursor: s-resize;
+}
+
+.sheet-row-heads .sheet-head {
+    left: 0;
+    width: 100%;
+    border-bottom: 1px solid #d4d4d4;
+    cursor: e-resize;
+}
+
+.sheet-head-on {
+    background: #d9d9d9;
+    color: #1e6e3e;
+    font-weight: 600;
+}
+
+.sheet-head-all {
+    background: #c6e0d0;
+    color: #155230;
+    font-weight: 600;
+}
+
+.sheet-cells {
+    position: relative;
+    grid-area: 2 / 2;
+    overflow: hidden;
+    cursor: cell;
+    font-family: Aptos, Calibri, "Segoe UI", sans-serif;
+}
+
+.sheet-gridline {
+    position: absolute;
+    z-index: 0;
+    background: #e1e1e1;
+    pointer-events: none;
+}
+
+.sheet-box {
+    position: absolute;
+    z-index: 1;
+    box-sizing: border-box;
+    pointer-events: none;
+}
+
+/* A merged area hides the gridlines through it, as Excel's does. */
+.sheet-merge {
+    background: #ffffff;
+}
+
+.sheet-text {
+    position: absolute;
+    z-index: 3;
+    display: flex;
+    overflow: hidden;
+    padding: 0 2px;
+    line-height: 1.2;
+    white-space: pre;
+    pointer-events: none;
+}
+
+.sheet-text > span {
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+.sheet-wrap {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.sheet-wrap > span {
+    width: 100%;
+}
+
+.sheet-selection {
+    position: absolute;
+    z-index: 2;
+    box-sizing: border-box;
+    border: 1px solid #217346;
+    background: rgb(33 115 70 / 0.12);
+    pointer-events: none;
+}
+
+.sheet-active {
+    position: absolute;
+    z-index: 4;
+    box-sizing: border-box;
+    border: 2px solid #217346;
+    pointer-events: none;
+}
+
+.sheet-marquee {
+    position: absolute;
+    z-index: 4;
+    box-sizing: border-box;
+    border: 2px dashed #217346;
+    pointer-events: none;
+}
+
+.sheet-pointed {
+    position: absolute;
+    z-index: 4;
+    box-sizing: border-box;
+    border: 2px dashed #2b6cc4;
+    background: rgb(43 108 196 / 0.08);
+    pointer-events: none;
+}
+
+/* The keyboard's focus: invisible and empty until a cell is being edited in it. */
+.sheet-input {
+    position: absolute;
+    z-index: 5;
+    box-sizing: border-box;
+    margin: 0;
+    padding: 1px 2px;
+    overflow: hidden;
+    border: none;
+    outline: none;
+    background: transparent;
+    color: transparent;
+    caret-color: transparent;
+    font-family: Aptos, Calibri, "Segoe UI", sans-serif;
+    line-height: 1.2;
+    resize: none;
+    white-space: pre;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.sheet-input.editing {
+    min-width: 2rem;
+    border: 2px solid #217346;
+    background: #ffffff;
+    color: #000000;
+    caret-color: #000000;
+    opacity: 1;
+    pointer-events: auto;
+    box-shadow: 0 2px 6px rgb(0 0 0 / 0.2);
+}
+
+.sheet-guide {
+    position: absolute;
+    z-index: 6;
+    background: #217346;
+    pointer-events: none;
+}
+
+.sheet-guide[data-kind="column"] {
+    width: 1px;
+    height: 100%;
+}
+
+.sheet-guide[data-kind="row"] {
+    width: 100%;
+    height: 1px;
+}
+
+.sheet-chart-note {
+    padding: 2rem;
+    color: #6c757d;
+    text-align: center;
+}
+
+.sheet-tabs {
+    display: flex;
+    gap: 2px;
+    overflow-x: auto;
+    padding: 0 0.5rem;
+    border-top: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-background, #f8f9fa);
+}
+
+.sheet-tab {
+    flex: none;
+    padding: 0.3rem 0.9rem;
+    border: none;
+    border-bottom: 3px solid transparent;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    font-size: 0.8125rem;
+    cursor: pointer;
+}
+
+.sheet-tab:hover {
+    background: var(--morph-surface, #ffffff);
+}
+
+.sheet-tab[aria-selected="true"] {
+    border-bottom-color: #217346;
+    background: var(--morph-surface, #ffffff);
+    color: #217346;
+    font-weight: 600;
+}
+
+.sheet-status {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    min-height: 2rem;
+    padding: 0.15rem 0.75rem;
+    border-top: 1px solid var(--morph-border, #dee2e6);
+    background: var(--morph-surface, #ffffff);
+    color: var(--morph-muted, #6c757d);
+    font-size: 0.8125rem;
+}
+
+.sheet-mode {
+    min-width: 3rem;
+}
+
+.sheet-note {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.sheet-status .editor-status-zoom {
+    margin-left: auto;
+}

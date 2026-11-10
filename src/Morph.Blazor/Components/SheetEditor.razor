@@ -1,0 +1,361 @@
+@* An Excel workbook's grid: the toolbar, the name box and formula bar, the cells, the sheets' tabs and the
+   status bar. The keys, the typing, the mouse and the clipboard are morph-sheet.js's; what the cells hold and
+   look like, the selection and every edit are this component's. The toolbar's buttons keep the focus where
+   it was (mousedown is not let take it), so the grid keeps the keyboard. *@
+
+<div class="sheet" @ref="root" data-sheet="">
+    <div class="sheet-toolbar editor-tools" role="toolbar" aria-label="Home">
+        <div class="editor-group" role="group" aria-label="Undo">
+            <div class="editor-group-body">
+                <div class="editor-stack">
+                    @Button("Undo (Ctrl+Z)", Lucide.Undo2, UndoAsync, !CanUndo)
+                    @Button("Redo (Ctrl+Y)", Lucide.Redo2, RedoAsync, !CanRedo)
+                </div>
+            </div>
+        </div>
+        <div class="editor-group" role="group" aria-label="Clipboard">
+            <div class="editor-group-body">
+                @Button("Paste (Ctrl+V)", Lucide.ClipboardPaste, PasteFromClipboardAsync, !Editable)
+                <div class="editor-stack">
+                    @Button("Cut (Ctrl+X)", Lucide.Scissors, () => CopyAsync(true), !Editable)
+                    @Button("Copy (Ctrl+C)", Lucide.Copy, () => CopyAsync(false), Sheet is null)
+                </div>
+            </div>
+        </div>
+        <div class="editor-group" role="group" aria-label="Font">
+            <div class="editor-group-body">
+                <div class="editor-rows">
+                    <div class="editor-row">
+                        <select class="sheet-select sheet-font" aria-label="Font" title="Font" disabled="@(!Editable)"
+                                @onchange="OnFontChosen">
+                            @foreach (var each in FontChoices)
+                            {
+                                <option value="@each" selected="@(each == ActiveFont)">@each</option>
+                            }
+                        </select>
+                        <select class="sheet-select sheet-size" aria-label="Font size" title="Font size" disabled="@(!Editable)"
+                                @onchange="OnSizeChosen">
+                            @foreach (var each in SizeChoices)
+                            {
+                                var size = each.ToString(CultureInfo.InvariantCulture);
+                                <option value="@size" selected="@(each == ActiveSize)">@size</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="editor-row">
+                        @Toggle("Bold (Ctrl+B)", Lucide.Bold, ActiveLook.Bold, () => ToggleAsync(_ => _.Bold, _ => new() { Bold = _ }))
+                        @Toggle("Italic (Ctrl+I)", Lucide.Italic, ActiveLook.Italic, () => ToggleAsync(_ => _.Italic, _ => new() { Italic = _ }))
+                        @Toggle("Underline (Ctrl+U)", Lucide.Underline, ActiveLook.Underline, () => ToggleAsync(_ => _.Underline, _ => new() { Underline = _ }))
+                        @Toggle("Strikethrough", Lucide.Strikethrough, ActiveLook.Strikethrough, () => ToggleAsync(_ => _.Strikethrough, _ => new() { Strikethrough = _ }))
+                        <span class="editor-anchor">
+                            @MenuButton("Borders", Lucide.Grid2x2, bordersMenu)
+                            @if (menu == bordersMenu)
+                            {
+                                <div class="editor-menu sheet-menu" role="menu" aria-label="Borders">
+                                    @MenuItem("All borders", () => BordersAsync("all"))
+                                    @MenuItem("Outside borders", () => BordersAsync("outside"))
+                                    @MenuItem("No border", () => BordersAsync("none"))
+                                </div>
+                            }
+                        </span>
+                        <span class="editor-anchor">
+                            @MenuButton("Fill color", Lucide.PaintBucket, fillMenu)
+                            @if (menu == fillMenu)
+                            {
+                                @Palette("Fill color", _ => FormatAsync(new() { FillHex = _ }), "No fill")
+                            }
+                        </span>
+                        <span class="editor-anchor">
+                            @MenuButton("Font color", Lucide.Baseline, colorMenu)
+                            @if (menu == colorMenu)
+                            {
+                                @Palette("Font color", _ => FormatAsync(new() { ColorHex = _.Length == 0 ? "000000" : _ }), "Automatic")
+                            }
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="editor-group" role="group" aria-label="Alignment">
+            <div class="editor-group-body">
+                <div class="editor-rows">
+                    <div class="editor-row">
+                        @Toggle("Top align", Lucide.ArrowUpToLine, ActiveLook.Vertical == CellVerticalAlignment.Top, () => VerticalAsync("top"))
+                        @Toggle("Middle align", Lucide.SeparatorHorizontal, ActiveLook.Vertical == CellVerticalAlignment.Center, () => VerticalAsync("center"))
+                        @Toggle("Bottom align", Lucide.ArrowDownToLine, ActiveLook.Vertical == CellVerticalAlignment.Bottom, () => VerticalAsync("bottom"))
+                        @Toggle("Wrap text", Lucide.WrapText, ActiveLook.Wrap, () => FormatAsync(new() { Wrap = !ActiveLook.Wrap }))
+                    </div>
+                    <div class="editor-row">
+                        @Toggle("Align left", Lucide.TextAlignStart, ActiveLook.Horizontal == TextAlignment.Left, () => AlignAsync("left"))
+                        @Toggle("Center", Lucide.TextAlignCenter, ActiveLook.Horizontal == TextAlignment.Center, () => AlignAsync("center"))
+                        @Toggle("Align right", Lucide.TextAlignEnd, ActiveLook.Horizontal == TextAlignment.Right, () => AlignAsync("right"))
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="editor-group" role="group" aria-label="Number">
+            <div class="editor-group-body">
+                <div class="editor-rows">
+                    <div class="editor-row">
+                        <select class="sheet-select sheet-number" aria-label="Number format" title="Number format" disabled="@(!Editable)"
+                                @onchange="OnFormatChosen">
+                            @foreach (var (name, formatCode) in NumberFormats)
+                            {
+                                <option value="@formatCode" selected="@(formatCode == ActiveFormat)">@name</option>
+                            }
+                            @if (NumberFormats.All(_ => _.Code != ActiveFormat))
+                            {
+                                <option value="@ActiveFormat" selected>Custom</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="editor-row">
+                        @TextButton("Currency", "$", () => NumberFormatAsync("\"$\"#,##0.00"))
+                        @TextButton("Percent style", "%", () => NumberFormatAsync("0%"))
+                        @TextButton("Comma style", ",", () => NumberFormatAsync("#,##0.00"))
+                        @TextButton("Increase decimal", "+.0", () => DecimalsAsync(1))
+                        @TextButton("Decrease decimal", "−.0", () => DecimalsAsync(-1))
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="editor-group" role="group" aria-label="Editing">
+            <div class="editor-group-body">
+                <div class="editor-stack">
+                    @TextButton("AutoSum (Alt+=)", "Σ Sum", AutoSumAsync)
+                    <span class="editor-anchor">
+                        <button type="button" class="editor-tool" title="Clear" aria-haspopup="menu" aria-expanded="@(menu == clearMenu ? "true" : "false")"
+                                disabled="@(!Editable)" @onmousedown:preventDefault @onclick="() => ToggleMenu(clearMenu)">
+                            <Iconify Value="Lucide.RemoveFormatting" aria-hidden="true" focusable="false" />
+                            Clear
+                            <Iconify Value="Lucide.ChevronDown" class="editor-caret" aria-hidden="true" focusable="false" />
+                        </button>
+                        @if (menu == clearMenu)
+                        {
+                            <div class="editor-menu sheet-menu" role="menu" aria-label="Clear">
+                                @MenuItem("Clear all", () => ClearAsync(true, true))
+                                @MenuItem("Clear formats", () => ClearAsync(false, true))
+                                @MenuItem("Clear contents (Delete)", () => ClearAsync(true, false))
+                            </div>
+                        }
+                    </span>
+                    @TextButton("Find (Ctrl+F)", "Find", () => { findOpen = !findOpen; return Task.CompletedTask; })
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="sheet-bar">
+        @* Keyed by what it shows, so moving the selection puts the new name in even after the reader typed in it. *@
+        <input @key="ActiveName" class="sheet-name-box" aria-label="Name box" title="Name box: type a cell or a range, then Enter" value="@ActiveName" spellcheck="false" autocomplete="off" />
+        <span class="sheet-fx" aria-hidden="true">fx</span>
+        @* The script owns its value while a cell is being edited; a new key puts the cell's back once it is not. *@
+        <input @key="BarKey" class="sheet-formula" aria-label="Formula bar" value="@BarText" readonly="@(!Editable)" spellcheck="false" autocomplete="off" />
+    </div>
+
+    @if (findOpen)
+    {
+        <div class="sheet-findbar" role="search">
+            <input class="sheet-find" aria-label="Find" placeholder="Find in this sheet" value="@findText" spellcheck="false"
+                   @oninput="_ => findText = _.Value?.ToString() ?? string.Empty" />
+            <button type="button" class="viewer-button" title="Previous (Shift+Enter)" aria-label="Previous" @onclick="() => FindNext(false)">
+                <Iconify Value="Lucide.ChevronUp" aria-hidden="true" focusable="false" />
+            </button>
+            <button type="button" class="viewer-button" title="Next (Enter)" aria-label="Next" @onclick="() => FindNext(true)">
+                <Iconify Value="Lucide.ChevronDown" aria-hidden="true" focusable="false" />
+            </button>
+            <button type="button" class="viewer-button" title="Close" aria-label="Close find" @onclick="() => { findOpen = false; return FocusAsync(); }">
+                <Iconify Value="Lucide.X" aria-hidden="true" focusable="false" />
+            </button>
+        </div>
+    }
+
+    @if (menu is not null)
+    {
+        <div class="editor-backdrop" @onmousedown:preventDefault @onclick="() => menu = null"></div>
+    }
+
+    <div class="sheet-scroll" role="grid" aria-label="@(Sheet?.Name ?? "Sheet")" aria-rowcount="@ExtentRows" aria-colcount="@ExtentColumns">
+        @if (Sheet is {IsChart: true})
+        {
+            <div class="sheet-chart-note">This sheet is a chart. Open it in the viewer to see it.</div>
+        }
+        else
+        {
+            var (firstRow, lastRow, firstColumn, lastColumn) = Window;
+            <div class="sheet-canvas" style="@CanvasStyle">
+                <div class="sheet-corner" title="Select all (Ctrl+A)"></div>
+                <div class="sheet-column-heads" aria-hidden="true">
+                    @for (var column = firstColumn; column <= lastColumn; column++)
+                    {
+                        var index = column;
+                        <div @key="index" class="@HeadClass(true, index)" style="@ColumnHeadStyle(index)">@Letters(index)</div>
+                    }
+                </div>
+                <div class="sheet-row-heads" aria-hidden="true">
+                    @for (var row = firstRow; row <= lastRow; row++)
+                    {
+                        var index = row;
+                        <div @key="index" class="@HeadClass(false, index)" style="@RowHeadStyle(index)">@index</div>
+                    }
+                </div>
+                <div class="sheet-cells">
+                    @foreach (var line in Gridlines())
+                    {
+                        <div class="sheet-gridline" style="@line"></div>
+                    }
+                    @foreach (var each in Draw())
+                    {
+                        @if (each.Box is { } box)
+                        {
+                            <div @key="@("b" + each.Key)" class="@(each.BoxClass is { } extra ? $"sheet-box {extra}" : "sheet-box")" style="@box"></div>
+                        }
+                        @if (each.Text is { } text)
+                        {
+                            <div @key="@("t" + each.Key)" class="@each.TextClass" style="@each.TextStyle"><span>@text</span></div>
+                        }
+                    }
+                    @if (ManyCells)
+                    {
+                        <div class="sheet-selection" style="@SelectionStyle"></div>
+                    }
+                    <div class="sheet-active" style="@ActiveStyle"></div>
+                    @if (MarqueeStyle is { } marquee)
+                    {
+                        <div class="sheet-marquee" style="@marquee"></div>
+                    }
+                    @if (PointedStyle is { } pointedStyle)
+                    {
+                        <div class="sheet-pointed" style="@pointedStyle"></div>
+                    }
+                    <textarea class="@(editMode is null ? "sheet-input" : "sheet-input editing")" style="@InputStyle"
+                              data-row="@activeRow" data-column="@activeColumn" aria-label="@($"Cell {ActiveName}")"
+                              readonly="@(!Editable)" spellcheck="false" autocomplete="off" wrap="off"></textarea>
+                    <div class="sheet-guide" hidden></div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="sheet-tabs" role="tablist" aria-label="Sheets">
+        @if (grid is not null)
+        {
+            @foreach (var each in grid.Sheets.Where(_ => !_.Hidden))
+            {
+                var index = each.Index;
+                <button type="button" role="tab" class="sheet-tab" aria-selected="@(index == sheetIndex ? "true" : "false")"
+                        @onmousedown:preventDefault @onclick="() => SelectSheetAsync(index)">@each.Name</button>
+            }
+        }
+    </div>
+
+    <div class="sheet-status" role="group" aria-label="Status bar">
+        <span class="sheet-mode">@ModeName</span>
+        @if (ReadOnly)
+        {
+            <span class="sheet-status-item">Read-only</span>
+        }
+        <span class="sheet-note" role="status" aria-live="polite">@note</span>
+        @if (Summary is var (average, count, sum))
+        {
+            @if (average is { } mean)
+            {
+                <span class="sheet-status-item">Average: @Number(mean)</span>
+            }
+            <span class="sheet-status-item">Count: @count</span>
+            @if (sum is { } total)
+            {
+                <span class="sheet-status-item">Sum: @Number(total)</span>
+            }
+        }
+        <span class="editor-status-zoom">
+            <button type="button" class="viewer-button" title="Zoom out" aria-label="Zoom out" @onmousedown:preventDefault @onclick="() => ZoomAsync(-0.1)">
+                <Iconify Value="Lucide.ZoomOut" aria-hidden="true" focusable="false" />
+            </button>
+            <span class="editor-zoom-value">@($"{Math.Round(zoom * 100)}%")</span>
+            <button type="button" class="viewer-button" title="Zoom in" aria-label="Zoom in" @onmousedown:preventDefault @onclick="() => ZoomAsync(0.1)">
+                <Iconify Value="Lucide.ZoomIn" aria-hidden="true" focusable="false" />
+            </button>
+        </span>
+    </div>
+</div>
+
+@code {
+
+    RenderFragment Button(string title, Icon icon, Func<Task> run, bool off) =>
+        @<button type="button" class="viewer-button" title="@title" aria-label="@title" disabled="@off"
+                 @onmousedown:preventDefault @onclick="run">
+            <Iconify Value="icon" aria-hidden="true" focusable="false" />
+        </button>;
+
+    RenderFragment Toggle(string title, Icon icon, bool on, Func<Task> run) =>
+        @<button type="button" class="viewer-button" title="@title" aria-label="@title" aria-pressed="@(on ? "true" : "false")"
+                 disabled="@(!Editable)" @onmousedown:preventDefault @onclick="run">
+            <Iconify Value="icon" aria-hidden="true" focusable="false" />
+        </button>;
+
+    RenderFragment TextButton(string title, string label, Func<Task> run) =>
+        @<button type="button" class="editor-tool sheet-text-button" title="@title" aria-label="@title" disabled="@(!Editable)"
+                 @onmousedown:preventDefault @onclick="run">@label</button>;
+
+    RenderFragment MenuButton(string title, Icon icon, string name) =>
+        @<button type="button" class="viewer-button editor-dropdown-button" title="@title" aria-label="@title" aria-haspopup="menu"
+                 aria-expanded="@(menu == name ? "true" : "false")" disabled="@(!Editable)"
+                 @onmousedown:preventDefault @onclick="() => ToggleMenu(name)">
+            <Iconify Value="icon" aria-hidden="true" focusable="false" />
+        </button>;
+
+    RenderFragment MenuItem(string label, Func<Task> run) =>
+        @<button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="run">@label</button>;
+
+    RenderFragment Palette(string label, Func<string, Task> pick, string none) =>
+        @<div class="editor-menu editor-palette sheet-menu" role="menu" aria-label="@label">
+            <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="() => pick(string.Empty)">@none</button>
+            <div class="editor-swatches">
+                @foreach (var (hex, name) in Colors)
+                {
+                    var color = hex;
+                    <button type="button" role="menuitem" class="editor-swatch" title="@name" aria-label="@name" style="@($"background:#{color}")"
+                            @onmousedown:preventDefault @onclick="() => pick(color)"></button>
+                }
+            </div>
+        </div>;
+
+    static string Number(double value) =>
+        Math.Round(value, 10).ToString("#,##0.##########", CultureInfo.InvariantCulture);
+
+    string BarKey => $"{BarVersion}:{activeRow}:{activeColumn}:{sheetIndex}";
+
+    string ActiveFont => ActiveLook.FontFamily ?? "Aptos";
+
+    double ActiveSize => ActiveLook.FontSizePoints ?? 11;
+
+    string ActiveFormat => ActiveLook.NumberFormat ?? "General";
+
+    // The lists, with the active cell's own font or size in them where it is not one of theirs.
+    IEnumerable<string> FontChoices
+    {
+        get
+        {
+            if (Fonts.Contains(ActiveFont))
+            {
+                return Fonts;
+            }
+
+            return Fonts.Prepend(ActiveFont);
+        }
+    }
+
+    IEnumerable<double> SizeChoices
+    {
+        get
+        {
+            if (FontSizes.Contains(ActiveSize))
+            {
+                return FontSizes;
+            }
+
+            return FontSizes.Append(ActiveSize).Order();
+        }
+    }
+}

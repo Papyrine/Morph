@@ -538,6 +538,8 @@ public partial class MorphViewer : IAsyncDisposable
             caretParagraph = null;
             fileName = name;
             sourceInfo = info;
+            opens++;
+            pagesStale = false;
             this.fontDirectory = fontDirectory;
             currentPage = Math.Clamp(InitialPage, 1, Math.Max(1, pageCount));
             pageInput = currentPage.ToString(CultureInfo.InvariantCulture);
@@ -1199,6 +1201,7 @@ public partial class MorphViewer : IAsyncDisposable
         }
 
         await HandInAsync();
+        await RefreshPagesAsync();
         if (document is not { } current ||
             handle is not { } viewer ||
             printing)

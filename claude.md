@@ -506,6 +506,42 @@ edits unchanged. Three layers:
   bars (`setPresence`), and undo across others' edits (`HistoryStep.Shown`, then `DocumentMerge`).
   `WopiSampleTests.TwoEditors_EditTogether` drives two pages of the published sample.
 
+**Workbooks** (`src/Morph/Spreadsheet/Formulas/`, `src/Morph/Spreadsheet/Editing/`, `Morph.Blazor`'s
+`SheetEditor` and `MorphViewer.Sheets.cs`): an Excel workbook edited in `MorphEditor` as Excel edits one, in
+a grid rather than on pages. Three layers, as for Word documents:
+- **The formula engine** (core, internal): `FormulaLexer` → `FormulaParser` (Excel's precedence: negation
+  before `^`, `^` to the left) → `FormulaNode`s, worked out by `FormulaEvaluator` over a `FormulaWorkbook`
+  (cells, tables, defined names, read from the package with each value Excel cached kept beside it).
+  `Recalculate` orders the formulas by the references they make WITHOUT recursion — a running balance is a
+  chain thousands long and the WebAssembly stack is small — and works anything OFFSET or INDIRECT makes on
+  demand, bounded. Structured references (`Table[[#This Row],[Price]]`) resolve against `FormulaTable`s;
+  defined names are worked as array formulas, as Excel works them (wedding-invitation-tracker's
+  `SUM(IF(...))`). The functions are `FormulaFunctions.*.cs` (~150); one the engine lacks makes the cell
+  keep its cached value and the workbook ask Excel to recalculate on load (`NeedsExcel`,
+  `fullCalcOnLoad`). `FormulaCorpusTests` works out every corpus workbook and compares every formula with
+  Excel's cached value — **a new function or rule must keep it green** — and `FormulaEngineTests` pins the
+  rules one by one.
+- **The workbook editor** (core, internal): `WorkbookEditor` takes bytes and returns bytes — `SetCells`
+  (what was typed, read by `CellEntry` as Excel reads typing, implied formats included), `Clear`, `Copy`
+  (formulas moved by `FormulaShifter`), `Format` (`StyleBook` makes or reuses the xf, font, fill, border),
+  `SetColumnWidth`, `SetRowHeight`, `Blank`. Every edit that changes a value recalculates and writes the
+  values in, and drops `calcChain.xml` (a stale one makes Excel repair the file). Text typed into a table's
+  header renames its column and the structured references to it (`WorkbookEditor.Tables`) — Excel repairs a
+  file whose header cell and `tableColumn` disagree. Shared formulas are written out per cell before their
+  first cell is overwritten. `FormulaText` adds `_xlfn.` to the functions newer than 2007 (without it Excel
+  shows `#NAME?`) and takes it off for display. `WorkbookGrid` reads the file for the grid: display text
+  (`NumberFormat`), formula-bar text, the look (the cell's style over its table's, a conditional format over
+  both, as `SheetGridBuilder` composes them), Excel's pixel geometry. `WorkbookEditorTests` includes an
+  `OpenXmlValidator` check over every corpus workbook edited.
+- **The grid** (`Morph.Blazor`): `SheetEditor` owns the model, the selection (an active cell and a far
+  corner), undo and every edit; `wwwroot/morph-sheet.js` owns the keys, the typing (a textarea over the
+  active cell holds the focus, invisible until typed into), the mouse, formula pointing, resizing and the
+  clipboard, and reports the scroll so only the cells in view are drawn (`SheetEditor.Draw.cs`). Each edit
+  goes file → `WorkbookEditor` → `WorkbookGrid.Read`, never a patch, and reaches the editor through
+  `MorphViewer.SheetEditedAsync` (file, draft, `OnDocumentChanged`); the pages stay in the editor hidden
+  and are laid out again only for printing. `MorphEditor` shows the grid for an `.xlsx` (`IsSheet`); the
+  viewer shows pages as before. `SheetEditorTests` pins the .NET half.
+
 **Web app** (`src/Morph.Web/`): the Blazor WASM app at morph.papyrine.org. Since the converter was
 extracted into `Morph.Blazor` this project is only the shell — header with Convert | View | Edit links,
 theme toggle, footer — around `<MorphConverter />` at `/`, `<MorphViewer />` at `/view` and
