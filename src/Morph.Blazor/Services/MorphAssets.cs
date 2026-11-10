@@ -24,4 +24,7 @@ public static class MorphAssets
 
     /// <summary>The viewer's controller: pages, zoom, scrolling, presentation mode, printing and find highlights.</summary>
     internal const string ViewerScript = ContentRoot + "/morph-viewer.js";
+
+    /// <summary>The grid's controller, the editor's view of a workbook: keys, typing, the mouse and the clipboard.</summary>
+    internal const string SheetScript = ContentRoot + "/morph-sheet.js";
 }

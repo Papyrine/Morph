@@ -9,8 +9,9 @@ namespace Morph;
 /// it as PDF, HTML, Markdown, plain text or PNG, and prints it.
 ///
 /// Built on <see cref="MorphViewer"/>, whose parameters it takes: every edit is made to the file and the
-/// file laid out again, so the pages always show exactly what Save saves. An Excel workbook or a
-/// PowerPoint deck opens to be read; only a Word document is edited.
+/// file laid out again, so the pages always show exactly what Save saves. An Excel workbook is edited in
+/// a grid as Excel edits one (<see cref="SheetEditor"/>), in place of the ribbon and the pages; a
+/// PowerPoint deck opens to be read.
 /// </summary>
 public partial class MorphEditor
 {
@@ -83,12 +84,31 @@ public partial class MorphEditor
     {
         get
         {
-            if (Class is {Length: > 0} extra)
+            // A workbook is shown as a grid, the pages hidden under it: the script keeps them for printing.
+            var classes = "viewer editor";
+            if (IsSheet)
             {
-                return $"viewer editor {extra}";
+                classes += " editor-sheet";
             }
 
-            return "viewer editor";
+            if (Class is {Length: > 0} extra)
+            {
+                return $"{classes} {extra}";
+            }
+
+            return classes;
+        }
+    }
+
+    // The grid, while a workbook is open.
+    SheetEditor? sheetEditor;
+
+    internal override async Task FinishSheetTypingAsync()
+    {
+        if (sheetEditor is { } grid &&
+            IsSheet)
+        {
+            await grid.FinishTypingAsync();
         }
     }
 
@@ -98,6 +118,12 @@ public partial class MorphEditor
         get
         {
             yield return home;
+            // A workbook's commands are the grid's own toolbar, which stands for Excel's Home tab.
+            if (IsSheet)
+            {
+                yield break;
+            }
+
             yield return insert;
             if (IsWord)
             {
@@ -709,6 +735,13 @@ public partial class MorphEditor
         }
 
         return NewDocumentAsync();
+    }
+
+    // A new workbook over edits not saved asks first, as opening a file does.
+    Task NewBookAsync()
+    {
+        menu = null;
+        return OpenOrAskAsync(NewWorkbookAsync);
     }
 
     // Another file opened over edits not saved asks as New does, and opens once answered.

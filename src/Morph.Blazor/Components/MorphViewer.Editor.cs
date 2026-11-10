@@ -61,7 +61,9 @@ public partial class MorphViewer
         int[] place;
         try
         {
-            place = await viewer.EditTargetAsync();
+            // No answer at all is no place, as an empty one is: Cancel in a dialog lands here to put the
+            // reader back, and must not fail for want of one.
+            place = await viewer.EditTargetAsync() ?? [];
         }
         catch (JSDisconnectedException)
         {
@@ -303,6 +305,7 @@ public partial class MorphViewer
     // reader sees it.
     async Task HandInAsync()
     {
+        await FinishSheetTypingAsync();
         if (!editOpen ||
             handle is not { } viewer)
         {

@@ -58,6 +58,20 @@ static class BuiltinNumberFormats
     /// </summary>
     public static string? Code(int id) => codes.GetValueOrDefault(id);
 
+    /// <summary>The builtin id of a format code, or null when the code is not a builtin's.</summary>
+    public static int? Id(string code)
+    {
+        foreach (var (id, each) in codes)
+        {
+            if (string.Equals(each, code, StringComparison.OrdinalIgnoreCase))
+            {
+                return id;
+            }
+        }
+
+        return null;
+    }
+
     /// <summary>
     /// Whether an id is one of the date/time builtins. Useful before a format code is even resolved —
     /// a cell carrying id 14 holds a date serial whatever else is known about it.

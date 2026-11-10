@@ -161,7 +161,8 @@ drawn again when they come near.
 tabs over the pages, and a status bar under them with the page, a word count, Insert or Overtype (a press turns it over, as the Insert key does) and the zoom; only the status bar's note is announced as it changes. It is the
 viewer underneath — the same pages, sidebar, find bar and review pane — with a Word document's text
 edited where it stands. It takes every `MorphViewer` parameter; with nothing open it offers a new blank
-document, Open, and (with `ShowSamples`) the sample document. A workbook or a deck opens to be read.
+document or workbook, Open, and (with `ShowSamples`) the sample document and workbook. An Excel workbook
+is edited in a grid ([below](#workbooks)); a deck opens to be read.
 
 The ribbon is laid out as Word's: the tabs on a title band with the file's name and Save, the chosen
 tab open onto the ribbon under it; each tab's commands in named groups, a group's main command a large
@@ -205,6 +206,41 @@ to the next default tab stop; a page break is a paragraph of its own between the
 it divides; a table is Table Grid, as wide as the text, between the two halves; a link is a
 `w:hyperlink` in the Hyperlink style. Each is tracked when changes are tracked, and settled in the
 review pane like any other change.
+
+### Workbooks
+
+An Excel workbook opens in `MorphEditor` as Excel shows one rather than as pages: a toolbar, a name box
+and formula bar, the grid with its column letters and row numbers, the sheets' tabs, and a status bar
+with Excel's mode (Ready, Enter, Edit, Point) and the average, count and sum of what is selected. The grid
+is `SheetEditor`, which can be used on its own; it draws only the cells in view, so a long sheet costs no
+more than a short one.
+
+Typing into a cell sets it when the reader moves on, read as Excel reads typing: `=` starts a formula,
+`'` keeps text as text, `50%`, `$1,200`, `3/14/2026` and `10:30` are numbers in the format their shape
+says. Every formula in the workbook is then worked out again — by Morph's own formula engine, which the
+corpus's every formula is checked against Excel's cached values — so what depends on the cell changes with
+it, and the file saved holds the new values. A function the engine lacks keeps the value Excel last gave
+the cell, and the file asks Excel to work everything out when it opens.
+
+| key or gesture | what it does |
+| --- | --- |
+| Arrows, Tab, Enter, Home, Page Up/Down | Move, as Excel's do: Ctrl+arrow to the edge of the data, Shift to extend, Enter and Tab round a selection; Ctrl+Home, Ctrl+End; Ctrl+Page Up/Down change sheet. |
+| Typing, F2, a double click, the formula bar | Edit the cell: typing replaces it (Enter mode, where the arrows hand it in), F2 and the others keep it (Edit mode, where they move the caret); Alt+Enter breaks the line, F4 cycles `$` in the reference at the caret, Ctrl+Enter sets every selected cell, Escape abandons. A click or the arrows where a formula wants a reference puts it in. |
+| Delete, Backspace | Clear the selection's contents; Backspace starts the cell afresh. |
+| Ctrl+C, Ctrl+X, Ctrl+V | Copy and cut as tab-separated text; pasted back in the grid, cells keep their formulas — relative references moved — and formats. Text pasted from elsewhere fills cells from the selection's corner. |
+| Ctrl+Z, Ctrl+Y | Undo and redo, a hundred steps. |
+| Ctrl+B, I, U; Ctrl+D, Ctrl+R; Ctrl+; ; Ctrl+\` | Bold, italic, underline; fill down and right; today's date; show formulas. |
+| Headers | A click selects a column or row (Shift or a drag, several); dragging an edge sizes it, a double click on a column's edge fits it. |
+
+The toolbar sets the selection's font, size, bold, italic, underline, strikethrough, borders, fill and font
+colour, vertical and horizontal alignment, wrapping and number format (with currency, percent, comma and
+decimal places), and offers AutoSum, Clear (all, formats, contents) and Find. Typing into a table's header
+renames its column, and the structured references that name it, as Excel does — the two must agree or Excel
+repairs the file. Save, Export, Print and the drafts work on the workbook as edited.
+
+Not yet: inserting and deleting rows, columns and sheets, merging cells, freezing panes (a frozen pane
+scrolls with the rest), a chart or picture over the cells (a chart sheet says to open it in the viewer),
+and dynamic-array spilling.
 
 ### Typing
 

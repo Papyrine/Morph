@@ -19,9 +19,10 @@ static partial class NumberFormat
         var scaled = value * Math.Pow(100, shape.PercentCount) / Math.Pow(1000, shape.ScaleCommas);
         var negative = scaled < 0;
         var magnitude = Math.Abs(scaled);
-        var rounded = Math.Round(magnitude, shape.MaxDecimals, MidpointRounding.AwayFromZero);
+        var rounded = Round(magnitude, shape.MaxDecimals);
 
-        var integerDigits = ((long) Math.Truncate(rounded)).ToString(CultureInfo.InvariantCulture);
+        // Not through a long, which 1E+20 would overflow.
+        var integerDigits = Math.Truncate(rounded).ToString("F0", CultureInfo.InvariantCulture);
         if (integerDigits == "0" &&
             shape.MinIntegerDigits == 0)
         {
@@ -46,6 +47,24 @@ static partial class NumberFormat
         }
 
         return text;
+    }
+
+    /// <summary>
+    /// A magnitude rounded half away from zero to the code's decimals, as Excel rounds it: on the
+    /// number as it reads to fifteen significant digits, not on the double. 750 * 1.0875 is the double
+    /// 815.6249999999999, which reads as 815.625 and so shows as $815.63 — rounding the double showed
+    /// $815.62 where Excel shows $815.63.
+    /// </summary>
+    static double Round(double magnitude, int decimals)
+    {
+        if (magnitude < 7.9e27 &&
+            decimals <= 28 &&
+            decimal.TryParse(magnitude.ToString("G15", CultureInfo.InvariantCulture), NumberStyles.Float, CultureInfo.InvariantCulture, out var reading))
+        {
+            return (double) Math.Round(reading, decimals, MidpointRounding.AwayFromZero);
+        }
+
+        return Math.Round(magnitude, Math.Min(decimals, 15), MidpointRounding.AwayFromZero);
     }
 
     /// <summary>

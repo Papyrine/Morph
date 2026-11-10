@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        @if (HasDocument)
+        @if (HasDocument && !IsSheet)
         {
             <div class="editor-tools" role="tabpanel" id="@tabPanelId" aria-labelledby="@TabId(ShownTab)">
                 @switch (ShownTab)
@@ -91,7 +91,7 @@
 
     @FindBar
 
-    @if (rulerShown && HasDocument)
+    @if (rulerShown && HasDocument && !IsSheet)
     {
         @* Drawn by the script, which knows where the page stands: Word's ruler, with its markers. *@
         <div class="editor-ruler" aria-hidden="true"></div>
@@ -104,7 +104,15 @@
 
     @Body
 
-    @if (HasDocument)
+    @if (IsSheet)
+    {
+        @* An Excel workbook, edited in a grid as Excel edits one (SheetEditor), its toolbar standing for the
+           ribbon and its status bar for the editor's. *@
+        <SheetEditor @ref="sheetEditor" Bytes="SourceBytes" DocumentKey="OpenCount" FontDirectory="@FontDirectoryPath"
+                     ReadOnly="ReadOnly" OnEdited="SheetEditedAsync" OnSave="SaveAsync" />
+    }
+
+    @if (HasDocument && !IsSheet)
     {
         @* Only the note is announced as it changes: the page, the count and the zoom change as the reader
            scrolls, types and zooms, and the controls are not news. *@
@@ -169,6 +177,10 @@
                 <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="NewAsync">
                     <Iconify Value="Lucide.FilePlus2" aria-hidden="true" focusable="false" />
                     New blank document
+                </button>
+                <button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="NewBookAsync">
+                    <Iconify Value="Lucide.FileSpreadsheet" aria-hidden="true" focusable="false" />
+                    New blank workbook
                 </button>
             }
             @if (ShowOpenFile)
@@ -1332,7 +1344,7 @@
     internal override RenderFragment EmptyState =>
         @<div class="viewer-empty editor-start">
             <p class="viewer-empty-title">Write a document</p>
-            <p class="viewer-empty-note">Start a new Word document, or open a .docx to edit. Nothing leaves this device.</p>
+            <p class="viewer-empty-note">Start a new Word document or Excel workbook, or open a .docx or .xlsx to edit. Nothing leaves this device.</p>
             @if (recovery is { } found)
             {
                 <div class="editor-recover" role="group" aria-label="Unsaved document">
@@ -1351,6 +1363,10 @@
                     <Iconify Value="Lucide.FilePlus2" aria-hidden="true" focusable="false" />
                     Blank document
                 </button>
+                <button type="button" class="editor-start-new" @onclick="NewBookAsync">
+                    <Iconify Value="Lucide.FileSpreadsheet" aria-hidden="true" focusable="false" />
+                    Blank workbook
+                </button>
                 @if (ShowOpenFile)
                 {
                     <button type="button" class="viewer-empty-open" data-viewer-action="open">Open a file</button>
@@ -1366,6 +1382,10 @@
                     <button type="button" class="sample-btn" @onclick="() => LoadSampleAsync(ConversionService.Find(InputFormat.Docx))">
                         <Iconify Value="Lucide.FileText" aria-hidden="true" focusable="false" />
                         Sample Word document
+                    </button>
+                    <button type="button" class="sample-btn" @onclick="() => LoadSampleAsync(ConversionService.Find(InputFormat.Xlsx))">
+                        <Iconify Value="Lucide.FileSpreadsheet" aria-hidden="true" focusable="false" />
+                        Sample Excel workbook
                     </button>
                 </div>
             }

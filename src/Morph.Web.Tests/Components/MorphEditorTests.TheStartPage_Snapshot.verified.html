@@ -4,10 +4,10 @@
       <div class="editor-tabs">
         <button type="button" class="editor-file" aria-haspopup="menu" aria-expanded="false" blazor:onmousedown:preventdefault="" blazor:onclick="1">File</button>
         <div class="editor-tablist" role="tablist" aria-label="Ribbon">
-          <button type="button" role="tab" class="editor-tab" id="editor-tab-home" aria-selected="true" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="9">Home</button>
-          <button type="button" role="tab" class="editor-tab" id="editor-tab-insert" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="10">Insert</button>
-          <button type="button" role="tab" class="editor-tab" id="editor-tab-review" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="11">Review</button>
-          <button type="button" role="tab" class="editor-tab" id="editor-tab-view" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="12">View</button>
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-home" aria-selected="true" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="11">Home</button>
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-insert" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="12">Insert</button>
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-review" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="13">Review</button>
+          <button type="button" role="tab" class="editor-tab" id="editor-tab-view" aria-selected="false" disabled="" blazor:onmousedown:preventdefault="" blazor:onclick="14">View</button>
         </div>
       </div>
       <span class="editor-name"></span>
@@ -38,7 +38,7 @@
       <div class="viewer-pages" tabindex="0" role="region" aria-label="Document"></div>
       <div class="viewer-empty editor-start">
         <p class="viewer-empty-title">Write a document</p>
-        <p class="viewer-empty-note">Start a new Word document, or open a .docx to edit. Nothing leaves this device.</p>
+        <p class="viewer-empty-note">Start a new Word document or Excel workbook, or open a .docx or .xlsx to edit. Nothing leaves this device.</p>
         <div class="editor-start-actions">
           <button type="button" class="editor-start-new" blazor:onclick="7">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
@@ -49,11 +49,20 @@
             </svg>
             Blank document
           </button>
+          <button type="button" class="editor-start-new" blazor:onclick="8">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path>
+                <path d="M14 2v5a1 1 0 0 0 1 1h5M8 13h2m4 0h2m-8 4h2m4 0h2"></path>
+              </g>
+            </svg>
+            Blank workbook
+          </button>
           <button type="button" class="viewer-empty-open" data-viewer-action="open">Open a file</button>
         </div>
         <p class="viewer-empty-note">or drop one anywhere here</p>
         <div class="sample-row">
-          <button type="button" class="sample-btn" blazor:onclick="8">
+          <button type="button" class="sample-btn" blazor:onclick="9">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
               <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
                 <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path>
@@ -61,6 +70,15 @@
               </g>
             </svg>
             Sample Word document
+          </button>
+          <button type="button" class="sample-btn" blazor:onclick="10">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <g fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                <path d="M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z"></path>
+                <path d="M14 2v5a1 1 0 0 0 1 1h5M8 13h2m4 0h2m-8 4h2m4 0h2"></path>
+              </g>
+            </svg>
+            Sample Excel workbook
           </button>
         </div>
       </div>
