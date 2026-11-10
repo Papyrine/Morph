@@ -41,7 +41,7 @@ static partial class NumberFormat
                         return result.ToString();
                     }
 
-                    result.Append(body[(i + 1)..close]);
+                    result.Append(body.AsSpan((i + 1)..close));
                     i = close;
                     continue;
 
@@ -185,7 +185,7 @@ static partial class NumberFormat
                     break;
                 }
 
-                if (body[(open + 1)..i].ToLowerInvariant().StartsWith('h'))
+                if (body.AsSpan((open + 1)..i) is [var first, ..] && char.ToLowerInvariant(first) == 'h')
                 {
                     return true;
                 }
@@ -251,7 +251,7 @@ static partial class NumberFormat
         var ch = char.ToLowerInvariant(body[index]);
         if (ch is 'a' &&
             body.Length - index >= 5 &&
-            body[index..(index + 5)].Equals("AM/PM", StringComparison.OrdinalIgnoreCase))
+            body.AsSpan(index, 5).Equals("AM/PM", StringComparison.OrdinalIgnoreCase))
         {
             token = 'a';
             return 5;
@@ -259,7 +259,7 @@ static partial class NumberFormat
 
         if (ch is 'a' &&
             body.Length - index >= 3 &&
-            body[index..(index + 3)].Equals("A/P", StringComparison.OrdinalIgnoreCase))
+            body.AsSpan(index, 3).Equals("A/P", StringComparison.OrdinalIgnoreCase))
         {
             token = 'a';
             return 3;

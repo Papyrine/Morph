@@ -280,7 +280,7 @@ static partial class NumberFormat
                         break;
                     }
 
-                    result.Append(body[(i + 1)..close]);
+                    result.Append(body.AsSpan((i + 1)..close));
                     i = close;
                     inRun = false;
                     break;

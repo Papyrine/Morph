@@ -361,8 +361,8 @@ static class ImageSharpPainter
             {
                 var length = char.IsHighSurrogate(text[i]) &&
                              i + 1 < text.Length ? 2 : 1;
-                var piece = text.Substring(i, length);
-                canvas.DrawText(Options(context, font, x, y, properties), piece.AsSpan(), fill, stroke);
+                var piece = text.AsSpan(i, length);
+                canvas.DrawText(Options(context, font, x, y, properties), piece, fill, stroke);
                 x += P(context, context.MeasureText(font, piece)) + trackingPixels;
                 i += length - 1;
             }

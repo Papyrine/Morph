@@ -389,7 +389,7 @@ static class SvgPainter
                     positions[index + 1] = x;
                 }
 
-                x += context.MeasureText(font, text.Substring(index, length)) + tracking;
+                x += context.MeasureText(font, text.AsSpan(index, length)) + tracking;
                 index += length - 1;
             }
 
@@ -1551,8 +1551,8 @@ static class SvgPainter
                 }
 
                 var head = char.IsLowSurrogate(text[index - 1]) && index >= 2
-                    ? text.Substring(index - 2, 2)
-                    : text.Substring(index - 1, 1);
+                    ? text.AsSpan(index - 2, 2)
+                    : text.AsSpan(index - 1, 1);
                 positions[index] = previous + TextMeasurer.MeasureAdvance(head, options).Width;
             }
 

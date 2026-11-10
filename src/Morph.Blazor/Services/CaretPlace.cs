@@ -54,7 +54,7 @@ sealed record CaretPlace(int StartParagraph, int StartOffset, int EndParagraph, 
             lineStart = now.LastIndexOf('\n', end - 1) + 1;
         }
 
-        var line = now[..lineStart].Count(_ => _ == '\n');
+        var line = now.AsSpan(0, lineStart).Count('\n');
         return (Between(ordinal, prefix, old.Length - suffix), At(ordinal + line, end - lineStart));
     }
 

@@ -170,9 +170,9 @@ sealed class CellStyles
             return hex;
         }
 
-        var red = Convert.ToInt32(hex[..2], 16) / 255.0;
-        var green = Convert.ToInt32(hex[2..4], 16) / 255.0;
-        var blue = Convert.ToInt32(hex[4..], 16) / 255.0;
+        var red = int.Parse(hex.AsSpan(..2), System.Globalization.NumberStyles.HexNumber) / 255.0;
+        var green = int.Parse(hex.AsSpan(2..4), System.Globalization.NumberStyles.HexNumber) / 255.0;
+        var blue = int.Parse(hex.AsSpan(4..), System.Globalization.NumberStyles.HexNumber) / 255.0;
 
         var max = Math.Max(red, Math.Max(green, blue));
         var min = Math.Min(red, Math.Min(green, blue));

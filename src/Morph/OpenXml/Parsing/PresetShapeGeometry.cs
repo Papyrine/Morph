@@ -78,7 +78,7 @@ static class PresetShapeGeometry
                 continue;
             }
 
-            if (double.TryParse(formula[4..], NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+            if (double.TryParse(formula.AsSpan(4), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
             {
                 adjustments[name] = value;
             }

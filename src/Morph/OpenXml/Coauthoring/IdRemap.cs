@@ -214,14 +214,14 @@ static class IdRemap
     {
         var highest = used
             .Where(_ => _.StartsWith("rId", StringComparison.Ordinal))
-            .Select(_ => Number(_[3..]))
+            .Select(_ => Number(_.AsSpan(3)))
             .DefaultIfEmpty(0)
             .Max();
         return $"rId{highest + 1}";
     }
 
     // The number an id is, or 0 where it is not one.
-    static int Number(string id)
+    static int Number(CharSpan id)
     {
         if (int.TryParse(id, NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out var number))
         {
@@ -519,7 +519,7 @@ static class IdRemap
     static string Numbered(HashSet<string> used)
     {
         var highest = used
-            .Select(Number)
+            .Select(_ => Number(_))
             .DefaultIfEmpty(0)
             .Max();
         return (highest + 1).ToString(CultureInfo.InvariantCulture);

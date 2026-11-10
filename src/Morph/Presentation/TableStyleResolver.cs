@@ -208,8 +208,8 @@ sealed class TableStyleResolver
 
         int Channel(int offset) =>
             (int) Math.Round(
-                Convert.ToInt32(colorHex.Substring(offset, 2), 16) * alpha +
-                Convert.ToInt32(backdrop.Substring(offset, 2), 16) * (1 - alpha));
+                int.Parse(colorHex.AsSpan(offset, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture) * alpha +
+                int.Parse(backdrop.AsSpan(offset, 2), NumberStyles.HexNumber, CultureInfo.InvariantCulture) * (1 - alpha));
 
         return $"{Channel(0):X2}{Channel(2):X2}{Channel(4):X2}";
     }

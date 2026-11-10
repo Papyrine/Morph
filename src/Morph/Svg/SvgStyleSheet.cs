@@ -61,7 +61,7 @@ sealed class SvgStyleSheet
             var open = text.IndexOf('{', position);
             if (open < 0)
             {
-                return string.IsNullOrWhiteSpace(text[position..]) ? null : "a style sheet that does not parse";
+                return text.AsSpan(position).IsWhiteSpace() ? null : "a style sheet that does not parse";
             }
 
             var close = text.IndexOf('}', open);

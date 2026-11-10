@@ -211,7 +211,7 @@ static class EmailReader
                 continue;
             }
 
-            var contentId = Uri.UnescapeDataString(source[4..]).Trim('<', '>');
+            var contentId = Uri.UnescapeDataString(source.AsSpan(4)).Trim('<', '>');
             if (pictures.TryGetValue(contentId, out var picture))
             {
                 image.SetAttribute("src", $"data:{picture.Type};base64,{Convert.ToBase64String(picture.Data)}");

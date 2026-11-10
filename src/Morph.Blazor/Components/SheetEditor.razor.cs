@@ -1727,7 +1727,7 @@ public partial class SheetEditor : IAsyncDisposable
         var places = last.Groups[1].Success ? last.Groups[1].Value.Length - 1 : 0;
         places = Math.Max(0, places + step);
         var replacement = places == 0 ? "0" : "0." + new string('0', places);
-        return section[..last.Index] + replacement + section[(last.Index + last.Length)..];
+        return string.Concat(section.AsSpan(0, last.Index), replacement, section.AsSpan(last.Index + last.Length));
     }
 
     internal Task BordersAsync(string kind) =>

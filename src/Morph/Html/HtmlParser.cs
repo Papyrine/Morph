@@ -224,7 +224,7 @@ sealed class HtmlParser
             case "h4":
             case "h5":
             case "h6":
-                var level = int.Parse(element.TagName[1..]);
+                var level = int.Parse(element.TagName.AsSpan(1));
                 var headingStyle = ParseInlineStyle(element);
                 var headingPara = CreateParagraph(element, GetHeadingFontSize(level), true, headingStyle, styleId: $"Heading{level}");
                 elements.Add(headingPara);

@@ -711,7 +711,7 @@ static partial class DocumentEditor
                 .Select(_ => _.Name?.Value)
                 .Where(_ => _ != null &&
                             _.StartsWith("_Toc", StringComparison.Ordinal))
-                .Select(_ => long.TryParse(_![4..], NumberStyles.None, CultureInfo.InvariantCulture, out var number) ? number : 0)
+                .Select(_ => long.TryParse(_!.AsSpan(4), NumberStyles.None, CultureInfo.InvariantCulture, out var number) ? number : 0)
                 .DefaultIfEmpty(200000000)
                 .Max();
             var name = $"_Toc{Math.Max(numbers, 200000000) + 1}";

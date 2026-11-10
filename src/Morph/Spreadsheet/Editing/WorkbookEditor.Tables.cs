@@ -155,7 +155,7 @@ static partial class WorkbookEditor
                 // Table1[Price] has its column's name in the outer brackets alone.
                 var brackets = (token.Sheet ?? string.Empty).Length;
                 if (replaced.Length > brackets &&
-                    string.Equals(replaced[brackets..], from, StringComparison.OrdinalIgnoreCase))
+                    replaced.AsSpan(brackets).Equals(from, StringComparison.OrdinalIgnoreCase))
                 {
                     replaced = replaced[..brackets] + to;
                 }

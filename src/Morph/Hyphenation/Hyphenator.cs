@@ -24,19 +24,23 @@ static class Hyphenator
         }
 
         var (patterns, exceptions, longest) = data.Value;
-        var lower = word.ToLowerInvariant();
-        if (exceptions.TryGetValue(lower, out var listed))
+        var dotted = word.Length <= 254 ? stackalloc char[word.Length + 2] : new char[word.Length + 2];
+        dotted[0] = '.';
+        dotted[^1] = '.';
+        var lower = dotted[1..^1];
+        word.AsSpan().ToLowerInvariant(lower);
+        if (exceptions.GetAlternateLookup<CharSpan>().TryGetValue(lower, out var listed))
         {
             return listed;
         }
 
-        var dotted = $".{lower}.";
+        var lookup = patterns.GetAlternateLookup<CharSpan>();
         var values = new byte[dotted.Length + 1];
         for (var start = 0; start < dotted.Length; start++)
         {
             for (var length = 1; length <= longest && start + length <= dotted.Length; length++)
             {
-                if (!patterns.TryGetValue(dotted.Substring(start, length), out var pattern))
+                if (!lookup.TryGetValue(dotted.Slice(start, length), out var pattern))
                 {
                     continue;
                 }

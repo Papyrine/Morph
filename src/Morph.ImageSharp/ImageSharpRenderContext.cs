@@ -295,10 +295,10 @@ sealed class ImageSharpRenderContext : RenderContextBase, IDisposable
     /// <summary>
     /// Measures text width in points. Uses DPI=72 so pixels equal points.
     /// </summary>
-    public float MeasureText(Font font, string text, KerningMode kerning = KerningMode.Standard)
+    public float MeasureText(Font font, CharSpan text, KerningMode kerning = KerningMode.Standard)
     {
         var key = (font, kerning);
-        var isSpace = text == " ";
+        var isSpace = text is " ";
         if (isSpace &&
             spaceWidthCache.TryGetValue(key, out var spaceWidth))
         {

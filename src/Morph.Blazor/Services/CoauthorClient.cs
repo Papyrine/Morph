@@ -33,7 +33,7 @@ sealed class CoauthorClient(HttpClient http, WopiLaunchInfo launch)
 
     // The session's endpoints sit beside the proxy, under the application's path base.
     string Base =>
-        launch.Proxy[..launch.Proxy.LastIndexOf('/')] + "/session";
+        string.Concat(launch.Proxy.AsSpan(0, launch.Proxy.LastIndexOf('/')), "/session");
 
     string Url(string action) =>
         $"{Base}/{connection}/{action}";

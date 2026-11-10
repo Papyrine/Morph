@@ -1028,7 +1028,7 @@ static class MarkdownExporter
                         (digits + 1 == line.Length ||
                          line[digits + 1] is ' ' or '\t'))
                     {
-                        return $"{line[..digits]}\\{line[digits..]}";
+                        return $"{line.AsSpan(..digits)}\\{line.AsSpan(digits)}";
                     }
 
                     return line;

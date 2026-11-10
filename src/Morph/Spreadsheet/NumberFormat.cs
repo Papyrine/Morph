@@ -259,7 +259,7 @@ static partial class NumberFormat
                         return result.ToString();
                     }
 
-                    result.Append(body[(i + 1)..close]);
+                    result.Append(body.AsSpan((i + 1)..close));
                     i = close;
                     break;
                 case '\\' when i + 1 < body.Length:

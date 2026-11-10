@@ -283,9 +283,9 @@ sealed class SvgReader
             throw new UnsupportedException($"the preserveAspectRatio '{value}'");
         }
 
-        return (Offset(align[..4], 'x'), Offset(align[4..], 'Y'), slice);
+        return (Offset(align.AsSpan(..4), 'x'), Offset(align.AsSpan(4), 'Y'), slice);
 
-        double Offset(string part, char axis) =>
+        double Offset(CharSpan part, char axis) =>
             part[0] == axis
                 ? part[1..] switch
                 {

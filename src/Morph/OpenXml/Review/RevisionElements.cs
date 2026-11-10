@@ -188,8 +188,15 @@ static class RevisionElements
             return false;
         }
 
-        foreach (var range in key[(colon + 1)..].Split(',', StringSplitOptions.RemoveEmptyEntries))
+        var ranges = key.AsSpan(colon + 1);
+        foreach (var segment in ranges.Split(','))
         {
+            var range = ranges[segment];
+            if (range.IsEmpty)
+            {
+                continue;
+            }
+
             var dash = range.IndexOf('-');
             var firstText = dash < 0 ? range : range[..dash];
             var lastText = dash < 0 ? range : range[(dash + 1)..];
