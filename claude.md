@@ -349,7 +349,11 @@ paragraph leaves it out or a deletion spans it; tracked, its runs are struck (`w
 `w:delInstrText`) so rejecting puts it back. `DocumentEditor.Moves.cs` moves one past another of its kind (a
 picture dragged over a field): those that keep their order still divide `Rewrite`'s stretches, and each
 other goes in as a mark the text diff places, then takes the mark's place — struck and inserted when
-tracked, a note's reference never moved under tracking. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
+tracked, a note's reference never moved under tracking. `DocumentEditor.Drop.cs` is drag and drop outside the
+open paragraph (`OnEditDrop`, from morph-viewer.js `onTextDrop`): text moved or copied between paragraphs
+with Word's word snapping and smart cut and paste (WordProbe M-80 to M-85), a tracked whole paragraph
+written as `w:moveFrom`/`w:moveTo`, and Ctrl+drag of a floating picture (`DuplicatePicture`); the open
+paragraph's own drags keep the same rules in morph-edit.js (`moveDragged`). `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
 DATE fields and Word's Automatic Table 1 table of contents — whose page numbers only the layout knows,
 so the editor lays the edited file out and writes them in (`SetContentsPages`) within the same edit;
 `DocumentEditor.Lists.cs` is the Bullets and Numbering libraries (`ListTemplates.Bullets`/`Numbers`,

@@ -681,7 +681,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Shapes | Observe.Revisions)
             .Hypotheses("The picture is moved (copied with Ctrl) and stays inline at the drop; the undo entry is Move; tracked, the source shows as deleted and the drop as inserted.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-63", "Drag a floating picture")
             .In("image-floating")
@@ -690,7 +690,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Undo | Observe.Shapes | Observe.Revisions)
             .Hypotheses("Left and Top change by the drag; the anchor (a) moves to the paragraph under the drop (b) stays on P2; Ctrl makes a copy with its own anchor.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         // ----- fields, lists, notes, content controls -----
 
@@ -767,7 +767,7 @@ static class MouseFamily
             .Observing(Observe.Selection | Observe.Text | Observe.Undo | Observe.Revisions)
             .Notes("Drops after a space, mid-word in gamma, before the mark and at the paragraph start; the dragged range is beta without its comma.")
             .Hypotheses("The word moves and stays selected at the drop; smart cut and paste adds and removes the spaces so words stay separated, off it does not; the undo entry is Move.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-81", "Drag and drop across paragraphs, with and without the mark")
             .In("three-paragraphs")
@@ -776,7 +776,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Revisions)
             .Hypotheses("With the mark the paragraph is moved whole and P3 is split at the drop; without it the text joins P3's paragraph; a drop at P2:0 puts the text before Second.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-82", "Ctrl+drag copies")
             .In("words")
@@ -785,7 +785,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Undo | Observe.Revisions)
             .Hypotheses("The source stays and a copy is inserted at the drop and selected; the undo entry names a copy or a paste.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-83", "Drop onto the selection itself and next to it")
             .In("words")
@@ -793,7 +793,7 @@ static class MouseFamily
             .Axis("to", "P1:find(\"beta\"):end", "P1:find(\"eta\")", "P1:find(\"beta\")")
             .Observing(Observe.Selection | Observe.Text | Observe.Undo)
             .Hypotheses("A drop inside or at either end of the selection changes nothing and adds no undo entry; the selection is kept.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-84", "Drop into and out of a cell")
             .In("table-2x2")
@@ -802,7 +802,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Tables | Observe.Revisions)
             .Hypotheses("Text dropped into a cell is inserted at the drop (a) as text (b) replacing the cell; a cell's contents dropped into the body arrive as text; cell to cell (a) inserts (b) replaces.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("M-85", "Drop at an empty paragraph, at a mark and past the final mark")
             .In("empty-paragraphs")
@@ -811,7 +811,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Revisions)
             .Hypotheses("Above moves into the empty paragraph, leaving P1 empty; at P4's mark it lands before the mark; past the final mark (a) it is refused (b) it lands before the final mark.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-87", "Drag text between the body and a text box")
             .In("text-box")

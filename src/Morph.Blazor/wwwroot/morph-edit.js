@@ -106,6 +106,9 @@ function before(first, second) {
     return first.b < second.b || (first.b === second.b && first.o < second.o);
 }
 
+// A character of a word, as Word's smart cut and paste and its drop count one.
+const wordy = /[\p{L}\p{N}_'’]/u;
+
 // The place a character on from o in a block's text, or back from it: a surrogate pair — an emoji, a
 // letter beyond the Basic Multilingual Plane — is one character, never split.
 function stepOn(text, o) {
@@ -2305,7 +2308,6 @@ export class ParagraphEditor {
             return;
         }
 
-        event.preventDefault();
         const b = Number(span.parentElement?.dataset.b);
         const index = Number(span.dataset.i);
         const block = this.blocks[b];
@@ -2318,6 +2320,14 @@ export class ParagraphEditor {
             o += lengthOf(block.items[i]);
         }
 
+        // Pressed again once selected, it can be dragged — to another place, as Word moves a picture in
+        // the line (WordProbe M-62) — and the browser is left to start the drag (onDragStart).
+        const selected = this.range();
+        if (selected && same(selected.from, { b, o }) && same(selected.to, { b, o: o + 1 }) && event.button === 0) {
+            return;
+        }
+
+        event.preventDefault();
         this.box.focus({ preventScroll: true });
         this.select({ b, o }, { b, o: o + 1 });
         this.framePicture(span, { b, o }, this.session.u[block.items[index].u]);
@@ -2612,22 +2622,36 @@ export class ParagraphEditor {
     // Text dragged within the box to another place in it: moved, as Word moves it, what is not text in
     // it with it — so long as what is not text keeps its order, which is all the file can take
     // (DocumentEditor.Rewrite). A drag with Ctrl held copies the text, without what is not text.
+    //
+    // Word's rules, which DocumentEditor.Drop keeps for a drop elsewhere on the pages (WordProbe M-80,
+    // M-82, M-83, C-22): text dropped inside a word lands at the nearer end of it; dropped on itself, or
+    // at either end of itself, nothing happens and the caret goes to the drop; a whole word moved away
+    // takes a space with it (smart cut), and where it lands it is spaced from its neighbours — a space
+    // before it after a word or a sentence's punctuation, one after it before a word — the space after
+    // it selected with it.
     moveDragged(drop) {
         const { from, to, moving } = this.dragged;
         this.dragged = null;
-        if (!moving) {
-            const text = this.contentBetween(from, to).map(block => block.items.filter(_ => !_.atom));
-            this.record('paste');
-            const end = this.insertContent(drop, text);
-            this.tidy();
-            this.render();
-            this.select(drop, end);
-            return;
+        const first = this.blockText(from.b)[from.o] ?? '';
+        const last = this.blockText(to.b)[to.o - 1] ?? '';
+        if (wordy.test(first)) {
+            drop = this.snapped(drop);
         }
 
         if (!before(drop, from) && !before(to, drop)) {
             // Dropped on itself: nothing moves.
-            this.select(from, to);
+            this.select(drop);
+            return;
+        }
+
+        if (!moving) {
+            const text = this.contentBetween(from, to).map(block => block.items.filter(_ => !_.atom));
+            this.record('paste');
+            const end = this.insertContent(drop, text);
+            const spaced = this.spaceDropped(drop, end, first, last);
+            this.tidy();
+            this.render();
+            this.select(spaced.from, spaced.to);
             return;
         }
 
@@ -2643,11 +2667,13 @@ export class ParagraphEditor {
         this.record('move');
         // What is moved is what taking it out takes out: its text, and what is not text that can go.
         const moved = this.contentBetween(from, to).map(block => block.items.filter(_ => !_.atom || this.removable(_)));
+        // What goes from where it was: that, and the space smart cut takes with a whole word.
+        const cut = this.smartCut({ from, to });
         // A mark where it goes, so that taking it out of where it was does not lose the place.
         const mark = { u: -2, atom: true, mark: true };
         this.blocks[drop.b].items.splice(this.divide(drop), 0, mark);
         const shifted = place => place.b === drop.b && !before(place, drop) ? { b: place.b, o: place.o + 1 } : place;
-        this.remove(shifted(from), shifted(to));
+        this.remove(shifted(cut.from), shifted(cut.to));
         let place = null;
         this.blocks.forEach((block, b) => {
             const index = block.items.indexOf(mark);
@@ -2672,9 +2698,70 @@ export class ParagraphEditor {
             return;
         }
 
+        const spaced = this.spaceDropped(place, end, first, last);
         this.tidy();
         this.render();
-        this.select(place, end);
+        this.select(spaced.from, spaced.to);
+    }
+
+    // A drop inside a word goes to the nearer end of it, and at the end past the spaces after it
+    // (WordProbe M-80, M-81, M-83, M-84).
+    snapped(place) {
+        const text = this.blockText(place.b);
+        const at = place.o;
+        if (at <= 0 || at >= text.length || !wordy.test(text[at - 1]) || !wordy.test(text[at])) {
+            return place;
+        }
+
+        let start = at;
+        while (start > 0 && wordy.test(text[start - 1])) {
+            start--;
+        }
+
+        let end = at;
+        while (end < text.length && wordy.test(text[end])) {
+            end++;
+        }
+
+        if (at - start <= end - at) {
+            return { b: place.b, o: start };
+        }
+
+        while (end < text.length && text[end] === ' ') {
+            end++;
+        }
+
+        return { b: place.b, o: end };
+    }
+
+    // Smart paste of dropped text, from `from` to `to`, which began with `first` and ended with `last`:
+    // a space before it after a word or a sentence's punctuation, one after it before a word. Says what
+    // to select: the text and the space after it.
+    spaceDropped(from, to, first, last) {
+        const like = this.contentBetween(from, to).flatMap(_ => _.items).find(_ => !_.atom);
+        if (!like) {
+            return { from, to };
+        }
+
+        const space = { ...like, t: ' ' };
+        delete space.n;
+        let start = from;
+        let end = to;
+        const next = this.blockText(end.b)[end.o];
+        if (wordy.test(last) && next !== undefined && wordy.test(next)) {
+            end = this.insertContent(end, [[{ ...space }]]);
+        }
+
+        const previous = this.blockText(start.b)[start.o - 1];
+        if (wordy.test(first) && previous !== undefined && /[\p{L}\p{N}_'’.,;:!?]/u.test(previous)) {
+            this.insertContent(start, [[{ ...space }]]);
+            start = { b: start.b, o: start.o + 1 };
+            if (end.b === start.b) {
+                end = { b: end.b, o: end.o + 1 };
+            }
+        }
+
+        return { from: start, to: end };
     }
 
     // Puts blocks of items in at a place, the first joining the block there and each after it a

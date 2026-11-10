@@ -2474,6 +2474,15 @@
     white-space: nowrap;
 }
 
+/* Where dragged text would be dropped, as Word draws it: a dotted caret. */
+.viewer-drop-caret {
+    position: absolute;
+    z-index: 3;
+    width: 0;
+    border-left: 2px dotted #444444;
+    pointer-events: none;
+}
+
 /* Coauthoring: a bar beside a paragraph someone else has open, in their colour, their name over it. */
 .viewer-presence {
     position: absolute;

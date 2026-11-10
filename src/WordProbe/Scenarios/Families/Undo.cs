@@ -336,7 +336,7 @@ static class UndoFamily
             .Trace()
             .Tracked()
             .Hypotheses("(a) the moved word is selected back at its origin; (b) an IP at the origin; (c) an IP at the drop point.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("U-04g", "Selection after undoing a Backspace merge")
             .In("three-paragraphs")
@@ -462,7 +462,7 @@ static class UndoFamily
             .Trace()
             .Tracked()
             .Hypotheses("(a) one undo restores the text and the smart-cut spacing; (b) the move takes two undos.")
-            .Morph("PARTIAL");
+            .Morph("DONE");
 
         yield return Probe("U-07f", "Undo a row deletion")
             .In("table-3x3")

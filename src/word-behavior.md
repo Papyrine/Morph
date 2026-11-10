@@ -3019,12 +3019,21 @@ picture targets, drag and drop.
   destination as needed (`alpha,  gamma` after `beta` left; `end. beta` at the end), with it off the
   text moves exactly; Ctrl+drag copies with the same spacing (M-80, M-82). A drop on or inside the
   dragged selection changes nothing and leaves the caret at the selection's start, a drop at its end
-  the caret there (M-83). A paragraph dragged with its mark into the middle of another splits that
-  paragraph; dragged without its mark it leaves an empty paragraph behind (M-81). Text moves from cell to
-  cell, from the body into a cell, into an empty paragraph, into a text box, and dropped past the last
-  paragraph joins it with a space (M-84, M-85, M-87). Tracked, a dragged sentence or more is a move
-  (`{<…<}` `{>…>}`); a shorter drag is a deletion plus an insertion, and Ctrl+drag one insertion (M-80,
-  M-81, M-82). — Morph: TODO.
+  the caret there (M-83). Text dropped inside a word lands at the nearer end of it, at the end past the
+  spaces after it: `ga|mma` before `gamma`, `Thir|d and` before `and`, `b|eta` before `beta` (M-80, M-81,
+  M-83, M-84); a picture is put down exactly where it is dropped (M-62). A paragraph dragged with its mark
+  into the middle of another does NOT split it: the paragraph it left goes, and its text joins the one it
+  is dropped in (`Third First paragraph here.and last.`); dragged without its mark it leaves an empty
+  paragraph behind (M-81). Text moves from cell to cell, from the body into a cell, into an empty
+  paragraph, into a text box, and dropped past the last paragraph joins it with a space (M-84, M-85,
+  M-87). The space is added before dropped text after a word or a sentence's punctuation, and after it
+  only before a word when it ends in one (`here.and` stays joined). Tracked, a whole paragraph's text
+  dragged is a move (`{<…<}` `{>…>}`); a shorter drag is a deletion plus an insertion, and Ctrl+drag one
+  insertion (M-80, M-81, M-82, M-85). The space smart paste adds beside a move is an insertion of its
+  own (M-81, M-85). — Morph: PARTIAL (`DocumentEditor.Drop`, and the open paragraph's `moveDragged`,
+  follow every rule with `SmartCutPaste` on, tracked moves included; undo entries are not named; drops
+  into and out of text boxes are not verified; a cell's whole text dragged into the body is moved, where
+  M-84's recording shows the drag never started).
 
 ### State machines
 
@@ -4570,7 +4579,7 @@ steps `click(SHP1)`
 
 #### M-62 · Drag an inline picture, moving and copying
 
-`image-inline` · Morph: **TODO**
+`image-inline` · Morph: **DONE**
 
 Expected before the run: The picture is moved (copied with Ctrl) and stays inline at the drop; the undo entry is
 Move; tracked, the source shows as deleted and the drop as inserted.
@@ -4588,7 +4597,7 @@ steps `{drag}`
 
 #### M-63 · Drag a floating picture
 
-`image-floating` · Morph: **TODO**
+`image-floating` · Morph: **DONE**
 
 Expected before the run: Left and Top change by the drag; the anchor (a) moves to the paragraph under the drop (b)
 stays on P2; Ctrl makes a copy with its own anchor.
@@ -4754,7 +4763,7 @@ steps `{first}` · `rightclick(C(1,1):1)`
 
 #### M-80 · Drag and drop a word within its paragraph
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: The word moves and stays selected at the drop; smart cut and paste adds and removes the
 spaces so words stay separated, off it does not; the undo entry is Move.
@@ -4785,7 +4794,7 @@ without its comma.
 
 #### M-81 · Drag and drop across paragraphs, with and without the mark
 
-`three-paragraphs` · Morph: **TODO**
+`three-paragraphs` · Morph: **DONE**
 
 Expected before the run: With the mark the paragraph is moved whole and P3 is split at the drop; without it the text
 joins P3's paragraph; a drop at P2:0 puts the text before Second.
@@ -4805,7 +4814,7 @@ steps `drag({path})`
 
 #### M-82 · Ctrl+drag copies
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: The source stays and a copy is inserted at the drop and selected; the undo entry names a
 copy or a paste.
@@ -4821,7 +4830,7 @@ steps `ctrl+drag(P1:find("beta")-P1:find("beta"):end→{to})`
 
 #### M-83 · Drop onto the selection itself and next to it
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: A drop inside or at either end of the selection changes nothing and adds no undo entry; the
 selection is kept.
@@ -4836,7 +4845,7 @@ steps `drag(P1:find("beta")-P1:find("beta"):end→{to})`
 
 #### M-84 · Drop into and out of a cell
 
-`table-2x2` · Morph: **TODO**
+`table-2x2` · Morph: **PARTIAL**
 
 Expected before the run: Text dropped into a cell is inserted at the drop (a) as text (b) replacing the cell; a
 cell's contents dropped into the body arrive as text; cell to cell (a) inserts (b) replaces.
@@ -4854,7 +4863,7 @@ steps `drag({path})`
 
 #### M-85 · Drop at an empty paragraph, at a mark and past the final mark
 
-`empty-paragraphs` · Morph: **TODO**
+`empty-paragraphs` · Morph: **DONE**
 
 Expected before the run: Above moves into the empty paragraph, leaving P1 empty; at P4's mark it lands before the
 mark; past the final mark (a) it is refused (b) it lands before the final mark.
@@ -17849,7 +17858,7 @@ Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Und
 
 #### U-04f · Selection after undoing a drag move
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: (a) the moved word is selected back at its origin; (b) an IP at the origin; (c) an IP at the
 drop point.
@@ -18513,7 +18522,7 @@ Selection: IP 26–26 · Tracking · Revisions 0 · Undo —
 
 #### U-07e · Undo a drag move
 
-`words` · Morph: **PARTIAL**
+`words` · Morph: **DONE**
 
 Expected before the run: (a) one undo restores the text and the smart-cut spacing; (b) the move takes two undos.
 
@@ -22013,7 +22022,7 @@ Notes: P5 is the bordered paragraph; the copy includes its mark.
 
 #### C-22 · Drag and drop a word: the undo entry and the spacing
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: A double click selects 'beta' with its trailing space; the drop before '1,000' (a) adjusts
 the spaces at both ends with the option on (b) leaves them; the undo entry is Move for the plain drag and Copy for
@@ -22593,7 +22602,7 @@ Notes: Ctrl+Shift+V is Word's paste text only; a picture has no text form.
 
 #### I-05 · Drag an inline picture to another place
 
-`image-inline` · Morph: **TODO**
+`image-inline` · Morph: **DONE**
 
 Expected before the run: A plain drag moves the picture inline to the drop point; Ctrl+drag copies it; a drop at P1:0
 puts it at the paragraph start.
@@ -22982,7 +22991,7 @@ flowchart TD
 
 #### I-15 · Drag, Ctrl+drag and Shift+drag a floating picture
 
-`image-floating` · Morph: **TODO**
+`image-floating` · Morph: **DONE**
 
 Expected before the run: A plain drag moves the shape and re-anchors it to the paragraph under the drop; Ctrl+drag
 leaves a copy; Shift+drag constrains the move to one axis.

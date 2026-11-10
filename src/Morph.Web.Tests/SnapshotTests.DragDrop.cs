@@ -1,0 +1,281 @@
+using System.Text.RegularExpressions;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
+using static EditFixtures;
+
+// Drag and drop of text, as Word's (WordProbe M-80 to M-85, C-22): selected text dragged and let go
+// elsewhere is moved there, or with Ctrl held copied, spaced from its neighbours by smart cut and paste,
+// and left selected. Within the open paragraph the script moves it (moveDragged in morph-edit.js); on
+// the pages outside it, .NET does (OnEditDrop, DocumentEditor.Drop).
+public partial class SnapshotTests
+{
+    // "paragraph" dragged from the first paragraph to before "and" in the third: the space after it goes
+    // with it from the first, and one comes after it in the third.
+    [Test]
+    public async Task DragDrop_ToAnotherParagraph_MovesTheText()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+        await ClickInAsync(page, "paragraph here");
+        await SelectInEditorAsync(page, "First ".Length, "paragraph".Length);
+
+        await DragSelectionToAsync(page, "and last", copy: false);
+
+        // Selected where it went, in the paragraph opened there; saving takes the focus, so first.
+        await page.WaitForFunctionAsync(
+            "() => getSelection().toString() === 'paragraph '",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await WaitForTextsAsync(page, ["First here.", "Second bold one.", "Third paragraph and last."]);
+    }
+
+    // One undo puts it back, selected where it was (WordProbe U-04f, U-07e).
+    [Test]
+    public async Task DragDrop_Undone_SelectsTheTextWhereItWas()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+        await ClickInAsync(page, "paragraph here");
+        await SelectInEditorAsync(page, "First ".Length, "paragraph".Length);
+        await DragSelectionToAsync(page, "and last", copy: false);
+        await page.WaitForFunctionAsync(
+            "() => getSelection().toString() === 'paragraph '",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+
+        await page.Keyboard.PressAsync("Control+z");
+
+        await page.WaitForFunctionAsync(
+            "() => getSelection().toString() === 'paragraph'",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await WaitForTextsAsync(page, ["First paragraph here.", "Second bold one.", "Third and last."]);
+    }
+
+    // With Ctrl held, the text is copied and stays where it was.
+    [Test]
+    public async Task DragDrop_WithCtrl_CopiesTheText()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+        await ClickInAsync(page, "paragraph here");
+        await SelectInEditorAsync(page, "First ".Length, "paragraph".Length);
+
+        await DragSelectionToAsync(page, "and last", copy: true);
+
+        await WaitForTextsAsync(page, ["First paragraph here.", "Second bold one.", "Third paragraph and last."]);
+    }
+
+    // Within the open paragraph: beta moved before "end." takes the space before it away and gets one
+    // after it, as Word's smart cut and paste does.
+    [Test]
+    public async Task DragDrop_WithinTheParagraph_IsSpacedAsWordSpacesIt()
+    {
+        var page = await OpenEditAsync(words);
+        await ClickInAsync(page, "beta");
+        await SelectInEditorAsync(page, "alpha ".Length, "beta".Length);
+
+        await DragWithinEditorAsync(page, wordsText.IndexOf("end.", StringComparison.Ordinal));
+        await Assert.That(await SelectedAfterDragAsync(page)).IsEqualTo("beta ");
+        await HandInAsync(page);
+
+        await WaitForTextsAsync(page, ["alpha,  gamma-delta 3.14 beta end."]);
+    }
+
+    // Dropped on itself, nothing moves.
+    [Test]
+    public async Task DragDrop_OntoItself_ChangesNothing()
+    {
+        var page = await OpenEditAsync(words);
+        await ClickInAsync(page, "beta");
+        await SelectInEditorAsync(page, "alpha ".Length, "beta".Length);
+
+        await DragWithinEditorAsync(page, "alpha be".Length);
+        await HandInAsync(page);
+
+        await WaitForTextsAsync(page, [wordsText]);
+    }
+
+    // A picture in the line, selected in the open paragraph and dragged into another, moves there whole
+    // (WordProbe M-62, I-05).
+    [Test]
+    public async Task DragDrop_AnInlinePicture_MovesToAnotherParagraph()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pictured = DocumentEditor.InsertPicture(Paragraphs, 0, 6, new(pixelPng, "image/png", 40, 20), options).Document;
+        var page = await OpenEditAsync(pictured);
+        await ClickInAsync(page, "paragraph here");
+        await page.ClickAsync($"{editor} .edit-picture");
+
+        await DragSelectionToAsync(page, "and last", copy: false);
+
+        await WaitForBodyAsync(
+            page,
+            _ => _.IndexOf("<w:drawing>", StringComparison.Ordinal) > _.IndexOf("Third", StringComparison.Ordinal) &&
+                 _.Split("<w:drawing>").Length == 2);
+    }
+
+    // A floating picture dragged with Ctrl held leaves a copy where it went and stays where it was; with
+    // Shift held it moves along the one axis it went furthest along (WordProbe I-15).
+    [Test]
+    public async Task DragDrop_AFloatingPicture_WithCtrlIsCopied_AndWithShiftKeepsToOneAxis()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pictured = DocumentEditor.InsertPicture(Paragraphs, 0, 6, new(pixelPng, "image/png", 100, 50), options).Document;
+        var floating = DocumentEditor.SetPictureWrap(pictured, 0, 6, PictureWrap.Square, options);
+        var page = await OpenEditAsync(floating);
+        var box = await page.EvaluateAsync<double[]>(
+            """
+            () => {
+                const page = document.querySelector('.viewer-page[data-page-number="1"]');
+                page.scrollIntoView({block: "start"});
+                const rect = page.getBoundingClientRect();
+                const style = getComputedStyle(page);
+                return [rect.left, rect.top, rect.width / Number(style.getPropertyValue('--pw'))];
+            }
+            """);
+        var (left, top, scale) = (box[0], box[1], box[2]);
+        var x = (float) (left + 122 * scale);
+        var y = (float) (top + 97 * scale);
+
+        // Shift: 60pt right and 10pt down is 60pt right alone.
+        await page.Mouse.ClickAsync(x, y);
+        await page.WaitForSelectorAsync(".viewer-picture-frame");
+        await page.Keyboard.DownAsync("Shift");
+        await page.Mouse.MoveAsync(x, y);
+        await page.Mouse.DownAsync();
+        await page.Mouse.MoveAsync(x + (float) (60 * scale), y + (float) (10 * scale), new() {Steps = 8});
+        await page.Mouse.UpAsync();
+        await page.Keyboard.UpAsync("Shift");
+        await WaitForBodyAsync(page, _ => PictureOffsets(_) is [(var right, var down)] && Math.Abs(right - 60) < 1 && Math.Abs(down) < 0.1);
+
+        // Ctrl: a copy 40pt further down, the picture where it was.
+        x += (float) (60 * scale);
+        await page.Mouse.ClickAsync(x, y);
+        await page.WaitForSelectorAsync(".viewer-picture-frame");
+        await page.Mouse.MoveAsync(x, y);
+        await page.Mouse.DownAsync();
+        await page.Mouse.MoveAsync(x, y + (float) (40 * scale), new() {Steps = 8});
+        await page.Keyboard.DownAsync("Control");
+        await page.Mouse.UpAsync();
+        await page.Keyboard.UpAsync("Control");
+        await WaitForBodyAsync(page, _ => PictureOffsets(_) is [(var copyRight, var copyDown), (var right, var down)] &&
+                                          Math.Abs(copyRight - 60) < 1 && Math.Abs(copyDown - 40) < 1 &&
+                                          Math.Abs(right - 60) < 1 && Math.Abs(down) < 0.1);
+    }
+
+    // Each floating picture's offsets from what it stands against, in points, in the body's order.
+    static List<(double Right, double Down)> PictureOffsets(string body) =>
+        Regex.Matches(body, "<wp:positionH[^>]*><wp:posOffset>(-?\\d+)</wp:posOffset></wp:positionH><wp:positionV[^>]*><wp:posOffset>(-?\\d+)</wp:posOffset>")
+            .Select(_ => (double.Parse(_.Groups[1].Value) / 12700, double.Parse(_.Groups[2].Value) / 12700))
+            .ToList();
+
+    // The body's paragraphs as they read, saved until they read as expected.
+    static async Task WaitForTextsAsync(IPage page, string[] expected)
+    {
+        string[] texts = [];
+        for (var attempt = 0; attempt < 40; attempt++)
+        {
+            using var stream = new MemoryStream(await SaveAsync(page));
+            using var package = WordprocessingDocument.Open(stream, false);
+            texts = [.. package.MainDocumentPart!.Document!.Body!.Descendants<Paragraph>().Select(_ => _.InnerText)];
+            if (texts.SequenceEqual(expected))
+            {
+                return;
+            }
+
+            await page.WaitForTimeoutAsync(250);
+        }
+
+        await Assert.That(texts).IsEquivalentTo(expected);
+    }
+
+    // Drags what is selected in the open paragraph — pressed in the middle of it — to the left quarter
+    // of the first character of some text on the first page, outside the paragraph, and lets go there.
+    static async Task DragSelectionToAsync(IPage page, string target, bool copy)
+    {
+        var layer = await LayerTextAsync(page);
+        var offset = layer.IndexOf(target, StringComparison.Ordinal);
+        await Assert.That(offset).IsGreaterThanOrEqualTo(0);
+        var points = await page.EvaluateAsync<double[]>(
+            """
+            offset => {
+                const selected = getSelection().getRangeAt(0).getBoundingClientRect();
+                const layer = document.querySelector('.viewer-page[data-page-number="1"] .text-layer');
+                const walker = document.createTreeWalker(layer, NodeFilter.SHOW_TEXT);
+                let start = 0;
+                for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                    const next = start + node.data.length;
+                    if (offset >= start && offset < next) {
+                        const range = document.createRange();
+                        range.setStart(node, offset - start);
+                        range.setEnd(node, offset - start + 1);
+                        const box = range.getBoundingClientRect();
+                        return [selected.left + selected.width / 2, selected.top + selected.height / 2, box.left + box.width / 4, box.top + box.height / 2];
+                    }
+
+                    start = next;
+                }
+
+                return [];
+            }
+            """,
+            offset);
+        await DragAsync(page, points, copy);
+    }
+
+    // Drags what is selected in the open paragraph to the left quarter of a character of its own.
+    static async Task DragWithinEditorAsync(IPage page, int offset)
+    {
+        var points = await page.EvaluateAsync<double[]>(
+            $$"""
+            offset => {
+                const selected = getSelection().getRangeAt(0).getBoundingClientRect();
+                const element = document.querySelector('{{editor}}');
+                const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+                let start = 0;
+                for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                    const next = start + node.data.length;
+                    if (offset >= start && offset < next) {
+                        const range = document.createRange();
+                        range.setStart(node, offset - start);
+                        range.setEnd(node, offset - start + 1);
+                        const box = range.getBoundingClientRect();
+                        return [selected.left + selected.width / 2, selected.top + selected.height / 2, box.left + box.width / 4, box.top + box.height / 2];
+                    }
+
+                    start = next;
+                }
+
+                return [];
+            }
+            """,
+            offset);
+        await DragAsync(page, points, copy: false);
+    }
+
+    static async Task DragAsync(IPage page, double[] points, bool copy)
+    {
+        await Assert.That(points.Length).IsEqualTo(4);
+        await page.Mouse.MoveAsync((float) points[0], (float) points[1]);
+        await page.Mouse.DownAsync();
+        await page.Mouse.MoveAsync((float) points[0] + 8, (float) points[1], new() {Steps = 4});
+        await page.Mouse.MoveAsync((float) points[2], (float) points[3], new() {Steps = 20});
+        if (copy)
+        {
+            await page.Keyboard.DownAsync("Control");
+        }
+
+        await page.Mouse.UpAsync();
+        if (copy)
+        {
+            await page.Keyboard.UpAsync("Control");
+        }
+    }
+}

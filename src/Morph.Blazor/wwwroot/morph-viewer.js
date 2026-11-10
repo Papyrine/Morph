@@ -460,6 +460,18 @@ class Viewer {
         // Dropping a file anywhere on the viewer opens it, through the same file input the Open button uses.
         acceptFileDrops(this.root, () => this.fileInput(), 'viewer-dragging', signal);
 
+        // Text dragged — out of the paragraph being typed, or selected across the pages — and dropped on
+        // the pages, as Word's drag and drop (onTextDrop).
+        this.scroller.addEventListener('dragstart', event => this.onTextDragStart(event), { signal });
+        this.scroller.addEventListener('dragover', event => this.onTextDragOver(event), { signal });
+        this.scroller.addEventListener('drop', event => this.onTextDrop(event), { signal });
+        this.scroller.addEventListener('dragleave', event => {
+            if (!this.scroller.contains(event.relatedTarget)) {
+                this.showDropCaret(null);
+            }
+        }, { signal });
+        document.addEventListener('dragend', () => this.endTextDrag(), { capture: true, signal });
+
         this.resizeObserver = new ResizeObserver(() => this.onResize());
         this.resizeObserver.observe(this.scroller);
         this.watchResolution();
@@ -2614,7 +2626,10 @@ class Viewer {
 
     // A floating picture already selected, dragged by its body: the frame follows the pointer, and when
     // it is let go the picture is moved by as much (OnPictureNudge, DocumentEditor.NudgePicture), as
-    // Word moves one dragged. A press that does not move leaves the click to select as before.
+    // Word moves one dragged. A press that does not move leaves the click to select as before. As in
+    // Word (WordProbe I-15), Shift keeps the move to the axis it has gone furthest along, and Ctrl held
+    // as it is let go leaves the picture where it was and a copy where it was dragged to
+    // (OnPictureDuplicate, DocumentEditor.DuplicatePicture).
     movePicture(event, picture) {
         const page = this.pages[picture.page];
         const frame = this.pictureFrame;
@@ -2633,6 +2648,14 @@ class Viewer {
         const move = moved => {
             right = (moved.clientX - startX) / scale;
             down = (moved.clientY - startY) / scale;
+            if (moved.shiftKey) {
+                if (Math.abs(right) >= Math.abs(down)) {
+                    down = 0;
+                } else {
+                    right = 0;
+                }
+            }
+
             // Captured only once it is a drag: a captured press's click lands on the pages' box, not
             // on the picture, and would select nothing.
             if (!target.hasPointerCapture(event.pointerId) && Math.hypot(right, down) * scale >= 3) {
@@ -2642,7 +2665,7 @@ class Viewer {
             frame.style.left = `${(picture.x + right) / page.width * 100}%`;
             frame.style.top = `${(picture.y + down) / page.height * 100}%`;
         };
-        const up = () => {
+        const up = released => {
             target.removeEventListener('pointermove', move);
             target.removeEventListener('pointerup', up);
             target.removeEventListener('pointercancel', up);
@@ -2656,11 +2679,149 @@ class Viewer {
             this.dragged = true;
             setTimeout(() => this.dragged = false, 0);
             const round = value => Math.round(value * 100) / 100;
-            this.dotNet.invokeMethodAsync('OnPictureNudge', picture.paragraph, picture.offset, round(right), round(down)).catch(() => {});
+            const copying = released.ctrlKey || released.metaKey;
+            this.dotNet.invokeMethodAsync(copying ? 'OnPictureDuplicate' : 'OnPictureNudge', picture.paragraph, picture.offset, round(right), round(down)).catch(() => {});
         };
         target.addEventListener('pointermove', move);
         target.addEventListener('pointerup', up);
         target.addEventListener('pointercancel', up);
+    }
+
+    // Drag and drop of text, as Word's (WordProbe M-80 to M-87). A drop inside the paragraph being typed
+    // is the box's own (moveDragged in morph-edit.js); one anywhere else on the pages is .NET's
+    // (OnEditDrop, DocumentEditor.Drop), which hands the paragraph in first, moves the text — or with
+    // Ctrl held as it is let go copies it — and selects it where it went. A drag of text selected across
+    // the pages starts here; the box says it started one in it by its own `dragged`.
+    onTextDragStart(event) {
+        this.textDrag = null;
+        const target = event.target instanceof Node ? event.target : null;
+        if (!this.editMode || !target) {
+            return;
+        }
+
+        if (target instanceof Element ? target.closest('.edit-box') : target.parentElement?.closest('.edit-box')) {
+            this.textDrag = 'box';
+            return;
+        }
+
+        const selection = document.getSelection();
+        const page = this.pageOf(target instanceof Element ? target : target.parentElement);
+        if (page && selection && !selection.isCollapsed && page.layer?.contains(selection.anchorNode)) {
+            this.textDrag = 'pages';
+        }
+    }
+
+    // The drag in hand: one of the editor's text, still wanted, and not a file's.
+    draggingText(event) {
+        if (!this.textDrag || event.dataTransfer?.types?.includes('Files')) {
+            return false;
+        }
+
+        return this.textDrag === 'pages' || Boolean(this.editor?.dragged);
+    }
+
+    // Where on the pages a drag is over — a page, and the place in its text — or null over the box,
+    // which takes its own drops, or off every page.
+    dropPlace(event) {
+        const target = event.target instanceof Element ? event.target : null;
+        if (!target || target.closest('.edit-box')) {
+            return null;
+        }
+
+        const page = this.pageOf(target);
+        if (!page) {
+            return null;
+        }
+
+        this.ensureText(page);
+        return { page, offset: this.caretOffset(page, event.clientX, event.clientY) };
+    }
+
+    onTextDragOver(event) {
+        if (!this.draggingText(event)) {
+            return;
+        }
+
+        const place = this.dropPlace(event);
+        this.showDropCaret(place);
+        if (!place) {
+            return;
+        }
+
+        event.preventDefault();
+        if (event.dataTransfer) {
+            event.dataTransfer.dropEffect = event.ctrlKey || event.metaKey ? 'copy' : 'move';
+        }
+    }
+
+    onTextDrop(event) {
+        if (!this.draggingText(event)) {
+            return;
+        }
+
+        const place = this.dropPlace(event);
+        this.showDropCaret(null);
+        if (!place) {
+            return;
+        }
+
+        event.preventDefault();
+        // The box would take the text it was dragged from out as the drag ends: .NET moves it instead.
+        if (this.editor) {
+            this.editor.dragged = null;
+        }
+
+        this.textDrag = null;
+        const [x, y] = this.pagePoint(place.page, event.clientX, event.clientY);
+        const copy = event.ctrlKey || event.metaKey;
+        this.dotNet.invokeMethodAsync('OnEditDrop', place.page.index, x, y, place.offset, copy).catch(() => {});
+    }
+
+    endTextDrag() {
+        this.textDrag = null;
+        this.showDropCaret(null);
+    }
+
+    // Word's drop caret: a dotted line where the text would go, drawn over the page's text layer.
+    showDropCaret(place) {
+        let caret = this.dropCaret;
+        if (!place || place.offset < 0) {
+            caret?.remove();
+            this.dropCaret = null;
+            return;
+        }
+
+        const layer = place.page.layer;
+        let edge = null;
+        const after = textRange(layer, place.offset, 1)?.getClientRects()[0];
+        if (after) {
+            edge = { x: after.left, top: after.top, height: after.height };
+        } else {
+            const ahead = place.offset > 0 ? textRange(layer, place.offset - 1, 1)?.getClientRects()[0] : null;
+            if (ahead) {
+                edge = { x: ahead.right, top: ahead.top, height: ahead.height };
+            }
+        }
+
+        if (!edge) {
+            caret?.remove();
+            this.dropCaret = null;
+            return;
+        }
+
+        if (!caret || caret.parentElement !== place.page.element) {
+            caret?.remove();
+            caret = document.createElement('div');
+            caret.className = 'viewer-drop-caret';
+            caret.setAttribute('aria-hidden', 'true');
+            place.page.element.appendChild(caret);
+            this.dropCaret = caret;
+        }
+
+        const box = place.page.element.getBoundingClientRect();
+        caret.style.left = `${edge.x - box.left}px`;
+        caret.style.top = `${edge.top - box.top}px`;
+        caret.style.height = `${edge.height}px`;
     }
 
     // Whether a point of the window is on a character of a page's text, rather than beside it.

@@ -1585,6 +1585,38 @@ public partial class MorphViewer
             StateHasChanged();
         });
 
+    /// <summary>
+    /// Called from JavaScript when a floating picture is dragged with Ctrl held: a copy of it is left
+    /// moved by as much, in points, and the picture stays (<see cref="DocumentEditor.DuplicatePicture"/>).
+    /// </summary>
+    [JSInvokable]
+    public Task OnPictureDuplicate(int paragraph, int offset, double right, double down) =>
+        InvokeAsync(async () =>
+        {
+            if (!editOpen ||
+                !CanWrite)
+            {
+                return;
+            }
+
+            // The picture named is one of the file being replaced.
+            if (revising)
+            {
+                Busy();
+                return;
+            }
+
+            beforeEdit = null;
+            var options = await EditOptionsAsync();
+            if (await ReviseAsync(_ => DocumentEditor.DuplicatePicture(_, paragraph, offset, right, down, options), relayout: true, () => activeKey))
+            {
+                // The copy is the one selected, as Word's is; it stands where the picture did, which moves on.
+                floatingPicture = (paragraph, offset);
+            }
+
+            StateHasChanged();
+        });
+
     /// <summary>Called from JavaScript when a floating picture's corner has sized it: its size in points.</summary>
     [JSInvokable]
     public Task OnPictureResize(int paragraph, int offset, double width, double height) =>

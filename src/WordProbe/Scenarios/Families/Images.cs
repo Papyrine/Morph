@@ -89,7 +89,7 @@ static class ImagesFamily
             .Observing(Observe.Default | Observe.Shapes)
             .Tracked()
             .Hypotheses("A plain drag moves the picture inline to the drop point; Ctrl+drag copies it; a drop at P1:0 puts it at the paragraph start.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("I-06", "Enter, Backspace and Delete at a picture that starts or ends a paragraph")
             .In("image-edges")
@@ -170,7 +170,7 @@ static class ImagesFamily
             .Observing(Observe.Selection | Observe.Text | Observe.Shapes | Observe.Undo)
             .Tracked()
             .Hypotheses("A plain drag moves the shape and re-anchors it to the paragraph under the drop; Ctrl+drag leaves a copy; Shift+drag constrains the move to one axis.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("I-16", "Tab and Shift+Tab with a shape selected")
             .In("{fixture}")

@@ -516,6 +516,85 @@ public partial class MorphViewer
             });
 
     /// <summary>
+    /// Called from JavaScript when text selected — in the paragraph being typed, or across the pages — is
+    /// dragged and dropped on the pages outside the paragraph's box: the page, the point in points from
+    /// its top left, the offset into the page's text it was dropped at, and whether Ctrl was held. The
+    /// text is moved there, or copied, as Word's drag and drop does (<see cref="DocumentEditor.Drop"/>),
+    /// and left selected; undone, it is selected again where it was.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditDrop(int page, double x, double y, int offset, bool copy) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    handle is null)
+                {
+                    return;
+                }
+
+                // What is selected is asked of the script, which hands in what was typed first.
+                if (await RequireAsync() is not {HasSelection: true} target)
+                {
+                    return;
+                }
+
+                var source = PlaceOf(target);
+                if (Locate(page, x, y, offset, offset) is not var (paragraph, _, at, _) ||
+                    sourceBytes is not { } bytes)
+                {
+                    beforeEdit = null;
+                    return;
+                }
+
+                var options = await EditOptionsAsync();
+                var dropped = DocumentEditor.Drop(bytes, source.StartParagraph, source.StartOffset, source.EndParagraph, source.EndOffset, paragraph.Ordinal, at, copy, options);
+                if (ReferenceEquals(dropped.Document, bytes))
+                {
+                    // Dropped on itself, or where nothing can go: the caret goes to the drop, as Word's does.
+                    beforeEdit = null;
+                    await ResumeAsync(dropped.StartParagraph, dropped.StartOffset);
+                    StateHasChanged();
+                    return;
+                }
+
+                beforeEdit = source;
+                var edited = await ReviseAsync(
+                    current =>
+                    {
+                        if (ReferenceEquals(current, bytes))
+                        {
+                            return dropped.Document;
+                        }
+
+                        // Something else was made of the file meanwhile: dropped on that instead.
+                        dropped = DocumentEditor.Drop(current, source.StartParagraph, source.StartOffset, source.EndParagraph, source.EndOffset, paragraph.Ordinal, at, copy, options);
+                        return dropped.Document;
+                    },
+                    relayout: true,
+                    () => activeKey);
+                if (edited)
+                {
+                    await SelectDroppedAsync(dropped);
+                }
+
+                StateHasChanged();
+            });
+
+    // What was dropped, selected: in its paragraph opened for typing, or across the pages when it is
+    // more than one paragraph's.
+    Task SelectDroppedAsync(DropResult dropped)
+    {
+        if (dropped.StartParagraph == dropped.EndParagraph)
+        {
+            return ResumeAsync(dropped.StartParagraph, dropped.StartOffset, dropped.EndOffset);
+        }
+
+        return SelectAsync(new(dropped.StartParagraph, dropped.StartOffset, dropped.EndParagraph, dropped.EndOffset));
+    }
+
+    /// <summary>
     /// Called from JavaScript when the picture selected in the paragraph being typed has been sized
     /// by its handles: its new width and height, in points.
     /// </summary>
