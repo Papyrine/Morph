@@ -233,7 +233,7 @@ public partial class MorphViewer : IAsyncDisposable
     {
         get
         {
-            if (findQuery.Trim().Length == 0 || searchPending)
+            if (string.IsNullOrWhiteSpace(findQuery) || searchPending)
             {
                 return "";
             }
@@ -556,7 +556,7 @@ public partial class MorphViewer : IAsyncDisposable
             await PushPresenceAsync();
 
             if (findOpen &&
-                findQuery.Trim().Length > 0)
+                !string.IsNullOrWhiteSpace(findQuery))
             {
                 await RunSearchAsync();
             }
@@ -1330,7 +1330,7 @@ public partial class MorphViewer : IAsyncDisposable
         focusFind = true;
         StateHasChanged();
         if (!wasOpen &&
-            findQuery.AsSpan().Trim().Length > 0)
+            !string.IsNullOrWhiteSpace(findQuery))
         {
             return RunSearchAsync();
         }

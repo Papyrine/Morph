@@ -965,8 +965,17 @@ sealed class HtmlParser
     // CSS font-family is a comma-separated fallback list whose names may be quoted, e.g.
     // 'Times New Roman', serif. Take the first family and strip the quotes — handing the whole
     // list to the font loader throws (it treats "Times New Roman', serif" as one missing name).
-    static string FirstFontFamily(string value) =>
-        value.Split(',')[0].Trim().Trim('\'', '"').Trim();
+    static string FirstFontFamily(string value)
+    {
+        var first = value.AsSpan();
+        var comma = first.IndexOf(',');
+        if (comma >= 0)
+        {
+            first = first[..comma];
+        }
+
+        return first.Trim().Trim("'\"").Trim().ToString();
+    }
 
     static RunProperties ApplyStyleToRunProps(string style, RunProperties props)
     {
@@ -1490,7 +1499,7 @@ sealed class HtmlParser
             }
 
             if (tableStyles.TryGetValue("border-collapse", out var borderCollapse) &&
-                borderCollapse.Trim().Equals("collapse", StringComparison.OrdinalIgnoreCase))
+                borderCollapse.AsSpan().Trim().Equals("collapse", StringComparison.OrdinalIgnoreCase))
             {
                 cellSpacingPixels = 0;
             }
@@ -1500,7 +1509,7 @@ sealed class HtmlParser
             // slot, so any near-full percentage maps to fill-the-container.
             if (tableStyles.TryGetValue("width", out var cssWidth))
             {
-                var widthValue = cssWidth.Trim();
+                var widthValue = cssWidth.AsSpan().Trim();
                 if (widthValue.EndsWith('%'))
                 {
                     if (double.TryParse(widthValue[..^1], out var percent) &&
@@ -1712,7 +1721,7 @@ sealed class HtmlParser
 
                     if (cellStyles.TryGetValue("width", out var cssWidth))
                     {
-                        var widthValue = cssWidth.Trim();
+                        var widthValue = cssWidth.AsSpan().Trim();
                         if (widthValue.EndsWith('%'))
                         {
                             if (double.TryParse(widthValue[..^1], out var percent) &&
@@ -1733,7 +1742,7 @@ sealed class HtmlParser
                     cellWidthFraction == null &&
                     cell.GetAttribute("width") is {Length: > 0} widthAttribute)
                 {
-                    var attributeValue = widthAttribute.Trim();
+                    var attributeValue = widthAttribute.AsSpan().Trim();
                     if (attributeValue.EndsWith('%'))
                     {
                         if (double.TryParse(attributeValue[..^1], out var percent) &&
@@ -2342,16 +2351,18 @@ sealed class HtmlParser
         ["yellowgreen"] = "9ACD32"
     };
 
-    public static string? NormalizeColor(string color)
+    static readonly Dictionary<string, string>.AlternateLookup<CharSpan> namedColorsBySpan =
+        namedColors.GetAlternateLookup<CharSpan>();
+
+    public static string? NormalizeColor(CharSpan color)
     {
-        if (string.IsNullOrEmpty(color))
+        color = color.Trim();
+        if (color.IsEmpty)
         {
             return null;
         }
 
-        color = color.Trim();
-
-        if (namedColors.TryGetValue(color, out var hex))
+        if (namedColorsBySpan.TryGetValue(color, out var hex))
         {
             return hex;
         }
@@ -2366,14 +2377,16 @@ sealed class HtmlParser
 
             if (hexValue.Length == 6)
             {
-                return hexValue.ToUpperInvariant();
+                Span<char> upper = stackalloc char[6];
+                hexValue.ToUpperInvariant(upper);
+                return new(upper);
             }
         }
 
         // rgb(r, g, b)
         if (color.StartsWith("rgb(", StringComparison.OrdinalIgnoreCase))
         {
-            var inner = color.AsSpan()[4..^1];
+            var inner = color[4..^1];
             Span<Range> ranges = stackalloc Range[4];
             if (inner.Split(ranges, ',') == 3 &&
                 int.TryParse(inner[ranges[0]].Trim(), out var r) &&
@@ -2594,25 +2607,38 @@ sealed class HtmlParser
         element.TagName.Equals("p", StringComparison.OrdinalIgnoreCase) ||
         element.TagName.Equals("div", StringComparison.OrdinalIgnoreCase);
 
-    static CellVerticalAlignment? VerticalAlignmentOf(string? value) =>
-        value?.Trim().ToLowerInvariant() switch
+    static CellVerticalAlignment? VerticalAlignmentOf(string? value)
+    {
+        var trimmed = value.AsSpan().Trim();
+        if (trimmed.IsEmpty)
         {
-            null or "" => null,
-            "middle" or "center" => CellVerticalAlignment.Center,
-            "bottom" => CellVerticalAlignment.Bottom,
-            _ => CellVerticalAlignment.Top
-        };
+            return null;
+        }
+
+        if (trimmed.Equals("middle", StringComparison.OrdinalIgnoreCase) ||
+            trimmed.Equals("center", StringComparison.OrdinalIgnoreCase))
+        {
+            return CellVerticalAlignment.Center;
+        }
+
+        if (trimmed.Equals("bottom", StringComparison.OrdinalIgnoreCase))
+        {
+            return CellVerticalAlignment.Bottom;
+        }
+
+        return CellVerticalAlignment.Top;
+    }
 
     static double? AttributeHeight(IElement element) =>
         element.GetAttribute("height") is { } attribute &&
-        double.TryParse(attribute.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var pixels) &&
+        double.TryParse(attribute.AsSpan().Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var pixels) &&
         pixels > 0
             ? pixels * tableAttributePixelsToPoints
             : null;
 
     static double? CssHeight(Dictionary<string, string> styles) =>
         styles.TryGetValue("height", out var height) &&
-        TryParseCssLengthToPoints(height.Trim(), out var points) &&
+        TryParseCssLengthToPoints(height, out var points) &&
         points > 0
             ? points
             : null;
@@ -2729,7 +2755,7 @@ sealed class HtmlParser
             }
             else
             {
-                var normalized = NormalizeColor(part.ToString());
+                var normalized = NormalizeColor(part);
                 if (normalized != null)
                 {
                     color = normalized;

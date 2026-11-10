@@ -101,7 +101,7 @@ static class IdRemap
         var file = name[(slash + 1)..];
         var dot = file.LastIndexOf('.');
         var extension = dot < 0 ? "" : file[dot..];
-        var stem = (dot < 0 ? file : file[..dot]).TrimEnd("0123456789".ToCharArray());
+        var stem = file.AsSpan(0, dot < 0 ? file.Length : dot).TrimEnd("0123456789");
         for (var number = 1; ; number++)
         {
             var fresh = $"{folder}{stem}{number}{extension}";

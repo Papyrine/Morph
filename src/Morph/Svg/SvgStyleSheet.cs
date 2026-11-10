@@ -142,13 +142,13 @@ sealed class SvgStyleSheet
                 continue;
             }
 
-            var value = declaration[(colon + 1)..].Trim();
+            var value = declaration.AsSpan(colon + 1).Trim();
             if (value.Contains('!'))
             {
                 return false;
             }
 
-            properties[declaration[..colon].Trim().ToLowerInvariant()] = value;
+            properties[declaration.AsSpan(0, colon).Trim().ToString().ToLowerInvariant()] = value.ToString();
         }
 
         return true;

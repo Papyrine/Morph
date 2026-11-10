@@ -59,11 +59,11 @@ static class FormulaErrors
             _ => 14
         };
 
-    public static bool TryParse(string? text, out FormulaError error)
+    public static bool TryParse(CharSpan text, out FormulaError error)
     {
         foreach (var (each, spelling) in spellings)
         {
-            if (string.Equals(spelling, text, StringComparison.OrdinalIgnoreCase))
+            if (text.Equals(spelling, StringComparison.OrdinalIgnoreCase))
             {
                 error = each;
                 return true;

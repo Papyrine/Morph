@@ -16,7 +16,7 @@ static class WopiHosts
         }
 
         var origin = uri.GetLeftPart(UriPartial.Authority);
-        if (options.TrustedHosts.Any(_ => string.Equals(_.TrimEnd('/'), origin, StringComparison.OrdinalIgnoreCase)))
+        if (options.TrustedHosts.Any(_ => _.AsSpan().TrimEnd('/').Equals(origin, StringComparison.OrdinalIgnoreCase)))
         {
             return uri;
         }

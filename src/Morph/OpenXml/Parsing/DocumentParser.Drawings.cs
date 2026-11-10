@@ -614,16 +614,14 @@ sealed partial class DocumentParser
                 return null;
             }
 
-            if (properties.AttributeValue("descr") is {Length: > 0} descr &&
-                !string.IsNullOrWhiteSpace(descr))
+            if (properties.AttributeValue("descr").TryTrim(out var descr))
             {
-                return descr.Trim();
+                return descr;
             }
 
-            if (properties.AttributeValue("title") is {Length: > 0} title &&
-                !string.IsNullOrWhiteSpace(title))
+            if (properties.AttributeValue("title").TryTrim(out var title))
             {
-                return title.Trim();
+                return title;
             }
 
             return null;

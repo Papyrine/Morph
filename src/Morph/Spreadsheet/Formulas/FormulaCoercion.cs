@@ -93,7 +93,7 @@ static class FormulaCoercion
     /// Text read as a number the way Excel reads it typed into a cell: <c>1,234.5</c>, <c>50%</c>,
     /// <c>$12</c>, <c>(5)</c>, <c>1E3</c>, a date or a time. Null when it is not one.
     /// </summary>
-    public static double? ParseNumber(string text)
+    public static double? ParseNumber(CharSpan text)
     {
         var trimmed = text.Trim();
         if (trimmed.Length == 0)
@@ -155,25 +155,35 @@ static class FormulaCoercion
     }
 
     // "1,234" is a thousand and more; "1,2" is not a number at all.
-    static bool ThousandsInPlace(string text)
+    static bool ThousandsInPlace(CharSpan text)
     {
-        var point = text.IndexOfAny(['.', 'e', 'E']);
+        var point = text.IndexOfAny('.', 'e', 'E');
         var whole = point < 0 ? text : text[..point];
-        var groups = whole.Split(',');
-        if (groups.Length == 1)
+        var comma = whole.IndexOf(',');
+        if (comma < 0)
         {
             return true;
         }
 
-        return groups.Skip(1).All(_ => _.Length == 3);
+        // Every group after the first is three digits.
+        var rest = whole[(comma + 1)..];
+        foreach (var range in rest.Split(','))
+        {
+            if (rest[range].Length != 3)
+            {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /// <summary>A date or a time typed as text, as its serial; null when it is neither.</summary>
-    public static double? ParseDate(string text)
+    public static double? ParseDate(CharSpan text)
     {
         var trimmed = text.Trim();
         if (trimmed.Length < 3 ||
-            !trimmed.Any(char.IsAsciiDigit))
+            !trimmed.ContainsAnyInRange('0', '9'))
         {
             return null;
         }

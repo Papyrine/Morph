@@ -692,12 +692,12 @@ sealed class FormulaWorkbook(DateTime now, CultureInfo? culture = null)
 
         if (type == S.CellValues.Boolean)
         {
-            return FormulaValue.FromBoolean(raw.Trim() is "1" or "true");
+            return FormulaValue.FromBoolean(raw.AsSpan().Trim() is "1" or "true");
         }
 
         if (type == S.CellValues.Error)
         {
-            if (FormulaErrors.TryParse(raw.Trim(), out var error))
+            if (FormulaErrors.TryParse(raw.AsSpan().Trim(), out var error))
             {
                 return FormulaValue.FromError(error);
             }

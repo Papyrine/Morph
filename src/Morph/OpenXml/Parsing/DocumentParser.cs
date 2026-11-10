@@ -651,7 +651,7 @@ sealed partial class DocumentParser(string? defaultFont = null, bool? useLetterP
         }
 
         // Strip the trailing "f" Word sometimes emits (denotes fixed-point /65536).
-        var trimmed = raw.TrimEnd('f', 'F');
+        var trimmed = raw.AsSpan().TrimEnd("fF");
         if (double.TryParse(trimmed, NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
         {
             return value / 65536.0;

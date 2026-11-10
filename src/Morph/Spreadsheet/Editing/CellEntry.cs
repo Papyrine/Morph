@@ -44,9 +44,9 @@ sealed record CellEntry(CellEntryKind Kind, double Number = 0, string Text = "",
         // "=" alone, or "=" with only spaces, is text, as Excel takes it.
         if (typed.Length > 1 &&
             typed[0] is '=' or '+' &&
-            typed[1..].Trim().Length > 0)
+            !typed.AsSpan(1).IsWhiteSpace())
         {
-            var formula = typed[1..].Trim();
+            var formula = typed.AsSpan(1).Trim();
             // +5 typed is the number 5, as Excel reads it; +A1 is a formula.
             if (typed[0] == '+' &&
                 FormulaCoercion.ParseNumber(formula) is { } signed)
@@ -54,7 +54,7 @@ sealed record CellEntry(CellEntryKind Kind, double Number = 0, string Text = "",
                 return new(CellEntryKind.Number, signed);
             }
 
-            return new(CellEntryKind.Formula, Text: formula);
+            return new(CellEntryKind.Formula, Text: formula.ToString());
         }
 
         var trimmed = typed.Trim();

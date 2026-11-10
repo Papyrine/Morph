@@ -627,8 +627,7 @@ public partial class MorphEditor
     // when Enter is pressed or the box is left, which is when a browser says the box has changed.
     Task OnFontTypedAsync(ChangeEventArgs args)
     {
-        var font = (args.Value as string ?? "").Trim();
-        if (font.Length == 0 ||
+        if (!(args.Value as string).TryTrim(out var font) ||
             Off(Commands.Font))
         {
             return Task.CompletedTask;
@@ -640,7 +639,7 @@ public partial class MorphEditor
 
     Task OnSizeTypedAsync(ChangeEventArgs args)
     {
-        var text = (args.Value as string ?? "").Trim();
+        var text = (args.Value as string).AsSpan().Trim();
         if (Off(Commands.FontSize))
         {
             return Task.CompletedTask;
@@ -1071,7 +1070,7 @@ public partial class MorphEditor
 
         if (args.Key == "Enter" &&
             LinkAsksAddress &&
-            linkAddress.Trim().Length > 0 &&
+            !string.IsNullOrWhiteSpace(linkAddress) &&
             !(LinkAsksText && linkText.Length == 0))
         {
             return InsertLinkAsync();

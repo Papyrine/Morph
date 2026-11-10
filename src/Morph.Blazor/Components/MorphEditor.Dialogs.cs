@@ -83,7 +83,7 @@ public partial class MorphEditor
 
     static double? Parse(string text)
     {
-        if (double.TryParse(text.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) &&
+        if (double.TryParse(text.AsSpan().Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var value) &&
             value is >= -1000 and <= 1000)
         {
             return value;
@@ -487,12 +487,12 @@ public partial class MorphEditor
         var now = fontFields;
         var was = fontStart;
         var format = new RunFormat();
-        if (now.Font.Trim() != was.Font &&
-            now.Font.Trim().Length > 0)
+        if (now.Font.TryTrim(out var font) &&
+            font != was.Font)
         {
             format = format with
             {
-                Font = now.Font.Trim()
+                Font = font
             };
         }
 

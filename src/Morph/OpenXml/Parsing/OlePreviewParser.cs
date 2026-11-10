@@ -104,11 +104,15 @@ static class OlePreviewParser
             return null;
         }
 
-        var description = imageData!.AttributeValue("title") is {Length: > 0} title && !string.IsNullOrWhiteSpace(title)
-            ? title.Trim()
-            : shape.AttributeValue("alt") is {Length: > 0} alt && !string.IsNullOrWhiteSpace(alt)
-                ? alt.Trim()
-                : null;
+        string? description = null;
+        if (imageData!.AttributeValue("title").TryTrim(out var title))
+        {
+            description = title;
+        }
+        else if (shape.AttributeValue("alt").TryTrim(out var alt))
+        {
+            description = alt;
+        }
         var floating = style.GetValueOrDefault("position") == "absolute"
             ? Float(shape, style, width.Value, height.Value, page)
             : null;
@@ -254,7 +258,7 @@ static class OlePreviewParser
             var colon = declaration.IndexOf(':');
             if (colon > 0)
             {
-                properties[declaration[..colon].Trim()] = declaration[(colon + 1)..].Trim();
+                properties[declaration.AsSpan(0, colon).Trim().ToString()] = declaration.AsSpan(colon + 1).Trim().ToString();
             }
         }
 
@@ -269,23 +273,55 @@ static class OlePreviewParser
             return null;
         }
 
-        var (number, scale) = value switch
+        var number = value.AsSpan();
+        var scale = UnitScale(number);
+        if (scale != null)
         {
-            _ when value.EndsWith("pt", StringComparison.OrdinalIgnoreCase) => (value[..^2], 1d),
-            _ when value.EndsWith("in", StringComparison.OrdinalIgnoreCase) => (value[..^2], 72d),
-            _ when value.EndsWith("cm", StringComparison.OrdinalIgnoreCase) => (value[..^2], 72 / 2.54),
-            _ when value.EndsWith("mm", StringComparison.OrdinalIgnoreCase) => (value[..^2], 72 / 25.4),
-            _ when value.EndsWith("pc", StringComparison.OrdinalIgnoreCase) => (value[..^2], 12d),
-            _ when value.EndsWith("px", StringComparison.OrdinalIgnoreCase) => (value[..^2], 0.75),
-            _ => (value, 0.75)
-        };
+            number = number[..^2];
+        }
 
         if (!double.TryParse(number.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed))
         {
             return null;
         }
 
-        return parsed * scale;
+        return parsed * (scale ?? 0.75);
+    }
+
+    // Points per unit of a length's two-letter unit; null when it ends in none.
+    static double? UnitScale(CharSpan value)
+    {
+        if (value.EndsWith("pt", StringComparison.OrdinalIgnoreCase))
+        {
+            return 1;
+        }
+
+        if (value.EndsWith("in", StringComparison.OrdinalIgnoreCase))
+        {
+            return 72;
+        }
+
+        if (value.EndsWith("cm", StringComparison.OrdinalIgnoreCase))
+        {
+            return 72 / 2.54;
+        }
+
+        if (value.EndsWith("mm", StringComparison.OrdinalIgnoreCase))
+        {
+            return 72 / 25.4;
+        }
+
+        if (value.EndsWith("pc", StringComparison.OrdinalIgnoreCase))
+        {
+            return 12;
+        }
+
+        if (value.EndsWith("px", StringComparison.OrdinalIgnoreCase))
+        {
+            return 0.75;
+        }
+
+        return null;
     }
 
     static double? Twips(string? value)

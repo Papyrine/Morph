@@ -115,7 +115,7 @@ sealed class SvgReader
         var sheets = new List<string>();
         foreach (var style in root.Descendants(svg + "style"))
         {
-            if (style.Attribute("type") is { } type && type.Value.Trim() != "text/css")
+            if (style.Attribute("type") is { } type && type.Value.AsSpan().Trim() is not "text/css")
             {
                 throw new UnsupportedException($"a style sheet of type '{type.Value}'");
             }
@@ -301,7 +301,7 @@ sealed class SvgReader
     // says nothing about the document, so it reads as absent.
     static double? ReadSize(XElement root, string name)
     {
-        if (root.Attribute(name) is not { } attribute || attribute.Value.TrimEnd().EndsWith('%'))
+        if (root.Attribute(name) is not { } attribute || attribute.Value.AsSpan().TrimEnd().EndsWith('%'))
         {
             return null;
         }
@@ -916,8 +916,13 @@ sealed class SvgReader
             return null;
         }
 
-        var target = value[4..close].Trim().Trim('"', '\'');
-        return target.StartsWith('#') ? target[1..] : null;
+        var target = value.AsSpan(4, close - 4).Trim().Trim("\"'");
+        if (target.StartsWith('#'))
+        {
+            return target[1..].ToString();
+        }
+
+        return null;
     }
 
     // An element's figures, in its own coordinates.
@@ -929,7 +934,7 @@ sealed class SvgReader
             case "path":
             {
                 var data = element.Attribute("d")?.Value;
-                if (data != null && data.Trim() != "none" && !SvgPathData.TryParse(data, builder))
+                if (data != null && data.AsSpan().Trim() is not "none" && !SvgPathData.TryParse(data, builder))
                 {
                     throw new UnsupportedException("path data that does not parse");
                 }

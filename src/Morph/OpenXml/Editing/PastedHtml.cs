@@ -666,14 +666,25 @@ static partial class PastedHtml
 
     static TextAlignment? AlignmentOf(IElement element, Dictionary<string, string> css)
     {
-        var value = css.GetValueOrDefault("text-align") ?? element.GetAttribute("align")?.Trim().ToLowerInvariant();
-        return value switch
+        // The CSS value is already trimmed and lowercased; the attribute is as written.
+        var value = (css.GetValueOrDefault("text-align") ?? element.GetAttribute("align")).AsSpan().Trim();
+        if (value.Equals("center", StringComparison.OrdinalIgnoreCase))
         {
-            "center" => TextAlignment.Center,
-            "right" or "end" => TextAlignment.Right,
-            "justify" => TextAlignment.Justify,
-            _ => null
-        };
+            return TextAlignment.Center;
+        }
+
+        if (value.Equals("right", StringComparison.OrdinalIgnoreCase) ||
+            value.Equals("end", StringComparison.OrdinalIgnoreCase))
+        {
+            return TextAlignment.Right;
+        }
+
+        if (value.Equals("justify", StringComparison.OrdinalIgnoreCase))
+        {
+            return TextAlignment.Justify;
+        }
+
+        return null;
     }
 
     // Word's list item is numbered when the marker it writes is a number or a letter followed by a
@@ -687,7 +698,7 @@ static partial class PastedHtml
                 continue;
             }
 
-            var marker = span.TextContent.Replace('\u00A0', ' ').Trim();
+            var marker = span.TextContent.Replace('\u00A0', ' ').AsSpan().Trim();
             if (NumberMarker.IsMatch(marker))
             {
                 return ListKind.Number;
@@ -723,7 +734,7 @@ static partial class PastedHtml
             }
 
             var value = declaration[(colon + 1)..].Replace("!important", "", StringComparison.OrdinalIgnoreCase).Trim().ToLowerInvariant();
-            declarations[declaration[..colon].Trim()] = value;
+            declarations[declaration.AsSpan(0, colon).Trim().ToString()] = value;
         }
 
         return declarations;

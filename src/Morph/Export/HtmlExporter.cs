@@ -3776,7 +3776,7 @@ static class HtmlExporter
                 style.Append("text-transform: uppercase; ");
             }
 
-            return style.ToString().TrimEnd();
+            return style.TrimmedToString();
         }
 
         // Maps embedded image bytes to an <img>/<image> source: a caller-supplied handler result, a

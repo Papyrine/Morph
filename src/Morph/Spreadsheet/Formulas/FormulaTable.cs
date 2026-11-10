@@ -21,9 +21,10 @@ sealed record FormulaTable(string Name, int Sheet, SheetRange Range, int HeaderR
         }
 
         // A name that differs only in the spaces around it, which a hand-typed reference may drop.
+        var trimmed = wanted.AsSpan().Trim();
         for (var index = 0; index < Columns.Count; index++)
         {
-            if (string.Equals(Normalize(Columns[index]).Trim(), wanted.Trim(), StringComparison.OrdinalIgnoreCase))
+            if (Normalize(Columns[index]).AsSpan().Trim().Equals(trimmed, StringComparison.OrdinalIgnoreCase))
             {
                 return index;
             }

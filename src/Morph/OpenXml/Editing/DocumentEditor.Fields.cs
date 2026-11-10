@@ -142,7 +142,7 @@ static partial class DocumentEditor
         paragraph.Descendants<OoxmlFieldCode>().Any(IsContents);
 
     static bool IsContents(OoxmlFieldCode code) =>
-        code.Text.TrimStart().StartsWith("TOC ", StringComparison.Ordinal);
+        code.Text.AsSpan().TrimStart().StartsWith("TOC ", StringComparison.Ordinal);
 
     sealed partial class Editing
     {
@@ -695,7 +695,7 @@ static partial class DocumentEditor
                 }
             }
 
-            return builder.ToString().Trim();
+            return builder.TrimmedToString();
         }
 
         // The _Toc bookmark round a heading: the one it has, or a new one round its runs.

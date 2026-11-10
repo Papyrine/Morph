@@ -46,7 +46,20 @@ static class PageTextReader
         var texts = new string[pageCount];
         for (var index = 0; index < pageCount; index++)
         {
-            texts[index] = builders[index]?.ToString().TrimEnd('\n') ?? "";
+            // Trailing line feeds come off in place, so only the page's text is allocated.
+            if (builders[index] is not { } builder)
+            {
+                texts[index] = "";
+                continue;
+            }
+
+            while (builder.Length > 0 &&
+                   builder[^1] == '\n')
+            {
+                builder.Length--;
+            }
+
+            texts[index] = builder.ToString();
         }
 
         return texts;
@@ -181,7 +194,7 @@ static class PageTextReader
             builder.Append(line);
         }
 
-        return builder.ToString().Trim();
+        return builder.TrimmedToString();
     }
 
     // The runs of a line, left to right. A list marker is a run of its own, set apart from the text

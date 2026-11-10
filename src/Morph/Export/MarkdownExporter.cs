@@ -1002,7 +1002,7 @@ static class MarkdownExporter
                         equalsCount++;
                     }
 
-                    if (equalsCount == line.TrimEnd().Length)
+                    if (equalsCount == line.AsSpan().TrimEnd().Length)
                     {
                         return $"\\{line}";
                     }

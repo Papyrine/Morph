@@ -160,7 +160,7 @@ static partial class NumberFormat
     }
 
     static bool IsGeneral(string body) =>
-        body.Trim().Equals("General", StringComparison.OrdinalIgnoreCase);
+        body.AsSpan().Trim().Equals("General", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>
     /// Whether a section is a date/time code rather than a numeric one.

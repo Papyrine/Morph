@@ -2194,7 +2194,7 @@ public partial class MorphViewer
     internal Task OpenReplaceAsync()
     {
         replaceOpen = true;
-        focusReplace = findQuery.Trim().Length > 0;
+        focusReplace = !string.IsNullOrWhiteSpace(findQuery);
         replaceNote = null;
         return OpenFindAsync();
     }

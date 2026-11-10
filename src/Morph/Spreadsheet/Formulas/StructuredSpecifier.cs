@@ -30,19 +30,19 @@ sealed record StructuredSpecifier(StructuredItems Items, string? FirstColumn, st
         // Not trimmed: a column's name may end in a space, as probate-inventory's [Balance ] does.
         var inner = bracketed[1..^1];
         var items = StructuredItems.None;
-        if (inner.TrimStart().StartsWith('@'))
+        if (inner.AsSpan().TrimStart().StartsWith('@'))
         {
             items = StructuredItems.ThisRow;
             inner = inner.TrimStart()[1..];
         }
 
         // Excel lets spaces stand around the parts: [ [#This Row], [Price] ].
-        if (inner.Trim().StartsWith('['))
+        if (inner.AsSpan().TrimStart().StartsWith('['))
         {
             inner = inner.Trim();
         }
 
-        if (inner.Trim().Length == 0)
+        if (string.IsNullOrWhiteSpace(inner))
         {
             return new(Rows(items), null, null);
         }
@@ -100,16 +100,36 @@ sealed record StructuredSpecifier(StructuredItems Items, string? FirstColumn, st
         return items;
     }
 
-    static StructuredItems Item(string name) =>
-        name.Trim().ToUpperInvariant() switch
+    static StructuredItems Item(string name)
+    {
+        var trimmed = name.AsSpan().Trim();
+        if (trimmed.Equals("#ALL", StringComparison.OrdinalIgnoreCase))
         {
-            "#ALL" => StructuredItems.All,
-            "#DATA" => StructuredItems.Data,
-            "#HEADERS" => StructuredItems.Headers,
-            "#TOTALS" => StructuredItems.Totals,
-            "#THIS ROW" => StructuredItems.ThisRow,
-            _ => throw new FormulaSyntaxException($"'{name}' is not one of a table's items.", 0)
-        };
+            return StructuredItems.All;
+        }
+
+        if (trimmed.Equals("#DATA", StringComparison.OrdinalIgnoreCase))
+        {
+            return StructuredItems.Data;
+        }
+
+        if (trimmed.Equals("#HEADERS", StringComparison.OrdinalIgnoreCase))
+        {
+            return StructuredItems.Headers;
+        }
+
+        if (trimmed.Equals("#TOTALS", StringComparison.OrdinalIgnoreCase))
+        {
+            return StructuredItems.Totals;
+        }
+
+        if (trimmed.Equals("#THIS ROW", StringComparison.OrdinalIgnoreCase))
+        {
+            return StructuredItems.ThisRow;
+        }
+
+        throw new FormulaSyntaxException($"'{name}' is not one of a table's items.", 0);
+    }
 
     // The comma-separated parts at the outer depth, each [x] or [x]:[y].
     static IEnumerable<string> Parts(string inner)

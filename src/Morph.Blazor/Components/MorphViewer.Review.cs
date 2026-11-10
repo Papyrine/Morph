@@ -132,7 +132,7 @@ public partial class MorphViewer
                 return Author;
             }
 
-            if (authorName.Trim() is {Length: > 0} name)
+            if (authorName.TryTrim(out var name))
             {
                 return name;
             }
@@ -476,7 +476,7 @@ public partial class MorphViewer
     async Task PostDraftAsync()
     {
         if (draft is not { } posting ||
-            posting.Text.Trim() is not {Length: > 0} text)
+            !posting.Text.TryTrim(out var text))
         {
             return;
         }
@@ -959,7 +959,7 @@ public partial class MorphViewer
                     }
 
                     if (findOpen &&
-                        findQuery.Trim().Length > 0)
+                        !string.IsNullOrWhiteSpace(findQuery))
                     {
                         await RunSearchAsync();
                     }
@@ -1024,7 +1024,7 @@ public partial class MorphViewer
     {
         var builder = new StringBuilder(Math.Min(text.Length, excerptLength + 1));
         var gap = false;
-        foreach (var ch in text.Trim())
+        foreach (var ch in text.AsSpan().Trim())
         {
             if (char.IsWhiteSpace(ch))
             {
