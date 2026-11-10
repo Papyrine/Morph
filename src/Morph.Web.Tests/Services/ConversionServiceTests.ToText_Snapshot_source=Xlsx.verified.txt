@@ -30,7 +30,7 @@ TAX RATE	 8.75%
 
 OTHER	 $0.00
 
-TOTAL	 $815.62
+TOTAL	 $815.63
 
 Make all checks payable to Create & Co.
 
