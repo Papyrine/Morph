@@ -32,6 +32,13 @@ sealed class EditorCommand(string name, string label, Func<MorphEditor, Task> ru
     public string? Tip { get; init; }
 
     /// <summary>
+    /// Word's name for the step undo takes back after it, as Word's Undo button says it ("Undo Bold"), where
+    /// a probe has recorded it (WordProbe U-02); null for a command whose name in Word is not known, which
+    /// then says only "Undo".
+    /// </summary>
+    public string? UndoName { get; init; }
+
+    /// <summary>
     /// Word's key for it, as Word's tooltips write it ("Ctrl+B"). The script binds the key (wordKey in
     /// morph-edit.js), since a key's default has to be stopped while it is still being pressed.
     /// </summary>

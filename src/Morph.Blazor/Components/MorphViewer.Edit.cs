@@ -309,15 +309,17 @@ public partial class MorphViewer
     /// whether it is then to be joined to the paragraph before it (1) or after it (2) — which is
     /// what Backspace at its start and Delete at its end ask for — or the caret is to go on to the end of
     /// the paragraph before it (3) or the start of the one after (4), as Left and Right at its edges do.
+    /// <paramref name="name"/> is Word's name for what was last done there (<c>Typing "abc"</c>), which
+    /// the step undo takes back is called by.
     /// </summary>
     [JSInvokable]
-    public Task OnEditCommit(int id, string payload, int then) =>
+    public Task OnEditCommit(int id, string payload, int then, string? name = null) =>
         InvokeAsync(
             async () =>
             {
                 try
                 {
-                    await CommitEditAsync(id, payload, then);
+                    await CommitEditAsync(id, payload, then, name);
                 }
                 finally
                 {
@@ -326,7 +328,7 @@ public partial class MorphViewer
                 }
             });
 
-    async Task CommitEditAsync(int id, string payload, int then)
+    async Task CommitEditAsync(int id, string payload, int then, string? name = null)
     {
         // The session may have been overtaken by another edit's pages, which came while its box
         // was still on its way in: it is handed in all the same, if its paragraph is still there.
@@ -401,7 +403,8 @@ public partial class MorphViewer
                 return result.Document;
             },
             relayout: true,
-            () => activeKey);
+            () => activeKey,
+            label: name ?? "");
         if (!edited)
         {
             return;
@@ -562,6 +565,7 @@ public partial class MorphViewer
                 }
 
                 beforeEdit = source;
+                editLabel = copy ? "Copy" : "Move";
                 var edited = await ReviseAsync(
                     current =>
                     {

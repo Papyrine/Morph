@@ -129,21 +129,21 @@ static class UndoFamily
             .Tracked()
             .Also(Observe.Formatting | Observe.Lists)
             .Notes("P1:6-10 is 'beta'. The entry names are read off the Undo dropdown's list, most recent first.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02b", "Undo entry names: copy then paste at the paragraph end")
             .In("words")
             .Steps("select(P1:6-10)", "Ctrl+C", "select(P1:end)", "Ctrl+V")
             .Tracked()
             .Hypotheses("Copy writes no entry; the paste is one entry named Paste.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02c", "Undo entry names: an AutoCorrect replacement")
             .In("empty-paragraphs")
             .Steps("select(P2:0)", "type(\"teh \")")
             .Tracked()
             .Hypotheses("(a) one AutoCorrect entry over the typing entry; (b) the typing and the correction in one entry.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02d", "Undo entry names: an automatic bullet on Enter")
             .In("empty-paragraphs")
@@ -173,35 +173,35 @@ static class UndoFamily
             .Steps("dblclick(P1:find(\"beta\"))", "drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\"))")
             .Tracked()
             .Hypotheses("(a) one Move entry; (b) a Cut and a Paste entry.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("U-02h", "Undo entry names: a word copied by Ctrl+drag")
             .In("words")
             .Steps("dblclick(P1:find(\"beta\"))", "ctrl+drag(P1:find(\"beta\")-P1:find(\"beta\"):end→P1:find(\"1,000\"))")
             .Tracked()
             .Hypotheses("(a) one Copy entry; (b) a Paste entry.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("U-02i", "Undo entry names: an inline picture deleted")
             .In("image-inline")
             .Steps("click(IMG1)", "Delete")
             .Tracked()
             .Also(Observe.Shapes)
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02j", "Undo entry names: a floating picture nudged")
             .In("image-floating")
             .Steps("click(SHP1)", "Right")
             .Tracked()
             .Also(Observe.Shapes)
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02k", "Undo entry names: a footnote inserted")
             .In("plain")
             .Steps("select(P1:5)", "Ctrl+Alt+F")
             .Tracked()
             .Also(Observe.Story)
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02l", "Undo entry names: a comment inserted")
             .In("plain")
@@ -216,7 +216,7 @@ static class UndoFamily
             .Axis("key", "Enter", "Shift+Enter", "Ctrl+Enter")
             .Tracked()
             .Hypotheses("Each is named Typing, or each has a name of its own (New Paragraph, Line Break, Page Break).")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02n", "Undo entry names: Ctrl+Shift+Enter splits a table")
             .In("table-3x3")
@@ -245,7 +245,7 @@ static class UndoFamily
             .Steps("select(P1:0-P1:11)", "Ctrl+Space")
             .Tracked()
             .Also(Observe.Formatting)
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02r", "Undo entry names: Ctrl+Q clears direct paragraph formatting")
             .In("kinds")
@@ -253,14 +253,14 @@ static class UndoFamily
             .Tracked()
             .Also(Observe.Formatting)
             .Notes("P4 is the centred paragraph.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02s", "Undo entry names: Alt+Shift+D inserts a DATE field")
             .In("plain")
             .Steps("select(P1:5)", "Alt+Shift+D")
             .Tracked()
             .Also(Observe.Markup)
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-02t", "Undo entry names: F9 updates a field")
             .In("field-page")
@@ -275,7 +275,7 @@ static class UndoFamily
             .Steps("option(Options.Overtype=true)", "select(P1:5)", "type(\"xy\")")
             .Tracked()
             .Hypotheses("(a) one Typing entry restoring both overwritten characters; (b) one per character.")
-            .Morph("TODO");
+            .Morph("PARTIAL");
 
         yield return Probe("U-03", "Undo after AutoCorrect: the correction, then the typing")
             .In("empty-paragraphs")

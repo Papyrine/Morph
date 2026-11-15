@@ -1,6 +1,6 @@
 {
   "Family": "tables",
-  "Generated": "2026-11-07T13:03:31.7544576+11:00",
+  "Generated": "2026-11-15T20:31:06.1791805+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
@@ -130605,6 +130605,5573 @@
         "observe": 899,
         "reset": 28,
         "close": 44
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=C(1,1):0-C(1,2):end→C(3,3):1]": {
+      "DefinitionHash": "d10b6de0e7d6045a",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(C(1,1):0-C(1,2):end→C(3,3):1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2733,
+      "RunAt": "2026-11-15T20:30:57.601508+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║¤║¤║[c1¤]║¤",
+        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
+        "T1 R3 ║[a3¤]║[b3¤]║[‸a1¤]║[b1¤]║¤",
+        "[After the table.]",
+        "Selection: IP 40–40 · Cells 1 (R3C3–R3C3) · Undo: Move · drag(C(1,1):0-C(1,2):end→C(3,3):1) from → Range 20-20, Arrow · drag(C(1,1):0-C(1,2):end→C(3,3):1) to → Range 45-45, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 40,
+          "End": 40,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 3,
+          "StartColumn": 3,
+          "EndRow": 3,
+          "EndColumn": 3,
+          "AtEndOfRowMarker": false,
+          "Cells": 1,
+          "Rows": 1,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 19,
+            "Text": "\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 19,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 19,
+            "End": 20,
+            "Text": "\u0007",
+            "Runs": [
+              {
+                "Start": 19,
+                "End": 20,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 20,
+            "End": 23,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 20,
+                "End": 23,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 24,
+            "End": 27,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 27,
+            "End": 30,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 27,
+                "End": 30,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 30,
+            "End": 33,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 30,
+                "End": 33,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 34,
+            "End": 37,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 37,
+            "End": 40,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 37,
+                "End": 40,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 40,
+            "End": 43,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 40,
+                "End": 43,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 13,
+            "Start": 43,
+            "End": 46,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 43,
+                "End": 46,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 4,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 15,
+            "Start": 47,
+            "End": 64,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 47,
+                "End": 64,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 4,
+            "Uniform": false,
+            "Start": 18,
+            "End": 47,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 19,
+                "RowEnd": 23
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 19,
+                "End": 20,
+                "RowEnd": 23
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 20,
+                "End": 23,
+                "RowEnd": 23
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 33
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 27,
+                "End": 30,
+                "RowEnd": 33
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 30,
+                "End": 33,
+                "RowEnd": 33
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 46
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 37,
+                "End": 40,
+                "RowEnd": 46
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 40,
+                "End": 43,
+                "RowEnd": 46
+              },
+              {
+                "Row": 3,
+                "Column": 4,
+                "Start": 43,
+                "End": 46,
+                "RowEnd": 46
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(1,2):end→C(3,3):1) from",
+            "X": 629,
+            "Y": 443,
+            "Under": "Range 20-20",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(1,2):end→C(3,3):1) to",
+            "X": 1127,
+            "Y": 613,
+            "Under": "Range 45-45",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/T-33_path_C_1_1_0-C_1_2_end_C_3_3_1_.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 267,
+        "open.add": 100,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 120,
+        "options": 30,
+        "steps": 1490,
+        "observe": 864,
+        "reset": 40,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=C(1,1):0-C(1,2):end→C(3,3):1]~tracked": {
+      "DefinitionHash": "0862fd98615f1702",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(C(1,1):0-C(1,2):end→C(3,3):1)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 3003,
+      "RunAt": "2026-11-15T20:31:00.6209439+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║{-[a1]-}¤║{-[b1]-}¤║[c1¤]║¤",
+        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
+        "T1 R3 ║[a3¤]║[b3¤]║{+[‸a1]+}{-[c3]-}¤║{+[b1]+}¤║¤",
+        "[After the table.]",
+        "Selection: IP 44–44 · Cells 1 (R3C3–R3C3) · Tracking · Revisions 5 · Undo: Move · drag(C(1,1):0-C(1,2):end→C(3,3):1) from → Range 20-20, Arrow · drag(C(1,1):0-C(1,2):end→C(3,3):1) to → Range 45-45, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 44,
+          "End": 44,
+          "Type": "IP",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 3,
+          "StartColumn": 3,
+          "EndRow": 3,
+          "EndColumn": 3,
+          "AtEndOfRowMarker": false,
+          "Cells": 1,
+          "Rows": 1,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a",
+          "IsCollapsed": true
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 49,
+            "Text": "a1c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 49,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 13,
+            "Start": 49,
+            "End": 52,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 49,
+                "End": 52,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 4,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 15,
+            "Start": 53,
+            "End": 70,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 53,
+                "End": 70,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 4,
+            "Uniform": false,
+            "Start": 18,
+            "End": 53,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 52
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 52
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 49,
+                "RowEnd": 52
+              },
+              {
+                "Row": 3,
+                "Column": 4,
+                "Start": 49,
+                "End": 52,
+                "RowEnd": 52
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 18,
+            "End": 20,
+            "Author": "Simon Cropp"
+          },
+          {
+            "Type": "Delete",
+            "Start": 21,
+            "End": 23,
+            "Author": "Simon Cropp"
+          },
+          {
+            "Type": "Insert",
+            "Start": 44,
+            "End": 46,
+            "Author": "Simon Cropp"
+          },
+          {
+            "Type": "Delete",
+            "Start": 46,
+            "End": 48,
+            "Author": "Simon Cropp"
+          },
+          {
+            "Type": "Insert",
+            "Start": 49,
+            "End": 51,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(1,2):end→C(3,3):1) from",
+            "X": 629,
+            "Y": 443,
+            "Under": "Range 20-20",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(1,2):end→C(3,3):1) to",
+            "X": 1127,
+            "Y": 613,
+            "Under": "Range 45-45",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/T-33_path_C_1_1_0-C_1_2_end_C_3_3_1_tracked.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 275,
+        "open.add": 103,
+        "open.view": 73,
+        "open.front": 0,
+        "open.park": 94,
+        "options": 32,
+        "steps": 1244,
+        "observe": 1374,
+        "reset": 36,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=C(1,1):0-C(2,1):end→C(3,3):1]": {
+      "DefinitionHash": "e4801093694007aa",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(C(1,1):0-C(2,1):end→C(3,3):1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2576,
+      "RunAt": "2026-11-15T20:31:03.2130272+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[a1¤]║[b1¤]║[⟦c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤",
+        "T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤",
+        "[After the table.]",
+        "Selection: Column 24–47 end-active · Cells 3 (R1C3–R3C3) · Undo — · drag(C(1,1):0-C(2,1):end→C(3,3):1) from → Range 25-25, IBeam · drag(C(1,1):0-C(2,1):end→C(3,3):1) to → Range 45-45, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 24,
+          "End": 47,
+          "Type": "Column",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 3,
+          "EndRow": 3,
+          "EndColumn": 3,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 3,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "c1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(2,1):end→C(3,3):1) from",
+            "X": 1119,
+            "Y": 443,
+            "Under": "Range 25-25",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(2,1):end→C(3,3):1) to",
+            "X": 1127,
+            "Y": 613,
+            "Under": "Range 45-45",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 271,
+        "open.add": 98,
+        "open.view": 45,
+        "open.front": 0,
+        "open.park": 125,
+        "options": 26,
+        "steps": 1400,
+        "observe": 820,
+        "reset": 37,
+        "close": 22
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=C(1,1):0-C(2,1):end→C(3,3):1]~tracked": {
+      "DefinitionHash": "a0196cbe5d5aa717",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(C(1,1):0-C(2,1):end→C(3,3):1)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 2917,
+      "RunAt": "2026-11-15T20:31:06.1648623+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[a1¤]║[b1¤]║[⟦c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤",
+        "T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤",
+        "[After the table.]",
+        "Selection: Column 24–47 end-active · Cells 3 (R1C3–R3C3) · Tracking · Revisions 0 · Undo — · drag(C(1,1):0-C(2,1):end→C(3,3):1) from → Range 25-25, IBeam · drag(C(1,1):0-C(2,1):end→C(3,3):1) to → Range 45-45, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 24,
+          "End": 47,
+          "Type": "Column",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 3,
+          "EndRow": 3,
+          "EndColumn": 3,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 3,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "c1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(2,1):end→C(3,3):1) from",
+            "X": 1119,
+            "Y": 443,
+            "Under": "Range 25-25",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(2,1):end→C(3,3):1) to",
+            "X": 1127,
+            "Y": 613,
+            "Under": "Range 45-45",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 343,
+        "open.add": 198,
+        "open.view": 52,
+        "open.front": 0,
+        "open.park": 90,
+        "options": 32,
+        "steps": 1392,
+        "observe": 1068,
+        "reset": 34,
+        "close": 48
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=COL1→C(1,3):0]": {
+      "DefinitionHash": "98fbca9816f760f1",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(COL1→C(1,3):0)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2300,
+      "RunAt": "2026-11-15T20:30:52.2526806+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤",
+        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
+        "T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Column 18–27 end-active · Cells 3 (R1C1–R1C3) · Undo — · drag(COL1→C(1,3):0) from → Range 18-18, IBeam · drag(COL1→C(1,3):0) to → Range 24-24, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 18,
+          "End": 27,
+          "Type": "Column",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 1,
+          "EndRow": 1,
+          "EndColumn": 3,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 1,
+          "Columns": 3,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a1\r\u0007b1\r\u0007c1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(COL1→C(1,3):0) from",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(COL1→C(1,3):0) to",
+            "X": 1116,
+            "Y": 443,
+            "Under": "Range 24-24",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 269,
+        "open.add": 110,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 118,
+        "options": 25,
+        "steps": 1092,
+        "observe": 839,
+        "reset": 37,
+        "close": 38
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=COL1→C(1,3):0]~tracked": {
+      "DefinitionHash": "043899e0d8c084b8",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(COL1→C(1,3):0)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 2584,
+      "RunAt": "2026-11-15T20:30:54.8530522+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤",
+        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
+        "T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Column 18–27 end-active · Cells 3 (R1C1–R1C3) · Tracking · Revisions 0 · Undo — · drag(COL1→C(1,3):0) from → Range 18-18, IBeam · drag(COL1→C(1,3):0) to → Range 24-24, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 18,
+          "End": 27,
+          "Type": "Column",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 1,
+          "EndRow": 1,
+          "EndColumn": 3,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 1,
+          "Columns": 3,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a1\r\u0007b1\r\u0007c1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(COL1→C(1,3):0) from",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(COL1→C(1,3):0) to",
+            "X": 1116,
+            "Y": 443,
+            "Under": "Range 24-24",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 268,
+        "open.add": 93,
+        "open.view": 50,
+        "open.front": 0,
+        "open.park": 120,
+        "options": 31,
+        "steps": 1173,
+        "observe": 1033,
+        "reset": 35,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=R1→C(3,1):0]": {
+      "DefinitionHash": "1da7ad4300aa315a",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(R1→C(3,1):0)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 3650,
+      "RunAt": "2026-11-15T20:30:36.997673+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤",
+        "T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Column 18–41 end-active · Cells 3 (R1C1–R3C1) · Undo — · drag(R1→C(3,1):0) from → Range 18-18, IBeam · drag(R1→C(3,1):0) to → Range 38-38, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 18,
+          "End": 41,
+          "Type": "Column",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 1,
+          "EndRow": 3,
+          "EndColumn": 1,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 3,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(R1→C(3,1):0) from",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(R1→C(3,1):0) to",
+            "X": 616,
+            "Y": 613,
+            "Under": "Range 38-38",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 1076,
+        "open.add": 248,
+        "open.view": 243,
+        "open.front": 448,
+        "open.park": 132,
+        "options": 37,
+        "steps": 1319,
+        "observe": 1147,
+        "reset": 37,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=R1→C(3,1):0]~tracked": {
+      "DefinitionHash": "56a54a1ee391eb01",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(R1→C(3,1):0)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 2663,
+      "RunAt": "2026-11-15T20:30:39.7377946+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤",
+        "T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Column 18–41 end-active · Cells 3 (R1C1–R3C1) · Tracking · Revisions 0 · Undo — · drag(R1→C(3,1):0) from → Range 18-18, IBeam · drag(R1→C(3,1):0) to → Range 38-38, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 18,
+          "End": 41,
+          "Type": "Column",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 1,
+          "EndRow": 3,
+          "EndColumn": 1,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 3,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(R1→C(3,1):0) from",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(R1→C(3,1):0) to",
+            "X": 616,
+            "Y": 613,
+            "Under": "Range 38-38",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 279,
+        "open.add": 124,
+        "open.view": 56,
+        "open.front": 0,
+        "open.park": 97,
+        "options": 33,
+        "steps": 1224,
+        "observe": 1047,
+        "reset": 37,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=R1→P1:2]": {
+      "DefinitionHash": "49c8b8b01fa26d85",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(R1→P1:2)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2448,
+      "RunAt": "2026-11-15T20:30:47.2851538+11:00",
+      "Lines": [
+        "[⟦‸Before the table.¶⟧]",
+        "T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤⟧",
+        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
+        "T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Normal 0–28 start-active · Undo — · drag(R1→P1:2) from → Range 18-18, IBeam · drag(R1→P1:2) to → Range 2-2, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 28,
+          "Type": "Normal",
+          "Flags": 25,
+          "StartIsActive": true,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Before the table.\ra1\r\u0007b1\r\u0007c1\r\u0007\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(R1→P1:2) from",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(R1→P1:2) to",
+            "X": 577,
+            "Y": 379,
+            "Under": "Range 2-2",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 282,
+        "open.add": 108,
+        "open.view": 70,
+        "open.front": 0,
+        "open.park": 101,
+        "options": 27,
+        "steps": 1298,
+        "observe": 762,
+        "reset": 40,
+        "close": 39
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=R1→P1:2]~tracked": {
+      "DefinitionHash": "52b893144505810d",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(R1→P1:2)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 2636,
+      "RunAt": "2026-11-15T20:30:49.9365575+11:00",
+      "Lines": [
+        "[⟦‸Before the table.¶⟧]",
+        "T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤⟧",
+        "T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤",
+        "T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Normal 0–28 start-active · Tracking · Revisions 0 · Undo — · drag(R1→P1:2) from → Range 18-18, IBeam · drag(R1→P1:2) to → Range 2-2, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 28,
+          "Type": "Normal",
+          "Flags": 25,
+          "StartIsActive": true,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Before the table.\ra1\r\u0007b1\r\u0007c1\r\u0007\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(R1→P1:2) from",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(R1→P1:2) to",
+            "X": 577,
+            "Y": 379,
+            "Under": "Range 2-2",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 288,
+        "open.add": 95,
+        "open.view": 45,
+        "open.front": 0,
+        "open.park": 143,
+        "options": 33,
+        "steps": 1201,
+        "observe": 1037,
+        "reset": 36,
+        "close": 41
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=R3→C(1,1):0]": {
+      "DefinitionHash": "1fc5e219a9dc13e8",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(R3→C(1,1):0)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2402,
+      "RunAt": "2026-11-15T20:30:42.1669464+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤",
+        "T1 R3 ║⟦[a3¤⟧]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Column 18–41 start-active · Cells 3 (R1C1–R3C1) · Undo — · drag(R3→C(1,1):0) from → Range 38-38, IBeam · drag(R3→C(1,1):0) to → Range 18-18, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 18,
+          "End": 41,
+          "Type": "Column",
+          "Flags": 25,
+          "StartIsActive": true,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 1,
+          "EndRow": 3,
+          "EndColumn": 1,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 3,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(R3→C(1,1):0) from",
+            "X": 616,
+            "Y": 613,
+            "Under": "Range 38-38",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(R3→C(1,1):0) to",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 267,
+        "open.add": 100,
+        "open.view": 45,
+        "open.front": 0,
+        "open.park": 120,
+        "options": 26,
+        "steps": 1220,
+        "observe": 809,
+        "reset": 37,
+        "close": 43
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "T-33[path=R3→C(1,1):0]~tracked": {
+      "DefinitionHash": "2b291b373a73186e",
+      "Title": "Drag and drop a whole row, a whole column, and cells of a row or a column",
+      "Fixture": "table-3x3",
+      "Steps": [
+        "drag(R3→C(1,1):0)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 2636,
+      "RunAt": "2026-11-15T20:30:44.8205862+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤",
+        "T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤",
+        "T1 R3 ║⟦[a3¤⟧]║[b3¤]║[c3¤]║¤",
+        "[After the table.]",
+        "Selection: Column 18–41 start-active · Cells 3 (R1C1–R3C1) · Tracking · Revisions 0 · Undo — · drag(R3→C(1,1):0) from → Range 38-38, IBeam · drag(R3→C(1,1):0) to → Range 18-18, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 18,
+          "End": 41,
+          "Type": "Column",
+          "Flags": 25,
+          "StartIsActive": true,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 1,
+          "StartColumn": 1,
+          "EndRow": 3,
+          "EndColumn": 1,
+          "AtEndOfRowMarker": false,
+          "Cells": 3,
+          "Rows": 3,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "a1\r\u0007",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 21,
+            "Text": "a1\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 21,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 21,
+            "End": 24,
+            "Text": "b1\u0007",
+            "Runs": [
+              {
+                "Start": 21,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 4,
+            "Start": 24,
+            "End": 27,
+            "Text": "c1\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 27,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 28,
+            "End": 31,
+            "Text": "a2\u0007",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 7,
+            "Start": 31,
+            "End": 34,
+            "Text": "b2\u0007",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 34,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 34,
+            "End": 37,
+            "Text": "c2\u0007",
+            "Runs": [
+              {
+                "Start": 34,
+                "End": 37,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 10,
+            "Start": 38,
+            "End": 41,
+            "Text": "a3\u0007",
+            "Runs": [
+              {
+                "Start": 38,
+                "End": 41,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 11,
+            "Start": 41,
+            "End": 44,
+            "Text": "b3\u0007",
+            "Runs": [
+              {
+                "Start": 41,
+                "End": 44,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 12,
+            "Start": 44,
+            "End": 47,
+            "Text": "c3\u0007",
+            "Runs": [
+              {
+                "Start": 44,
+                "End": 47,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 3,
+            "Column": 3,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 14,
+            "Start": 48,
+            "End": 65,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 48,
+                "End": 65,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 3,
+            "Columns": 3,
+            "Uniform": true,
+            "Start": 18,
+            "End": 48,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 21,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 21,
+                "End": 24,
+                "RowEnd": 27
+              },
+              {
+                "Row": 1,
+                "Column": 3,
+                "Start": 24,
+                "End": 27,
+                "RowEnd": 27
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 28,
+                "End": 31,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 31,
+                "End": 34,
+                "RowEnd": 37
+              },
+              {
+                "Row": 2,
+                "Column": 3,
+                "Start": 34,
+                "End": 37,
+                "RowEnd": 37
+              },
+              {
+                "Row": 3,
+                "Column": 1,
+                "Start": 38,
+                "End": 41,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 2,
+                "Start": 41,
+                "End": 44,
+                "RowEnd": 47
+              },
+              {
+                "Row": 3,
+                "Column": 3,
+                "Start": 44,
+                "End": 47,
+                "RowEnd": 47
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "undo-redo-count",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(R3→C(1,1):0) from",
+            "X": 616,
+            "Y": 613,
+            "Under": "Range 38-38",
+            "Cursor": "IBeam"
+          },
+          {
+            "Step": "drag(R3→C(1,1):0) to",
+            "X": 616,
+            "Y": 443,
+            "Under": "Range 18-18",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 269,
+        "open.add": 95,
+        "open.view": 46,
+        "open.front": 0,
+        "open.park": 126,
+        "options": 32,
+        "steps": 1225,
+        "observe": 1030,
+        "reset": 37,
+        "close": 43
       },
       "Build": "16.0.20527.20150"
     }

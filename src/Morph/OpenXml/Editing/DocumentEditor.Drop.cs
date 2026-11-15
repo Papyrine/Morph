@@ -63,6 +63,17 @@ static partial class DocumentEditor
         toOffset = Math.Clamp(toOffset, 0, paragraphs[toParagraph].Length);
         atOffset = Math.Clamp(atOffset, 0, paragraphs[atParagraph].Length);
 
+        // A selection from one cell into another of the same table is cells, which are dropped as cells
+        // (DropCells, T-33). One that ends at the next cell's start reaches no further than the cell before.
+        var lastCell = toParagraph > fromParagraph && toOffset == 0 ? toParagraph - 1 : toParagraph;
+        if (paragraphs[fromParagraph].Cell is { } fromCell &&
+            paragraphs[lastCell].Cell is { } toCell &&
+            fromCell != toCell &&
+            fromCell.Table == toCell.Table)
+        {
+            return DropCells(docx, paragraphs, fromParagraph, lastCell, atParagraph, copy, options);
+        }
+
         // A selection that ends at a paragraph's start took the mark before it, but nothing of that
         // paragraph: the text that moves ends with the paragraph before.
         var lastText = toParagraph;
@@ -543,7 +554,14 @@ static partial class DocumentEditor
                 }
             }
 
-            while (groups.Count < ordinals.Count(_ => _ <= place.Last))
+            // A paragraph's text a group: each mark between them goes with the text, dividing the paragraph
+            // it is dropped in. A mark the selection ends with does not: with Word's paste setting "Adjust
+            // paragraph spacing" on, as it is unless turned off, the text alone joins the paragraph it is
+            // dropped in (M-81: "Third First paragraph here.and last."; with the setting off Word divides
+            // the paragraph there, which Morph does not follow).
+            var texts = ordinals.Count(_ => _ <= place.Last);
+            var marked = place.To > place.Last;
+            while (groups.Count < texts)
             {
                 groups.Add([]);
             }
@@ -585,12 +603,15 @@ static partial class DocumentEditor
                 Put(before, false);
             }
 
+            // Each mark between the paragraphs dropped ends the paragraph it is dropped in after the text
+            // before it, and carries the properties of the paragraph it was the mark of, which is where Word
+            // keeps them.
             var content0 = inserted.Count;
             for (var index = 0; index < groups.Count; index++)
             {
                 if (index > 0)
                 {
-                    Split(Point.Ahead(holder));
+                    Carry(Split(Point.Ahead(holder)), chain[index - 1], move);
                 }
 
                 foreach (var node in groups[index])
@@ -656,11 +677,21 @@ static partial class DocumentEditor
                     var start = Stamp(new MoveFromRangeStart());
                     start.SetAttribute(new("w", "name", wordNamespace, moveName));
                     wrappers[0].InsertBeforeSelf(start);
-                    wrappers[^1].InsertAfterSelf(
-                        new MoveFromRangeEnd
-                        {
-                            Id = RevisionElements.Id(start)
-                        });
+                    var end = new MoveFromRangeEnd
+                    {
+                        Id = RevisionElements.Id(start)
+                    };
+
+                    // Where the marks went too, after the last paragraph whose mark went (Word's markup).
+                    var lastMarked = marked ? chain.ElementAtOrDefault(ordinals.Count(_ => _ <= place.Last) - 1) : null;
+                    if (lastMarked != null)
+                    {
+                        lastMarked.InsertAfterSelf(end);
+                    }
+                    else
+                    {
+                        wrappers[^1].InsertAfterSelf(end);
+                    }
                 }
                 else
                 {
@@ -682,7 +713,7 @@ static partial class DocumentEditor
                     Remove(cell.Run, [cell]);
                 }
 
-                Unmark(chain, place);
+                Unmark(chain, place, move);
             }
 
             holder.Remove();
@@ -704,8 +735,9 @@ static partial class DocumentEditor
         }
 
         // The marks a moved selection took in: the paragraphs wholly inside it go, as a deletion takes
-        // them, and so does the first when all of it went; tracked, the marks are struck instead.
-        void Unmark(List<Paragraph> chain, DropPlace place)
+        // them, and so does the first when all of it went. Tracked, the marks are marked as moved from
+        // where they were, for a whole paragraph's text, as Word marks them (M-81, its markup), or struck.
+        void Unmark(List<Paragraph> chain, DropPlace place, bool move)
         {
             var marks = chain.Count - 1;
             if (marks <= 0)
@@ -717,6 +749,12 @@ static partial class DocumentEditor
             {
                 for (var index = marks - 1; index >= 0; index--)
                 {
+                    if (move)
+                    {
+                        Mark(chain[index]).PrependChild(Stamp(new MoveFrom()));
+                        continue;
+                    }
+
                     Join(chain[index]);
                 }
 
@@ -760,6 +798,45 @@ static partial class DocumentEditor
 
                 paragraph.Remove();
             }
+        }
+
+        // A paragraph a dropped mark ended, given the properties of the paragraph the mark was taken from;
+        // tracked, its mark is inserted, or the place a move went to.
+        void Carry(Paragraph closed, Paragraph source, bool move)
+        {
+            closed.ParagraphProperties?.Remove();
+            if (source.ParagraphProperties is { } properties)
+            {
+                var copy = (DocumentFormat.OpenXml.Wordprocessing.ParagraphProperties) properties.CloneNode(true);
+                copy.RemoveAllChildren<SectionProperties>();
+                copy.RemoveAllChildren<ParagraphPropertiesChange>();
+                if (copy.ParagraphMarkRunProperties is { } mark)
+                {
+                    Unrevise(mark);
+                    if (!mark.HasChildren)
+                    {
+                        mark.Remove();
+                    }
+                }
+
+                if (copy.HasChildren)
+                {
+                    closed.PrependChild(copy);
+                }
+            }
+
+            if (!options.Track)
+            {
+                return;
+            }
+
+            if (move)
+            {
+                Mark(closed).PrependChild(Stamp(new MoveTo()));
+                return;
+            }
+
+            Mark(closed).PrependChild(Stamp(new Inserted()));
         }
 
         // A run holding one space, formatted as the text beside it.

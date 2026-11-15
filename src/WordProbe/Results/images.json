@@ -1,6 +1,6 @@
 {
   "Family": "images",
-  "Generated": "2026-11-11T23:09:10.6096052+11:00",
+  "Generated": "2026-11-15T20:24:41.8024605+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
@@ -23633,14 +23633,14 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1760,
-      "RunAt": "2026-11-07T12:20:23.2865945+11:00",
+      "DurationMs": 2073,
+      "RunAt": "2026-11-15T20:24:22.3950958+11:00",
       "Lines": [
         "[⟦⚓2‸⟧⚓1First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧",
-        "SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧",
+        "SHP2 ⌖P1 picture 72x72pt square @-54,26.4 ⟦selected⟧",
         "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
@@ -23771,8 +23771,8 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -55.8,
-            "Top": 25.8
+            "Left": -54,
+            "Top": 26.4
           }
         ],
         "Fields": [],
@@ -23791,33 +23791,34 @@
           {
             "Step": "ctrl+drag(SHP1→P3:2) from",
             "X": 1113,
-            "Y": 444,
+            "Y": 418,
             "Under": "Shape Picture 1",
             "Cursor": "WordOwn"
           },
           {
             "Step": "ctrl+drag(SHP1→P3:2) to",
             "X": 575,
-            "Y": 488,
+            "Y": 462,
             "Under": "Range 85-85",
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-15_drag_ctrl_drag_SHP1_P3_2_.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 198,
-        "open.add": 65,
-        "open.view": 20,
+        "open": 261,
+        "open.add": 106,
+        "open.view": 66,
         "open.front": 0,
-        "open.park": 111,
-        "options": 0,
-        "steps": 1157,
-        "observe": 335,
-        "reset": 28,
-        "close": 42
+        "open.park": 87,
+        "options": 24,
+        "steps": 1293,
+        "observe": 435,
+        "reset": 34,
+        "close": 26
       },
       "Build": "16.0.20527.20150"
     },
@@ -23831,14 +23832,14 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1894,
-      "RunAt": "2026-11-07T12:20:25.1865491+11:00",
+      "DurationMs": 2226,
+      "RunAt": "2026-11-15T20:24:24.6742775+11:00",
       "Lines": [
         "{+[⟦⚓2‸⟧]+}[⚓1First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
         "SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧",
-        "SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧",
+        "SHP2 ⌖P1 picture 72x72pt square @-54,26.4 ⟦selected⟧",
         "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
@@ -23969,8 +23970,8 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -55.8,
-            "Top": 25.8
+            "Left": -54,
+            "Top": 26.4
           }
         ],
         "Fields": [],
@@ -23996,33 +23997,34 @@
           {
             "Step": "ctrl+drag(SHP1→P3:2) from",
             "X": 1113,
-            "Y": 444,
+            "Y": 418,
             "Under": "Shape Picture 1",
             "Cursor": "WordOwn"
           },
           {
             "Step": "ctrl+drag(SHP1→P3:2) to",
             "X": 575,
-            "Y": 488,
+            "Y": 462,
             "Under": "Range 85-85",
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-15_drag_ctrl_drag_SHP1_P3_2_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 212,
-        "open.add": 68,
-        "open.view": 25,
+        "open": 256,
+        "open.add": 94,
+        "open.view": 70,
         "open.front": 0,
-        "open.park": 116,
-        "options": 3,
-        "steps": 1134,
-        "observe": 476,
-        "reset": 28,
-        "close": 41
+        "open.park": 88,
+        "options": 28,
+        "steps": 1294,
+        "observe": 553,
+        "reset": 37,
+        "close": 58
       },
       "Build": "16.0.20527.20150"
     },
@@ -24036,13 +24038,13 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1664,
-      "RunAt": "2026-11-07T12:20:19.7661449+11:00",
+      "DurationMs": 1977,
+      "RunAt": "2026-11-15T20:24:18.1864293+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
-        "SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧",
+        "SHP1 ⌖P1 picture 72x72pt square @-22.2,26.4 ⟦selected⟧",
         "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Move Object · drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
@@ -24160,8 +24162,8 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -23.4,
-            "Top": 25.8
+            "Left": -22.2,
+            "Top": 26.4
           }
         ],
         "Fields": [],
@@ -24180,33 +24182,34 @@
           {
             "Step": "drag(SHP1→P3:2) from",
             "X": 1113,
-            "Y": 444,
+            "Y": 418,
             "Under": "Shape Picture 1",
             "Cursor": "WordOwn"
           },
           {
             "Step": "drag(SHP1→P3:2) to",
             "X": 575,
-            "Y": 488,
+            "Y": 462,
             "Under": "Range 85-85",
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-15_drag_drag_SHP1_P3_2_.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 202,
-        "open.add": 64,
-        "open.view": 23,
-        "open.front": 1,
-        "open.park": 112,
-        "options": 0,
-        "steps": 1096,
-        "observe": 298,
-        "reset": 28,
-        "close": 40
+        "open": 255,
+        "open.add": 105,
+        "open.view": 65,
+        "open.front": 0,
+        "open.park": 81,
+        "options": 21,
+        "steps": 1249,
+        "observe": 355,
+        "reset": 38,
+        "close": 59
       },
       "Build": "16.0.20527.20150"
     },
@@ -24220,13 +24223,13 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1749,
-      "RunAt": "2026-11-07T12:20:21.5213862+11:00",
+      "DurationMs": 2121,
+      "RunAt": "2026-11-15T20:24:20.3152395+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
-        "SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧",
+        "SHP1 ⌖P1 picture 72x72pt square @-22.2,26.4 ⟦selected⟧",
         "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object · drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
@@ -24344,8 +24347,8 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -23.4,
-            "Top": 25.8
+            "Left": -22.2,
+            "Top": 26.4
           }
         ],
         "Fields": [],
@@ -24364,33 +24367,34 @@
           {
             "Step": "drag(SHP1→P3:2) from",
             "X": 1113,
-            "Y": 444,
+            "Y": 418,
             "Under": "Shape Picture 1",
             "Cursor": "WordOwn"
           },
           {
             "Step": "drag(SHP1→P3:2) to",
             "X": 575,
-            "Y": 488,
+            "Y": 462,
             "Under": "Range 85-85",
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-15_drag_drag_SHP1_P3_2_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 203,
-        "open.add": 66,
-        "open.view": 21,
+        "open": 260,
+        "open.add": 102,
+        "open.view": 65,
         "open.front": 0,
-        "open.park": 114,
-        "options": 3,
-        "steps": 1109,
-        "observe": 365,
-        "reset": 28,
-        "close": 41
+        "open.park": 90,
+        "options": 33,
+        "steps": 1254,
+        "observe": 499,
+        "reset": 37,
+        "close": 38
       },
       "Build": "16.0.20527.20150"
     },
@@ -24404,13 +24408,13 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1696,
-      "RunAt": "2026-11-07T12:20:26.8886691+11:00",
+      "DurationMs": 2069,
+      "RunAt": "2026-11-15T20:24:26.7505163+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
-        "SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧",
+        "SHP1 ⌖P1 picture 72x72pt square @-22.2,0 ⟦selected⟧",
         "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Move Object · shift+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · shift+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
@@ -24528,7 +24532,7 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -23.4,
+            "Left": -22.2,
             "Top": 0
           }
         ],
@@ -24548,33 +24552,34 @@
           {
             "Step": "shift+drag(SHP1→P3:2) from",
             "X": 1113,
-            "Y": 444,
+            "Y": 418,
             "Under": "Shape Picture 1",
             "Cursor": "WordOwn"
           },
           {
             "Step": "shift+drag(SHP1→P3:2) to",
             "X": 575,
-            "Y": 488,
+            "Y": 462,
             "Under": "Range 85-85",
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-15_drag_shift_drag_SHP1_P3_2_.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 196,
-        "open.add": 66,
-        "open.view": 24,
+        "open": 271,
+        "open.add": 127,
+        "open.view": 69,
         "open.front": 0,
-        "open.park": 103,
-        "options": 0,
-        "steps": 1146,
-        "observe": 288,
-        "reset": 28,
-        "close": 38
+        "open.park": 72,
+        "options": 25,
+        "steps": 1288,
+        "observe": 396,
+        "reset": 37,
+        "close": 52
       },
       "Build": "16.0.20527.20150"
     },
@@ -24588,13 +24593,13 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1846,
-      "RunAt": "2026-11-07T12:20:28.7411359+11:00",
+      "DurationMs": 2166,
+      "RunAt": "2026-11-15T20:24:28.9226103+11:00",
       "Lines": [
         "[⟦⚓1‸⟧First paragraph of text here.]",
         "[Second paragraph carries the anchor of the picture.]",
         "[Third paragraph after it.]",
-        "SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧",
+        "SHP1 ⌖P1 picture 72x72pt square @-22.2,0 ⟦selected⟧",
         "Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object · shift+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · shift+drag(SHP1→P3:2) to → Range 85-85, IBeam"
       ],
       "Observation": {
@@ -24712,7 +24717,7 @@
             "Height": 72,
             "Wrap": "square",
             "Selected": true,
-            "Left": -23.4,
+            "Left": -22.2,
             "Top": 0
           }
         ],
@@ -24732,33 +24737,1186 @@
           {
             "Step": "shift+drag(SHP1→P3:2) from",
             "X": 1113,
-            "Y": 444,
+            "Y": 418,
             "Under": "Shape Picture 1",
             "Cursor": "WordOwn"
           },
           {
             "Step": "shift+drag(SHP1→P3:2) to",
             "X": 575,
-            "Y": 488,
+            "Y": 462,
             "Under": "Range 85-85",
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-15_drag_shift_drag_SHP1_P3_2_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 276,
-        "open.add": 184,
-        "open.view": 10,
+        "open": 255,
+        "open.add": 96,
+        "open.view": 43,
         "open.front": 0,
-        "open.park": 79,
-        "options": 3,
-        "steps": 1140,
-        "observe": 357,
-        "reset": 28,
-        "close": 42
+        "open.park": 111,
+        "options": 33,
+        "steps": 1312,
+        "observe": 471,
+        "reset": 36,
+        "close": 59
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "I-15b[drag=ctrl+drag(SHP1→P1:20)]": {
+      "DefinitionHash": "cc8f33285c80b5ba",
+      "Title": "Where a floating picture's Ctrl+drag copy lands, at three distances",
+      "Fixture": "image-floating",
+      "Steps": [
+        "ctrl+drag(SHP1→P1:20)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2156,
+      "RunAt": "2026-11-15T20:24:12.2223747+11:00",
+      "Lines": [
+        "[⟦⚓2‸⟧⚓1First paragraph of text here.]",
+        "[Second paragraph carries the anchor of the picture.]",
+        "[Third paragraph after it.]",
+        "SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧",
+        "SHP2 ⌖P1 picture 72x72pt square @34.2,0 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P1:20) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P1:20) to → Range 20-20, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 1,
+          "Type": "Shape",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 1,
+          "Overtype": false,
+          "Text": "",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 32,
+            "Text": "\u0000\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 32,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 32,
+            "End": 84,
+            "Text": "Second paragraph carries the anchor of the picture.\r",
+            "Runs": [
+              {
+                "Start": 32,
+                "End": 84,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 84,
+            "End": 110,
+            "Text": "Third paragraph after it.\r",
+            "Runs": [
+              {
+                "Start": 84,
+                "End": 110,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 1,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": 300,
+            "Top": 0
+          },
+          {
+            "Index": 2,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": 34.2,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Duplicate"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "ctrl+drag(SHP1→P1:20) from",
+            "X": 1113,
+            "Y": 418,
+            "Under": "Shape Picture 1",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "ctrl+drag(SHP1→P1:20) to",
+            "X": 709,
+            "Y": 379,
+            "Under": "Range 20-20",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/I-15b_drag_ctrl_drag_SHP1_P1_20_.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 275,
+        "open.add": 115,
+        "open.view": 62,
+        "open.front": 0,
+        "open.park": 95,
+        "options": 23,
+        "steps": 1331,
+        "observe": 434,
+        "reset": 35,
+        "close": 58
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "I-15b[drag=ctrl+drag(SHP1→P2:40)]": {
+      "DefinitionHash": "5283e39491c1b9db",
+      "Title": "Where a floating picture's Ctrl+drag copy lands, at three distances",
+      "Fixture": "image-floating",
+      "Steps": [
+        "ctrl+drag(SHP1→P2:40)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2024,
+      "RunAt": "2026-11-15T20:24:16.201143+11:00",
+      "Lines": [
+        "[⟦⚓2‸⟧⚓1First paragraph of text here.]",
+        "[Second paragraph carries the anchor of the picture.]",
+        "[Third paragraph after it.]",
+        "SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧",
+        "SHP2 ⌖P1 picture 72x72pt square @164.4,1.8 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P2:40) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P2:40) to → Range 71-71, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 1,
+          "Type": "Shape",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 1,
+          "Overtype": false,
+          "Text": "",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 32,
+            "Text": "\u0000\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 32,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 32,
+            "End": 84,
+            "Text": "Second paragraph carries the anchor of the picture.\r",
+            "Runs": [
+              {
+                "Start": 32,
+                "End": 84,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 84,
+            "End": 110,
+            "Text": "Third paragraph after it.\r",
+            "Runs": [
+              {
+                "Start": 84,
+                "End": 110,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 1,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": 300,
+            "Top": 0
+          },
+          {
+            "Index": 2,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": 164.4,
+            "Top": 1.8
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Duplicate"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "ctrl+drag(SHP1→P2:40) from",
+            "X": 1113,
+            "Y": 418,
+            "Under": "Shape Picture 1",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "ctrl+drag(SHP1→P2:40) to",
+            "X": 905,
+            "Y": 420,
+            "Under": "Range 71-71",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/I-15b_drag_ctrl_drag_SHP1_P2_40_.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 268,
+        "open.add": 121,
+        "open.view": 61,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 24,
+        "steps": 1205,
+        "observe": 438,
+        "reset": 38,
+        "close": 51
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "I-15b[drag=ctrl+drag(SHP1→P3:2)]": {
+      "DefinitionHash": "cb49a6a8fb24f79a",
+      "Title": "Where a floating picture's Ctrl+drag copy lands, at three distances",
+      "Fixture": "image-floating",
+      "Steps": [
+        "ctrl+drag(SHP1→P3:2)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2173,
+      "RunAt": "2026-11-15T20:24:08.0711686+11:00",
+      "Lines": [
+        "[⟦⚓2‸⟧⚓1First paragraph of text here.]",
+        "[Second paragraph carries the anchor of the picture.]",
+        "[Third paragraph after it.]",
+        "SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧",
+        "SHP2 ⌖P1 picture 72x72pt square @-54,26.4 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 1,
+          "Type": "Shape",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 1,
+          "Overtype": false,
+          "Text": "",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 32,
+            "Text": "\u0000\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 32,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 32,
+            "End": 84,
+            "Text": "Second paragraph carries the anchor of the picture.\r",
+            "Runs": [
+              {
+                "Start": 32,
+                "End": 84,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 84,
+            "End": 110,
+            "Text": "Third paragraph after it.\r",
+            "Runs": [
+              {
+                "Start": 84,
+                "End": 110,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 1,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": 300,
+            "Top": 0
+          },
+          {
+            "Index": 2,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": -54,
+            "Top": 26.4
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Duplicate"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "ctrl+drag(SHP1→P3:2) from",
+            "X": 1113,
+            "Y": 418,
+            "Under": "Shape Picture 1",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "ctrl+drag(SHP1→P3:2) to",
+            "X": 575,
+            "Y": 462,
+            "Under": "Range 85-85",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/I-15b_drag_ctrl_drag_SHP1_P3_2_.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 283,
+        "open.add": 103,
+        "open.view": 64,
+        "open.front": 0,
+        "open.park": 114,
+        "options": 25,
+        "steps": 1321,
+        "observe": 439,
+        "reset": 39,
+        "close": 65
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "I-15b[drag=drag(SHP1→P1:20)]": {
+      "DefinitionHash": "0a9e970f694feb7a",
+      "Title": "Where a floating picture's Ctrl+drag copy lands, at three distances",
+      "Fixture": "image-floating",
+      "Steps": [
+        "drag(SHP1→P1:20)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1976,
+      "RunAt": "2026-11-15T20:24:10.0583827+11:00",
+      "Lines": [
+        "[⟦⚓1‸⟧First paragraph of text here.]",
+        "[Second paragraph carries the anchor of the picture.]",
+        "[Third paragraph after it.]",
+        "SHP1 ⌖P1 picture 72x72pt square @58.2,0 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Move Object · drag(SHP1→P1:20) from → Shape Picture 1, WordOwn · drag(SHP1→P1:20) to → Range 20-20, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 1,
+          "Type": "Shape",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 1,
+          "Overtype": false,
+          "Text": "",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 83,
+            "Text": "Second paragraph carries the anchor of the picture.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 83,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 83,
+            "End": 109,
+            "Text": "Third paragraph after it.\r",
+            "Runs": [
+              {
+                "Start": 83,
+                "End": 109,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": 58.2,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move Object"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(SHP1→P1:20) from",
+            "X": 1113,
+            "Y": 418,
+            "Under": "Shape Picture 1",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(SHP1→P1:20) to",
+            "X": 709,
+            "Y": 379,
+            "Under": "Range 20-20",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/I-15b_drag_drag_SHP1_P1_20_.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 257,
+        "open.add": 120,
+        "open.view": 50,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 26,
+        "steps": 1222,
+        "observe": 371,
+        "reset": 35,
+        "close": 65
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "I-15b[drag=drag(SHP1→P2:40)]": {
+      "DefinitionHash": "7f87867ad09e49bb",
+      "Title": "Where a floating picture's Ctrl+drag copy lands, at three distances",
+      "Fixture": "image-floating",
+      "Steps": [
+        "drag(SHP1→P2:40)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1939,
+      "RunAt": "2026-11-15T20:24:14.1693703+11:00",
+      "Lines": [
+        "[⟦⚓1‸⟧First paragraph of text here.]",
+        "[Second paragraph carries the anchor of the picture.]",
+        "[Third paragraph after it.]",
+        "SHP1 ⌖P1 picture 72x72pt square @-999995,0 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Move Object · drag(SHP1→P2:40) from → Shape Picture 1, WordOwn · drag(SHP1→P2:40) to → Range 71-71, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 1,
+          "Type": "Shape",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 1,
+          "Overtype": false,
+          "Text": "",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 83,
+            "Text": "Second paragraph carries the anchor of the picture.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 83,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 83,
+            "End": 109,
+            "Text": "Third paragraph after it.\r",
+            "Runs": [
+              {
+                "Start": 83,
+                "End": 109,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": -999995,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move Object"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(SHP1→P2:40) from",
+            "X": 1113,
+            "Y": 418,
+            "Under": "Shape Picture 1",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(SHP1→P2:40) to",
+            "X": 905,
+            "Y": 420,
+            "Under": "Range 71-71",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/I-15b_drag_drag_SHP1_P2_40_.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 272,
+        "open.add": 108,
+        "open.view": 66,
+        "open.front": 0,
+        "open.park": 95,
+        "options": 23,
+        "steps": 1135,
+        "observe": 405,
+        "reset": 40,
+        "close": 64
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "I-15b[drag=drag(SHP1→P3:2)]": {
+      "DefinitionHash": "6de4e74ddb8bf0df",
+      "Title": "Where a floating picture's Ctrl+drag copy lands, at three distances",
+      "Fixture": "image-floating",
+      "Steps": [
+        "drag(SHP1→P3:2)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 3024,
+      "RunAt": "2026-11-15T20:24:05.87414+11:00",
+      "Lines": [
+        "[⟦⚓1‸⟧First paragraph of text here.]",
+        "[Second paragraph carries the anchor of the picture.]",
+        "[Third paragraph after it.]",
+        "SHP1 ⌖P1 picture 72x72pt square @-22.2,26.4 ⟦selected⟧",
+        "Selection: Shape 0–1 end-active · Shapes 1 · Undo: Move Object · drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · drag(SHP1→P3:2) to → Range 85-85, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 1,
+          "Type": "Shape",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 1,
+          "Overtype": false,
+          "Text": "",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 83,
+            "Text": "Second paragraph carries the anchor of the picture.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 83,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 83,
+            "End": 109,
+            "Text": "Third paragraph after it.\r",
+            "Runs": [
+              {
+                "Start": 83,
+                "End": 109,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Picture 1",
+            "Kind": "picture",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 72,
+            "Height": 72,
+            "Wrap": "square",
+            "Selected": true,
+            "Left": -22.2,
+            "Top": 26.4
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move Object"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(SHP1→P3:2) from",
+            "X": 1113,
+            "Y": 418,
+            "Under": "Shape Picture 1",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(SHP1→P3:2) to",
+            "X": 575,
+            "Y": 462,
+            "Under": "Range 85-85",
+            "Cursor": "IBeam"
+          }
+        ],
+        "MarkupDiff": "markup/I-15b_drag_drag_SHP1_P3_2_.diff",
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 868,
+        "open.add": 192,
+        "open.view": 125,
+        "open.front": 438,
+        "open.park": 109,
+        "options": 36,
+        "steps": 1317,
+        "observe": 721,
+        "reset": 36,
+        "close": 46
       },
       "Build": "16.0.20527.20150"
     },
@@ -33615,8 +34773,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2545,
-      "RunAt": "2026-11-11T23:09:08.7677646+11:00",
+      "DurationMs": 3113,
+      "RunAt": "2026-11-15T20:24:39.7160729+11:00",
       "Lines": [
         "[⚓1First paragraph of text here.]",
         "[⟦Box ‸⟧Second paragraph of text here.]",
@@ -33771,21 +34929,22 @@
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-26b.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 782,
-        "open.add": 119,
-        "open.view": 102,
-        "open.front": 449,
-        "open.park": 108,
-        "options": 0,
-        "steps": 1237,
-        "observe": 447,
-        "reset": 32,
-        "close": 47
+        "open": 1030,
+        "open.add": 283,
+        "open.view": 143,
+        "open.front": 484,
+        "open.park": 116,
+        "options": 42,
+        "steps": 1337,
+        "observe": 601,
+        "reset": 38,
+        "close": 65
       },
       "Build": "16.0.20527.20150"
     },
@@ -33799,8 +34958,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1808,
-      "RunAt": "2026-11-11T23:09:10.5988184+11:00",
+      "DurationMs": 2048,
+      "RunAt": "2026-11-15T20:24:41.7888534+11:00",
       "Lines": [
         "[⚓1First paragraph of text here.]",
         "{+[⟦Box ‸⟧]+}[Second paragraph of text here.]",
@@ -33962,21 +35121,22 @@
             "Cursor": "IBeam"
           }
         ],
+        "MarkupDiff": "markup/I-26b_tracked.diff",
         "Remarks": []
       },
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 195,
-        "open.add": 71,
-        "open.view": 41,
+        "open": 295,
+        "open.add": 147,
+        "open.view": 57,
         "open.front": 0,
-        "open.park": 81,
-        "options": 4,
-        "steps": 1202,
-        "observe": 335,
-        "reset": 25,
-        "close": 47
+        "open.park": 84,
+        "options": 33,
+        "steps": 1248,
+        "observe": 391,
+        "reset": 37,
+        "close": 44
       },
       "Build": "16.0.20527.20150"
     },

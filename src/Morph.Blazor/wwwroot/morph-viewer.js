@@ -2683,7 +2683,7 @@ class Viewer {
             setTimeout(() => this.dragged = false, 0);
             const round = value => Math.round(value * 100) / 100;
             const copying = released.ctrlKey || released.metaKey;
-            this.dotNet.invokeMethodAsync(copying ? 'OnPictureDuplicate' : 'OnPictureNudge', picture.paragraph, picture.offset, round(right), round(down)).catch(() => {});
+            this.dotNet.invokeMethodAsync(copying ? 'OnPictureDuplicate' : 'OnPictureMove', picture.paragraph, picture.offset, round(right), round(down)).catch(() => {});
         };
         target.addEventListener('pointermove', move);
         target.addEventListener('pointerup', up);
@@ -3261,7 +3261,7 @@ class Viewer {
         const before = this.documentId;
         this.leaving.push(editor);
         // Kept while it is under way, for what has to follow it rather than race it (handedIn).
-        const handing = this.dotNet.invokeMethodAsync('OnEditCommit', editor.session.id, payload, then)
+        const handing = this.dotNet.invokeMethodAsync('OnEditCommit', editor.session.id, payload, then, editor.undoName(true))
             .catch(() => {
                 // The component is gone.
             });
@@ -3318,12 +3318,13 @@ class Viewer {
             this.dotNet.invokeMethodAsync('OnEditPicture', picture).catch(() => {});
         }
 
-        // So is whether the open paragraph has a step of its own to undo or redo: when that changes,
+        // So is whether the open paragraph has a step of its own to undo or redo, and what Word calls it
+        // ("Typing", "Move"): when that changes,
         // which is the first key typed and the last one undone, never per keystroke.
-        const history = `${state?.undo === true}/${state?.redo === true}`;
-        if (history !== (this.editHistory ?? 'false/false')) {
+        const history = `${state?.undo === true}/${state?.redo === true}/${state?.undoName ?? ''}/${state?.redoName ?? ''}`;
+        if (history !== (this.editHistory ?? 'false/false//')) {
             this.editHistory = history;
-            this.dotNet.invokeMethodAsync('OnEditHistory', state?.undo === true, state?.redo === true).catch(() => {});
+            this.dotNet.invokeMethodAsync('OnEditHistory', state?.undo === true, state?.redo === true, state?.undoName ?? null, state?.redoName ?? null).catch(() => {});
         }
 
         this.editSelected = state ? state.selected === true : null;
@@ -3395,8 +3396,8 @@ class Viewer {
 
             await editor.commit(0);
         } else if (clipboardCommands.includes(name)) {
-            // Text selected on the pages: copied as Ctrl+C copies it, and cut by deleting it after.
-            // There is nowhere to paste.
+            // Text selected on the pages: copied as Ctrl+C copies it, and cut by .NET deleting it after,
+            // which undo then names Cut. There is nowhere to paste.
             if (name === 'paste' || !this.selectedText()) {
                 return;
             }
@@ -3405,8 +3406,6 @@ class Viewer {
             if (name === 'copy') {
                 return;
             }
-
-            name = 'delete';
         }
 
         this.dotNet.invokeMethodAsync('OnEditCommand', name).catch(() => {});

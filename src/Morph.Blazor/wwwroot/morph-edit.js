@@ -1581,6 +1581,7 @@ export class ParagraphEditor {
             range = { from, to };
         }
 
+        this.nextUndoName = bit === bold ? 'Bold' : null;
         this.record('format');
         this.lastAction = { toggle: bit };
         const touched = this.textBetween(range.from, range.to);
@@ -1614,6 +1615,7 @@ export class ParagraphEditor {
             return;
         }
 
+        this.nextUndoName = 'Paragraph Alignment';
         this.record('format');
         for (let b = selected.from.b; b <= selected.to.b; b++) {
             this.blocks[b].align = value;
@@ -1965,12 +1967,60 @@ export class ParagraphEditor {
             return true;
         }
 
-        this.undoStack.push(this.snapshot());
+        this.undoStack.push({ ...this.snapshot(), name: this.undoNameOf(kind) });
         if (this.undoStack.length > historyLimit) {
             this.undoStack.shift();
         }
 
         this.redoStack = [];
+    }
+
+    // Word's name for a step, as its Undo button says it (WordProbe U-01, U-02): what the step's kind
+    // is, or what the edit making it said (nextUndoName); null where Word's is not known.
+    undoNameOf(kind) {
+        const named = this.nextUndoName;
+        this.nextUndoName = null;
+        if (named !== undefined && named !== null) {
+            return named;
+        }
+
+        switch (kind) {
+            case 'type':
+            case 'break':
+            case 'compose':
+                return 'Typing';
+            case 'paste':
+                return 'Paste';
+            case 'move':
+                return 'Move';
+            case 'autocorrect':
+                return 'AutoCorrect';
+            case 'case':
+                return 'Change Case';
+            case 'delete': {
+                // Delete over a selection is Clear; Backspace and Delete at the caret are typing.
+                const selected = this.range();
+                return selected && !same(selected.from, selected.to) ? 'Clear' : 'Typing';
+            }
+            default:
+                return null;
+        }
+    }
+
+    // The name of the step undo would take back: with what was typed, for a hand-in, which .NET keeps as
+    // one step named as Word names it (Typing "abc"); without it while the box reports it, so that the
+    // report does not change with every key.
+    undoName(typed) {
+        const top = this.undoStack.at(-1);
+        if (!top) {
+            return null;
+        }
+
+        if (typed && top.name === 'Typing' && this.lastKind === 'type' && this.typed) {
+            return `Typing "${this.typed}"`;
+        }
+
+        return top.name ?? null;
     }
 
     snapshot() {
@@ -1983,7 +2033,8 @@ export class ParagraphEditor {
             return false;
         }
 
-        to.push(this.snapshot());
+        // The step goes over to the other history under its own name.
+        to.push({ ...this.snapshot(), name: state.name });
         this.blocks = state.blocks;
         this.lastKind = '';
         this.pendingFace = null;
@@ -2601,6 +2652,7 @@ export class ParagraphEditor {
         event.clipboardData.setData('text/html', this.htmlText(content));
         if (cut && !this.pending && !this.closed) {
             this.setExtend(0);
+            this.nextUndoName = 'Cut';
             this.replace(this.smartCut(range), '', 'delete');
         }
     }
@@ -2690,6 +2742,7 @@ export class ParagraphEditor {
 
         if (!moving) {
             const text = this.contentBetween(from, to).map(block => block.items.filter(_ => !_.atom));
+            this.nextUndoName = 'Copy';
             this.record('paste');
             const end = this.insertContent(drop, text);
             const spaced = this.spaceDropped(drop, end, first, last);
@@ -3586,7 +3639,10 @@ export class ParagraphEditor {
             // Whether the box's own history has a step to undo or redo, which greys Undo and Redo
             // out only together with the file's.
             undo: this.undoStack.length > 0,
-            redo: this.redoStack.length > 0
+            redo: this.redoStack.length > 0,
+            // And what Word calls those steps, for the buttons' tooltips.
+            undoName: this.undoName(false),
+            redoName: this.redoStack.at(-1)?.name ?? null
         });
     }
 

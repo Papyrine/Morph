@@ -832,6 +832,7 @@ public partial class MorphViewer
 
         var options = await EditOptionsAsync();
         EditResult? result = null;
+        editLabel = "Paste";
         var pasted = await ReviseAsync(
             _ =>
             {
@@ -1564,6 +1565,36 @@ public partial class MorphViewer
     /// <summary>Called from JavaScript when an arrow key nudges a floating picture: by how far, in points.</summary>
     [JSInvokable]
     public Task OnPictureNudge(int paragraph, int offset, double right, double down) =>
+        MovePictureAsync(paragraph, offset, right, down, Nudged(right, down));
+
+    /// <summary>Called from JavaScript when a floating picture has been dragged by its body: by how far, in points.</summary>
+    [JSInvokable]
+    public Task OnPictureMove(int paragraph, int offset, double right, double down) =>
+        MovePictureAsync(paragraph, offset, right, down, "Move Object");
+
+    // Word's names for a picture moved by an arrow key (WordProbe U-02j: Right is Draw Nudge Right) and by
+    // a drag (I-15: Move Object).
+    static string Nudged(double right, double down)
+    {
+        if (right > 0)
+        {
+            return "Draw Nudge Right";
+        }
+
+        if (right < 0)
+        {
+            return "Draw Nudge Left";
+        }
+
+        if (down < 0)
+        {
+            return "Draw Nudge Up";
+        }
+
+        return "Draw Nudge Down";
+    }
+
+    Task MovePictureAsync(int paragraph, int offset, double right, double down, string name) =>
         InvokeAsync(async () =>
         {
             if (!editOpen ||
@@ -1581,6 +1612,7 @@ public partial class MorphViewer
 
             beforeEdit = null;
             var options = await EditOptionsAsync();
+            editLabel = name;
             await ReviseAsync(_ => DocumentEditor.NudgePicture(_, paragraph, offset, right, down, options), relayout: true, () => activeKey);
             StateHasChanged();
         });
@@ -1608,6 +1640,7 @@ public partial class MorphViewer
 
             beforeEdit = null;
             var options = await EditOptionsAsync();
+            editLabel = "Duplicate";
             if (await ReviseAsync(_ => DocumentEditor.DuplicatePicture(_, paragraph, offset, right, down, options), relayout: true, () => activeKey))
             {
                 // The copy is the one selected, as Word's is; it stands where the picture did, which moves on.

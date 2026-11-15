@@ -29,6 +29,9 @@ public partial class SnapshotTests
                 Timeout = 60000
             });
         await WaitForTextsAsync(page, ["First here.", "Second bold one.", "Third paragraph and last."]);
+
+        // Undo says what it would take back, as Word's does (WordProbe U-02g).
+        await Assert.That(await page.GetAttributeAsync("button[aria-label='Undo']", "title")).IsEqualTo("Undo Move (Ctrl+Z)");
     }
 
     // One undo puts it back, selected where it was (WordProbe U-04f, U-07e).
@@ -375,6 +378,57 @@ public partial class SnapshotTests
         }
 
         await Assert.That(texts).IsEquivalentTo(expected);
+    }
+
+    // Cells selected on the pages and dragged onto a cell are pasted as cells from there (WordProbe T-33):
+    // a1 over c3, b1 into a cell row 3 is given, a1 and b1 left empty.
+    [Test]
+    public async Task DragDrop_CellsOntoACell_ArePastedAsCells()
+    {
+        var docx = File.ReadAllBytes(Path.Combine(ProjectFiles.ProjectDirectory, "..", "WordProbe", "Fixtures", "table-3x3.docx"));
+        var page = await OpenEditAsync(docx);
+        await SelectOnPagesAsync(page, "a1", "b1");
+
+        var points = await page.EvaluateAsync<double[]>(
+            """
+            () => {
+                const layer = document.querySelector('.viewer-page[data-page-number="1"] .text-layer');
+                const box = text => {
+                    const walker = document.createTreeWalker(layer, NodeFilter.SHOW_TEXT);
+                    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                        const at = node.data.indexOf(text);
+                        if (at >= 0) {
+                            const range = document.createRange();
+                            range.setStart(node, at);
+                            range.setEnd(node, at + 1);
+                            return range.getBoundingClientRect();
+                        }
+                    }
+
+                    return null;
+                };
+                [...layer.querySelectorAll('*')].find(_ => _.textContent === 'c3')?.scrollIntoView({ block: 'center' });
+                const from = box('a1');
+                const to = box('c3');
+                return [from.left + from.width / 2, from.top + from.height / 2, to.left + to.width / 4, to.top + to.height / 2];
+            }
+            """);
+        await DragAsync(page, points, copy: false);
+
+        string[] texts = [];
+        for (var attempt = 0; attempt < 40; attempt++)
+        {
+            texts = [.. DocumentOutline.Read(await SaveAsync(page)).Paragraphs.Select(_ => string.Concat(_.Units.Where(unit => unit.Editable).Select(unit => unit.Text)))];
+            if (texts.Length == 12 && texts[9] == "a1")
+            {
+                break;
+            }
+
+            await page.WaitForTimeoutAsync(250);
+        }
+
+        await Assert.That(string.Join(" | ", texts)).IsEqualTo("Before the table. |  |  | c1 | a2 | b2 | c2 | a3 | b3 | a1 | b1 | After the table.");
+        await Assert.That(await page.GetAttributeAsync("button[aria-label='Undo']", "title")).IsEqualTo("Undo Move (Ctrl+Z)");
     }
 
     // Each floating picture's offsets from what it stands against, in points, in the body's order.

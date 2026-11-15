@@ -357,7 +357,14 @@ paragraph's own drags keep the same rules in morph-edit.js (`moveDragged`). A pi
 by the box's own pointer drag (`pictureDrag`), since its press holds the selection and the browser's drag
 never starts. What is dragged in from outside is the viewer's (`dragKind` in morph-viewer.js): text or
 HTML goes in as a paste (`OnEditDropText`, `DocumentEditor.Paste`), a picture's file as Insert › Picture
-(`OnEditDropPicture`), and any other file still opens. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
+(`OnEditDropPicture`), and any other file still opens. Cells selected across a table and dropped on a cell
+are pasted as cells (`DocumentEditor.DropCells.cs`, WordProbe T-33). A paragraph's mark dragged with it
+does not divide the paragraph it is dropped in only because Word's "Adjust paragraph spacing on paste" is
+on by default: a probe run with it off records the opposite (M-81 in `src/word-behavior.md`), so check
+`environment.json`'s options when a paragraph rule looks wrong. Undo and Redo name their step as Word's
+buttons do: a step's `HistoryStep.Label` comes from the command's `EditorCommand.UndoName` (set as
+`editLabel` while it runs), the edit's own (a drop's Move or Copy), or a hand-in's name from the script
+(`Typing "abc"`), and only names a probe recorded (WordProbe U-01, U-02) are given. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
 DATE fields and Word's Automatic Table 1 table of contents — whose page numbers only the layout knows,
 so the editor lays the edited file out and writes them in (`SetContentsPages`) within the same edit;
 `DocumentEditor.Lists.cs` is the Bullets and Numbering libraries (`ListTemplates.Bullets`/`Numbers`,

@@ -161,7 +161,9 @@ public class DropTests
     }
 
     // M-81: a paragraph moved with its mark goes, and its text joins the paragraph it is dropped in —
-    // after "Third ": dropped in "Thir|d", four letters in and one to go, it goes past the word.
+    // after "Third ": dropped in "Thir|d", four letters in and one to go, it goes past the word. That is
+    // with Word's paste setting "Adjust paragraph spacing" on, its default: off, Word divides the
+    // paragraph there (recorded 2026-11-15 with the setting off), which Morph does not follow.
     [Test]
     public async Task AParagraph_MovedWithItsMark_JoinsTheParagraphDroppedIn()
     {
@@ -170,6 +172,25 @@ public class DropTests
         await Assert.That(Text(result.Document)).IsEqualTo("Second bold one. | Third First paragraph here.and last.");
         await Assert.That(Selected(result)).IsEqualTo("1:6-1:27");
     }
+
+    // A mark between the paragraphs dropped divides the paragraph they are dropped in, and the paragraph
+    // it ends takes that mark's properties, which is where Word keeps them: the centred "Second line."
+    // dropped with "Third line." makes a centred paragraph of what it ends. (Not probed: what the
+    // mark carries is Word's model of a paragraph rather than a recorded drop.)
+    [Test]
+    public async Task AMarkBetween_CarriesItsParagraphsProperties()
+    {
+        var docx = Build(P(R("First paragraph here.")) + P(Mark2("<w:jc w:val=\"center\"/>"), R("Second line.")) + P(R("Third line.")) + P(R("Last.")));
+
+        var result = Drag(docx, 1, 0, 3, 0, 0, 6);
+
+        await Assert.That(Text(result.Document)).IsEqualTo("First Second line. | Third line.paragraph here. | Last.");
+        var alignments = Read(result.Document, _ => _.MainDocumentPart!.Document!.Body!.Elements<Paragraph>().Select(paragraph => paragraph.ParagraphProperties?.Justification?.Val?.ToString() ?? "-").ToList());
+        await Assert.That(string.Join(' ', alignments)).IsEqualTo("center - -");
+    }
+
+    static string Mark2(string properties) =>
+        $"<w:pPr>{properties}</w:pPr>";
 
     [Test]
     public async Task AParagraphsText_MovedWithoutItsMark_LeavesItEmpty()
@@ -183,6 +204,7 @@ public class DropTests
     public async Task AParagraph_DroppedAtAnotherEnd_IsSpacedFromIt()
     {
         var result = Drag(ThreeParagraphs(), 0, 0, 1, 0, 2, 15);
+
 
         await Assert.That(Text(result.Document)).IsEqualTo("Second bold one. | Third and last. First paragraph here.");
     }
@@ -205,14 +227,15 @@ public class DropTests
         await Assert.That(Shape(result.Document)).StartsWith("[b:bold ][First paragraph here.] ¶");
     }
 
-    // M-81 tracked: a whole paragraph's text is recorded as a move, as Word records it, and its mark is
-    // struck.
+    // M-81 tracked: a whole paragraph's text is recorded as a move, as Word records it, and its mark
+    // as moved from where it was; the paragraph it is dropped in is not divided (Word's markup, the default
+    // paste setting).
     [Test]
-    public async Task AParagraph_MovedTracked_IsAMove_AndItsMarkIsStruck()
+    public async Task AParagraph_MovedTracked_IsAMove_ItsMarkToo()
     {
         var result = Drag(ThreeParagraphs(), 0, 0, 1, 0, 2, 4, options: Tracked);
 
-        await Assert.That(Describe(result.Document)).IsEqualTo("{<First paragraph here.<}¶-Second bold one.¶Third {>First paragraph here.>}and last.¶");
+        await Assert.That(Describe(result.Document)).IsEqualTo("{<First paragraph here.<}¶<Second bold one.¶Third {>First paragraph here.>}and last.¶");
         await Assert.That(DocumentReview.Read(result.Document).Changes.Select(_ => _.Kind)).Contains(ReviewChangeKind.Move);
         await Assert.That(Text(ReviewEditor.ResolveAll(result.Document, accept: false))).IsEqualTo("First paragraph here. | Second bold one. | Third and last.");
         await Assert.That(Text(ReviewEditor.ResolveAll(result.Document, accept: true))).IsEqualTo("Second bold one. | Third First paragraph here.and last.");
@@ -376,6 +399,55 @@ public class DropTests
         await Assert.That(BoxText(result.Document)).StartsWith($"{box} | ");
     }
 
+    // WordProbe's table-3x3 fixture: "Before the table." 0, cells a1 to c3 1 to 9 row by row, "After the
+    // table." 10.
+    static byte[] Table3x3() =>
+        File.ReadAllBytes(Path.Combine(ProjectFiles.ProjectDirectory, "..", "WordProbe", "Fixtures", "table-3x3.docx"));
+
+    // T-33: a row's first two cells dropped on (3,3) are pasted as cells from there — a1 over c3, and b1
+    // into a cell the row is given — leaving the cells they came from empty, the caret at the drop's start.
+    [Test]
+    public async Task Cells_DroppedOnACell_ArePastedAsCellsFromThere()
+    {
+        var result = Drag(Table3x3(), 1, 0, 2, 2, 9, 1);
+
+        await Assert.That(Text(result.Document)).IsEqualTo("Before the table. |  |  | c1 | a2 | b2 | c2 | a3 | b3 | a1 | b1 | After the table.");
+        await Assert.That(Selected(result)).IsEqualTo("9:0-9:0");
+    }
+
+    [Test]
+    public async Task Cells_CopiedOnACell_StayWhereTheyWere()
+    {
+        var result = Drag(Table3x3(), 1, 0, 2, 2, 9, 1, copy: true);
+
+        await Assert.That(Text(result.Document)).IsEqualTo("Before the table. | a1 | b1 | c1 | a2 | b2 | c2 | a3 | b3 | a1 | b1 | After the table.");
+    }
+
+    // Tracked: each cell's new text inserted ahead of its old, which is struck, and the cells moved from
+    // struck; the cell the row is given is not tracked, so rejecting leaves it empty (T-33).
+    [Test]
+    public async Task Cells_DroppedTracked_AreStruckAndInserted()
+    {
+        var result = Drag(Table3x3(), 1, 0, 2, 2, 9, 1, options: Tracked);
+
+        await Assert.That(Text(ReviewEditor.ResolveAll(result.Document, accept: true))).IsEqualTo("Before the table. |  |  | c1 | a2 | b2 | c2 | a3 | b3 | a1 | b1 | After the table.");
+        await Assert.That(Text(ReviewEditor.ResolveAll(result.Document, accept: false))).IsEqualTo("Before the table. | a1 | b1 | c1 | a2 | b2 | c2 | a3 | b3 | c3 |  | After the table.");
+    }
+
+    // What was not recorded is refused: a block running past the table's last row, and one dropped on
+    // itself.
+    [Test]
+    [Arguments(9)]
+    [Arguments(5)]
+    public async Task Cells_ThatWillNotGo_AreRefused(int at)
+    {
+        var docx = Table3x3();
+
+        var result = Drag(docx, 4, 0, 8, 2, at, 0);
+
+        await Assert.That(result.Document).IsSameReferenceAs(docx);
+    }
+
     // M-62: a picture is moved to exactly where it is dropped, and nothing is spaced.
     [Test]
     public async Task APicture_DroppedInAWord_StaysWhereItIsDropped()
@@ -419,12 +491,14 @@ public class DropTests
             Drag(EmptyParagraphs(), 0, 0, 0, 5, 3, 5, options: Tracked),
             Drag(Table(), 1, 0, 1, 3, 4, 1, options: Tracked),
             Drag(RealPicture(), 0, 12, 0, 13, 1, 3, options: Tracked),
-            Drag(RealPicture(), 0, 12, 0, 13, 1, 3, copy: true)
+            Drag(RealPicture(), 0, 12, 0, 13, 1, 3, copy: true),
+            Drag(Table3x3(), 1, 0, 2, 2, 9, 1),
+            Drag(Table3x3(), 1, 0, 2, 2, 9, 1, options: Tracked)
         };
 
         foreach (var drop in drops)
         {
-            var errors = Read(drop.Document, _ => new DocumentFormat.OpenXml.Validation.OpenXmlValidator().Validate(_).Select(error => $"{error.Path?.XPath}: {error.Description}").ToList());
+            var errors = Read(drop.Document, _ => new DocumentFormat.OpenXml.Validation.OpenXmlValidator(DocumentFormat.OpenXml.FileFormatVersions.Microsoft365).Validate(_).Select(error => $"{error.Path?.XPath}: {error.Description}").ToList());
             await Assert.That(errors).IsEmpty();
         }
     }

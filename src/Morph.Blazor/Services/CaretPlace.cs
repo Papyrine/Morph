@@ -4,8 +4,10 @@
 /// puts back), either unknown for an edit that did not start or end at a place — a change accepted in the
 /// review pane. <see cref="Shown"/> is the file the step was made from, the one shown once it was made:
 /// coauthoring takes the step back from the file as others have edited it since, where that is not it.
+/// <see cref="Label"/> is Word's name for the edit, as its Undo and Redo buttons say it ("Undo Move"), or null
+/// where Word's is not known (WordProbe U-01, U-02).
 /// </summary>
-readonly record struct HistoryStep(byte[] Bytes, CaretPlace? Before, CaretPlace? After, byte[]? Shown = null);
+readonly record struct HistoryStep(byte[] Bytes, CaretPlace? Before, CaretPlace? After, byte[]? Shown = null, string? Label = null);
 
 /// <summary>
 /// A place in the document's paragraphs, by ordinal and offset as <see cref="EditParagraph.Length"/> counts:

@@ -667,17 +667,42 @@ public partial class MorphViewer
 
     bool boxUndo;
     bool boxRedo;
+    string? boxUndoName;
+    string? boxRedoName;
+
+    // Word's name for the next edit ReviseAsync keeps a step of, set just before it as beforeEdit is:
+    // by the command that is running (EditorCommand.UndoName), or by the edit itself.
+    internal string? editLabel;
+
+    // What the Undo and Redo buttons say, as Word's do: "Undo Move (Ctrl+Z)", or plain "Undo (Ctrl+Z)"
+    // for an edit whose name in Word is not known — the open paragraph's last step first, then the file's.
+    internal string UndoTitle => Titled("Undo", "Ctrl+Z", session != null && boxUndo ? boxUndoName : undo.LastOrDefault().Label);
+
+    internal string RedoTitle => Titled("Redo", "Ctrl+Y", session != null && boxRedo ? boxRedoName : redo.LastOrDefault().Label);
+
+    static string Titled(string verb, string key, string? name)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            return $"{verb} ({key})";
+        }
+
+        return $"{verb} {name} ({key})";
+    }
 
     /// <summary>
     /// Called from JavaScript when the paragraph being typed comes to have a step of its own to undo or
-    /// redo, or stops having one: only then, never per keystroke.
+    /// redo, or stops having one, or the name of its last one changes (Word's, as "Typing" or "Move"):
+    /// only then, never per keystroke.
     /// </summary>
     [JSInvokable]
-    public Task OnEditHistory(bool undoable, bool redoable) =>
+    public Task OnEditHistory(bool undoable, bool redoable, string? undoName = null, string? redoName = null) =>
         InvokeAsync(() =>
         {
             if (boxUndo == undoable &&
-                boxRedo == redoable)
+                boxRedo == redoable &&
+                boxUndoName == undoName &&
+                boxRedoName == redoName)
             {
                 return Task.CompletedTask;
             }
@@ -685,6 +710,8 @@ public partial class MorphViewer
             var typed = boxUndo != undoable;
             boxUndo = undoable;
             boxRedo = redoable;
+            boxUndoName = undoName;
+            boxRedoName = redoName;
             StateHasChanged();
             // A step of its own to undo is typing the file does not have yet.
             if (typed)
@@ -781,8 +808,16 @@ public partial class MorphViewer
 
     // Every edit ends here. select names the card to leave chosen, asked once the edited document has
     // been read, since an edit renumbers what it did not touch.
-    async Task<bool> ReviseAsync(Func<byte[], byte[]> edit, bool relayout, Func<string?> select, bool scroll = false)
+    // label names the step itself, as a hand-in does (empty for no name); left out, the step takes the
+    // name the command running set (editLabel), which a hand-in it makes on the way leaves for it.
+    async Task<bool> ReviseAsync(Func<byte[], byte[]> edit, bool relayout, Func<string?> select, bool scroll = false, string? label = null)
     {
+        // The name is this edit's, made or not: never the next one's.
+        if (label == null)
+        {
+            label = editLabel;
+            editLabel = null;
+        }
         if (sourceBytes is not { } bytes)
         {
             return false;
@@ -804,7 +839,7 @@ public partial class MorphViewer
             scroll,
             () =>
             {
-                Keep(undo, new(bytes, before, null, sourceBytes));
+                Keep(undo, new(bytes, before, null, sourceBytes, label));
                 redo.Clear();
             });
         if (edited)

@@ -1,0 +1,21 @@
+-             <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="5CE45A09" wp14:editId="3F5F064D" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
++             <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="4724518E" wp14:editId="57599F35" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
++                           <w:ins w:id="0" w:author="Simon Cropp" w:date="2026-11-15T20:23:00Z" w16du:dateUtc="2026-11-15T09:23:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++                             <w:r>
++                               <w:t xml:space="preserve">Second </w:t>
++                             </w:r>
++                           </w:ins>
+-             <v:shapetype w14:anchorId="5CE45A09" id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:v="urn:schemas-microsoft-com:vml">
++             <v:shapetype w14:anchorId="4724518E" id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:v="urn:schemas-microsoft-com:vml">
++                     <w:ins w:id="1" w:author="Simon Cropp" w:date="2026-11-15T20:23:00Z" w16du:dateUtc="2026-11-15T09:23:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++                       <w:r>
++                         <w:t xml:space="preserve">Second </w:t>
++                       </w:r>
++                     </w:ins>
++     <w:del w:id="2" w:author="Simon Cropp" w:date="2026-11-15T20:23:00Z" w16du:dateUtc="2026-11-15T09:23:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText xml:space="preserve">Second </w:delText>
++       </w:r>
++     </w:del>
+-       <w:t>Second paragraph of text here.</w:t>
++       <w:t>paragraph of text here.</w:t>
