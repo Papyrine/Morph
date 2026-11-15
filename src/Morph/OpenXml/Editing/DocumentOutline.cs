@@ -148,6 +148,7 @@ sealed class DocumentOutline
                     HasPrevious = DocumentEditor.PreviousBlock(paragraph) is Paragraph,
                     PreviousInStory = previous,
                     InTable = paragraph.Ancestors<DocumentFormat.OpenXml.Wordprocessing.TableCell>().Any(),
+                    Fallback = paragraph.Ancestors<AlternateContentFallback>().Any(),
                     Cell = CellOf(paragraph, tables),
                     ListLevel = ListLevel(paragraph, styles, defaultStyle),
                     Indented = unindents(paragraph),

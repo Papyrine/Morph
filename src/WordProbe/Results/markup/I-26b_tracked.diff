@@ -1,0 +1,23 @@
+-             <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="1C52A10D" wp14:editId="28F92141" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
++             <wp:anchor distT="0" distB="0" distL="114300" distR="114300" simplePos="0" relativeHeight="251659264" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1" wp14:anchorId="12C692BD" wp14:editId="66F80784" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing">
++                           <w:del w:id="0" w:author="Simon Cropp" w:date="2026-11-15T20:24:00Z" w16du:dateUtc="2026-11-15T09:24:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++                             <w:r>
++                               <w:delText xml:space="preserve">Box </w:delText>
++                             </w:r>
++                           </w:del>
+-                             <w:t>Box line one</w:t>
++                             <w:t>line one</w:t>
+-             <v:shapetype w14:anchorId="1C52A10D" id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:v="urn:schemas-microsoft-com:vml">
++             <v:shapetype w14:anchorId="12C692BD" id="_x0000_t202" coordsize="21600,21600" o:spt="202" path="m,l,21600r21600,l21600,xe" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:v="urn:schemas-microsoft-com:vml">
++                     <w:del w:id="1" w:author="Simon Cropp" w:date="2026-11-15T20:24:00Z" w16du:dateUtc="2026-11-15T09:24:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++                       <w:r>
++                         <w:delText xml:space="preserve">Box </w:delText>
++                       </w:r>
++                     </w:del>
+-                       <w:t>Box line one</w:t>
++                       <w:t>line one</w:t>
++     <w:ins w:id="2" w:author="Simon Cropp" w:date="2026-11-15T20:24:00Z" w16du:dateUtc="2026-11-15T09:24:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t xml:space="preserve">Box </w:t>
++       </w:r>
++     </w:ins>

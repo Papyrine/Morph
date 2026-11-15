@@ -803,6 +803,9 @@ sealed partial class DocumentParser
         var wrapType = WrapType.None;
         string? bgColor = null;
 
+        // The side and clearances, read as a picture's are; which wrap it is stays as below.
+        var wrap = anchor != null ? ParseWrap(anchor) : default;
+
         if (anchor != null)
         {
             if (anchor.GetFirstChild<DW.WrapNone>() != null)
@@ -825,6 +828,9 @@ sealed partial class DocumentParser
 
         // Parse background color from shape properties
         var spPr = wsp.GetFirstChild<WPS.ShapeProperties>();
+        string? lineColor = null;
+        double? lineWidth = null;
+        var lineAlpha = 1d;
         if (spPr != null)
         {
             var solidFill = spPr.GetFirstChild<A.SolidFill>();
@@ -836,6 +842,11 @@ sealed partial class DocumentParser
                     bgColor = ShapeParser.ApplyLiteralColorTransforms(rgbColor.Val.Value!, rgbColor);
                 }
             }
+
+            // The box's frame, as any shape's: its own a:ln, else its style's line reference. Until
+            // 2026-11-11 this path read none, and a text box Word inserted (a black 0.5pt frame) drew
+            // without one.
+            (lineColor, lineWidth, lineAlpha) = ShapeParser.ExtractLineStyle(wsp, spPr, currentThemeColors);
         }
 
         return new()
@@ -853,8 +864,16 @@ sealed partial class DocumentParser
             HorizontalPositionPercent = positioning.HorizontalPositionPercent,
             VerticalPositionPercent = positioning.VerticalPositionPercent,
             WrapType = wrapType,
+            WrapTextSide = wrap.Side,
+            WrapDistanceLeftPoints = wrap.DistLeft,
+            WrapDistanceTopPoints = wrap.DistTop,
+            WrapDistanceRightPoints = wrap.DistRight,
+            WrapDistanceBottomPoints = wrap.DistBottom,
             BehindText = positioning.BehindText,
             BackgroundColorHex = bgColor,
+            LineColorHex = lineColor,
+            LineWidthPoints = lineWidth ?? 0,
+            LineAlpha = lineAlpha,
             Insets = ReadTextInsets(bodyPr),
             VerticalAlignment = ShapeParser.TextAnchor(bodyPr?.Anchor?.Value)
         };

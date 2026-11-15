@@ -363,5 +363,19 @@ static class TablesFamily
             .Notes("T-05 COL2 tracked and T-22 tracked changed nothing and a dialog was dismissed unrecorded; this row records it. Untracked, Backspace removes the column outright (T-05), so only the tracked form is run.")
             .Hypotheses("Word says that deleting a column cannot be tracked and asks whether to go on; Esc declines and the table is unchanged.")
             .Morph("TODO");
+
+        yield return Probe("T-33", "Drag and drop a whole row, a whole column, and cells of a row or a column")
+            .In("table-3x3")
+            .Steps("drag({path})")
+            .Axis(
+                "path",
+                "R1→C(3,1):0", "R3→C(1,1):0", "R1→P1:2",
+                "COL1→C(1,3):0",
+                "C(1,1):0-C(1,2):end→C(3,3):1", "C(1,1):0-C(2,1):end→C(3,3):1")
+            .Tracked()
+            .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Tables | Observe.Revisions)
+            .Notes("M-84 settled one cell's text, which drags as text. Here: row 1 to row 3's start and row 3 to row 1's, row 1 into the paragraph before, column 1 to column 3's top, two cells of row 1 and two of column 1 into (3,3).")
+            .Hypotheses("(a) A whole row dropped in the table moves before the row dropped on, and dropped in the body becomes a table of its own there; (b) a column moves before the column dropped on; (c) cells that are not a whole row or column drop their text, or (d) overwrite the cells from the one dropped on, as Paste Cells does.")
+            .Morph("PARTIAL");
     }
 }

@@ -179,6 +179,31 @@ public class MorphEditorTests : BunitTestContext
         await Assert.That(reported).IsNull();
     }
 
+    // The Undo button says what it would undo, as Word's does (WordProbe U-01, U-02): the open paragraph's
+    // last step while it has one, then the file's — here the typing handed in, under the name the script
+    // gave it — and Redo, once undone, the same.
+    [Test]
+    public async Task UndoAndRedo_SayWhatTheyWouldTakeBack()
+    {
+        var cut = await OpenEditing(Paragraphs);
+        var (block, offset) = Place(Paragraphs, 0, "First");
+        await cut.InvokeAsync(() => cut.Instance.OnEditHit(0, block.Left + 10, block.Top + 2, offset, offset));
+        var id = Session().GetProperty("id").GetInt32();
+
+        string Title(string button) =>
+            cut.Find($"button[aria-label='{button}']").GetAttribute("title")!;
+
+        await Assert.That(Title("Undo")).IsEqualTo("Undo (Ctrl+Z)");
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditHistory(true, false, "Typing", null));
+        await Assert.That(Title("Undo")).IsEqualTo("Undo Typing (Ctrl+Z)");
+
+        await cut.InvokeAsync(() => cut.Instance.OnEditCommit(id, """[{"a":null,"i":[[0,"First new paragraph here.",0]]}]""", 0, "Typing \"new \""));
+        await cut.InvokeAsync(() => cut.Instance.OnEditHistory(false, false));
+        await Assert.That(Title("Undo")).IsEqualTo("Undo Typing \"new \" (Ctrl+Z)");
+        await Assert.That(Title("Redo")).IsEqualTo("Redo (Ctrl+Y)");
+    }
+
     // Where the host saves the file (OnSave, as MorphWopi does), Save hands it the file as edited, and the
     // file is no longer edited; nothing is downloaded.
     [Test]

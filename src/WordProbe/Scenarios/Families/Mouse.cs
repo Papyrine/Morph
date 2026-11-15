@@ -681,7 +681,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Shapes | Observe.Revisions)
             .Hypotheses("The picture is moved (copied with Ctrl) and stays inline at the drop; the undo entry is Move; tracked, the source shows as deleted and the drop as inserted.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-63", "Drag a floating picture")
             .In("image-floating")
@@ -690,7 +690,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Undo | Observe.Shapes | Observe.Revisions)
             .Hypotheses("Left and Top change by the drag; the anchor (a) moves to the paragraph under the drop (b) stays on P2; Ctrl makes a copy with its own anchor.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         // ----- fields, lists, notes, content controls -----
 
@@ -767,7 +767,7 @@ static class MouseFamily
             .Observing(Observe.Selection | Observe.Text | Observe.Undo | Observe.Revisions)
             .Notes("Drops after a space, mid-word in gamma, before the mark and at the paragraph start; the dragged range is beta without its comma.")
             .Hypotheses("The word moves and stays selected at the drop; smart cut and paste adds and removes the spaces so words stay separated, off it does not; the undo entry is Move.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-81", "Drag and drop across paragraphs, with and without the mark")
             .In("three-paragraphs")
@@ -776,7 +776,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Revisions)
             .Hypotheses("With the mark the paragraph is moved whole and P3 is split at the drop; without it the text joins P3's paragraph; a drop at P2:0 puts the text before Second.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-82", "Ctrl+drag copies")
             .In("words")
@@ -785,7 +785,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Undo | Observe.Revisions)
             .Hypotheses("The source stays and a copy is inserted at the drop and selected; the undo entry names a copy or a paste.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-83", "Drop onto the selection itself and next to it")
             .In("words")
@@ -793,16 +793,17 @@ static class MouseFamily
             .Axis("to", "P1:find(\"beta\"):end", "P1:find(\"eta\")", "P1:find(\"beta\")")
             .Observing(Observe.Selection | Observe.Text | Observe.Undo)
             .Hypotheses("A drop inside or at either end of the selection changes nothing and adds no undo entry; the selection is kept.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-84", "Drop into and out of a cell")
             .In("table-2x2")
             .Steps("drag({path})")
-            .Axis("path", "P1:0-P1:6→C(1,2):1", "C(1,1):0-C(1,1):end→P2:2", "C(1,1):0-C(1,1):end→C(2,2):1")
+            .Axis("path", "P1:0-P1:6→C(1,2):1", "C(1,1):0-C(1,1):end→P8:2", "C(1,1):0-C(1,1):end→C(2,2):1")
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Tables | Observe.Revisions)
+            .Notes("P8 is the paragraph after the table: paragraphs are counted through the cells and each row's end mark (P2, P3 and P5, P6 the cells; P4, P7 the rows' ends). Dropped at P2:2, the first run's target, the text never left its cell.")
             .Hypotheses("Text dropped into a cell is inserted at the drop (a) as text (b) replacing the cell; a cell's contents dropped into the body arrive as text; cell to cell (a) inserts (b) replaces.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-85", "Drop at an empty paragraph, at a mark and past the final mark")
             .In("empty-paragraphs")
@@ -811,7 +812,7 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Paragraphs | Observe.Undo | Observe.Revisions)
             .Hypotheses("Above moves into the empty paragraph, leaving P1 empty; at P4's mark it lands before the mark; past the final mark (a) it is refused (b) it lands before the final mark.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("M-87", "Drag text between the body and a text box")
             .In("text-box")
@@ -820,6 +821,37 @@ static class MouseFamily
             .Tracked()
             .Observing(Observe.Selection | Observe.Text | Observe.Undo | Observe.Story | Observe.Shapes | Observe.Revisions)
             .Hypotheses("(a) the text moves into the other story; (b) the drop is refused and the selection is kept.")
-            .Morph("TODO");
+            .Morph("DONE");
+
+        yield return Probe("M-88c", "Where a word dropped inside a word of a text box lands")
+            .In("text-box")
+            .Steps("drag(P2:0-P2:6→{to})")
+            .Axis("to", "TB1:P1:1", "TB1:P1:2", "TB1:P1:5", "TB1:P1:6", "TB1:P1:7")
+            .Observing(Observe.Selection | Observe.Text | Observe.Story | Observe.Shapes)
+            .Notes("\"Second\" into \"Box\" (TB1:P1:0-3) and \"line\" (4-8) of the box's first line. In the body M-88b put the drop at the word's start up to five letters of nine in and past it from six; M-87 put \"Bo|x\", two of three, at the start.")
+            .Hypotheses("(a) the body's rule holds in a box and M-87's drop was a tie; (b) in a text box a drop inside a word always goes to its start.")
+            .Morph("DONE");
+
+        yield return Probe("M-88b", "Where a word dropped inside a word lands, at every place in a long one")
+            .In("three-paragraphs")
+            .Steps("drag(P3:0-P3:5→{to})")
+            .Axis("to", "P1:7", "P1:8", "P1:9", "P1:10", "P1:11", "P1:12", "P1:13", "P1:14")
+            .Observing(Observe.Selection | Observe.Text)
+            .Notes("\"Third\" dropped at the left edge of each letter of \"paragraph\" (P1:6 to P1:15) but the first. M-80 to M-88 put a drop two-thirds of the way through \"Box\" at its start and four-fifths through \"Third\" past it.")
+            .Hypotheses("(a) the nearer end, by letters; (b) the nearer end by the pointer's x across the word; (c) the start up to some fraction past one half, then past the word.")
+            .Morph("DONE");
+
+        yield return Probe("M-88", "Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph")
+            .In("three-paragraphs")
+            .Steps("drag({path})")
+            .Axis(
+                "path",
+                "P1:6-P1:15→P3:1", "P1:6-P1:15→P3:4",
+                "P1:6-P1:end→P3:1", "P1:6-P1:end→P3:4",
+                "P1:0-P1:end→P3:1", "P1:0-P1:end→P3:4")
+            .Observing(Observe.Selection | Observe.Text)
+            .Notes("Into \"Third\" a letter from its start and a letter from its end; the dragged text is \"paragraph\", \"paragraph here.\" and the whole first paragraph's text. M-80 to M-87 put every word at the word's start and the one paragraph past the word.")
+            .Hypotheses("(a) a word or phrase lands at the word's start and anything ending in a stop past it, wherever in the word; (b) only a whole paragraph lands past it; (c) the pointer's place in the word decides, nearer end winning.")
+            .Morph("DONE");
     }
 }

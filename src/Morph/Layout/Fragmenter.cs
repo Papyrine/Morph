@@ -1337,7 +1337,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         EmitBodyFloat(shape, shape.VerticalAnchor, shape.AnchorParagraph);
                         break;
 
-                    case FloatingTextBoxElement { WrapType: WrapType.None } textBox:
+                    // A box the text wraps round is placed as one it does not, and carves its exclusion out of
+                    // the measure as a picture does (RegisterFloatExclusion). Until 2026-11-10 only wrap-none
+                    // boxes were placed — every body text box of the corpus is one — and a square-wrapped box
+                    // was dropped whole, its text with it (WordProbe's text-box fixture).
+                    case FloatingTextBoxElement textBox:
                         EmitBodyFloat(textBox, textBox.VerticalAnchor, textBox.AnchorParagraph);
                         break;
 
@@ -2003,7 +2007,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // True when EmitBodyFloatAt would register a wrap exclusion for this element — such a float
         // cannot defer past its anchor paragraph, whose flow band must see the exclusion.
         static bool RegistersExclusion(DocumentElement element) =>
-            element is FloatingImageElement { BehindText: false, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom };
+            element is FloatingImageElement { BehindText: false, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom } or
+                FloatingTextBoxElement { BehindText: false, RotationDegrees: 0, WrapType: WrapType.Square or WrapType.Tight or WrapType.Through or WrapType.TopAndBottom };
 
         // Emits a body float now when its Y is absolute (page/margin) or it has no recorded anchor;
         // defers a paragraph-anchored one until its anchor paragraph's top is known. Resolving from the
@@ -2118,8 +2123,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     break;
 
                 case FloatingTextBoxElement textBox:
-                    PlaceTextBox(textBox, AnchoredY(textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent));
+                {
+                    var boxY = AnchoredY(textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent);
+                    PlaceTextBox(textBox, boxY);
+                    if (RegistersExclusion(textBox))
+                    {
+                        var boxX = FloatX(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent);
+                        RegisterFloatExclusion(textBox.WrapType, textBox.WrapTextSide, boxX, boxY, (float)textBox.WidthPoints, (float)textBox.HeightPoints, textBox.WrapDistanceLeftPoints, textBox.WrapDistanceTopPoints, textBox.WrapDistanceRightPoints, textBox.WrapDistanceBottomPoints);
+                    }
+
                     break;
+                }
 
                 case FloatingChartElement chart:
                     PlaceChart(chart, FloatX(chart.HorizontalAnchor, chart.HorizontalPositionPoints, null), AnchoredY(chart.VerticalAnchor, chart.VerticalPositionPoints, null));
@@ -2192,23 +2206,29 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return;
             }
 
-            switch (image.WrapType)
+            RegisterFloatExclusion(image.WrapType, image.WrapTextSide, left, top, width, height, image.WrapDistanceLeftPoints, image.WrapDistanceTopPoints, image.WrapDistanceRightPoints, image.WrapDistanceBottomPoints);
+        }
+
+        // The same for any float that wraps — a picture, a text box — from its wrap and clearances.
+        void RegisterFloatExclusion(WrapType wrap, WrapTextSide side, float left, float top, float width, float height, double distanceLeft, double distanceTop, double distanceRight, double distanceBottom)
+        {
+            switch (wrap)
             {
                 case WrapType.Square or WrapType.Tight or WrapType.Through:
                     floatExclusions.Add(new(
-                        left - (float)image.WrapDistanceLeftPoints,
-                        top - (float)image.WrapDistanceTopPoints,
-                        left + width + (float)image.WrapDistanceRightPoints,
-                        top + height + (float)image.WrapDistanceBottomPoints,
+                        left - (float)distanceLeft,
+                        top - (float)distanceTop,
+                        left + width + (float)distanceRight,
+                        top + height + (float)distanceBottom,
                         FullWidth: false,
-                        image.WrapTextSide));
+                        side));
                     break;
                 case WrapType.TopAndBottom:
                     floatExclusions.Add(new(
                         ColumnLeft,
-                        top - (float)image.WrapDistanceTopPoints,
+                        top - (float)distanceTop,
                         ColumnLeft + columnWidth,
-                        top + height + (float)image.WrapDistanceBottomPoints,
+                        top + height + (float)distanceBottom,
                         FullWidth: true,
                         WrapTextSide.BothSides));
                     break;

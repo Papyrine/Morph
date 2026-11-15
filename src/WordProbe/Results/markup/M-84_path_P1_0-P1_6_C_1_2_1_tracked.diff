@@ -1,0 +1,12 @@
++     <w:del w:id="0" w:author="Simon Cropp" w:date="2026-11-15T20:22:00Z" w16du:dateUtc="2026-11-15T09:22:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:delText xml:space="preserve">Before </w:delText>
++       </w:r>
++     </w:del>
+-       <w:t>Before the table.</w:t>
++       <w:t>the table.</w:t>
++           <w:ins w:id="1" w:author="Simon Cropp" w:date="2026-11-15T20:22:00Z" w16du:dateUtc="2026-11-15T09:22:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t xml:space="preserve">Before </w:t>
++             </w:r>
++           </w:ins>

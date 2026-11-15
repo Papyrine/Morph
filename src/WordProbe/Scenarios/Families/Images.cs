@@ -89,7 +89,7 @@ static class ImagesFamily
             .Observing(Observe.Default | Observe.Shapes)
             .Tracked()
             .Hypotheses("A plain drag moves the picture inline to the drop point; Ctrl+drag copies it; a drop at P1:0 puts it at the paragraph start.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("I-06", "Enter, Backspace and Delete at a picture that starts or ends a paragraph")
             .In("image-edges")
@@ -163,6 +163,19 @@ static class ImagesFamily
             .Hypotheses("Picture: typing (a) replaces it at the anchor (b) is ignored. Rectangle: the text is typed into it, which opens its story. Text box selected by its border: the text goes into the box's story (a) at its start (b) replacing its text.")
             .Morph("TODO");
 
+        yield return Probe("I-15b", "Where a floating picture's Ctrl+drag copy lands, at three distances")
+            .In("image-floating")
+            .Steps("{drag}")
+            .Axis(
+                "drag",
+                "drag(SHP1→P3:2)", "ctrl+drag(SHP1→P3:2)",
+                "drag(SHP1→P1:20)", "ctrl+drag(SHP1→P1:20)",
+                "drag(SHP1→P2:40)", "ctrl+drag(SHP1→P2:40)")
+            .Observing(Observe.Selection | Observe.Shapes | Observe.Undo)
+            .Notes("I-15 put the copy 32.4pt (2026-11-07) and 31.8pt (2026-11-15) left of where a plain drag over the same path moved the picture. Three distances say whether that is a fixed offset or grows with the drag.")
+            .Hypotheses("(a) a fixed offset, the same at every distance; (b) one that grows with the distance; (c) the copy's offset taken from somewhere other than the picture's own place, its anchor's for one.")
+            .Morph("PARTIAL");
+
         yield return Probe("I-15", "Drag, Ctrl+drag and Shift+drag a floating picture")
             .In("image-floating")
             .Steps("{drag}")
@@ -170,7 +183,7 @@ static class ImagesFamily
             .Observing(Observe.Selection | Observe.Text | Observe.Shapes | Observe.Undo)
             .Tracked()
             .Hypotheses("A plain drag moves the shape and re-anchors it to the paragraph under the drop; Ctrl+drag leaves a copy; Shift+drag constrains the move to one axis.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("I-16", "Tab and Shift+Tab with a shape selected")
             .In("{fixture}")
@@ -259,7 +272,7 @@ static class ImagesFamily
             .Observing(Observe.Default | Observe.Story | Observe.Shapes)
             .Tracked()
             .Hypotheses("The dragged text moves into P2 and leaves the box's first line shorter; the box itself stays.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("I-27", "Double-click a floating picture")
             .In("image-floating")

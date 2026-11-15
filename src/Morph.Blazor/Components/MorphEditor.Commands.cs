@@ -59,16 +59,25 @@ public partial class MorphEditor
         };
 
     // A command run from the ribbon, a menu or a key: only while it can be.
-    Task RunCommandAsync(EditorCommand command)
+    async Task RunCommandAsync(EditorCommand command)
     {
         var now = State();
         if (!command.Visible(now) ||
             !command.Enabled(now))
         {
-            return Task.CompletedTask;
+            return;
         }
 
-        return command.Run(this);
+        // The edit it makes is undone by its name in Word; what it hands in on the way names its own.
+        editLabel = command.UndoName;
+        try
+        {
+            await command.Run(this);
+        }
+        finally
+        {
+            editLabel = null;
+        }
     }
 
     // A command chosen from a menu, which closes first, so the pages are what the reader sees while it runs.
@@ -272,9 +281,12 @@ public partial class MorphEditor
                 Handler = CommandHandler.Script
             };
 
+        // The script cuts in the open paragraph itself; text selected on the pages it copies, and then
+        // hands in to be deleted here, as Word's Cut (WordProbe U-02a).
         public static readonly EditorCommand Cut =
-            new("cut", "Cut", nothing)
+            new("cut", "Cut", _ => _.DeleteAsync())
             {
+                UndoName = "Cut",
                 Icon = Lucide.Scissors,
                 Key = "Ctrl+X",
                 Place = "Home › Clipboard",
@@ -325,6 +337,7 @@ public partial class MorphEditor
         public static readonly EditorCommand Grow =
             new("grow", "Grow font", _ => _.GrowAsync(1))
             {
+                UndoName = "Grow Font",
                 Icon = Lucide.AArrowUp,
                 Key = "Ctrl+Shift+>",
                 Place = "Home › Font",
@@ -343,6 +356,7 @@ public partial class MorphEditor
         public static readonly EditorCommand ClearFormatting =
             new("clear-formatting", "Clear formatting", _ => _.ClearFormattingAsync())
             {
+                UndoName = "Reset Char",
                 Icon = Lucide.RemoveFormatting,
                 Key = "Ctrl+Space",
                 Place = "Home › Font"
@@ -351,6 +365,7 @@ public partial class MorphEditor
         public static readonly EditorCommand Bold =
             new("bold", "Bold", _ => _.FormatAsync(properties => properties.Bold, on => new(Bold: on)))
             {
+                UndoName = "Bold",
                 Icon = Lucide.Bold,
                 Key = "Ctrl+B",
                 Place = "Home › Font",
@@ -556,6 +571,7 @@ public partial class MorphEditor
         public static readonly EditorCommand AlignLeft =
             new("align-left", "Align left", _ => _.AlignAsync(TextAlignment.Left))
             {
+                UndoName = "Paragraph Alignment",
                 Icon = Lucide.TextAlignStart,
                 Key = "Ctrl+L",
                 Place = "Home › Paragraph",
@@ -566,6 +582,7 @@ public partial class MorphEditor
         public static readonly EditorCommand AlignCenter =
             new("align-center", "Centre", _ => _.AlignAsync(TextAlignment.Center))
             {
+                UndoName = "Paragraph Alignment",
                 Icon = Lucide.TextAlignCenter,
                 Key = "Ctrl+E",
                 Place = "Home › Paragraph",
@@ -576,6 +593,7 @@ public partial class MorphEditor
         public static readonly EditorCommand AlignRight =
             new("align-right", "Align right", _ => _.AlignAsync(TextAlignment.Right))
             {
+                UndoName = "Paragraph Alignment",
                 Icon = Lucide.TextAlignEnd,
                 Key = "Ctrl+R",
                 Place = "Home › Paragraph",
@@ -586,6 +604,7 @@ public partial class MorphEditor
         public static readonly EditorCommand Justify =
             new("align-justify", "Justify", _ => _.AlignAsync(TextAlignment.Justify))
             {
+                UndoName = "Paragraph Alignment",
                 Icon = Lucide.TextAlignJustify,
                 Key = "Ctrl+J",
                 Place = "Home › Paragraph",
@@ -685,6 +704,7 @@ public partial class MorphEditor
         public static readonly EditorCommand PageBreak =
             new("page-break", "Page break", _ => _.InsertPageBreakAsync())
             {
+                UndoName = "Page Break",
                 Icon = Lucide.SeparatorHorizontal,
                 Key = "Ctrl+Enter",
                 Place = "Insert › Pages",
@@ -696,6 +716,7 @@ public partial class MorphEditor
         public static readonly EditorCommand ColumnBreak =
             new("column-break", "Column break", _ => _.InsertColumnBreakAsync())
             {
+                UndoName = "Column Break",
                 Icon = Lucide.SeparatorVertical,
                 Key = "Ctrl+Shift+Enter",
                 Place = "Layout › Page setup › Breaks",
@@ -909,6 +930,7 @@ public partial class MorphEditor
         public static readonly EditorCommand Footnote =
             new("footnote", "Footnote", _ => _.InsertFootnoteAsync())
             {
+                UndoName = "Footnote",
                 Icon = Lucide.Superscript,
                 Key = "Ctrl+Alt+F",
                 Place = "References › Footnotes",
@@ -956,7 +978,7 @@ public partial class MorphEditor
             TableCommand("insert-column-right", "Insert right", TableEdit.InsertColumnRight, Lucide.BetweenVerticalEnd, "Rows and columns");
 
         public static readonly EditorCommand DeleteRow =
-            TableCommand("delete-row", "Delete row", TableEdit.DeleteRow, Lucide.Rows2, "Delete");
+            TableCommand("delete-row", "Delete row", TableEdit.DeleteRow, Lucide.Rows2, "Delete", "Delete Rows");
 
         public static readonly EditorCommand DeleteColumn =
             TableCommand("delete-column", "Delete column", TableEdit.DeleteColumn, Lucide.Columns2, "Delete");
@@ -1245,6 +1267,7 @@ public partial class MorphEditor
         public static readonly EditorCommand DateField =
             new("date-field", "Date field", _ => _.InsertShortDateAsync())
             {
+                UndoName = "Date Field",
                 Key = "Alt+Shift+D",
                 Enabled = ForTextAlone
             };
@@ -1354,6 +1377,7 @@ public partial class MorphEditor
         public static readonly EditorCommand ResetParagraph =
             new("reset-paragraph", "Reset paragraph formatting", _ => _.ResetParagraphAsync())
             {
+                UndoName = "Paragraph Formatting",
                 Key = "Ctrl+Q",
                 Enabled = ForText
             };
@@ -1442,6 +1466,7 @@ public partial class MorphEditor
         public static readonly EditorCommand Delete =
             new("delete", "Delete", _ => _.DeleteAsync())
             {
+                UndoName = "Clear",
                 Key = "Delete"
             };
 
@@ -1602,10 +1627,11 @@ public partial class MorphEditor
         public static EditorCommand? Named(string name) =>
             all.GetValueOrDefault(name);
 
-        static EditorCommand TableCommand(string name, string label, TableEdit change, Icon icon, string group) =>
+        static EditorCommand TableCommand(string name, string label, TableEdit change, Icon icon, string group, string? undoName = null) =>
             new(name, label, _ => _.EditTableAsync(change))
             {
                 Icon = icon,
+                UndoName = undoName,
                 Place = $"Table › {group}",
                 Enabled = InATable
             };
@@ -1633,6 +1659,7 @@ public partial class MorphEditor
                 $"Heading {level}",
                 _ => _.ApplyStyleAsync($"Heading{level}"))
             {
+                UndoName = "Style",
                 Key = $"Ctrl+Alt+{level}"
             };
     }

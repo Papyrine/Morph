@@ -1,0 +1,22 @@
+-     <w:r>
+-       <w:t>First paragraph here.</w:t>
+-     </w:r>
++     <w:moveFromRangeStart w:id="0" w:author="Simon Cropp" w:date="2026-11-15T20:21:00Z" w:name="move245666531" />
++     <w:moveFrom w:id="1" w:author="Simon Cropp" w:date="2026-11-15T20:21:00Z" w16du:dateUtc="2026-11-15T09:21:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>First paragraph here.</w:t>
++       </w:r>
++     </w:moveFrom>
++     <w:moveFromRangeEnd w:id="0" />
+-       <w:t>Third and last.</w:t>
++       <w:t xml:space="preserve">Third </w:t>
++     <w:moveToRangeStart w:id="2" w:author="Simon Cropp" w:date="2026-11-15T20:21:00Z" w:name="move245666531" />
++     <w:moveTo w:id="3" w:author="Simon Cropp" w:date="2026-11-15T20:21:00Z" w16du:dateUtc="2026-11-15T09:21:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++       <w:r>
++         <w:t>First paragraph here.</w:t>
++       </w:r>
++     </w:moveTo>
++     <w:moveToRangeEnd w:id="2" />
++     <w:r>
++       <w:t>and last.</w:t>
++     </w:r>

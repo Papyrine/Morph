@@ -349,7 +349,22 @@ paragraph leaves it out or a deletion spans it; tracked, its runs are struck (`w
 `w:delInstrText`) so rejecting puts it back. `DocumentEditor.Moves.cs` moves one past another of its kind (a
 picture dragged over a field): those that keep their order still divide `Rewrite`'s stretches, and each
 other goes in as a mark the text diff places, then takes the mark's place — struck and inserted when
-tracked, a note's reference never moved under tracking. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
+tracked, a note's reference never moved under tracking. `DocumentEditor.Drop.cs` is drag and drop outside the
+open paragraph (`OnEditDrop`, from morph-viewer.js `onTextDrop`): text moved or copied between paragraphs
+with Word's word snapping and smart cut and paste (WordProbe M-80 to M-85), a tracked whole paragraph
+written as `w:moveFrom`/`w:moveTo`, and Ctrl+drag of a floating picture (`DuplicatePicture`); the open
+paragraph's own drags keep the same rules in morph-edit.js (`moveDragged`). A picture in the line is dragged
+by the box's own pointer drag (`pictureDrag`), since its press holds the selection and the browser's drag
+never starts. What is dragged in from outside is the viewer's (`dragKind` in morph-viewer.js): text or
+HTML goes in as a paste (`OnEditDropText`, `DocumentEditor.Paste`), a picture's file as Insert › Picture
+(`OnEditDropPicture`), and any other file still opens. Cells selected across a table and dropped on a cell
+are pasted as cells (`DocumentEditor.DropCells.cs`, WordProbe T-33). A paragraph's mark dragged with it
+does not divide the paragraph it is dropped in only because Word's "Adjust paragraph spacing on paste" is
+on by default: a probe run with it off records the opposite (M-81 in `src/word-behavior.md`), so check
+`environment.json`'s options when a paragraph rule looks wrong. Undo and Redo name their step as Word's
+buttons do: a step's `HistoryStep.Label` comes from the command's `EditorCommand.UndoName` (set as
+`editLabel` while it runs), the edit's own (a drop's Move or Copy), or a hand-in's name from the script
+(`Typing "abc"`), and only names a probe recorded (WordProbe U-01, U-02) are given. `DocumentEditor.Fields.cs` puts in PAGE, NUMPAGES and
 DATE fields and Word's Automatic Table 1 table of contents — whose page numbers only the layout knows,
 so the editor lays the edited file out and writes them in (`SetContentsPages`) within the same edit;
 `DocumentEditor.Lists.cs` is the Bullets and Numbering libraries (`ListTemplates.Bullets`/`Numbers`,

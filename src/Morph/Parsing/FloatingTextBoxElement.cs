@@ -34,6 +34,21 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// <summary>How text wraps around this text box.</summary>
     public WrapType WrapType { get; init; } = WrapType.None;
 
+    /// <summary>Which side of the box the text wraps on (wp:wrapSquare @wrapText), as a picture's does.</summary>
+    public WrapTextSide WrapTextSide { get; init; } = WrapTextSide.BothSides;
+
+    /// <summary>The clearance between the box and the text wrapped round it, in points (wp:anchor @distL etc.).</summary>
+    public double WrapDistanceLeftPoints { get; init; }
+
+    /// <inheritdoc cref="WrapDistanceLeftPoints"/>
+    public double WrapDistanceTopPoints { get; init; }
+
+    /// <inheritdoc cref="WrapDistanceLeftPoints"/>
+    public double WrapDistanceRightPoints { get; init; }
+
+    /// <inheritdoc cref="WrapDistanceLeftPoints"/>
+    public double WrapDistanceBottomPoints { get; init; }
+
     /// <summary>
     /// True for a Word text box of fixed size (no <c>wps:bodyPr/a:spAutoFit</c>), which hides the lines
     /// that fall below it — cards/02's code box holds an 18pt empty paragraph and then the code, which
@@ -128,6 +143,11 @@ sealed class FloatingTextBoxElement : DocumentElement
             WidthPoints = WidthPoints,
             HeightPoints = HeightPoints,
             WrapType = WrapType,
+            WrapTextSide = WrapTextSide,
+            WrapDistanceLeftPoints = WrapDistanceLeftPoints,
+            WrapDistanceTopPoints = WrapDistanceTopPoints,
+            WrapDistanceRightPoints = WrapDistanceRightPoints,
+            WrapDistanceBottomPoints = WrapDistanceBottomPoints,
             BehindText = BehindText,
             RelativeHeight = RelativeHeight,
             LayoutInCell = LayoutInCell,

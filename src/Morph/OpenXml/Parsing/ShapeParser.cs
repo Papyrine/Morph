@@ -1096,6 +1096,14 @@ static class ShapeParser
             return themeColors.ResolveColor(schemeValue, transforms);
         }
 
+        // A preset colour by name — Word writes a text box's black frame as prstClr black.
+        var presetClr = solidFill.GetFirstChild<A.PresetColor>();
+        if (presetClr?.Val?.HasValue == true &&
+            PresetColors.Hex(((IEnumValue) presetClr.Val.Value).Value) is { } preset)
+        {
+            return ApplyLiteralColorTransforms(preset, presetClr);
+        }
+
         return null;
     }
 

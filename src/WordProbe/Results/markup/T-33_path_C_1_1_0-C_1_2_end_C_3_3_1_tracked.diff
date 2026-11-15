@@ -1,0 +1,60 @@
+-       <w:tblW w:w="0" w:type="auto" />
++       <w:tblW w:w="12021" w:type="dxa" />
++       <w:gridCol w:w="3005" />
++       <w:tblGridChange w:id="0">
++         <w:tblGrid>
++           <w:gridCol w:w="3005" />
++           <w:gridCol w:w="3005" />
++           <w:gridCol w:w="3006" />
++           <w:gridCol w:w="3005" />
++         </w:tblGrid>
++       </w:tblGridChange>
++       <w:trPr>
++         <w:gridAfter w:val="1" />
++         <w:wAfter w:w="3005" w:type="dxa" />
++       </w:trPr>
+-           <w:r>
+-             <w:t>a1</w:t>
+-           </w:r>
++           <w:del w:id="1" w:author="Simon Cropp" w:date="2026-11-15T20:30:00Z" w16du:dateUtc="2026-11-15T09:30:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>a1</w:delText>
++             </w:r>
++           </w:del>
+-           <w:r>
+-             <w:t>b1</w:t>
+-           </w:r>
++           <w:del w:id="2" w:author="Simon Cropp" w:date="2026-11-15T20:30:00Z" w16du:dateUtc="2026-11-15T09:30:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>b1</w:delText>
++             </w:r>
++           </w:del>
++       <w:trPr>
++         <w:gridAfter w:val="1" />
++         <w:wAfter w:w="3005" w:type="dxa" />
++       </w:trPr>
+-           <w:r>
+-             <w:t>c3</w:t>
+-           </w:r>
++           <w:ins w:id="3" w:author="Simon Cropp" w:date="2026-11-15T20:30:00Z" w16du:dateUtc="2026-11-15T09:30:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t>a1</w:t>
++             </w:r>
++           </w:ins>
++           <w:del w:id="4" w:author="Simon Cropp" w:date="2026-11-15T20:30:00Z" w16du:dateUtc="2026-11-15T09:30:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:delText>c3</w:delText>
++             </w:r>
++           </w:del>
++       <w:tc>
++         <w:tcPr>
++           <w:tcW w:w="3005" w:type="dxa" />
++         </w:tcPr>
++         <w:p>
++           <w:ins w:id="5" w:author="Simon Cropp" w:date="2026-11-15T20:30:00Z" w16du:dateUtc="2026-11-15T09:30:00Z" xmlns:w16du="http://schemas.microsoft.com/office/word/2023/wordml/word16du">
++             <w:r>
++               <w:t>b1</w:t>
++             </w:r>
++           </w:ins>
++         </w:p>
++       </w:tc>

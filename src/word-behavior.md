@@ -6,7 +6,7 @@ below was produced by driving a visible Word with real keyboard and mouse input 
 back over COM. The Blazor editor (`src/Morph.Blazor`, `MorphEditor`) is meant to match these; the file
 doubles as its gap list through the `Morph` status each scenario carries.
 
-<!-- probe:generated --> Generated 2026-11-07 on Word for Microsoft 365, version 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20150), Windows 11, unknown UI, one display 3440x1440 at 125 %. Undo names from the Undo list.
+<!-- probe:generated --> Generated 2026-11-15 on Word for Microsoft 365, version 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20150), Windows 11, unknown UI, one display 1920x1200 at 125 %. Undo names from the Undo list.
 
 Keys and the commands they run are catalogued in `docs/word-command-reference.md` and are not repeated
 here; this file records what a key or click **does** to the document and the selection in a given state.
@@ -238,7 +238,7 @@ in its heading; everything else was measured under these values.
 | --- | --- |
 | Word | 16.0 build 16.0.20527 (Click-to-Run 16.0.20527.20150) |
 | UI language | unknown |
-| display | 3440x1440 at 125 % |
+| display | 1920x1200 at 125 % |
 | undo entry names | control128 |
 | fixture opening | Documents.Add(Template: fixture) |
 | hot spot `cellLeftEdgeInset` | 1 px |
@@ -3019,12 +3019,45 @@ picture targets, drag and drop.
   destination as needed (`alpha,  gamma` after `beta` left; `end. beta` at the end), with it off the
   text moves exactly; Ctrl+drag copies with the same spacing (M-80, M-82). A drop on or inside the
   dragged selection changes nothing and leaves the caret at the selection's start, a drop at its end
-  the caret there (M-83). A paragraph dragged with its mark into the middle of another splits that
-  paragraph; dragged without its mark it leaves an empty paragraph behind (M-81). Text moves from cell to
-  cell, from the body into a cell, into an empty paragraph, into a text box, and dropped past the last
-  paragraph joins it with a space (M-84, M-85, M-87). Tracked, a dragged sentence or more is a move
-  (`{<…<}` `{>…>}`); a shorter drag is a deletion plus an insertion, and Ctrl+drag one insertion (M-80,
-  M-81, M-82). — Morph: TODO.
+  the caret there (M-83). Text dropped inside a word lands at the word's start, or past the word and its
+  spaces once the drop is two letters or more nearer the word's end than its start: across `paragraph`
+  letters one to five in took it to the start and six to eight past (M-88b); `Thir|d` and `lin|e` went
+  past, `Bo|x` (two in, one to go) and `li|ne` (two and two) to the start (M-81, M-87, M-88c). What is
+  dropped does not matter — a word, a phrase ending in a stop and a paragraph's text went alike (M-88) —
+  and a text box's words go as the body's (M-88c). It is neither the nearer end nor a fraction of the
+  word: `Bo|x` and `paragraph`'s sixth letter are both two-thirds in, and went opposite ways. A picture is
+  put down exactly where it is dropped (M-62). A paragraph dragged with its mark
+  into the middle of another does NOT split it: the paragraph it left goes, and its text joins the one it
+  is dropped in (`Third First paragraph here.and last.`); dragged without its mark it leaves an empty
+  paragraph behind (M-81). That turns on `Options.PasteAdjustParagraphSpacing` (Smart cut and paste
+  settings, "Adjust paragraph spacing on paste"), on by default: with it off the mark goes with the
+  text and divides the paragraph there (`Third First paragraph here.` then `and last.`, and tracked a
+  `w:moveTo` mark there too), which runs between 2026-11-11 and 2026-11-15 recorded before the option was
+  found off on the probe machine and put back. Tracked, with it on, the paragraph's mark is marked
+  `w:moveFrom` and the move's range ends after that paragraph; the paragraph dropped in is not divided
+  (M-81's markup). Text moves from cell to cell, from the body into a cell and a cell's out into
+  the body, into an empty paragraph, into a text box and out of one, and dropped past the last paragraph
+  joins it with a space (M-84, M-85, M-87, I-26b). The space is added before dropped text after a word or a sentence's punctuation, and after it
+  only before a word when it ends in one (`here.and` stays joined). Tracked, a whole paragraph's text
+  dragged is a move (`{<…<}` `{>…>}`); a shorter drag is a deletion plus an insertion, and Ctrl+drag one
+  insertion (M-80, M-81, M-82, M-85). The space smart paste adds beside a move is an insertion of its
+  own (M-81, M-85). The first run of M-84, M-87 and I-26b recorded nothing happening, and was the
+  harness's: a text box's selection was pressed at the same offsets of the body (fixed in
+  `StepExecutor`), and M-84 dropped the cell's text at `P2:2`, inside the cell itself — paragraphs are
+  counted through the cells and each row's end, so the paragraph after the table is `P8`. Cells dragged
+  onto a cell are pasted as cells from there: a row's first two cells dropped on (3,3) put `a1` over `c3`
+  and `b1` in a cell the row was given, leaving the two they came from empty; tracked, each cell's new
+  text is inserted ahead of its old, which is struck (T-33). Whole rows and columns could not be dragged
+  by the harness, whose press on them began a new selection (T-33's other rows). A floating picture's
+  Ctrl+drag copy lands 1.099 times as far across as a plain drag over the same path moves the picture, and
+  as far down (I-15b: 265.8pt against 241.8pt, 354pt against 322.2pt); a plain drag near the margin
+  snaps to it, written as an alignment rather than an offset. — Morph: PARTIAL (`DocumentEditor.Drop`, and
+  the open paragraph's `moveDragged`, follow every rule with `SmartCutPaste` and paragraph spacing on,
+  tracked moves included, into and out of a text box, whose VML `mc:Fallback` copy is written again from
+  its `mc:Choice` after every edit, and cells onto a cell (`DocumentEditor.DropCells`); the Undo button
+  names the step as Word does. Not followed: the copy's horizontal overshoot, which reads as Word's
+  conversion of the pointer on this display rather than a rule, the copy staying where it is let go; the
+  margin snap; whole rows and columns, and cells dropped outside a table, which are not recorded).
 
 ### State machines
 
@@ -4570,7 +4603,7 @@ steps `click(SHP1)`
 
 #### M-62 · Drag an inline picture, moving and copying
 
-`image-inline` · Morph: **TODO**
+`image-inline` · Morph: **DONE**
 
 Expected before the run: The picture is moved (copied with Ctrl) and stays inline at the drop; the undo entry is
 Move; tracked, the source shows as deleted and the drop as inserted.
@@ -4588,7 +4621,7 @@ steps `{drag}`
 
 #### M-63 · Drag a floating picture
 
-`image-floating` · Morph: **TODO**
+`image-floating` · Morph: **DONE**
 
 Expected before the run: Left and Top change by the drag; the anchor (a) moves to the paragraph under the drop (b)
 stays on P2; Ctrl makes a copy with its own anchor.
@@ -4754,7 +4787,7 @@ steps `{first}` · `rightclick(C(1,1):1)`
 
 #### M-80 · Drag and drop a word within its paragraph
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: The word moves and stays selected at the drop; smart cut and paste adds and removes the
 spaces so words stay separated, off it does not; the undo entry is Move.
@@ -4785,7 +4818,7 @@ without its comma.
 
 #### M-81 · Drag and drop across paragraphs, with and without the mark
 
-`three-paragraphs` · Morph: **TODO**
+`three-paragraphs` · Morph: **DONE**
 
 Expected before the run: With the mark the paragraph is moved whole and P3 is split at the drop; without it the text
 joins P3's paragraph; a drop at P2:0 puts the text before Second.
@@ -4805,7 +4838,7 @@ steps `drag({path})`
 
 #### M-82 · Ctrl+drag copies
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: The source stays and a copy is inserted at the drop and selected; the undo entry names a
 copy or a paste.
@@ -4821,7 +4854,7 @@ steps `ctrl+drag(P1:find("beta")-P1:find("beta"):end→{to})`
 
 #### M-83 · Drop onto the selection itself and next to it
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: A drop inside or at either end of the selection changes nothing and adds no undo entry; the
 selection is kept.
@@ -4836,7 +4869,7 @@ steps `drag(P1:find("beta")-P1:find("beta"):end→{to})`
 
 #### M-84 · Drop into and out of a cell
 
-`table-2x2` · Morph: **TODO**
+`table-2x2` · Morph: **DONE**
 
 Expected before the run: Text dropped into a cell is inserted at the drop (a) as text (b) replacing the cell; a
 cell's contents dropped into the body arrive as text; cell to cell (a) inserts (b) replaces.
@@ -4847,14 +4880,17 @@ steps `drag({path})`
 | --- | --- | --- | --- |
 | P1:0-P1:6→C(1,2):1 | off | Normal 15–22 end-active · Cells 1 (R1C2–R1C2) · Undo: Move | `[the table.]<br>T1 R1 ║[One¤]║[⟦Before ‸⟧Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
 | P1:0-P1:6→C(1,2):1 | on | Normal 22–29 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Move | `{-[Before ]-}[the table.]<br>T1 R1 ║[One¤]║{+[⟦Before ‸⟧]+}[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
-| C(1,1):0-C(1,1):end→P2:2 | off | IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
-| C(1,1):0-C(1,1):end→P2:2 | on | IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[One‸¤]║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,1):end→P8:2 | off | Normal 36–40 end-active · Undo: Move | `[Before the table.]<br>T1 R1 ║¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>[⟦One ‸⟧After the table.]` |
+| C(1,1):0-C(1,1):end→P8:2 | on | Normal 39–43 end-active · Tracking · Revisions 2 · Undo: Move | `[Before the table.]<br>T1 R1 ║{-[One]-}¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[Four¤]║¤<br>{+[⟦One ‸⟧]+}[After the table.]` |
 | C(1,1):0-C(1,1):end→C(2,2):1 | off | Normal 30–34 end-active · Cells 1 (R2C2–R2C2) · Undo: Move | `[Before the table.]<br>T1 R1 ║¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║[⟦One ‸⟧Four¤]║¤<br>[After the table.]` |
 | C(1,1):0-C(1,1):end→C(2,2):1 | on | Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo: Move | `[Before the table.]<br>T1 R1 ║{-[One]-}¤║[Two¤]║¤<br>T1 R2 ║[Three¤]║{+[⟦One ‸⟧]+}[Four¤]║¤<br>[After the table.]` |
 
+Notes: P8 is the paragraph after the table: paragraphs are counted through the cells and each row's end mark (P2, P3
+and P5, P6 the cells; P4, P7 the rows' ends). Dropped at P2:2, the first run's target, the text never left its cell.
+
 #### M-85 · Drop at an empty paragraph, at a mark and past the final mark
 
-`empty-paragraphs` · Morph: **TODO**
+`empty-paragraphs` · Morph: **DONE**
 
 Expected before the run: Above moves into the empty paragraph, leaving P1 empty; at P4's mark it lands before the
 mark; past the final mark (a) it is refused (b) it lands before the final mark.
@@ -4872,7 +4908,7 @@ steps `drag(P1:0-P1:5→{to})`
 
 #### M-87 · Drag text between the body and a text box
 
-`text-box` · Morph: **TODO**
+`text-box` · Morph: **DONE**
 
 Expected before the run: (a) the text moves into the other story; (b) the drop is refused and the selection is kept.
 
@@ -4882,8 +4918,130 @@ steps `drag({path})`
 | --- | --- | --- | --- |
 | P2:0-P2:6→TB1:P1:2 | off | Normal 0–7 end-active · Story TextFrame · Undo: Move | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line two]` |
 | P2:0-P2:6→TB1:P1:2 | on | Normal 0–7 end-active · Story TextFrame · Tracking · Revisions 1 · Undo: Move | `[⚓1First paragraph of text here.]<br>{-[Second ]-}[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line tw]{-[o]` |
-| TB1:P1:0-TB1:P1:3→P2:2 | off | Normal 0–33 end-active · Undo — | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Se‸⟧cond paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
-| TB1:P1:0-TB1:P1:3→P2:2 | on | Normal 0–33 end-active · Tracking · Revisions 0 · Undo — | `[⟦⚓1First paragraph of text here.¶⟧]<br>⟦[Se‸⟧cond paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P1:0-TB1:P1:3→P2:2 | off | Normal 31–35 end-active · Undo: Move | `[⚓1First paragraph of text here.]<br>[⟦Box ‸⟧Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+| TB1:P1:0-TB1:P1:3→P2:2 | on | Normal 31–35 end-active · Tracking · Revisions 1 · Undo: Move | `[⚓1First paragraph of text here.]<br>{+[⟦Box ‸⟧]+}[Second paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0` |
+
+#### M-88c · Where a word dropped inside a word of a text box lands
+
+`text-box` · Morph: **DONE**
+
+Expected before the run: (a) the body's rule holds in a box and M-87's drop was a tie; (b) in a text box a drop
+inside a word always goes to its start.
+
+steps `drag(P2:0-P2:6→{to})`
+
+| to | selection | observed |
+| --- | --- | --- |
+| TB1:P1:1 | Normal 0–7 end-active · Story TextFrame | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line two]` |
+| TB1:P1:2 | Normal 0–7 end-active · Story TextFrame | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [⟦Second ‸⟧Box line one]<br>TB: [Box line two]` |
+| TB1:P1:5 | Normal 4–11 end-active · Story TextFrame | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box ⟦Second ‸⟧line one]<br>TB: [Box line two]` |
+| TB1:P1:6 | Normal 4–11 end-active · Story TextFrame | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box ⟦Second ‸⟧line one]<br>TB: [Box line two]` |
+| TB1:P1:7 | Normal 9–16 end-active · Story TextFrame | `[⚓1First paragraph of text here.]<br>[paragraph of text here.]<br>[Third paragraph of text here.]<br>SHP1 ⌖P1 textbox 160x80pt square @228,0<br>TB: [Box line ⟦Second ‸⟧one]<br>TB: [Box line two]` |
+
+Notes: "Second" into "Box" (TB1:P1:0-3) and "line" (4-8) of the box's first line. In the body M-88b put the drop at
+the word's start up to five letters of nine in and past it from six; M-87 put "Bo|x", two of three, at the start.
+
+#### M-88b · Where a word dropped inside a word lands, at every place in a long one
+
+`three-paragraphs` · Morph: **DONE**
+
+Expected before the run: (a) the nearer end, by letters; (b) the nearer end by the pointer's x across the word; (c)
+the start up to some fraction past one half, then past the word.
+
+steps `drag(P3:0-P3:5→{to})`
+
+| to | selection | observed |
+| --- | --- | --- |
+| P1:7 | Normal 6–12 end-active | `[First ⟦Third ‸⟧paragraph here.]<br>[Second bold one.] (center)<br>[and last.]` |
+| P1:8 | Normal 6–12 end-active | `[First ⟦Third ‸⟧paragraph here.]<br>[Second bold one.] (center)<br>[and last.]` |
+| P1:9 | Normal 6–12 end-active | `[First ⟦Third ‸⟧paragraph here.]<br>[Second bold one.] (center)<br>[and last.]` |
+| P1:10 | Normal 6–12 end-active | `[First ⟦Third ‸⟧paragraph here.]<br>[Second bold one.] (center)<br>[and last.]` |
+| P1:11 | Normal 6–12 end-active | `[First ⟦Third ‸⟧paragraph here.]<br>[Second bold one.] (center)<br>[and last.]` |
+| P1:12 | Normal 16–22 end-active | `[First paragraph ⟦Third ‸⟧here.]<br>[Second bold one.] (center)<br>[and last.]` |
+| P1:13 | Normal 16–22 end-active | `[First paragraph ⟦Third ‸⟧here.]<br>[Second bold one.] (center)<br>[and last.]` |
+| P1:14 | Normal 16–22 end-active | `[First paragraph ⟦Third ‸⟧here.]<br>[Second bold one.] (center)<br>[and last.]` |
+
+Notes: "Third" dropped at the left edge of each letter of "paragraph" (P1:6 to P1:15) but the first. M-80 to M-88 put
+a drop two-thirds of the way through "Box" at its start and four-fifths through "Third" past it.
+
+#### M-88 · Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph
+
+`three-paragraphs` · Morph: **DONE**
+
+Expected before the run: (a) a word or phrase lands at the word's start and anything ending in a stop past it,
+wherever in the word; (b) only a whole paragraph lands past it; (c) the pointer's place in the word decides, nearer
+end winning.
+
+steps `drag({path})`
+
+| path | selection | observed |
+| --- | --- | --- |
+| P1:6-P1:15→P3:1 | Normal 29–39 end-active | `[First here.]<br>[Second bold one.] (center)<br>[⟦paragraph ‸⟧Third and last.]` |
+| P1:6-P1:15→P3:4 | Normal 35–45 end-active | `[First here.]<br>[Second bold one.] (center)<br>[Third ⟦paragraph ‸⟧and last.]` |
+| P1:6-P1:end→P3:1 | Normal 24–39 end-active | `[First ]<br>[Second bold one.] (center)<br>[⟦paragraph here.‸⟧Third and last.]` |
+| P1:6-P1:end→P3:4 | Normal 30–45 end-active | `[First ]<br>[Second bold one.] (center)<br>[Third ⟦paragraph here.‸⟧and last.]` |
+| P1:0-P1:end→P3:1 | Normal 18–39 end-active | `<br>[Second bold one.] (center)<br>[⟦First paragraph here.‸⟧Third and last.]` |
+| P1:0-P1:end→P3:4 | Normal 24–45 end-active | `<br>[Second bold one.] (center)<br>[Third ⟦First paragraph here.‸⟧and last.]` |
+
+Notes: Into "Third" a letter from its start and a letter from its end; the dragged text is "paragraph", "paragraph
+here." and the whole first paragraph's text. M-80 to M-87 put every word at the word's start and the one paragraph
+past the word.
+
+#### M-84[path=C(1,1):0-C(1,1):end→P2:2] · Drop into and out of a cell
+
+1. `drag(C(1,1):0-C(1,1):end→P2:2)`
+
+```text
+[Before the table.]
+T1 R1 ║[One‸¤]║[Two¤]║¤
+T1 R2 ║[Three¤]║[Four¤]║¤
+[After the table.]
+```
+
+Selection: IP 21–21 · Cells 1 (R1C1–R1C1) · Undo — · drag(C(1,1):0-C(1,1):end→P2:2) from → Range 19-19, Arrow · drag(C(1,1):0-C(1,1):end→P2:2) to → Range 20-20, Arrow
+
+#### M-84[path=C(1,1):0-C(1,1):end→P2:2]~tracked · Drop into and out of a cell
+
+**Track Changes on**
+
+1. `drag(C(1,1):0-C(1,1):end→P2:2)`
+
+```text
+[Before the table.]
+T1 R1 ║[One‸¤]║[Two¤]║¤
+T1 R2 ║[Three¤]║[Four¤]║¤
+[After the table.]
+```
+
+Selection: IP 21–21 · Cells 1 (R1C1–R1C1) · Tracking · Revisions 0 · Undo — · drag(C(1,1):0-C(1,1):end→P2:2) from → Range 19-19, Arrow · drag(C(1,1):0-C(1,1):end→P2:2) to → Range 20-20, Arrow
+
+#### M-84[path=C(1,1):0-C(1,1):end→P6:2] · Drop into and out of a cell
+
+1. `drag(C(1,1):0-C(1,1):end→P6:2)`
+
+```text
+[Before the table.]
+T1 R1 ║¤║[Two¤]║¤
+T1 R2 ║[Three¤]║[⟦One ‸⟧Four¤]║¤
+[After the table.]
+```
+
+Selection: Normal 30–34 end-active · Cells 1 (R2C2–R2C2) · Undo: Move · drag(C(1,1):0-C(1,1):end→P6:2) from → Range 19-19, Arrow · drag(C(1,1):0-C(1,1):end→P6:2) to → Range 35-35, IBeam
+
+#### M-84[path=C(1,1):0-C(1,1):end→P6:2]~tracked · Drop into and out of a cell
+
+**Track Changes on**
+
+1. `drag(C(1,1):0-C(1,1):end→P6:2)`
+
+```text
+[Before the table.]
+T1 R1 ║{-[One]-}¤║[Two¤]║¤
+T1 R2 ║[Three¤]║{+[⟦One ‸⟧]+}[Four¤]║¤
+[After the table.]
+```
+
+Selection: Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo: Move · drag(C(1,1):0-C(1,1):end→P6:2) from → Range 19-19, Arrow · drag(C(1,1):0-C(1,1):end→P6:2) to → Range 35-35, IBeam
 <!-- probe:end mouse -->
 
 ## Typing, Enter, Backspace, Delete and direct formatting
@@ -15466,6 +15624,34 @@ steps `track(on)` · `select(COL2)` · `dialog({key})`
 
 Notes: T-05 COL2 tracked and T-22 tracked changed nothing and a dialog was dismissed unrecorded; this row records it.
 Untracked, Backspace removes the column outright (T-05), so only the tracked form is run.
+
+#### T-33 · Drag and drop a whole row, a whole column, and cells of a row or a column
+
+`table-3x3` · Morph: **PARTIAL**
+
+Expected before the run: (a) A whole row dropped in the table moves before the row dropped on, and dropped in the
+body becomes a table of its own there; (b) a column moves before the column dropped on; (c) cells that are not a
+whole row or column drop their text, or (d) overwrite the cells from the one dropped on, as Paste Cells does.
+
+steps `drag({path})`
+
+| path | tracked | selection | observed |
+| --- | --- | --- | --- |
+| R1→C(3,1):0 | off | Column 18–41 end-active · Cells 3 (R1C1–R3C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R1→C(3,1):0 | on | Column 18–41 end-active · Cells 3 (R1C1–R3C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤‸⟧]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R3→C(1,1):0 | off | Column 18–41 start-active · Cells 3 (R1C1–R3C1) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R3→C(1,1):0 | on | Column 18–41 start-active · Cells 3 (R1C1–R3C1) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦‸a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R1→P1:2 | off | Normal 0–28 start-active · Undo — | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| R1→P1:2 | on | Normal 0–28 start-active · Tracking · Revisions 0 · Undo — | `[⟦‸Before the table.¶⟧]<br>T1 R1 ║⟦[a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤⟧]║¤⟧<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL1→C(1,3):0 | off | Column 18–27 end-active · Cells 3 (R1C1–R1C3) · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| COL1→C(1,3):0 | on | Column 18–27 end-active · Cells 3 (R1C1–R1C3) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[⟦a1¤⟧]║⟦[b1¤⟧]║⟦[c1¤‸⟧]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[c3¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,2):end→C(3,3):1 | off | IP 40–40 · Cells 1 (R3C3–R3C3) · Undo: Move | `[Before the table.]<br>T1 R1 ║¤║¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║[‸a1¤]║[b1¤]║¤<br>[After the table.]` |
+| C(1,1):0-C(1,2):end→C(3,3):1 | on | IP 44–44 · Cells 1 (R3C3–R3C3) · Tracking · Revisions 5 · Undo: Move | `[Before the table.]<br>T1 R1 ║{-[a1]-}¤║{-[b1]-}¤║[c1¤]║¤<br>T1 R2 ║[a2¤]║[b2¤]║[c2¤]║¤<br>T1 R3 ║[a3¤]║[b3¤]║{+[‸a1]+}{-[c3]-}¤║{+[b1]+}¤║¤<br>[After the table.]` |
+| C(1,1):0-C(2,1):end→C(3,3):1 | off | Column 24–47 end-active · Cells 3 (R1C3–R3C3) · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[⟦c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤<br>[After the table.]` |
+| C(1,1):0-C(2,1):end→C(3,3):1 | on | Column 24–47 end-active · Cells 3 (R1C3–R3C3) · Tracking · Revisions 0 · Undo — | `[Before the table.]<br>T1 R1 ║[a1¤]║[b1¤]║[⟦c1¤⟧]║¤<br>T1 R2 ║⟦[a2¤⟧]║⟦[b2¤⟧]║⟦[c2¤⟧]║¤<br>T1 R3 ║⟦[a3¤⟧]║⟦[b3¤⟧]║⟦[c3¤‸⟧]║¤<br>[After the table.]` |
+
+Notes: M-84 settled one cell's text, which drags as text. Here: row 1 to row 3's start and row 3 to row 1's, row 1
+into the paragraph before, column 1 to column 3's top, two cells of row 1 and two of column 1 into (3,3).
 <!-- probe:end tables -->
 
 ## Lists
@@ -16983,7 +17169,7 @@ flowchart TD
 
 #### U-02a · Undo entry names: keys applied to a selected word
 
-`words` · Morph: **TODO**
+`words` · Morph: **PARTIAL**
 
 steps `select(P1:6-10)` · `{key}`
 
@@ -17010,7 +17196,7 @@ Notes: P1:6-10 is 'beta'. The entry names are read off the Undo dropdown's list,
 
 #### U-02b · Undo entry names: copy then paste at the paragraph end
 
-`words` · Morph: **TODO**
+`words` · Morph: **PARTIAL**
 
 Expected before the run: Copy writes no entry; the paste is one entry named Paste.
 
@@ -17040,7 +17226,7 @@ Selection: IP 63–63 · Tracking · Revisions 1 · Undo: Paste
 
 #### U-02c · Undo entry names: an AutoCorrect replacement
 
-`empty-paragraphs` · Morph: **TODO**
+`empty-paragraphs` · Morph: **PARTIAL**
 
 Expected before the run: (a) one AutoCorrect entry over the typing entry; (b) the typing and the correction in one
 entry.
@@ -17172,7 +17358,7 @@ Selection: IP 27–27 · Cells 1 (R2C1–R2C1) · Tracking · Revisions 1 · Und
 
 #### U-02g · Undo entry names: a word moved by drag and drop
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: (a) one Move entry; (b) a Cut and a Paste entry.
 
@@ -17198,7 +17384,7 @@ Selection: Normal 42–47 end-active · Tracking · Revisions 2 · Undo: Move ·
 
 #### U-02h · Undo entry names: a word copied by Ctrl+drag
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: (a) one Copy entry; (b) a Paste entry.
 
@@ -17224,7 +17410,7 @@ Selection: Normal 42–47 end-active · Tracking · Revisions 1 · Undo: Copy ·
 
 #### U-02i · Undo entry names: an inline picture deleted
 
-`image-inline` · Morph: **TODO**
+`image-inline` · Morph: **PARTIAL**
 
 1. `click(IMG1)`
 2. `Delete`
@@ -17250,7 +17436,7 @@ Selection: IP 13–13 · Tracking · Revisions 1 · Undo: Clear · click(IMG1) �
 
 #### U-02j · Undo entry names: a floating picture nudged
 
-`image-floating` · Morph: **TODO**
+`image-floating` · Morph: **PARTIAL**
 
 1. `click(SHP1)`
 2. `Right`
@@ -17280,7 +17466,7 @@ Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo
 
 #### U-02k · Undo entry names: a footnote inserted
 
-`plain` · Morph: **TODO**
+`plain` · Morph: **PARTIAL**
 
 1. `select(P1:5)`
 2. `Ctrl+Alt+F`
@@ -17334,7 +17520,7 @@ _TrackRevisions unreadable: The TrackRevisions method or property is not availab
 
 #### U-02m · Undo entry names: Enter, Shift+Enter and Ctrl+Enter in a paragraph
 
-`plain` · Morph: **TODO**
+`plain` · Morph: **PARTIAL**
 
 Expected before the run: Each is named Typing, or each has a name of its own (New Paragraph, Line Break, Page Break).
 
@@ -17445,7 +17631,7 @@ Notes: P1:0-6 is the bold 'Strong'; P1:12-17 is 'plain'.
 
 #### U-02q · Undo entry names: Ctrl+Space clears direct character formatting
 
-`mixed` · Morph: **TODO**
+`mixed` · Morph: **PARTIAL**
 
 1. `select(P1:0-P1:11)`
 2. `Ctrl+Space`
@@ -17471,7 +17657,7 @@ Selection: Normal 0–11 end-active · Tracking · Revisions 2 · Undo: Reset Ch
 
 #### U-02r · Undo entry names: Ctrl+Q clears direct paragraph formatting
 
-`kinds` · Morph: **TODO**
+`kinds` · Morph: **PARTIAL**
 
 1. `select(P4:2)`
 2. `Ctrl+Q`
@@ -17513,7 +17699,7 @@ Notes: P4 is the centred paragraph.
 
 #### U-02s · Undo entry names: Alt+Shift+D inserts a DATE field
 
-`plain` · Morph: **TODO**
+`plain` · Morph: **PARTIAL**
 
 1. `select(P1:5)`
 2. `Alt+Shift+D`
@@ -17569,7 +17755,7 @@ Selection: IP 5–5 · Tracking · Revisions 0 · Undo: Update Fields
 
 #### U-02u · Undo entry names: typing in Overtype mode
 
-`plain` · Morph: **TODO**
+`plain` · Morph: **PARTIAL**
 
 Expected before the run: (a) one Typing entry restoring both overwritten characters; (b) one per character.
 
@@ -17849,7 +18035,7 @@ Selection: IP 37–37 · Cells 1 (R2C2–R2C2) · Tracking · Revisions 0 · Und
 
 #### U-04f · Selection after undoing a drag move
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: (a) the moved word is selected back at its origin; (b) an IP at the origin; (c) an IP at the
 drop point.
@@ -18513,7 +18699,7 @@ Selection: IP 26–26 · Tracking · Revisions 0 · Undo —
 
 #### U-07e · Undo a drag move
 
-`words` · Morph: **PARTIAL**
+`words` · Morph: **DONE**
 
 Expected before the run: (a) one undo restores the text and the smart-cut spacing; (b) the move takes two undos.
 
@@ -22013,7 +22199,7 @@ Notes: P5 is the bordered paragraph; the copy includes its mark.
 
 #### C-22 · Drag and drop a word: the undo entry and the spacing
 
-`words` · Morph: **TODO**
+`words` · Morph: **DONE**
 
 Expected before the run: A double click selects 'beta' with its trailing space; the drop before '1,000' (a) adjusts
 the spaces at both ends with the option on (b) leaves them; the undo entry is Move for the plain drag and Copy for
@@ -22593,7 +22779,7 @@ Notes: Ctrl+Shift+V is Word's paste text only; a picture has no text form.
 
 #### I-05 · Drag an inline picture to another place
 
-`image-inline` · Morph: **TODO**
+`image-inline` · Morph: **DONE**
 
 Expected before the run: A plain drag moves the picture inline to the drop point; Ctrl+drag copies it; a drop at P1:0
 puts it at the paragraph start.
@@ -22980,9 +23166,66 @@ flowchart TD
   n_enter --> n_enter_undo["undo"]
 ```
 
+#### I-15b · Where a floating picture's Ctrl+drag copy lands, at three distances
+
+`image-floating` · Morph: **PARTIAL**
+
+Expected before the run: (a) a fixed offset, the same at every distance; (b) one that grows with the distance; (c)
+the copy's offset taken from somewhere other than the picture's own place, its anchor's for one.
+
+steps `{drag}`
+
+| drag | selection | observed |
+| --- | --- | --- |
+| drag(SHP1→P3:2) | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-22.2,26.4 ⟦selected⟧` |
+| ctrl+drag(SHP1→P3:2) | Shape 0–1 end-active · Shapes 1 · Undo: Duplicate | `see below` |
+| drag(SHP1→P1:20) | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @58.2,0 ⟦selected⟧` |
+| ctrl+drag(SHP1→P1:20) | Shape 0–1 end-active · Shapes 1 · Undo: Duplicate | `see below` |
+| drag(SHP1→P2:40) | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-999995,0 ⟦selected⟧` |
+| ctrl+drag(SHP1→P2:40) | Shape 0–1 end-active · Shapes 1 · Undo: Duplicate | `see below` |
+
+`I-15b[drag=ctrl+drag(SHP1→P3:2)]`
+
+```text
+[⟦⚓2‸⟧⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
+SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @-54,26.4 ⟦selected⟧
+```
+
+Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
+
+`I-15b[drag=ctrl+drag(SHP1→P1:20)]`
+
+```text
+[⟦⚓2‸⟧⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
+SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @34.2,0 ⟦selected⟧
+```
+
+Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P1:20) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P1:20) to → Range 20-20, IBeam
+
+`I-15b[drag=ctrl+drag(SHP1→P2:40)]`
+
+```text
+[⟦⚓2‸⟧⚓1First paragraph of text here.]
+[Second paragraph carries the anchor of the picture.]
+[Third paragraph after it.]
+SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @164.4,1.8 ⟦selected⟧
+```
+
+Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P2:40) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P2:40) to → Range 71-71, IBeam
+
+Notes: I-15 put the copy 32.4pt (2026-11-07) and 31.8pt (2026-11-15) left of where a plain drag over the same path
+moved the picture. Three distances say whether that is a fixed offset or grows with the drag.
+
 #### I-15 · Drag, Ctrl+drag and Shift+drag a floating picture
 
-`image-floating` · Morph: **TODO**
+`image-floating` · Morph: **DONE**
 
 Expected before the run: A plain drag moves the shape and re-anchors it to the paragraph under the drop; Ctrl+drag
 leaves a copy; Shift+drag constrains the move to one axis.
@@ -22991,12 +23234,12 @@ steps `{drag}`
 
 | drag | tracked | selection | observed |
 | --- | --- | --- | --- |
-| drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
-| drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,25.8 ⟦selected⟧` |
+| drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-22.2,26.4 ⟦selected⟧` |
+| drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-22.2,26.4 ⟦selected⟧` |
 | ctrl+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Duplicate | `see below` |
 | ctrl+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate | `see below` |
-| shift+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧` |
-| shift+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-23.4,0 ⟦selected⟧` |
+| shift+drag(SHP1→P3:2) | off | Shape 0–1 end-active · Shapes 1 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-22.2,0 ⟦selected⟧` |
+| shift+drag(SHP1→P3:2) | on | Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 0 · Undo: Move Object | `[⟦⚓1‸⟧First paragraph of text here.]<br>[Second paragraph carries the anchor of the picture.]<br>[Third paragraph after it.]<br>SHP1 ⌖P1 picture 72x72pt square @-22.2,0 ⟦selected⟧` |
 
 `I-15[drag=ctrl+drag(SHP1→P3:2)]`
 
@@ -23005,7 +23248,7 @@ steps `{drag}`
 [Second paragraph carries the anchor of the picture.]
 [Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
-SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @-54,26.4 ⟦selected⟧
 ```
 
 Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
@@ -23017,7 +23260,7 @@ Selection: Shape 0–1 end-active · Shapes 1 · Undo: Duplicate · ctrl+drag(SH
 [Second paragraph carries the anchor of the picture.]
 [Third paragraph after it.]
 SHP1 ⌖P1 picture 72x72pt square @300,0 ⟦selected⟧
-SHP2 ⌖P1 picture 72x72pt square @-55.8,25.8 ⟦selected⟧
+SHP2 ⌖P1 picture 72x72pt square @-54,26.4 ⟦selected⟧
 ```
 
 Selection: Shape 0–1 end-active · Shapes 1 · Tracking · Revisions 1 · Undo: Duplicate · ctrl+drag(SHP1→P3:2) from → Shape Picture 1, WordOwn · ctrl+drag(SHP1→P3:2) to → Range 85-85, IBeam
@@ -23269,7 +23512,7 @@ Selection: IP 2–2 · Story TextFrame · Undo — · click(TB1:P1:2) → Range 
 
 #### I-26b · Drag text out of a text box into the body
 
-`text-box` · Morph: **TODO**
+`text-box` · Morph: **DONE**
 
 Expected before the run: The dragged text moves into P2 and leaves the box's first line shorter; the box itself
 stays.
@@ -23277,26 +23520,30 @@ stays.
 1. `drag(TB1:P1:0-TB1:P1:4→P2:3)`
 
 ```text
-[⟦⚓1First paragraph of text here.¶⟧]
-⟦[Sec‸⟧ond paragraph of text here.]
+[⚓1First paragraph of text here.]
+[⟦Box ‸⟧Second paragraph of text here.]
 [Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 ```
 
-Selection: Normal 0–34 end-active · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
+Selection: Normal 31–35 end-active · Undo: Move · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, WordOwn · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
+
+Markup diff: `WordProbe/Results/markup/I-26b.diff`
 
 **Track Changes on**
 
 1. `drag(TB1:P1:0-TB1:P1:4→P2:3)`
 
 ```text
-[⟦⚓1First paragraph of text here.¶⟧]
-⟦[Second ‸⟧paragraph of text here.]
+[⚓1First paragraph of text here.]
+{+[⟦Box ‸⟧]+}[Second paragraph of text here.]
 [Third paragraph of text here.]
 SHP1 ⌖P1 textbox 160x80pt square @228,0
 ```
 
-Selection: Normal 0–38 end-active · Tracking · Revisions 0 · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
+Selection: Normal 31–35 end-active · Tracking · Revisions 1 · Undo: Move · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, WordOwn · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam
+
+Markup diff: `WordProbe/Results/markup/I-26b_tracked.diff`
 
 #### I-27 · Double-click a floating picture
 

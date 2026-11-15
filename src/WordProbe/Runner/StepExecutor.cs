@@ -148,7 +148,24 @@ sealed class StepExecutor
                 Thread.Sleep(80);
                 var selected = probe.Resolve(fromRange);
                 var middle = selected.Start + (selected.End - selected.Start) / 2;
-                var middleRange = probe.Document.Range(middle, middle);
+
+                // In the selection's own story: Document.Range is always the main text's, so a text
+                // box's selection was pressed at the same offsets of the body (M-87, I-26b, first run).
+                var middleRange = selected.Duplicate;
+                middleRange.SetRange(middle, middle);
+
+                // A whole row's or column's middle is a cell's end mark, and a press there began a new
+                // selection rather than a drag (T-33, first run): the selection's first character is
+                // pressed instead, where the middle is not a character — inside it, since a cell's left
+                // edge is Word's hot spot for selecting the cell (T-33, second run).
+                var probed = selected.Duplicate;
+                probed.SetRange(middle, middle + 1);
+                if (string.IsNullOrEmpty(probed.Text) ||
+                    probed.Text.Contains('\a') ||
+                    probed.Text.Contains('\r'))
+                {
+                    middleRange.SetRange(selected.Start + 1, selected.Start + 1);
+                }
                 from = probe.GlyphRectangle(middleRange).Centre;
             }
             else

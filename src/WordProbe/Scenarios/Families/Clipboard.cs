@@ -375,7 +375,7 @@ static class ClipboardFamily
             .Toggle("Options.SmartCutPaste", "true", "false")
             .Tracked()
             .Hypotheses("A double click selects 'beta' with its trailing space; the drop before '1,000' (a) adjusts the spaces at both ends with the option on (b) leaves them; the undo entry is Move for the plain drag and Copy for the Ctrl drag.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("C-23a", "Paste text that carries a footnote reference")
             .In("footnote")
