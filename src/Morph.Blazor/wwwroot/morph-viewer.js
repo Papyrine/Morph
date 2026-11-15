@@ -36,6 +36,9 @@ const pixelsPerPoint = 96 / 72;
 const thumbnailWidth = 120;
 const maxImages = 24;
 
+// The pictures a file dropped in the editor is put in as: what Insert › Picture takes (MorphViewer.Picture).
+const pictureTypes = ['image/png', 'image/jpeg', 'image/gif', 'image/bmp'];
+
 // Text layers for every page are built in idle time, so the browser's own find can reach them all. Past
 // this many characters of layer data only the pages around the current one are built.
 const textBudget = 24000000;
@@ -2687,11 +2690,15 @@ class Viewer {
         target.addEventListener('pointercancel', up);
     }
 
-    // Drag and drop of text, as Word's (WordProbe M-80 to M-87). A drop inside the paragraph being typed
-    // is the box's own (moveDragged in morph-edit.js); one anywhere else on the pages is .NET's
-    // (OnEditDrop, DocumentEditor.Drop), which hands the paragraph in first, moves the text — or with
-    // Ctrl held as it is let go copies it — and selects it where it went. A drag of text selected across
-    // the pages starts here; the box says it started one in it by its own `dragged`.
+    // Drag and drop, as Word's (WordProbe M-80 to M-88c). Text of the editor's own dropped inside the
+    // paragraph being typed is the box's (moveDragged in morph-edit.js); dropped anywhere else on the
+    // pages it is .NET's (OnEditDrop, DocumentEditor.Drop), which hands the paragraph in first, moves
+    // the text — or with Ctrl held as it is let go copies it — and selects it where it went. A drag of
+    // text selected across the pages starts here; the box says it started one in it by its own
+    // `dragged`. Text or HTML from outside the editor dropped on the pages goes in as a paste would
+    // (OnEditDropText; in the box, the box pastes it itself), and a picture's file is put in where it
+    // is dropped, on the pages or in the box (OnEditDropPicture) — any other file still opens, as the
+    // viewer opens one (acceptFileDrops).
     onTextDragStart(event) {
         this.textDrag = null;
         const target = event.target instanceof Node ? event.target : null;
@@ -2711,21 +2718,50 @@ class Viewer {
         }
     }
 
-    // The drag in hand: one of the editor's text, still wanted, and not a file's.
-    draggingText(event) {
-        if (!this.textDrag || event.dataTransfer?.types?.includes('Files')) {
-            return false;
+    // What a drag holds, for the editor: 'own' text of the editor's, 'outside' text or HTML from
+    // elsewhere, 'picture' a picture's file, or null for anything it does not take — another file,
+    // which opens, or a drag of the editor's it has given up on.
+    dragKind(event) {
+        if (!this.editMode) {
+            return null;
         }
 
-        return this.textDrag === 'pages' || Boolean(this.editor?.dragged);
+        const transfer = event.dataTransfer;
+        const types = [...(transfer?.types ?? [])];
+        if (types.includes('Files')) {
+            const items = [...(transfer?.items ?? [])];
+            const picture = items.some(_ => _.kind === 'file' && pictureTypes.includes(_.type)) ||
+                [...(transfer?.files ?? [])].some(_ => pictureTypes.includes(_.type));
+            return picture ? 'picture' : null;
+        }
+
+        if (this.textDrag === 'pages' || (this.textDrag === 'box' && this.editor?.dragged)) {
+            return 'own';
+        }
+
+        if (!this.textDrag && (types.includes('text/plain') || types.includes('text/html'))) {
+            return 'outside';
+        }
+
+        return null;
     }
 
-    // Where on the pages a drag is over — a page, and the place in its text — or null over the box,
-    // which takes its own drops, or off every page.
-    dropPlace(event) {
-        const target = event.target instanceof Element ? event.target : null;
-        if (!target || target.closest('.edit-box')) {
+    // Where on the pages a point is — a page, and the place in its text — or, over the paragraph being
+    // typed, its place there as a paragraph's ordinal and an offset; null off every page.
+    dropPlaceAt(target, clientX, clientY) {
+        if (!(target instanceof Element)) {
             return null;
+        }
+
+        const editor = this.editor;
+        if (target.closest('.edit-box')) {
+            const at = editor && !editor.closed ? editor.placeAt(clientX, clientY) : null;
+            const p = editor?.session?.p;
+            if (!at || typeof p !== 'number') {
+                return null;
+            }
+
+            return { box: true, paragraph: p + at.b, offset: at.o };
         }
 
         const page = this.pageOf(target);
@@ -2734,52 +2770,107 @@ class Viewer {
         }
 
         this.ensureText(page);
-        return { page, offset: this.caretOffset(page, event.clientX, event.clientY) };
+        return { page, offset: this.caretOffset(page, clientX, clientY) };
+    }
+
+    // The arguments .NET's drops take for a place: the page, the point and the offset into its text, or
+    // -1s and the paragraph and place in it.
+    dropArguments(place, clientX, clientY) {
+        if (place.box) {
+            return [-1, 0, 0, -1, place.paragraph, place.offset];
+        }
+
+        const [x, y] = this.pagePoint(place.page, clientX, clientY);
+        return [place.page.index, x, y, place.offset, -1, -1];
     }
 
     onTextDragOver(event) {
-        if (!this.draggingText(event)) {
+        const kind = this.dragKind(event);
+        if (!kind) {
             return;
         }
 
-        const place = this.dropPlace(event);
-        this.showDropCaret(place);
-        if (!place) {
+        const place = this.dropPlaceAt(event.target, event.clientX, event.clientY);
+
+        // Over the box its own text and text from outside are the box's to take.
+        if (!place || (place.box && kind !== 'picture')) {
+            this.showDropCaret(null);
             return;
         }
 
+        this.showDropCaret(place.box ? null : place);
         event.preventDefault();
+
+        // Not the viewer's to open as a file.
+        event.stopPropagation();
         if (event.dataTransfer) {
-            event.dataTransfer.dropEffect = event.ctrlKey || event.metaKey ? 'copy' : 'move';
+            const copying = kind !== 'own' || event.ctrlKey || event.metaKey;
+            event.dataTransfer.dropEffect = copying ? 'copy' : 'move';
         }
     }
 
     onTextDrop(event) {
-        if (!this.draggingText(event)) {
+        const kind = this.dragKind(event);
+        if (!kind) {
             return;
         }
 
-        const place = this.dropPlace(event);
+        const place = this.dropPlaceAt(event.target, event.clientX, event.clientY);
         this.showDropCaret(null);
-        if (!place) {
+        if (!place || (place.box && kind !== 'picture')) {
             return;
         }
 
         event.preventDefault();
+        event.stopPropagation();
+        const where = this.dropArguments(place, event.clientX, event.clientY);
+        if (kind === 'picture') {
+            const file = [...(event.dataTransfer?.files ?? [])].find(_ => pictureTypes.includes(_.type));
+            if (file) {
+                file.arrayBuffer()
+                    .then(buffer => this.dotNet.invokeMethodAsync('OnEditDropPicture', ...where, file.name, new Uint8Array(buffer)))
+                    .catch(() => {});
+            }
+
+            return;
+        }
+
+        if (kind === 'outside') {
+            const html = event.dataTransfer?.getData('text/html') ?? '';
+            const text = event.dataTransfer?.getData('text/plain') ?? '';
+            this.dotNet.invokeMethodAsync('OnEditDropText', ...where, html, text).catch(() => {});
+            return;
+        }
+
         // The box would take the text it was dragged from out as the drag ends: .NET moves it instead.
         if (this.editor) {
             this.editor.dragged = null;
         }
 
         this.textDrag = null;
-        const [x, y] = this.pagePoint(place.page, event.clientX, event.clientY);
-        const copy = event.ctrlKey || event.metaKey;
-        this.dotNet.invokeMethodAsync('OnEditDrop', place.page.index, x, y, place.offset, copy).catch(() => {});
+        this.dotNet.invokeMethodAsync('OnEditDrop', ...where, event.ctrlKey || event.metaKey).catch(() => {});
     }
 
     endTextDrag() {
         this.textDrag = null;
         this.showDropCaret(null);
+    }
+
+    // A picture in the line dragged by the box (pictureDrag in morph-edit.js), which the box moves
+    // itself when it is let go in the paragraph: elsewhere, or copied, it is dropped as selected text is.
+    pictureDragAt(clientX, clientY) {
+        const place = this.dropPlaceAt(document.elementFromPoint(clientX, clientY), clientX, clientY);
+        this.showDropCaret(place && !place.box ? place : null);
+    }
+
+    pictureDropAt(clientX, clientY, copy) {
+        this.showDropCaret(null);
+        const place = this.dropPlaceAt(document.elementFromPoint(clientX, clientY), clientX, clientY);
+        if (!place) {
+            return;
+        }
+
+        this.dotNet.invokeMethodAsync('OnEditDrop', ...this.dropArguments(place, clientX, clientY), copy).catch(() => {});
     }
 
     // Word's drop caret: a dotted line where the text would go, drawn over the page's text layer.
@@ -3057,6 +3148,8 @@ class Viewer {
             selectAll: () => this.selectAll(),
             paste: (html, text) => this.dotNet.invokeMethodAsync('OnEditPaste', html, text).catch(() => {}),
             resize: (width, height) => this.dotNet.invokeMethodAsync('OnEditResize', width, height).catch(() => {}),
+            pictureDrag: (clientX, clientY) => this.pictureDragAt(clientX, clientY),
+            pictureDrop: (clientX, clientY, copy) => this.pictureDropAt(clientX, clientY, copy),
             note: text => this.dotNet.invokeMethodAsync('OnEditNote', text).catch(() => {}),
             leave: (direction, x, y, line) => this.leaveEditor(direction, x, y, line),
             step: (paragraph, direction) => this.dotNet.invokeMethodAsync('OnEditStep', paragraph, direction).catch(() => {})

@@ -170,6 +170,154 @@ public partial class SnapshotTests
                                           Math.Abs(right - 60) < 1 && Math.Abs(down) < 0.1);
     }
 
+    // Text dragged in from another application and dropped on the pages goes in where it was dropped,
+    // spaced as a paste is, and is left selected.
+    [Test]
+    public async Task DragDrop_TextFromOutside_GoesInWhereItIsDropped()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await DropFromOutsideAsync(page, "and last", "{ 'text/plain': 'Dropped' }");
+
+        await page.WaitForFunctionAsync(
+            "() => getSelection().toString() === 'Dropped '",
+            null,
+            new()
+            {
+                Timeout = 60000
+            });
+        await WaitForTextsAsync(page, ["First paragraph here.", "Second bold one.", "Third Dropped and last."]);
+    }
+
+    // HTML keeps what a paste keeps of it: here, bold.
+    [Test]
+    public async Task DragDrop_HtmlFromOutside_KeepsItsEmphasis()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await DropFromOutsideAsync(page, "and last", "{ 'text/html': '<b>Strong</b>', 'text/plain': 'Strong' }");
+
+        await WaitForBodyAsync(page, _ => Regex.IsMatch(_, "<w:b ?/>(?:(?!</w:r>).)*Strong"));
+    }
+
+    // A picture's file dropped on the pages is put in there, as Insert › Picture puts one in.
+    [Test]
+    public async Task DragDrop_APictureFile_IsPutInWhereItIsDropped()
+    {
+        var page = await OpenEditAsync(Paragraphs);
+
+        await DropFromOutsideAsync(page, "and last", "{}", picture: true);
+
+        await WaitForBodyAsync(
+            page,
+            _ => _.Split("<w:drawing>").Length == 2 &&
+                 _.IndexOf("<w:drawing>", StringComparison.Ordinal) > _.IndexOf("Third", StringComparison.Ordinal));
+    }
+
+    // A picture in the line is dragged in one go, without being clicked first: to another paragraph,
+    // and within its own.
+    [Test]
+    public async Task DragDrop_AnUnselectedPicture_IsDraggedInOneGo()
+    {
+        var options = new EditOptions("Ann", DateTimeOffset.UnixEpoch, Track: false);
+        var pictured = DocumentEditor.InsertPicture(Paragraphs, 0, 6, new(pixelPng, "image/png", 40, 20), options).Document;
+        var page = await OpenEditAsync(pictured);
+        await ClickInAsync(page, "paragraph here");
+
+        // Within its paragraph, to before "here".
+        await DragPictureToAsync(page, editor, "here");
+        await HandInAsync(page);
+        await WaitForBodyAsync(
+            page,
+            _ => _.IndexOf("<w:drawing>", StringComparison.Ordinal) > _.IndexOf("paragraph", StringComparison.Ordinal) &&
+                 _.IndexOf("<w:drawing>", StringComparison.Ordinal) < _.IndexOf("here", StringComparison.Ordinal));
+
+        // And on to the third paragraph, from the pages' own copy of the first.
+        await ClickInAsync(page, "First");
+        await DragPictureToAsync(page, ".viewer-page[data-page-number=\"1\"] .text-layer", "and last");
+        await WaitForBodyAsync(
+            page,
+            _ => _.Split("<w:drawing>").Length == 2 &&
+                 _.IndexOf("<w:drawing>", StringComparison.Ordinal) > _.IndexOf("Third", StringComparison.Ordinal));
+    }
+
+    // Presses the open paragraph's picture and drags it, in steps, to the left quarter of the first
+    // character of some text under root, letting go there.
+    static async Task DragPictureToAsync(IPage page, string root, string target)
+    {
+        var points = await page.EvaluateAsync<double[]>(
+            """
+            ([root, target]) => {
+                const picture = document.querySelector('.edit-box[contenteditable=true] .edit-picture').getBoundingClientRect();
+                const element = document.querySelector(root);
+                const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+                for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                    const at = node.data.indexOf(target);
+                    if (at >= 0) {
+                        const range = document.createRange();
+                        range.setStart(node, at);
+                        range.setEnd(node, at + 1);
+                        const box = range.getBoundingClientRect();
+                        return [picture.left + picture.width / 2, picture.top + picture.height / 2, box.left + box.width / 4, box.top + box.height / 2];
+                    }
+                }
+
+                return [];
+            }
+            """,
+            new object[] {root, target});
+        await DragAsync(page, points, copy: false);
+    }
+
+    // What another application's drag gives the page, dropped at the left quarter of the first
+    // character of some text of the first page: the data, as a JavaScript object of type to value, or
+    // a one-pixel PNG's file.
+    static async Task DropFromOutsideAsync(IPage page, string target, string data, bool picture = false)
+    {
+        var layer = await LayerTextAsync(page);
+        var offset = layer.IndexOf(target, StringComparison.Ordinal);
+        await Assert.That(offset).IsGreaterThanOrEqualTo(0);
+        await page.EvaluateAsync(
+            $$"""
+            async ([offset, picture]) => {
+                const layer = document.querySelector('.viewer-page[data-page-number="1"] .text-layer');
+                const walker = document.createTreeWalker(layer, NodeFilter.SHOW_TEXT);
+                let start = 0;
+                let point = null;
+                for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+                    const next = start + node.data.length;
+                    if (offset >= start && offset < next) {
+                        const range = document.createRange();
+                        range.setStart(node, offset - start);
+                        range.setEnd(node, offset - start + 1);
+                        const box = range.getBoundingClientRect();
+                        point = [box.left + box.width / 4, box.top + box.height / 2];
+                        break;
+                    }
+
+                    start = next;
+                }
+
+                const transfer = new DataTransfer();
+                for (const [type, value] of Object.entries({{data}})) {
+                    transfer.setData(type, value);
+                }
+
+                if (picture) {
+                    const png = Uint8Array.from(atob('{{Convert.ToBase64String(pixelPng)}}'), _ => _.charCodeAt(0));
+                    transfer.items.add(new File([png], 'pixel.png', { type: 'image/png' }));
+                }
+
+                const element = document.elementFromPoint(point[0], point[1]);
+                const init = { bubbles: true, cancelable: true, clientX: point[0], clientY: point[1], dataTransfer: transfer };
+                element.dispatchEvent(new DragEvent('dragenter', init));
+                element.dispatchEvent(new DragEvent('dragover', init));
+                element.dispatchEvent(new DragEvent('drop', init));
+            }
+            """,
+            new object[] {offset, picture});
+    }
+
     // WordProbe's own text-box fixture: a square-wrapped box anchored in the first paragraph, its two
     // paragraphs 1 and 2 (the mc:Choice Word reads; 3 and 4 are its VML fallback), the body's 0, 5 and 6.
     static byte[] TextBoxFixture() =>

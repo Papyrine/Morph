@@ -517,13 +517,15 @@ public partial class MorphViewer
 
     /// <summary>
     /// Called from JavaScript when text selected — in the paragraph being typed, or across the pages — is
-    /// dragged and dropped on the pages outside the paragraph's box: the page, the point in points from
-    /// its top left, the offset into the page's text it was dropped at, and whether Ctrl was held. The
-    /// text is moved there, or copied, as Word's drag and drop does (<see cref="DocumentEditor.Drop"/>),
-    /// and left selected; undone, it is selected again where it was.
+    /// dragged and dropped somewhere it cannot move it itself, and when a picture in the line is copied
+    /// by a drag: on a page, the page, the point in points from its top left and the offset into the
+    /// page's text it was dropped at (<paramref name="paragraph"/> -1); in the paragraph being typed, its
+    /// place there (<paramref name="page"/> -1). The text is moved there, or with Ctrl held copied, as
+    /// Word's drag and drop does (<see cref="DocumentEditor.Drop"/>), and left selected; undone, it is
+    /// selected again where it was.
     /// </summary>
     [JSInvokable]
-    public Task OnEditDrop(int page, double x, double y, int offset, bool copy) =>
+    public Task OnEditDrop(int page, double x, double y, int offset, int paragraph, int place, bool copy) =>
         InvokeAsync(
             async () =>
             {
@@ -541,7 +543,7 @@ public partial class MorphViewer
                 }
 
                 var source = PlaceOf(target);
-                if (Locate(page, x, y, offset, offset) is not var (paragraph, _, at, _) ||
+                if (DropPlace(page, x, y, offset, paragraph, place) is not var (destination, at) ||
                     sourceBytes is not { } bytes)
                 {
                     beforeEdit = null;
@@ -549,7 +551,7 @@ public partial class MorphViewer
                 }
 
                 var options = await EditOptionsAsync();
-                var dropped = DocumentEditor.Drop(bytes, source.StartParagraph, source.StartOffset, source.EndParagraph, source.EndOffset, paragraph.Ordinal, at, copy, options);
+                var dropped = DocumentEditor.Drop(bytes, source.StartParagraph, source.StartOffset, source.EndParagraph, source.EndOffset, destination.Ordinal, at, copy, options);
                 if (ReferenceEquals(dropped.Document, bytes))
                 {
                     // Dropped on itself, or where nothing can go: the caret goes to the drop, as Word's does.
@@ -569,7 +571,7 @@ public partial class MorphViewer
                         }
 
                         // Something else was made of the file meanwhile: dropped on that instead.
-                        dropped = DocumentEditor.Drop(current, source.StartParagraph, source.StartOffset, source.EndParagraph, source.EndOffset, paragraph.Ordinal, at, copy, options);
+                        dropped = DocumentEditor.Drop(current, source.StartParagraph, source.StartOffset, source.EndParagraph, source.EndOffset, destination.Ordinal, at, copy, options);
                         return dropped.Document;
                     },
                     relayout: true,
@@ -581,6 +583,187 @@ public partial class MorphViewer
 
                 StateHasChanged();
             });
+
+    // Where something is dropped: a point of a page, found as a click there is (page 0 or more), or a
+    // place in the paragraph being typed, by its ordinal — which the hand-in before keeps, since the
+    // paragraphs it wrote follow on from it as the box's did.
+    (EditParagraph Paragraph, int Offset)? DropPlace(int page, double x, double y, int offset, int paragraph, int place)
+    {
+        if (page < 0)
+        {
+            if (paragraph < 0 ||
+                paragraph >= outline.Paragraphs.Count)
+            {
+                return null;
+            }
+
+            var found = outline.Paragraphs[paragraph];
+            return (found, Math.Clamp(place, 0, found.Length));
+        }
+
+        if (Locate(page, x, y, offset, offset) is var (located, _, at, _))
+        {
+            return (located, at);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Called from JavaScript when text or HTML from outside the editor — another application, another
+    /// page — is dropped on the pages, where <see cref="OnEditDrop"/> says. It goes in as a paste of it
+    /// would (<see cref="DocumentEditor.Paste"/>), and is left selected, as a drag of Word's own is.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditDropText(int page, double x, double y, int offset, int paragraph, int place, string html, string text) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    handle is null)
+                {
+                    return;
+                }
+
+                // What was typed in the open paragraph is handed in first; where the reader was is
+                // where undoing puts them back.
+                await SettledAsync();
+                editNote = null;
+                await TargetAsync();
+                if (DropPlace(page, x, y, offset, paragraph, place) is not var (destination, at))
+                {
+                    beforeEdit = null;
+                    return;
+                }
+
+                var content = PastedHtml.Read(html);
+                if (content.Count == 0)
+                {
+                    content = text
+                        .Replace("\r\n", "\n")
+                        .Split('\n')
+                        .Select(_ => new PastedParagraph([new(_)]))
+                        .ToList();
+                }
+
+                if (content.All(_ => _.Text.Length == 0))
+                {
+                    beforeEdit = null;
+                    return;
+                }
+
+                var options = await EditOptionsAsync();
+                EditResult? result = null;
+                var pasted = await ReviseAsync(
+                    _ =>
+                    {
+                        result = DocumentEditor.Paste(_, destination.Ordinal, at, content, options);
+                        return result.Document;
+                    },
+                    relayout: true,
+                    () => activeKey);
+                if (pasted &&
+                    result is { } end)
+                {
+                    // A space smart paste put before it is not the dropped text's.
+                    var start = at;
+                    if (end.Paragraph == destination.Ordinal &&
+                        start < end.Offset &&
+                        CharacterAt(destination.Ordinal, start) == ' ' &&
+                        !content[0].Text.StartsWith(' '))
+                    {
+                        start++;
+                    }
+
+                    await SelectDroppedAsync(new(sourceBytes ?? [], destination.Ordinal, start, end.Paragraph, end.Offset));
+                }
+
+                StateHasChanged();
+            });
+
+    /// <summary>
+    /// Called from JavaScript when a picture's file is dropped on the pages, where
+    /// <see cref="OnEditDrop"/> says: put in there as Insert › Picture puts one in, at the size it was
+    /// made for, and left selected. A file that is not a picture this can put in is refused with a note.
+    /// </summary>
+    [JSInvokable]
+    public Task OnEditDropPicture(int page, double x, double y, int offset, int paragraph, int place, string name, byte[] data) =>
+        InvokeAsync(
+            async () =>
+            {
+                if (!editOpen ||
+                    !CanWrite ||
+                    handle is null)
+                {
+                    return;
+                }
+
+                await SettledAsync();
+                editNote = null;
+                await TargetAsync();
+                if (Picture(data, name) is not { } picture)
+                {
+                    beforeEdit = null;
+                    editNote = $"'{name}' is not a picture this can put in a document: choose a PNG, JPEG, GIF or BMP.";
+                    StateHasChanged();
+                    return;
+                }
+
+                if (DropPlace(page, x, y, offset, paragraph, place) is not var (destination, at))
+                {
+                    beforeEdit = null;
+                    return;
+                }
+
+                var options = await EditOptionsAsync();
+                EditResult? result = null;
+                var inserted = await ReviseAsync(
+                    _ =>
+                    {
+                        result = DocumentEditor.InsertPicture(_, destination.Ordinal, at, picture, options);
+                        return result.Document;
+                    },
+                    relayout: true,
+                    () => activeKey);
+                if (inserted &&
+                    result is {Paragraph: >= 0} end)
+                {
+                    await ResumeAsync(end.Paragraph, Math.Max(0, end.Offset - 1), end.Offset);
+                }
+
+                StateHasChanged();
+            });
+
+    // The character at a place of a paragraph as the outline now reads it; null at a thing that is not
+    // text, or past the end.
+    char? CharacterAt(int paragraph, int offset)
+    {
+        if (paragraph < 0 ||
+            paragraph >= outline.Paragraphs.Count)
+        {
+            return null;
+        }
+
+        var at = 0;
+        foreach (var unit in outline.Paragraphs[paragraph].Units)
+        {
+            if (!unit.Editable)
+            {
+                at++;
+                continue;
+            }
+
+            if (offset < at + unit.Text.Length)
+            {
+                return unit.Text[offset - at];
+            }
+
+            at += unit.Text.Length;
+        }
+
+        return null;
+    }
 
     // What was dropped, selected: in its paragraph opened for typing, or across the pages when it is
     // more than one paragraph's.

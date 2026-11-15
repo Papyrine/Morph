@@ -2320,17 +2320,61 @@ export class ParagraphEditor {
             o += lengthOf(block.items[i]);
         }
 
-        // Pressed again once selected, it can be dragged — to another place, as Word moves a picture in
-        // the line (WordProbe M-62) — and the browser is left to start the drag (onDragStart).
-        const selected = this.range();
-        if (selected && same(selected.from, { b, o }) && same(selected.to, { b, o: o + 1 }) && event.button === 0) {
-            return;
-        }
-
         event.preventDefault();
         this.box.focus({ preventScroll: true });
         this.select({ b, o }, { b, o: o + 1 });
         this.framePicture(span, { b, o }, this.session.u[block.items[index].u]);
+        if (event.button === 0 && !event.shiftKey && event.detail === 1) {
+            this.pictureDrag(event, { b, o });
+        }
+    }
+
+    // A picture pressed and moved is dragged, selected first or not, as Word drags one (WordProbe M-62,
+    // I-05): let go in the paragraph it is moved there (moveDragged); let go anywhere else on the pages,
+    // or with Ctrl held, it is dropped as selected text is (pictureDrop, OnEditDrop), which copies it as
+    // the box cannot. A press that does not move is the click it was. A press already holds the
+    // selection, so the browser's own drag never starts: this one follows the mouse itself, as a
+    // floating picture's does (movePicture in morph-viewer.js).
+    pictureDrag(down, place) {
+        const startX = down.clientX;
+        const startY = down.clientY;
+        let dragging = false;
+        const controller = new AbortController();
+        const signal = controller.signal;
+        const move = moved => {
+            if (!dragging && Math.hypot(moved.clientX - startX, moved.clientY - startY) < 4) {
+                return;
+            }
+
+            if (!dragging) {
+                dragging = true;
+                this.unframe();
+                this.box.classList.add('edit-dragging');
+            }
+
+            this.callbacks.pictureDrag?.(moved.clientX, moved.clientY);
+        };
+        const up = released => {
+            controller.abort();
+            this.box.classList.remove('edit-dragging');
+            if (!dragging || this.pending || this.closed) {
+                return;
+            }
+
+            const copy = released.ctrlKey || released.metaKey;
+            const over = document.elementFromPoint(released.clientX, released.clientY);
+            const at = over && this.box.contains(over) && !copy ? this.placeAt(released.clientX, released.clientY) : null;
+            if (at) {
+                this.callbacks.pictureDrag?.(-1, -1);
+                this.dragged = { from: place, to: { b: place.b, o: place.o + 1 }, moving: true };
+                this.moveDragged(at);
+                return;
+            }
+
+            this.callbacks.pictureDrop?.(released.clientX, released.clientY, copy);
+        };
+        document.addEventListener('mousemove', move, { signal });
+        document.addEventListener('mouseup', up, { signal });
     }
 
     framePicture(span, place, unit) {
