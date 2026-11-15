@@ -259,7 +259,7 @@ static class ImagesFamily
             .Observing(Observe.Default | Observe.Story | Observe.Shapes)
             .Tracked()
             .Hypotheses("The dragged text moves into P2 and leaves the box's first line shorter; the box itself stays.")
-            .Morph("TODO");
+            .Morph("DONE");
 
         yield return Probe("I-27", "Double-click a floating picture")
             .In("image-floating")

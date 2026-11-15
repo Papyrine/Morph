@@ -39,6 +39,12 @@ sealed record EditParagraph(int Ordinal, IReadOnlyList<EditUnit> Units)
     public bool InTable { get; init; }
 
     /// <summary>
+    /// Whether the paragraph is the VML <c>mc:Fallback</c> copy of a text box's paragraph: never on a page,
+    /// and written again from the <c>mc:Choice</c> it copies after every edit (<see cref="TextBoxFallbacks"/>).
+    /// </summary>
+    public bool Fallback { get; init; }
+
+    /// <summary>
     /// The cell the paragraph is in — of the innermost table, when tables nest — or null outside one:
     /// what Word's Tab, Alt+Home and Alt+PgUp move between.
     /// </summary>

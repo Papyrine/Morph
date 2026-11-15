@@ -84,7 +84,7 @@ public class DropTests
         await Assert.That(Selected(result)).IsEqualTo("0:37-0:42");
     }
 
-    // M-80: dropped in "ga|mma" it goes to the nearer end of the word, its start.
+    // M-80: dropped in "ga|mma" a word goes to the word's start.
     [Test]
     public async Task AWord_DroppedInsideAWord_GoesToItsNearerEnd()
     {
@@ -161,7 +161,7 @@ public class DropTests
     }
 
     // M-81: a paragraph moved with its mark goes, and its text joins the paragraph it is dropped in —
-    // after "Third ", the nearer end of "Thir|d".
+    // after "Third ": dropped in "Thir|d", four letters in and one to go, it goes past the word.
     [Test]
     public async Task AParagraph_MovedWithItsMark_JoinsTheParagraphDroppedIn()
     {
@@ -283,6 +283,97 @@ public class DropTests
         var result = Drag(docx, 0, 7, 1, 2, 5, 0);
 
         await Assert.That(result.Document).IsSameReferenceAs(docx);
+    }
+
+    // WordProbe's own `text-box` fixture, as Word wrote it: the box's two paragraphs come twice, in the
+    // mc:Choice Word reads (1, 2) and the VML mc:Fallback (3, 4); the body's are 0, 5 and 6.
+    static byte[] TextBox() =>
+        File.ReadAllBytes(Path.Combine(ProjectFiles.ProjectDirectory, "..", "WordProbe", "Fixtures", "text-box.docx"));
+
+    static string BoxText(byte[] docx) =>
+        string.Join(
+            " | ",
+            DocumentOutline.Read(docx).Paragraphs
+                .Where(_ => _.Ordinal is 1 or 2 or 5)
+                .Select(_ => string.Concat(_.Units.Where(unit => unit.Editable).Select(unit => unit.Text))));
+
+    // M-87: "Second" dragged into the box at "Bo|x" goes to the word's start, with the space after it.
+    [Test]
+    public async Task Text_DroppedIntoATextBox_GoesInAtTheWordsStart()
+    {
+        var result = Drag(TextBox(), 5, 0, 5, 6, 1, 2);
+
+        await Assert.That(BoxText(result.Document)).IsEqualTo("Second Box line one | Box line two | paragraph of text here.");
+        await Assert.That(Selected(result)).IsEqualTo("1:0-1:7");
+    }
+
+    [Test]
+    public async Task Text_DroppedIntoATextBoxTracked_IsStruckAndInserted()
+    {
+        var result = Drag(TextBox(), 5, 0, 5, 6, 1, 2, options: Tracked);
+
+        await Assert.That(BoxText(ReviewEditor.ResolveAll(result.Document, accept: false))).IsEqualTo("Box line one | Box line two | Second paragraph of text here.");
+        await Assert.That(BoxText(ReviewEditor.ResolveAll(result.Document, accept: true))).IsEqualTo("Second Box line one | Box line two | paragraph of text here.");
+    }
+
+    // I-26b: text dragged out of the box into the body, the box keeping the rest.
+    [Test]
+    public async Task Text_DraggedOutOfATextBox_GoesIntoTheBody()
+    {
+        var result = Drag(TextBox(), 1, 0, 1, 3, 5, 3);
+
+        await Assert.That(BoxText(result.Document)).IsEqualTo("line one | Box line two | Box Second paragraph of text here.");
+        await Assert.That(Selected(result)).IsEqualTo("5:0-5:4");
+    }
+
+    // M-88b: "Third" dropped at each letter of "paragraph" (6-15): at its start up to five letters in,
+    // past it from six, where the drop is two letters or more nearer the end than the start.
+    [Test]
+    [Arguments(7, "First Third paragraph here.")]
+    [Arguments(9, "First Third paragraph here.")]
+    [Arguments(11, "First Third paragraph here.")]
+    [Arguments(12, "First paragraph Third here.")]
+    [Arguments(14, "First paragraph Third here.")]
+    public async Task AWordDroppedInsideAWord_GoesToItsStart_UntilNearItsEnd(int at, string first)
+    {
+        var result = Drag(ThreeParagraphs(), 2, 0, 2, 5, 0, at);
+
+        await Assert.That(Text(result.Document)).IsEqualTo($"{first} | Second bold one. | and last.");
+    }
+
+    // M-88: what is dropped does not decide where: a phrase ending in a stop, and a whole paragraph's text,
+    // go where a word goes.
+    [Test]
+    [Arguments(6, 1, "First  | Second bold one. | paragraph here.Third and last.")]
+    [Arguments(6, 4, "First  | Second bold one. | Third paragraph here.and last.")]
+    [Arguments(0, 1, " | Second bold one. | First paragraph here.Third and last.")]
+    [Arguments(0, 4, " | Second bold one. | Third First paragraph here.and last.")]
+    public async Task APhraseOrAParagraph_GoesWhereAWordGoes(int from, int at, string expected)
+    {
+        var result = Drag(ThreeParagraphs(), 0, from, 0, 21, 2, at);
+
+        await Assert.That(Text(result.Document)).IsEqualTo(expected);
+    }
+
+    // M-84: a cell's text dropped in the body after the table, at "Af|ter": into the body, as text.
+    [Test]
+    public async Task ACellsText_DroppedInTheBody_GoesInAsText()
+    {
+        var result = Drag(Table(), 1, 0, 1, 3, 5, 2);
+
+        await Assert.That(Text(result.Document)).IsEqualTo("Before the table. |  | Two | Three | Four | One After the table.");
+        await Assert.That(Selected(result)).IsEqualTo("5:0-5:4");
+    }
+
+    // M-88c: a text box's words go as the body's — "li|ne" (two and two) to the start, "lin|e" past it.
+    [Test]
+    [Arguments(6, "Box Second line one")]
+    [Arguments(7, "Box line Second one")]
+    public async Task AWordDroppedInsideABoxsWord_GoesAsInTheBody(int at, string box)
+    {
+        var result = Drag(TextBox(), 5, 0, 5, 6, 1, at);
+
+        await Assert.That(BoxText(result.Document)).StartsWith($"{box} | ");
     }
 
     // M-62: a picture is moved to exactly where it is dropped, and nothing is spaced.

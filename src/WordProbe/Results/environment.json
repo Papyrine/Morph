@@ -6,8 +6,8 @@
     "Dpi": 120,
     "ClickToRun": "16.0.20527.20150"
   },
-  "Recorded": "2026-11-07T22:27:02.7032618+11:00",
-  "Display": "3440x1440 at 125 %",
+  "Recorded": "2026-11-11T23:12:07.2803834+11:00",
+  "Display": "1920x1200 at 125 %",
   "OptionsInEffect": {
     "Options.AutoWordSelection": "on",
     "Options.SmartParaSelection": "on",
@@ -31,7 +31,7 @@
     "Options.PasteFormatBetweenStyledDocuments": "3",
     "Options.PasteFormatFromExternalSource": "1",
     "Options.PasteAdjustWordSpacing": "on",
-    "Options.PasteAdjustParagraphSpacing": "on",
+    "Options.PasteAdjustParagraphSpacing": "off",
     "Options.PasteAdjustTableFormatting": "on",
     "Options.PasteSmartStyleBehavior": "on",
     "Options.PasteMergeLists": "on",

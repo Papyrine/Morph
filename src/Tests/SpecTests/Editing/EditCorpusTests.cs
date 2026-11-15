@@ -40,6 +40,12 @@ public class EditCorpusTests
         {
             var paragraph = outline.Paragraphs[index];
 
+            // A text box's fallback copy is not edited: it is written again from the box after every edit.
+            if (paragraph.Fallback)
+            {
+                continue;
+            }
+
             // As it is: nothing may change.
             var same = DocumentEditor.Rewrite(docx, index, [new(Items(paragraph, ""))], Plain).Document;
             await Assert.That(Texts(DocumentOutline.Read(same)).SequenceEqual(before)).IsTrue()
@@ -160,9 +166,11 @@ public class EditCorpusTests
 
     // Each paragraph's text, with a mark where something that is not text stands. Typed after the
     // last text of a paragraph that ends in a field, the text stands before the field.
+    // A text box's fallback copy reads as nothing: an edit to the box writes it again (TextBoxFallbacks),
+    // which the box's own text says, and TextBoxFallbackTests checks.
     static List<string> Texts(DocumentOutline outline) =>
         outline.Paragraphs
-            .Select(_ => string.Concat(_.Units.Where(unit => unit.Editable).Select(unit => unit.Text)))
+            .Select(_ => _.Fallback ? "" : string.Concat(_.Units.Where(unit => unit.Editable).Select(unit => unit.Text)))
             .ToList();
 
     // What the viewer reads off an edit's own package (DocumentReading.Capture) has to be what reading

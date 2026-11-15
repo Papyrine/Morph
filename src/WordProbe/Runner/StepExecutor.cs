@@ -148,7 +148,11 @@ sealed class StepExecutor
                 Thread.Sleep(80);
                 var selected = probe.Resolve(fromRange);
                 var middle = selected.Start + (selected.End - selected.Start) / 2;
-                var middleRange = probe.Document.Range(middle, middle);
+
+                // In the selection's own story: Document.Range is always the main text's, so a text
+                // box's selection was pressed at the same offsets of the body (M-87, I-26b, first run).
+                var middleRange = selected.Duplicate;
+                middleRange.SetRange(middle, middle);
                 from = probe.GlyphRectangle(middleRange).Centre;
             }
             else

@@ -2623,12 +2623,12 @@ export class ParagraphEditor {
     // it with it — so long as what is not text keeps its order, which is all the file can take
     // (DocumentEditor.Rewrite). A drag with Ctrl held copies the text, without what is not text.
     //
-    // Word's rules, which DocumentEditor.Drop keeps for a drop elsewhere on the pages (WordProbe M-80,
-    // M-82, M-83, C-22): text dropped inside a word lands at the nearer end of it; dropped on itself, or
-    // at either end of itself, nothing happens and the caret goes to the drop; a whole word moved away
-    // takes a space with it (smart cut), and where it lands it is spaced from its neighbours — a space
-    // before it after a word or a sentence's punctuation, one after it before a word — the space after
-    // it selected with it.
+    // Word's rules, which DocumentEditor.Drop keeps for a drop elsewhere on the pages (WordProbe M-80 to
+    // M-88c, C-22): text dropped inside a word lands at its start, or past it near its end; dropped on
+    // itself, or at either end of itself, nothing happens and the caret goes to the drop; a whole word
+    // moved away takes a space with it (smart cut), and where it lands it is spaced from its neighbours
+    // — a space before it after a word or a sentence's punctuation, one after it before a word — the
+    // space after it selected with it.
     moveDragged(drop) {
         const { from, to, moving } = this.dragged;
         this.dragged = null;
@@ -2704,8 +2704,9 @@ export class ParagraphEditor {
         this.select(spaced.from, spaced.to);
     }
 
-    // A drop inside a word goes to the nearer end of it, and at the end past the spaces after it
-    // (WordProbe M-80, M-81, M-83, M-84).
+    // A drop inside a word goes to the word's start, or past the word and the spaces after it once it is
+    // two letters or more nearer the word's end than its start (WordProbe M-80 to M-88c;
+    // DocumentEditor.Snapped has the drops that settle it).
     snapped(place) {
         const text = this.blockText(place.b);
         const at = place.o;
@@ -2723,7 +2724,7 @@ export class ParagraphEditor {
             end++;
         }
 
-        if (at - start <= end - at) {
+        if (at - start < end - at + 2) {
             return { b: place.b, o: start };
         }
 

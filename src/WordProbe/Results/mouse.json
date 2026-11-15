@@ -1,6 +1,6 @@
 {
   "Family": "mouse",
-  "Generated": "2026-11-07T13:03:30.1334751+11:00",
+  "Generated": "2026-11-11T23:12:07.2251371+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
@@ -77784,8 +77784,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 2010,
-      "RunAt": "2026-11-07T11:30:06.9684653+11:00",
+      "DurationMs": 1934,
+      "RunAt": "2026-11-11T23:08:13.0704495+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║¤║[Two¤]║¤",
@@ -78036,14 +78036,14 @@
           {
             "Step": "drag(C(1,1):0-C(1,1):end→C(2,2):1) from",
             "X": 633,
-            "Y": 469,
+            "Y": 443,
             "Under": "Range 19-19",
             "Cursor": "Arrow"
           },
           {
             "Step": "drag(C(1,1):0-C(1,1):end→C(2,2):1) to",
             "X": 1002,
-            "Y": 554,
+            "Y": 528,
             "Under": "Range 34-34",
             "Cursor": "IBeam"
           }
@@ -78053,16 +78053,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 273,
-        "open.add": 171,
-        "open.view": 11,
+        "open": 223,
+        "open.add": 84,
+        "open.view": 59,
         "open.front": 0,
-        "open.park": 89,
+        "open.park": 77,
         "options": 0,
-        "steps": 1294,
-        "observe": 371,
-        "reset": 29,
-        "close": 43
+        "steps": 1189,
+        "observe": 448,
+        "reset": 34,
+        "close": 40
       },
       "Build": "16.0.20527.20150"
     },
@@ -78076,8 +78076,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 2168,
-      "RunAt": "2026-11-07T11:30:09.1476391+11:00",
+      "DurationMs": 2175,
+      "RunAt": "2026-11-11T23:08:15.2618415+11:00",
       "Lines": [
         "[Before the table.]",
         "T1 R1 ║{-[One]-}¤║[Two¤]║¤",
@@ -78341,14 +78341,14 @@
           {
             "Step": "drag(C(1,1):0-C(1,1):end→C(2,2):1) from",
             "X": 633,
-            "Y": 469,
+            "Y": 443,
             "Under": "Range 19-19",
             "Cursor": "Arrow"
           },
           {
             "Step": "drag(C(1,1):0-C(1,1):end→C(2,2):1) to",
             "X": 1002,
-            "Y": 554,
+            "Y": 528,
             "Under": "Range 34-34",
             "Cursor": "IBeam"
           }
@@ -78358,16 +78358,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 212,
-        "open.add": 67,
-        "open.view": 26,
+        "open": 288,
+        "open.add": 158,
+        "open.view": 48,
         "open.front": 0,
-        "open.park": 117,
-        "options": 4,
-        "steps": 1311,
-        "observe": 569,
-        "reset": 28,
-        "close": 44
+        "open.park": 79,
+        "options": 3,
+        "steps": 1194,
+        "observe": 608,
+        "reset": 36,
+        "close": 46
       },
       "Build": "16.0.20527.20150"
     },
@@ -78951,6 +78951,1192 @@
       },
       "Build": "16.0.20527.20150"
     },
+    "M-84[path=C(1,1):0-C(1,1):end→P6:2]": {
+      "DefinitionHash": "578784e1150ea4a4",
+      "Title": "Drop into and out of a cell",
+      "Fixture": "table-2x2",
+      "Steps": [
+        "drag(C(1,1):0-C(1,1):end→P6:2)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2020,
+      "RunAt": "2026-11-11T23:08:08.8996156+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║¤║[Two¤]║¤",
+        "T1 R2 ║[Three¤]║[⟦One ‸⟧Four¤]║¤",
+        "[After the table.]",
+        "Selection: Normal 30–34 end-active · Cells 1 (R2C2–R2C2) · Undo: Move · drag(C(1,1):0-C(1,1):end→P6:2) from → Range 19-19, Arrow · drag(C(1,1):0-C(1,1):end→P6:2) to → Range 35-35, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 30,
+          "End": 34,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 2,
+          "StartColumn": 2,
+          "EndRow": 2,
+          "EndColumn": 2,
+          "AtEndOfRowMarker": false,
+          "Cells": 1,
+          "Rows": 1,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "One ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 19,
+            "Text": "\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 19,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 19,
+            "End": 23,
+            "Text": "Two\u0007",
+            "Runs": [
+              {
+                "Start": 19,
+                "End": 23,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 5,
+            "Start": 24,
+            "End": 30,
+            "Text": "Three\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 30,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 30,
+            "End": 39,
+            "Text": "One Four\u0007",
+            "Runs": [
+              {
+                "Start": 30,
+                "End": 39,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 40,
+            "End": 57,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 40,
+                "End": 57,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 2,
+            "Columns": 2,
+            "Uniform": true,
+            "Start": 18,
+            "End": 40,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 19,
+                "RowEnd": 23
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 19,
+                "End": 23,
+                "RowEnd": 23
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 24,
+                "End": 30,
+                "RowEnd": 39
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 30,
+                "End": 39,
+                "RowEnd": 39
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P6:2) from",
+            "X": 633,
+            "Y": 443,
+            "Under": "Range 19-19",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P6:2) to",
+            "X": 1013,
+            "Y": 528,
+            "Under": "Range 35-35",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 222,
+        "open.add": 84,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 87,
+        "options": 0,
+        "steps": 1281,
+        "observe": 440,
+        "reset": 35,
+        "close": 42
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-84[path=C(1,1):0-C(1,1):end→P6:2]~tracked": {
+      "DefinitionHash": "088594c75e02039f",
+      "Title": "Drop into and out of a cell",
+      "Fixture": "table-2x2",
+      "Steps": [
+        "drag(C(1,1):0-C(1,1):end→P6:2)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 2202,
+      "RunAt": "2026-11-11T23:08:11.1204697+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║{-[One]-}¤║[Two¤]║¤",
+        "T1 R2 ║[Three¤]║{+[⟦One ‸⟧]+}[Four¤]║¤",
+        "[After the table.]",
+        "Selection: Normal 33–37 end-active · Cells 1 (R2C2–R2C2) · Tracking · Revisions 2 · Undo: Move · drag(C(1,1):0-C(1,1):end→P6:2) from → Range 19-19, Arrow · drag(C(1,1):0-C(1,1):end→P6:2) to → Range 35-35, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 33,
+          "End": 37,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": true,
+          "StartRow": 2,
+          "StartColumn": 2,
+          "EndRow": 2,
+          "EndColumn": 2,
+          "AtEndOfRowMarker": false,
+          "Cells": 1,
+          "Rows": 1,
+          "Columns": 1,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "One ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 22,
+            "Text": "One\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 22,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 22,
+            "End": 26,
+            "Text": "Two\u0007",
+            "Runs": [
+              {
+                "Start": 22,
+                "End": 26,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 5,
+            "Start": 27,
+            "End": 33,
+            "Text": "Three\u0007",
+            "Runs": [
+              {
+                "Start": 27,
+                "End": 33,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 33,
+            "End": 42,
+            "Text": "One Four\u0007",
+            "Runs": [
+              {
+                "Start": 33,
+                "End": 42,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 43,
+            "End": 60,
+            "Text": "After the table.\r",
+            "Runs": [
+              {
+                "Start": 43,
+                "End": 60,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 2,
+            "Columns": 2,
+            "Uniform": true,
+            "Start": 18,
+            "End": 43,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 22,
+                "RowEnd": 26
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 22,
+                "End": 26,
+                "RowEnd": 26
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 27,
+                "End": 33,
+                "RowEnd": 42
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 33,
+                "End": 42,
+                "RowEnd": 42
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 18,
+            "End": 21,
+            "Author": "Simon Cropp"
+          },
+          {
+            "Type": "Insert",
+            "Start": 33,
+            "End": 37,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P6:2) from",
+            "X": 633,
+            "Y": 443,
+            "Under": "Range 19-19",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P6:2) to",
+            "X": 1013,
+            "Y": 528,
+            "Under": "Range 35-35",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 216,
+        "open.add": 76,
+        "open.view": 50,
+        "open.front": 0,
+        "open.park": 87,
+        "options": 3,
+        "steps": 1297,
+        "observe": 604,
+        "reset": 34,
+        "close": 48
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-84[path=C(1,1):0-C(1,1):end→P8:2]": {
+      "DefinitionHash": "4399dd76f74d430d",
+      "Title": "Drop into and out of a cell",
+      "Fixture": "table-2x2",
+      "Steps": [
+        "drag(C(1,1):0-C(1,1):end→P8:2)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2778,
+      "RunAt": "2026-11-11T23:09:47.418021+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║¤║[Two¤]║¤",
+        "T1 R2 ║[Three¤]║[Four¤]║¤",
+        "[⟦One ‸⟧After the table.]",
+        "Selection: Normal 36–40 end-active · Undo: Move · drag(C(1,1):0-C(1,1):end→P8:2) from → Range 19-19, WordOwn · drag(C(1,1):0-C(1,1):end→P8:2) to → Range 41-41, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 36,
+          "End": 40,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "One ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 19,
+            "Text": "\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 19,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 19,
+            "End": 23,
+            "Text": "Two\u0007",
+            "Runs": [
+              {
+                "Start": 19,
+                "End": 23,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 5,
+            "Start": 24,
+            "End": 30,
+            "Text": "Three\u0007",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 30,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 30,
+            "End": 35,
+            "Text": "Four\u0007",
+            "Runs": [
+              {
+                "Start": 30,
+                "End": 35,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 36,
+            "End": 57,
+            "Text": "One After the table.\r",
+            "Runs": [
+              {
+                "Start": 36,
+                "End": 57,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 2,
+            "Columns": 2,
+            "Uniform": true,
+            "Start": 18,
+            "End": 36,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 19,
+                "RowEnd": 23
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 19,
+                "End": 23,
+                "RowEnd": 23
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 24,
+                "End": 30,
+                "RowEnd": 35
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 30,
+                "End": 35,
+                "RowEnd": 35
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P8:2) from",
+            "X": 633,
+            "Y": 443,
+            "Under": "Range 19-19",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P8:2) to",
+            "X": 573,
+            "Y": 592,
+            "Under": "Range 41-41",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 745,
+        "open.add": 123,
+        "open.view": 101,
+        "open.front": 411,
+        "open.park": 107,
+        "options": 0,
+        "steps": 1359,
+        "observe": 582,
+        "reset": 48,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-84[path=C(1,1):0-C(1,1):end→P8:2]~tracked": {
+      "DefinitionHash": "0dcfb3ef203a2183",
+      "Title": "Drop into and out of a cell",
+      "Fixture": "table-2x2",
+      "Steps": [
+        "drag(C(1,1):0-C(1,1):end→P8:2)"
+      ],
+      "Options": {},
+      "Tracked": true,
+      "Status": "ok",
+      "DurationMs": 2109,
+      "RunAt": "2026-11-11T23:09:49.5628685+11:00",
+      "Lines": [
+        "[Before the table.]",
+        "T1 R1 ║{-[One]-}¤║[Two¤]║¤",
+        "T1 R2 ║[Three¤]║[Four¤]║¤",
+        "{+[⟦One ‸⟧]+}[After the table.]",
+        "Selection: Normal 39–43 end-active · Tracking · Revisions 2 · Undo: Move · drag(C(1,1):0-C(1,1):end→P8:2) from → Range 19-19, WordOwn · drag(C(1,1):0-C(1,1):end→P8:2) to → Range 41-41, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 39,
+          "End": 43,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "One ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 18,
+            "Text": "Before the table.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 18,
+            "End": 22,
+            "Text": "One\u0007",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 22,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 22,
+            "End": 26,
+            "Text": "Two\u0007",
+            "Runs": [
+              {
+                "Start": 22,
+                "End": 26,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 1,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 5,
+            "Start": 27,
+            "End": 33,
+            "Text": "Three\u0007",
+            "Runs": [
+              {
+                "Start": 27,
+                "End": 33,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 1,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 6,
+            "Start": 33,
+            "End": 38,
+            "Text": "Four\u0007",
+            "Runs": [
+              {
+                "Start": 33,
+                "End": 38,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 1,
+            "Row": 2,
+            "Column": 2,
+            "NestingLevel": 1,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 0,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 8,
+            "Start": 39,
+            "End": 60,
+            "Text": "One After the table.\r",
+            "Runs": [
+              {
+                "Start": 39,
+                "End": 60,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [
+          {
+            "Index": 1,
+            "Rows": 2,
+            "Columns": 2,
+            "Uniform": true,
+            "Start": 18,
+            "End": 39,
+            "Cells": [
+              {
+                "Row": 1,
+                "Column": 1,
+                "Start": 18,
+                "End": 22,
+                "RowEnd": 26
+              },
+              {
+                "Row": 1,
+                "Column": 2,
+                "Start": 22,
+                "End": 26,
+                "RowEnd": 26
+              },
+              {
+                "Row": 2,
+                "Column": 1,
+                "Start": 27,
+                "End": 33,
+                "RowEnd": 38
+              },
+              {
+                "Row": 2,
+                "Column": 2,
+                "Start": 33,
+                "End": 38,
+                "RowEnd": 38
+              }
+            ],
+            "NestingLevel": 1
+          }
+        ],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Delete",
+            "Start": 18,
+            "End": 21,
+            "Author": "Simon Cropp"
+          },
+          {
+            "Type": "Insert",
+            "Start": 39,
+            "End": 43,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P8:2) from",
+            "X": 633,
+            "Y": 443,
+            "Under": "Range 19-19",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(C(1,1):0-C(1,1):end→P8:2) to",
+            "X": 573,
+            "Y": 592,
+            "Under": "Range 41-41",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 212,
+        "open.add": 73,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 96,
+        "options": 3,
+        "steps": 1303,
+        "observe": 531,
+        "reset": 25,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
+    },
     "M-84[path=P1:0-P1:6→C(1,2):1]": {
       "DefinitionHash": "e683cb6fbf612984",
       "Title": "Drop into and out of a cell",
@@ -78961,14 +80147,14 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1868,
-      "RunAt": "2026-11-07T11:29:59.0084619+11:00",
+      "DurationMs": 3056,
+      "RunAt": "2026-11-11T23:08:04.6901679+11:00",
       "Lines": [
         "[the table.]",
         "T1 R1 ║[One¤]║[⟦Before ‸⟧Two¤]║¤",
         "T1 R2 ║[Three¤]║[Four¤]║¤",
         "[After the table.]",
-        "Selection: Normal 15–22 end-active · Cells 1 (R1C2–R1C2) · Undo: Move · drag(P1:0-P1:6→C(1,2):1) from → Range 3-3, Arrow · drag(P1:0-P1:6→C(1,2):1) to → Range 23-23, IBeam"
+        "Selection: Normal 15–22 end-active · Cells 1 (R1C2–R1C2) · Undo: Move · drag(P1:0-P1:6→C(1,2):1) from → Range 3-3, WordOwn · drag(P1:0-P1:6→C(1,2):1) to → Range 23-23, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -79213,14 +80399,14 @@
           {
             "Step": "drag(P1:0-P1:6→C(1,2):1) from",
             "X": 586,
-            "Y": 405,
+            "Y": 379,
             "Under": "Range 3-3",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P1:0-P1:6→C(1,2):1) to",
             "X": 1002,
-            "Y": 469,
+            "Y": 443,
             "Under": "Range 23-23",
             "Cursor": "IBeam"
           }
@@ -79230,16 +80416,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 214,
-        "open.add": 67,
-        "open.view": 25,
-        "open.front": 0,
-        "open.park": 119,
+        "open": 929,
+        "open.add": 174,
+        "open.view": 135,
+        "open.front": 483,
+        "open.park": 132,
         "options": 0,
-        "steps": 1203,
-        "observe": 380,
-        "reset": 28,
-        "close": 43
+        "steps": 1220,
+        "observe": 743,
+        "reset": 80,
+        "close": 83
       },
       "Build": "16.0.20527.20150"
     },
@@ -79253,14 +80439,14 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 2106,
-      "RunAt": "2026-11-07T11:30:01.12607+11:00",
+      "DurationMs": 2125,
+      "RunAt": "2026-11-11T23:08:06.8555374+11:00",
       "Lines": [
         "{-[Before ]-}[the table.]",
         "T1 R1 ║[One¤]║{+[⟦Before ‸⟧]+}[Two¤]║¤",
         "T1 R2 ║[Three¤]║[Four¤]║¤",
         "[After the table.]",
-        "Selection: Normal 22–29 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Move · drag(P1:0-P1:6→C(1,2):1) from → Range 3-3, Arrow · drag(P1:0-P1:6→C(1,2):1) to → Range 23-23, IBeam"
+        "Selection: Normal 22–29 end-active · Cells 1 (R1C2–R1C2) · Tracking · Revisions 2 · Undo: Move · drag(P1:0-P1:6→C(1,2):1) from → Range 3-3, WordOwn · drag(P1:0-P1:6→C(1,2):1) to → Range 23-23, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -79518,14 +80704,14 @@
           {
             "Step": "drag(P1:0-P1:6→C(1,2):1) from",
             "X": 586,
-            "Y": 405,
+            "Y": 379,
             "Under": "Range 3-3",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P1:0-P1:6→C(1,2):1) to",
             "X": 1002,
-            "Y": 469,
+            "Y": 443,
             "Under": "Range 23-23",
             "Cursor": "IBeam"
           }
@@ -79535,16 +80721,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 252,
-        "open.add": 152,
-        "open.view": 11,
+        "open": 240,
+        "open.add": 91,
+        "open.view": 57,
         "open.front": 0,
-        "open.park": 86,
-        "options": 3,
-        "steps": 1213,
-        "observe": 567,
-        "reset": 28,
-        "close": 43
+        "open.park": 89,
+        "options": 4,
+        "steps": 1183,
+        "observe": 619,
+        "reset": 34,
+        "close": 45
       },
       "Build": "16.0.20527.20150"
     },
@@ -80785,8 +81971,8 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1962,
-      "RunAt": "2026-11-07T11:30:22.0311851+11:00",
+      "DurationMs": 3086,
+      "RunAt": "2026-11-11T23:08:26.0995063+11:00",
       "Lines": [
         "[⚓1First paragraph of text here.]",
         "[paragraph of text here.]",
@@ -80794,7 +81980,7 @@
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
         "TB: [⟦Second ‸⟧Box line one]",
         "TB: [Box line two]",
-        "Selection: Normal 0–7 end-active · Story TextFrame · Undo: Move · drag(P2:0-P2:6→TB1:P1:2) from → Range 34-34, Arrow · drag(P2:0-P2:6→TB1:P1:2) to → Range 2-2, IBeam"
+        "Selection: Normal 0–7 end-active · Story TextFrame · Undo: Move · drag(P2:0-P2:6→TB1:P1:2) from → Range 34-34, WordOwn · drag(P2:0-P2:6→TB1:P1:2) to → Range 2-2, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -80988,14 +82174,14 @@
           {
             "Step": "drag(P2:0-P2:6→TB1:P1:2) from",
             "X": 591,
-            "Y": 446,
+            "Y": 420,
             "Under": "Range 34-34",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P2:0-P2:6→TB1:P1:2) to",
             "X": 970,
-            "Y": 411,
+            "Y": 385,
             "Under": "Range 2-2",
             "Cursor": "IBeam"
           }
@@ -81005,16 +82191,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 205,
-        "open.add": 67,
-        "open.view": 27,
-        "open.front": 0,
-        "open.park": 108,
+        "open": 970,
+        "open.add": 145,
+        "open.view": 234,
+        "open.front": 469,
+        "open.park": 118,
         "options": 0,
-        "steps": 1323,
-        "observe": 361,
-        "reset": 31,
-        "close": 42
+        "steps": 1245,
+        "observe": 742,
+        "reset": 71,
+        "close": 58
       },
       "Build": "16.0.20527.20150"
     },
@@ -81028,8 +82214,8 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 2157,
-      "RunAt": "2026-11-07T11:30:24.199971+11:00",
+      "DurationMs": 2120,
+      "RunAt": "2026-11-11T23:08:28.2630438+11:00",
       "Lines": [
         "[⚓1First paragraph of text here.]",
         "{-[Second ]-}[paragraph of text here.]",
@@ -81037,7 +82223,7 @@
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
         "TB: [⟦Second ‸⟧Box line one]",
         "TB: [Box line tw]{-[o]",
-        "Selection: Normal 0–7 end-active · Story TextFrame · Tracking · Revisions 1 · Undo: Move · drag(P2:0-P2:6→TB1:P1:2) from → Range 34-34, Arrow · drag(P2:0-P2:6→TB1:P1:2) to → Range 2-2, IBeam"
+        "Selection: Normal 0–7 end-active · Story TextFrame · Tracking · Revisions 1 · Undo: Move · drag(P2:0-P2:6→TB1:P1:2) from → Range 34-34, WordOwn · drag(P2:0-P2:6→TB1:P1:2) to → Range 2-2, IBeam"
       ],
       "Observation": {
         "Selection": {
@@ -81238,14 +82424,14 @@
           {
             "Step": "drag(P2:0-P2:6→TB1:P1:2) from",
             "X": 591,
-            "Y": 446,
+            "Y": 420,
             "Under": "Range 34-34",
-            "Cursor": "Arrow"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(P2:0-P2:6→TB1:P1:2) to",
             "X": 970,
-            "Y": 411,
+            "Y": 385,
             "Under": "Range 2-2",
             "Cursor": "IBeam"
           }
@@ -81255,16 +82441,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 272,
-        "open.add": 166,
-        "open.view": 10,
+        "open": 230,
+        "open.add": 89,
+        "open.view": 52,
         "open.front": 0,
-        "open.park": 93,
+        "open.park": 86,
         "options": 4,
-        "steps": 1315,
-        "observe": 492,
-        "reset": 30,
-        "close": 44
+        "steps": 1208,
+        "observe": 589,
+        "reset": 38,
+        "close": 51
       },
       "Build": "16.0.20527.20150"
     },
@@ -81278,19 +82464,19 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1626,
-      "RunAt": "2026-11-07T11:30:25.8363697+11:00",
+      "DurationMs": 1877,
+      "RunAt": "2026-11-11T23:08:30.1629359+11:00",
       "Lines": [
-        "[⟦⚓1First paragraph of text here.¶⟧]",
-        "⟦[Se‸⟧cond paragraph of text here.]",
+        "[⚓1First paragraph of text here.]",
+        "[⟦Box ‸⟧Second paragraph of text here.]",
         "[Third paragraph of text here.]",
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
-        "Selection: Normal 0–33 end-active · Undo — · drag(TB1:P1:0-TB1:P1:3→P2:2) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:3→P2:2) to → Range 33-33, IBeam"
+        "Selection: Normal 31–35 end-active · Undo: Move · drag(TB1:P1:0-TB1:P1:3→P2:2) from → Range 1-1, Arrow · drag(TB1:P1:0-TB1:P1:3→P2:2) to → Range 33-33, IBeam"
       ],
       "Observation": {
         "Selection": {
-          "Start": 0,
-          "End": 33,
+          "Start": 31,
+          "End": 35,
           "Type": "Normal",
           "Flags": 24,
           "StartIsActive": false,
@@ -81307,7 +82493,7 @@
           "InlineShapes": 0,
           "Shapes": 0,
           "Overtype": false,
-          "Text": "First paragraph of text here.\rSe",
+          "Text": "Box ",
           "IsCollapsed": false
         },
         "Paragraphs": [
@@ -81340,12 +82526,12 @@
           {
             "Index": 2,
             "Start": 31,
-            "End": 62,
-            "Text": "Second paragraph of text here.\r",
+            "End": 66,
+            "Text": "Box Second paragraph of text here.\r",
             "Runs": [
               {
                 "Start": 31,
-                "End": 62,
+                "End": 66,
                 "Marks": ""
               }
             ],
@@ -81365,13 +82551,13 @@
           },
           {
             "Index": 3,
-            "Start": 62,
-            "End": 92,
+            "Start": 66,
+            "End": 96,
             "Text": "Third paragraph of text here.\r",
             "Runs": [
               {
-                "Start": 62,
-                "End": 92,
+                "Start": 66,
+                "End": 96,
                 "Marks": ""
               }
             ],
@@ -81413,21 +82599,23 @@
         "ContentControls": [],
         "InlinePictures": [],
         "SectionEnds": [],
-        "Undo": [],
-        "UndoSource": "undo-redo-count",
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
             "Step": "drag(TB1:P1:0-TB1:P1:3→P2:2) from",
-            "X": 558,
-            "Y": 405,
-            "Under": "Range 2-2",
-            "Cursor": "IBeam"
+            "X": 962,
+            "Y": 385,
+            "Under": "Range 1-1",
+            "Cursor": "Arrow"
           },
           {
             "Step": "drag(TB1:P1:0-TB1:P1:3→P2:2) to",
             "X": 578,
-            "Y": 446,
+            "Y": 420,
             "Under": "Range 33-33",
             "Cursor": "IBeam"
           }
@@ -81437,16 +82625,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 202,
-        "open.add": 65,
-        "open.view": 45,
+        "open": 210,
+        "open.add": 80,
+        "open.view": 48,
         "open.front": 0,
-        "open.park": 89,
+        "open.park": 80,
         "options": 0,
-        "steps": 1127,
-        "observe": 227,
-        "reset": 31,
-        "close": 39
+        "steps": 1332,
+        "observe": 245,
+        "reset": 40,
+        "close": 50
       },
       "Build": "16.0.20527.20150"
     },
@@ -81460,19 +82648,19 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1670,
-      "RunAt": "2026-11-07T11:30:27.5174182+11:00",
+      "DurationMs": 1981,
+      "RunAt": "2026-11-11T23:08:32.1615504+11:00",
       "Lines": [
-        "[⟦⚓1First paragraph of text here.¶⟧]",
-        "⟦[Se‸⟧cond paragraph of text here.]",
+        "[⚓1First paragraph of text here.]",
+        "{+[⟦Box ‸⟧]+}[Second paragraph of text here.]",
         "[Third paragraph of text here.]",
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
-        "Selection: Normal 0–33 end-active · Tracking · Revisions 0 · Undo — · drag(TB1:P1:0-TB1:P1:3→P2:2) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:3→P2:2) to → Range 33-33, IBeam"
+        "Selection: Normal 31–35 end-active · Tracking · Revisions 1 · Undo: Move · drag(TB1:P1:0-TB1:P1:3→P2:2) from → Range 1-1, Arrow · drag(TB1:P1:0-TB1:P1:3→P2:2) to → Range 33-33, IBeam"
       ],
       "Observation": {
         "Selection": {
-          "Start": 0,
-          "End": 33,
+          "Start": 31,
+          "End": 35,
           "Type": "Normal",
           "Flags": 24,
           "StartIsActive": false,
@@ -81489,7 +82677,7 @@
           "InlineShapes": 0,
           "Shapes": 0,
           "Overtype": false,
-          "Text": "First paragraph of text here.\rSe",
+          "Text": "Box ",
           "IsCollapsed": false
         },
         "Paragraphs": [
@@ -81522,12 +82710,12 @@
           {
             "Index": 2,
             "Start": 31,
-            "End": 62,
-            "Text": "Second paragraph of text here.\r",
+            "End": 66,
+            "Text": "Box Second paragraph of text here.\r",
             "Runs": [
               {
                 "Start": 31,
-                "End": 62,
+                "End": 66,
                 "Marks": ""
               }
             ],
@@ -81547,13 +82735,2544 @@
           },
           {
             "Index": 3,
-            "Start": 62,
-            "End": 92,
+            "Start": 66,
+            "End": 96,
             "Text": "Third paragraph of text here.\r",
             "Runs": [
               {
-                "Start": 62,
-                "End": 92,
+                "Start": 66,
+                "End": 96,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Text Box 1",
+            "Kind": "textbox",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 160,
+            "Height": 80,
+            "Wrap": "square",
+            "Selected": false,
+            "Left": 228,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [
+          {
+            "Type": "Insert",
+            "Start": 31,
+            "End": 35,
+            "Author": "Simon Cropp"
+          }
+        ],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
+        "Tracking": true,
+        "Hotspots": [
+          {
+            "Step": "drag(TB1:P1:0-TB1:P1:3→P2:2) from",
+            "X": 962,
+            "Y": 385,
+            "Under": "Range 1-1",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(TB1:P1:0-TB1:P1:3→P2:2) to",
+            "X": 578,
+            "Y": 420,
+            "Under": "Range 33-33",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 208,
+        "open.add": 76,
+        "open.view": 49,
+        "open.front": 0,
+        "open.park": 81,
+        "options": 3,
+        "steps": 1326,
+        "observe": 359,
+        "reset": 34,
+        "close": 51
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88[path=P1:0-P1:end→P3:1]": {
+      "DefinitionHash": "24b4e97fdac51937",
+      "Title": "Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P1:0-P1:end→P3:1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1706,
+      "RunAt": "2026-11-11T23:08:48.7899945+11:00",
+      "Lines": [
+        "",
+        "[Second bold one.] (center)",
+        "[⟦First paragraph here.‸⟧Third and last.]",
+        "Selection: Normal 18–39 end-active · drag(P1:0-P1:end→P3:1) from → Range 11-11, Arrow · drag(P1:0-P1:end→P3:1) to → Range 40-40, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 18,
+          "End": 39,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "First paragraph here.",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 1,
+            "Text": "\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 1,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 1,
+            "End": 18,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 1,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 18,
+            "End": 55,
+            "Text": "First paragraph here.Third and last.\r",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P1:0-P1:end→P3:1) from",
+            "X": 638,
+            "Y": 379,
+            "Under": "Range 11-11",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P1:0-P1:end→P3:1) to",
+            "X": 566,
+            "Y": 462,
+            "Under": "Range 40-40",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 199,
+        "open.add": 76,
+        "open.view": 40,
+        "open.front": 0,
+        "open.park": 80,
+        "options": 0,
+        "steps": 1280,
+        "observe": 168,
+        "reset": 25,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88[path=P1:0-P1:end→P3:4]": {
+      "DefinitionHash": "bec087ba06a8d2dd",
+      "Title": "Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P1:0-P1:end→P3:4)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1742,
+      "RunAt": "2026-11-11T23:08:50.5459571+11:00",
+      "Lines": [
+        "",
+        "[Second bold one.] (center)",
+        "[Third ⟦First paragraph here.‸⟧and last.]",
+        "Selection: Normal 24–45 end-active · drag(P1:0-P1:end→P3:4) from → Range 11-11, Arrow · drag(P1:0-P1:end→P3:4) to → Range 43-43, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 24,
+          "End": 45,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "First paragraph here.",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 1,
+            "Text": "\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 1,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 1,
+            "End": 18,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 1,
+                "End": 18,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 18,
+            "End": 55,
+            "Text": "Third First paragraph here.and last.\r",
+            "Runs": [
+              {
+                "Start": 18,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P1:0-P1:end→P3:4) from",
+            "X": 638,
+            "Y": 379,
+            "Under": "Range 11-11",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P1:0-P1:end→P3:4) to",
+            "X": 588,
+            "Y": 462,
+            "Under": "Range 43-43",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 229,
+        "open.add": 106,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 78,
+        "options": 0,
+        "steps": 1280,
+        "observe": 174,
+        "reset": 24,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88[path=P1:6-P1:15→P3:1]": {
+      "DefinitionHash": "d93264531e680a87",
+      "Title": "Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P1:6-P1:15→P3:1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2483,
+      "RunAt": "2026-11-11T23:08:41.8877309+11:00",
+      "Lines": [
+        "[First here.]",
+        "[Second bold one.] (center)",
+        "[⟦paragraph ‸⟧Third and last.]",
+        "Selection: Normal 29–39 end-active · drag(P1:6-P1:15→P3:1) from → Range 11-11, WordOwn · drag(P1:6-P1:15→P3:1) to → Range 40-40, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 29,
+          "End": 39,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "paragraph ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 12,
+            "Text": "First here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 12,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 12,
+            "End": 29,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 12,
+                "End": 29,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 29,
+            "End": 55,
+            "Text": "paragraph Third and last.\r",
+            "Runs": [
+              {
+                "Start": 29,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P1:6-P1:15→P3:1) from",
+            "X": 638,
+            "Y": 379,
+            "Under": "Range 11-11",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(P1:6-P1:15→P3:1) to",
+            "X": 566,
+            "Y": 462,
+            "Under": "Range 40-40",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 798,
+        "open.add": 129,
+        "open.view": 104,
+        "open.front": 445,
+        "open.park": 115,
+        "options": 0,
+        "steps": 1329,
+        "observe": 266,
+        "reset": 46,
+        "close": 44
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88[path=P1:6-P1:15→P3:4]": {
+      "DefinitionHash": "75ec45309df07174",
+      "Title": "Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P1:6-P1:15→P3:4)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1685,
+      "RunAt": "2026-11-11T23:08:43.6085489+11:00",
+      "Lines": [
+        "[First here.]",
+        "[Second bold one.] (center)",
+        "[Third ⟦paragraph ‸⟧and last.]",
+        "Selection: Normal 35–45 end-active · drag(P1:6-P1:15→P3:4) from → Range 11-11, WordOwn · drag(P1:6-P1:15→P3:4) to → Range 43-43, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 35,
+          "End": 45,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "paragraph ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 12,
+            "Text": "First here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 12,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 12,
+            "End": 29,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 12,
+                "End": 29,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 29,
+            "End": 55,
+            "Text": "Third paragraph and last.\r",
+            "Runs": [
+              {
+                "Start": 29,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P1:6-P1:15→P3:4) from",
+            "X": 638,
+            "Y": 379,
+            "Under": "Range 11-11",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(P1:6-P1:15→P3:4) to",
+            "X": 588,
+            "Y": 462,
+            "Under": "Range 43-43",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 194,
+        "open.add": 70,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 81,
+        "options": 0,
+        "steps": 1263,
+        "observe": 168,
+        "reset": 26,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88[path=P1:6-P1:end→P3:1]": {
+      "DefinitionHash": "c8080d3abbb3b024",
+      "Title": "Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P1:6-P1:end→P3:1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1710,
+      "RunAt": "2026-11-11T23:08:45.3449234+11:00",
+      "Lines": [
+        "[First ]",
+        "[Second bold one.] (center)",
+        "[⟦paragraph here.‸⟧Third and last.]",
+        "Selection: Normal 24–39 end-active · drag(P1:6-P1:end→P3:1) from → Range 14-14, WordOwn · drag(P1:6-P1:end→P3:1) to → Range 40-40, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 24,
+          "End": 39,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "paragraph here.",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 7,
+            "Text": "First \r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 7,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 7,
+            "End": 24,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 7,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 24,
+            "End": 55,
+            "Text": "paragraph here.Third and last.\r",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P1:6-P1:end→P3:1) from",
+            "X": 665,
+            "Y": 379,
+            "Under": "Range 14-14",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(P1:6-P1:end→P3:1) to",
+            "X": 566,
+            "Y": 462,
+            "Under": "Range 40-40",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 200,
+        "open.add": 76,
+        "open.view": 39,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 0,
+        "steps": 1279,
+        "observe": 171,
+        "reset": 26,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88[path=P1:6-P1:end→P3:4]": {
+      "DefinitionHash": "24cd9aa1a6733dd6",
+      "Title": "Where text dropped inside a word lands: a word, a phrase ending in a stop, a paragraph",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P1:6-P1:end→P3:4)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1709,
+      "RunAt": "2026-11-11T23:08:47.0697581+11:00",
+      "Lines": [
+        "[First ]",
+        "[Second bold one.] (center)",
+        "[Third ⟦paragraph here.‸⟧and last.]",
+        "Selection: Normal 30–45 end-active · drag(P1:6-P1:end→P3:4) from → Range 14-14, Arrow · drag(P1:6-P1:end→P3:4) to → Range 43-43, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 30,
+          "End": 45,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "paragraph here.",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 7,
+            "Text": "First \r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 7,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 7,
+            "End": 24,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 7,
+                "End": 24,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 24,
+            "End": 55,
+            "Text": "Third paragraph here.and last.\r",
+            "Runs": [
+              {
+                "Start": 24,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P1:6-P1:end→P3:4) from",
+            "X": 665,
+            "Y": 379,
+            "Under": "Range 14-14",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P1:6-P1:end→P3:4) to",
+            "X": 588,
+            "Y": 462,
+            "Under": "Range 43-43",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 198,
+        "open.add": 75,
+        "open.view": 41,
+        "open.front": 0,
+        "open.park": 80,
+        "options": 0,
+        "steps": 1280,
+        "observe": 174,
+        "reset": 24,
+        "close": 33
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:10]": {
+      "DefinitionHash": "3b7557202e4ee673",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:10)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1771,
+      "RunAt": "2026-11-11T23:11:05.1947519+11:00",
+      "Lines": [
+        "[First ⟦Third ‸⟧paragraph here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 6–12 end-active · drag(P3:0-P3:5→P1:10) from → Range 42-42, Arrow · drag(P3:0-P3:5→P1:10) to → Range 10-10, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 6,
+          "End": 12,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First Third paragraph here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:10) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:10) to",
+            "X": 635,
+            "Y": 379,
+            "Under": "Range 10-10",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 191,
+        "open.add": 76,
+        "open.view": 38,
+        "open.front": 0,
+        "open.park": 75,
+        "options": 0,
+        "steps": 1354,
+        "observe": 167,
+        "reset": 25,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:11]": {
+      "DefinitionHash": "68b75a1474dd248a",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:11)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1793,
+      "RunAt": "2026-11-11T23:11:07.0027711+11:00",
+      "Lines": [
+        "[First ⟦Third ‸⟧paragraph here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 6–12 end-active · drag(P3:0-P3:5→P1:11) from → Range 42-42, Arrow · drag(P3:0-P3:5→P1:11) to → Range 11-11, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 6,
+          "End": 12,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First Third paragraph here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:11) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:11) to",
+            "X": 645,
+            "Y": 379,
+            "Under": "Range 11-11",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 210,
+        "open.add": 73,
+        "open.view": 37,
+        "open.front": 0,
+        "open.park": 98,
+        "options": 0,
+        "steps": 1357,
+        "observe": 167,
+        "reset": 25,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:12]": {
+      "DefinitionHash": "dc82757145121f06",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:12)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1799,
+      "RunAt": "2026-11-11T23:11:08.816221+11:00",
+      "Lines": [
+        "[First paragraph ⟦Third ‸⟧here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 16–22 end-active · drag(P3:0-P3:5→P1:12) from → Range 42-42, Arrow · drag(P3:0-P3:5→P1:12) to → Range 12-12, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 16,
+          "End": 22,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First paragraph Third here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:12) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:12) to",
+            "X": 651,
+            "Y": 379,
+            "Under": "Range 12-12",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 229,
+        "open.add": 106,
+        "open.view": 40,
+        "open.front": 0,
+        "open.park": 80,
+        "options": 0,
+        "steps": 1337,
+        "observe": 172,
+        "reset": 25,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:13]": {
+      "DefinitionHash": "d484df22b0f685e3",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:13)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1769,
+      "RunAt": "2026-11-11T23:11:10.5970215+11:00",
+      "Lines": [
+        "[First paragraph ⟦Third ‸⟧here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 16–22 end-active · drag(P3:0-P3:5→P1:13) from → Range 42-42, Arrow · drag(P3:0-P3:5→P1:13) to → Range 13-13, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 16,
+          "End": 22,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First paragraph Third here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:13) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:13) to",
+            "X": 662,
+            "Y": 379,
+            "Under": "Range 13-13",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 194,
+        "open.add": 69,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 80,
+        "options": 0,
+        "steps": 1346,
+        "observe": 170,
+        "reset": 25,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:14]": {
+      "DefinitionHash": "bd6321d37a4df6fd",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:14)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1841,
+      "RunAt": "2026-11-11T23:11:12.4517938+11:00",
+      "Lines": [
+        "[First paragraph ⟦Third ‸⟧here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 16–22 end-active · drag(P3:0-P3:5→P1:14) from → Range 42-42, Arrow · drag(P3:0-P3:5→P1:14) to → Range 14-14, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 16,
+          "End": 22,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First paragraph Third here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:14) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:14) to",
+            "X": 674,
+            "Y": 379,
+            "Under": "Range 14-14",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 219,
+        "open.add": 88,
+        "open.view": 42,
+        "open.front": 0,
+        "open.park": 86,
+        "options": 0,
+        "steps": 1394,
+        "observe": 170,
+        "reset": 24,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:7]": {
+      "DefinitionHash": "af00ce0af38b61bf",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:7)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2535,
+      "RunAt": "2026-11-11T23:10:59.8332894+11:00",
+      "Lines": [
+        "[First ⟦Third ‸⟧paragraph here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 6–12 end-active · drag(P3:0-P3:5→P1:7) from → Range 42-42, WordOwn · drag(P3:0-P3:5→P1:7) to → Range 7-7, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 6,
+          "End": 12,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First Third paragraph here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:7) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:7) to",
+            "X": 608,
+            "Y": 379,
+            "Under": "Range 7-7",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 802,
+        "open.add": 133,
+        "open.view": 110,
+        "open.front": 447,
+        "open.park": 108,
+        "options": 0,
+        "steps": 1363,
+        "observe": 276,
+        "reset": 47,
+        "close": 47
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:8]": {
+      "DefinitionHash": "9ad9bf05e1b9a275",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:8)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1777,
+      "RunAt": "2026-11-11T23:11:01.6479111+11:00",
+      "Lines": [
+        "[First ⟦Third ‸⟧paragraph here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 6–12 end-active · drag(P3:0-P3:5→P1:8) from → Range 42-42, WordOwn · drag(P3:0-P3:5→P1:8) to → Range 8-8, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 6,
+          "End": 12,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First Third paragraph here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:8) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:8) to",
+            "X": 618,
+            "Y": 379,
+            "Under": "Range 8-8",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 244,
+        "open.add": 87,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 111,
+        "options": 0,
+        "steps": 1314,
+        "observe": 171,
+        "reset": 26,
+        "close": 22
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88b[to=P1:9]": {
+      "DefinitionHash": "ab5d1f46aeed47f9",
+      "Title": "Where a word dropped inside a word lands, at every place in a long one",
+      "Fixture": "three-paragraphs",
+      "Steps": [
+        "drag(P3:0-P3:5→P1:9)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1722,
+      "RunAt": "2026-11-11T23:11:03.4074961+11:00",
+      "Lines": [
+        "[First ⟦Third ‸⟧paragraph here.]",
+        "[Second bold one.] (center)",
+        "[and last.]",
+        "Selection: Normal 6–12 end-active · drag(P3:0-P3:5→P1:9) from → Range 42-42, Arrow · drag(P3:0-P3:5→P1:9) to → Range 9-9, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 6,
+          "End": 12,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdMainTextStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Third ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 28,
+            "Text": "First Third paragraph here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 28,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 28,
+            "End": 45,
+            "Text": "Second bold one.\r",
+            "Runs": [
+              {
+                "Start": 28,
+                "End": 45,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "center",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 45,
+            "End": 55,
+            "Text": "and last.\r",
+            "Runs": [
+              {
+                "Start": 45,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Hotspots": [
+          {
+            "Step": "drag(P3:0-P3:5→P1:9) from",
+            "X": 576,
+            "Y": 462,
+            "Under": "Range 42-42",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P3:0-P3:5→P1:9) to",
+            "X": 625,
+            "Y": 379,
+            "Under": "Range 9-9",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 193,
+        "open.add": 73,
+        "open.view": 40,
+        "open.front": 0,
+        "open.park": 78,
+        "options": 0,
+        "steps": 1300,
+        "observe": 168,
+        "reset": 26,
+        "close": 35
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88c[to=TB1:P1:1]": {
+      "DefinitionHash": "0bb66653dc30da82",
+      "Title": "Where a word dropped inside a word of a text box lands",
+      "Fixture": "text-box",
+      "Steps": [
+        "drag(P2:0-P2:6→TB1:P1:1)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 2733,
+      "RunAt": "2026-11-11T23:11:59.5641004+11:00",
+      "Lines": [
+        "[⚓1First paragraph of text here.]",
+        "[paragraph of text here.]",
+        "[Third paragraph of text here.]",
+        "SHP1 ⌖P1 textbox 160x80pt square @228,0",
+        "TB: [⟦Second ‸⟧Box line one]",
+        "TB: [Box line two]",
+        "Selection: Normal 0–7 end-active · Story TextFrame · drag(P2:0-P2:6→TB1:P1:1) from → Range 34-34, WordOwn · drag(P2:0-P2:6→TB1:P1:1) to → Range 1-1, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 7,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdTextFrameStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Second ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 55,
+            "Text": "paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 55,
+            "End": 85,
+            "Text": "Third paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 55,
+                "End": 85,
                 "Marks": ""
               }
             ],
@@ -81596,21 +85315,78 @@
         "InlinePictures": [],
         "SectionEnds": [],
         "Undo": [],
-        "UndoSource": "undo-redo-count",
-        "Tracking": true,
+        "UndoSource": "off",
+        "Tracking": false,
+        "Story": {
+          "StoryType": "wdTextFrameStory",
+          "Paragraphs": [
+            {
+              "Index": 1,
+              "Start": 0,
+              "End": 20,
+              "Text": "Second Box line one\r",
+              "Runs": [
+                {
+                  "Start": 0,
+                  "End": 20,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            },
+            {
+              "Index": 2,
+              "Start": 20,
+              "End": 33,
+              "Text": "Box line two\r",
+              "Runs": [
+                {
+                  "Start": 20,
+                  "End": 33,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            }
+          ]
+        },
         "Hotspots": [
           {
-            "Step": "drag(TB1:P1:0-TB1:P1:3→P2:2) from",
-            "X": 558,
-            "Y": 405,
-            "Under": "Range 2-2",
-            "Cursor": "IBeam"
+            "Step": "drag(P2:0-P2:6→TB1:P1:1) from",
+            "X": 591,
+            "Y": 420,
+            "Under": "Range 34-34",
+            "Cursor": "WordOwn"
           },
           {
-            "Step": "drag(TB1:P1:0-TB1:P1:3→P2:2) to",
-            "X": 578,
-            "Y": 446,
-            "Under": "Range 33-33",
+            "Step": "drag(P2:0-P2:6→TB1:P1:1) to",
+            "X": 960,
+            "Y": 385,
+            "Under": "Range 1-1",
             "Cursor": "IBeam"
           }
         ],
@@ -81619,16 +85395,980 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 203,
-        "open.add": 68,
-        "open.view": 45,
+        "open": 870,
+        "open.add": 125,
+        "open.view": 193,
+        "open.front": 432,
+        "open.park": 117,
+        "options": 0,
+        "steps": 1263,
+        "observe": 513,
+        "reset": 53,
+        "close": 34
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88c[to=TB1:P1:2]": {
+      "DefinitionHash": "a9847736d825ba15",
+      "Title": "Where a word dropped inside a word of a text box lands",
+      "Fixture": "text-box",
+      "Steps": [
+        "drag(P2:0-P2:6→TB1:P1:2)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1914,
+      "RunAt": "2026-11-11T23:12:01.5323232+11:00",
+      "Lines": [
+        "[⚓1First paragraph of text here.]",
+        "[paragraph of text here.]",
+        "[Third paragraph of text here.]",
+        "SHP1 ⌖P1 textbox 160x80pt square @228,0",
+        "TB: [⟦Second ‸⟧Box line one]",
+        "TB: [Box line two]",
+        "Selection: Normal 0–7 end-active · Story TextFrame · drag(P2:0-P2:6→TB1:P1:2) from → Range 34-34, WordOwn · drag(P2:0-P2:6→TB1:P1:2) to → Range 2-2, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 0,
+          "End": 7,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdTextFrameStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Second ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 55,
+            "Text": "paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 55,
+            "End": 85,
+            "Text": "Third paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 55,
+                "End": 85,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Text Box 1",
+            "Kind": "textbox",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 160,
+            "Height": 80,
+            "Wrap": "square",
+            "Selected": false,
+            "Left": 228,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Story": {
+          "StoryType": "wdTextFrameStory",
+          "Paragraphs": [
+            {
+              "Index": 1,
+              "Start": 0,
+              "End": 20,
+              "Text": "Second Box line one\r",
+              "Runs": [
+                {
+                  "Start": 0,
+                  "End": 20,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            },
+            {
+              "Index": 2,
+              "Start": 20,
+              "End": 33,
+              "Text": "Box line two\r",
+              "Runs": [
+                {
+                  "Start": 20,
+                  "End": 33,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            }
+          ]
+        },
+        "Hotspots": [
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:2) from",
+            "X": 591,
+            "Y": 420,
+            "Under": "Range 34-34",
+            "Cursor": "WordOwn"
+          },
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:2) to",
+            "X": 970,
+            "Y": 385,
+            "Under": "Range 2-2",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 207,
+        "open.add": 74,
+        "open.view": 44,
         "open.front": 0,
-        "open.park": 87,
-        "options": 3,
-        "steps": 1106,
-        "observe": 285,
-        "reset": 31,
-        "close": 42
+        "open.park": 86,
+        "options": 0,
+        "steps": 1246,
+        "observe": 378,
+        "reset": 27,
+        "close": 56
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88c[to=TB1:P1:5]": {
+      "DefinitionHash": "a7aa9ac939a01fa4",
+      "Title": "Where a word dropped inside a word of a text box lands",
+      "Fixture": "text-box",
+      "Steps": [
+        "drag(P2:0-P2:6→TB1:P1:5)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1859,
+      "RunAt": "2026-11-11T23:12:03.4147679+11:00",
+      "Lines": [
+        "[⚓1First paragraph of text here.]",
+        "[paragraph of text here.]",
+        "[Third paragraph of text here.]",
+        "SHP1 ⌖P1 textbox 160x80pt square @228,0",
+        "TB: [Box ⟦Second ‸⟧line one]",
+        "TB: [Box line two]",
+        "Selection: Normal 4–11 end-active · Story TextFrame · drag(P2:0-P2:6→TB1:P1:5) from → Range 34-34, Arrow · drag(P2:0-P2:6→TB1:P1:5) to → Range 5-5, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 11,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdTextFrameStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Second ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 55,
+            "Text": "paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 55,
+            "End": 85,
+            "Text": "Third paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 55,
+                "End": 85,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Text Box 1",
+            "Kind": "textbox",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 160,
+            "Height": 80,
+            "Wrap": "square",
+            "Selected": false,
+            "Left": 228,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Story": {
+          "StoryType": "wdTextFrameStory",
+          "Paragraphs": [
+            {
+              "Index": 1,
+              "Start": 0,
+              "End": 20,
+              "Text": "Box Second line one\r",
+              "Runs": [
+                {
+                  "Start": 0,
+                  "End": 20,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            },
+            {
+              "Index": 2,
+              "Start": 20,
+              "End": 33,
+              "Text": "Box line two\r",
+              "Runs": [
+                {
+                  "Start": 20,
+                  "End": 33,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            }
+          ]
+        },
+        "Hotspots": [
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:5) from",
+            "X": 591,
+            "Y": 420,
+            "Under": "Range 34-34",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:5) to",
+            "X": 987,
+            "Y": 385,
+            "Under": "Range 5-5",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 211,
+        "open.add": 81,
+        "open.view": 43,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 0,
+        "steps": 1239,
+        "observe": 360,
+        "reset": 27,
+        "close": 22
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88c[to=TB1:P1:6]": {
+      "DefinitionHash": "19613779b9e1b44d",
+      "Title": "Where a word dropped inside a word of a text box lands",
+      "Fixture": "text-box",
+      "Steps": [
+        "drag(P2:0-P2:6→TB1:P1:6)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1835,
+      "RunAt": "2026-11-11T23:12:05.2855702+11:00",
+      "Lines": [
+        "[⚓1First paragraph of text here.]",
+        "[paragraph of text here.]",
+        "[Third paragraph of text here.]",
+        "SHP1 ⌖P1 textbox 160x80pt square @228,0",
+        "TB: [Box ⟦Second ‸⟧line one]",
+        "TB: [Box line two]",
+        "Selection: Normal 4–11 end-active · Story TextFrame · drag(P2:0-P2:6→TB1:P1:6) from → Range 34-34, Arrow · drag(P2:0-P2:6→TB1:P1:6) to → Range 6-6, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 4,
+          "End": 11,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdTextFrameStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Second ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 55,
+            "Text": "paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 55,
+            "End": 85,
+            "Text": "Third paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 55,
+                "End": 85,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Text Box 1",
+            "Kind": "textbox",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 160,
+            "Height": 80,
+            "Wrap": "square",
+            "Selected": false,
+            "Left": 228,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Story": {
+          "StoryType": "wdTextFrameStory",
+          "Paragraphs": [
+            {
+              "Index": 1,
+              "Start": 0,
+              "End": 20,
+              "Text": "Box Second line one\r",
+              "Runs": [
+                {
+                  "Start": 0,
+                  "End": 20,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            },
+            {
+              "Index": 2,
+              "Start": 20,
+              "End": 33,
+              "Text": "Box line two\r",
+              "Runs": [
+                {
+                  "Start": 20,
+                  "End": 33,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            }
+          ]
+        },
+        "Hotspots": [
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:6) from",
+            "X": 591,
+            "Y": 420,
+            "Under": "Range 34-34",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:6) to",
+            "X": 994,
+            "Y": 385,
+            "Under": "Range 6-6",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 213,
+        "open.add": 79,
+        "open.view": 48,
+        "open.front": 0,
+        "open.park": 84,
+        "options": 0,
+        "steps": 1175,
+        "observe": 370,
+        "reset": 29,
+        "close": 48
+      },
+      "Build": "16.0.20527.20150"
+    },
+    "M-88c[to=TB1:P1:7]": {
+      "DefinitionHash": "8d774eea9122afdb",
+      "Title": "Where a word dropped inside a word of a text box lands",
+      "Fixture": "text-box",
+      "Steps": [
+        "drag(P2:0-P2:6→TB1:P1:7)"
+      ],
+      "Options": {},
+      "Tracked": false,
+      "Status": "ok",
+      "DurationMs": 1906,
+      "RunAt": "2026-11-11T23:12:07.207233+11:00",
+      "Lines": [
+        "[⚓1First paragraph of text here.]",
+        "[paragraph of text here.]",
+        "[Third paragraph of text here.]",
+        "SHP1 ⌖P1 textbox 160x80pt square @228,0",
+        "TB: [Box line ⟦Second ‸⟧one]",
+        "TB: [Box line two]",
+        "Selection: Normal 9–16 end-active · Story TextFrame · drag(P2:0-P2:6→TB1:P1:7) from → Range 34-34, Arrow · drag(P2:0-P2:6→TB1:P1:7) to → Range 7-7, IBeam"
+      ],
+      "Observation": {
+        "Selection": {
+          "Start": 9,
+          "End": 16,
+          "Type": "Normal",
+          "Flags": 24,
+          "StartIsActive": false,
+          "AtEndOfLine": false,
+          "StoryType": "wdTextFrameStory",
+          "ExtendMode": false,
+          "ColumnSelectMode": false,
+          "SelectionMode": 0,
+          "InTable": false,
+          "AtEndOfRowMarker": false,
+          "Cells": 0,
+          "Rows": 0,
+          "Columns": 0,
+          "InlineShapes": 0,
+          "Shapes": 0,
+          "Overtype": false,
+          "Text": "Second ",
+          "IsCollapsed": false
+        },
+        "Paragraphs": [
+          {
+            "Index": 1,
+            "Start": 0,
+            "End": 31,
+            "Text": "\u0000First paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 0,
+                "End": 31,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 2,
+            "Start": 31,
+            "End": 55,
+            "Text": "paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 31,
+                "End": 55,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          },
+          {
+            "Index": 3,
+            "Start": 55,
+            "End": 85,
+            "Text": "Third paragraph of text here.\r",
+            "Runs": [
+              {
+                "Start": 55,
+                "End": 85,
+                "Marks": ""
+              }
+            ],
+            "Style": "Normal",
+            "Alignment": "",
+            "LeftIndent": 0,
+            "FirstLineIndent": 0,
+            "Table": 0,
+            "Row": 0,
+            "Column": 0,
+            "NestingLevel": 0,
+            "LengthMismatch": false,
+            "SpaceBefore": 0,
+            "SpaceAfter": 8,
+            "Bordered": false,
+            "KeepWithNext": false
+          }
+        ],
+        "Tables": [],
+        "Shapes": [
+          {
+            "Index": 1,
+            "Name": "Text Box 1",
+            "Kind": "textbox",
+            "Anchor": 0,
+            "AnchorParagraph": 1,
+            "Width": 160,
+            "Height": 80,
+            "Wrap": "square",
+            "Selected": false,
+            "Left": 228,
+            "Top": 0
+          }
+        ],
+        "Fields": [],
+        "Revisions": [],
+        "Notes": [],
+        "Comments": [],
+        "ContentControls": [],
+        "InlinePictures": [],
+        "SectionEnds": [],
+        "Undo": [],
+        "UndoSource": "off",
+        "Tracking": false,
+        "Story": {
+          "StoryType": "wdTextFrameStory",
+          "Paragraphs": [
+            {
+              "Index": 1,
+              "Start": 0,
+              "End": 20,
+              "Text": "Box line Second one\r",
+              "Runs": [
+                {
+                  "Start": 0,
+                  "End": 20,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            },
+            {
+              "Index": 2,
+              "Start": 20,
+              "End": 33,
+              "Text": "Box line two\r",
+              "Runs": [
+                {
+                  "Start": 20,
+                  "End": 33,
+                  "Marks": ""
+                }
+              ],
+              "Style": "Normal",
+              "Alignment": "",
+              "LeftIndent": 0,
+              "FirstLineIndent": 0,
+              "Table": 0,
+              "Row": 0,
+              "Column": 0,
+              "NestingLevel": 0,
+              "LengthMismatch": false,
+              "SpaceBefore": 0,
+              "SpaceAfter": 8,
+              "Bordered": false,
+              "KeepWithNext": false
+            }
+          ]
+        },
+        "Hotspots": [
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:7) from",
+            "X": 591,
+            "Y": 420,
+            "Under": "Range 34-34",
+            "Cursor": "Arrow"
+          },
+          {
+            "Step": "drag(P2:0-P2:6→TB1:P1:7) to",
+            "X": 1004,
+            "Y": 385,
+            "Under": "Range 7-7",
+            "Cursor": "IBeam"
+          }
+        ],
+        "Remarks": []
+      },
+      "Remarks": [],
+      "Tests": [],
+      "Phases": {
+        "open": 213,
+        "open.add": 82,
+        "open.view": 46,
+        "open.front": 0,
+        "open.park": 82,
+        "options": 0,
+        "steps": 1231,
+        "observe": 391,
+        "reset": 28,
+        "close": 43
       },
       "Build": "16.0.20527.20150"
     }

@@ -123,17 +123,23 @@ static class DocumentReading
         }
     }
 
-    // Under ParagraphIds.Stamping, the parts the edit loaded get their paragraph ids before they are saved.
+    // A text box's fallback copy made the copy of what the edit left (TextBoxFallbacks), and under
+    // ParagraphIds.Stamping, the parts the edit loaded given their paragraph ids, before they are saved.
     static Action<WordprocessingDocument> Stamped(Action<WordprocessingDocument> edit)
     {
         if (!ParagraphIds.IsStamping)
         {
-            return edit;
+            return _ =>
+            {
+                edit(_);
+                TextBoxFallbacks.Follow(_);
+            };
         }
 
         return _ =>
         {
             edit(_);
+            TextBoxFallbacks.Follow(_);
             ParagraphIds.Stamp(_);
         };
     }

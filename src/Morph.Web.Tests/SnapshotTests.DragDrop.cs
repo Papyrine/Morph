@@ -170,6 +170,65 @@ public partial class SnapshotTests
                                           Math.Abs(right - 60) < 1 && Math.Abs(down) < 0.1);
     }
 
+    // WordProbe's own text-box fixture: a square-wrapped box anchored in the first paragraph, its two
+    // paragraphs 1 and 2 (the mc:Choice Word reads; 3 and 4 are its VML fallback), the body's 0, 5 and 6.
+    static byte[] TextBoxFixture() =>
+        File.ReadAllBytes(Path.Combine(ProjectFiles.ProjectDirectory, "..", "WordProbe", "Fixtures", "text-box.docx"));
+
+    // A click in the box opens its paragraph, and what is typed there is written into it.
+    [Test]
+    public async Task TextBox_ItsTextIsTypedInto()
+    {
+        var page = await OpenEditAsync(TextBoxFixture());
+        await ClickInAsync(page, "line two");
+        await SelectInEditorAsync(page, "Box ".Length, 0);
+        await page.Keyboard.TypeAsync("next ");
+        await HandInAsync(page);
+
+        await WaitForOutlineAsync(page, ["Box line one", "Box next line two", "Second paragraph of text here."]);
+    }
+
+    // Text dragged from the body into the box, and back out of it (WordProbe M-87, I-26b). A word
+    // dropped inside a word lands at that word's start.
+    [Test]
+    public async Task DragDrop_IntoATextBox_AndOutOfIt()
+    {
+        var page = await OpenEditAsync(TextBoxFixture());
+        await ClickInAsync(page, "Second paragraph");
+        await SelectInEditorAsync(page, 0, "Second".Length);
+
+        // To "Bo|x".
+        await DragSelectionToAsync(page, "x line one", copy: false);
+        await WaitForOutlineAsync(page, ["Second Box line one", "Box line two", "paragraph of text here."]);
+
+        // And "Box" back out, to "para|graph" in the first paragraph, the first on the page to read so.
+        await ClickInAsync(page, "Box line one");
+        await SelectInEditorAsync(page, "Second ".Length, "Box".Length);
+        await DragSelectionToAsync(page, "graph of text", copy: false);
+        await WaitForOutlineAsync(page, ["Second line one", "Box line two", "paragraph of text here."]);
+        await Assert.That(string.Concat(DocumentOutline.Read(await SaveAsync(page)).Paragraphs[0].Units.Where(_ => _.Editable).Select(_ => _.Text))).IsEqualTo("First Box paragraph of text here.");
+    }
+
+    // The text box's two paragraphs and the body's second, as the outline reads them, saved until they
+    // read as expected.
+    static async Task WaitForOutlineAsync(IPage page, string[] expected)
+    {
+        string[] texts = [];
+        for (var attempt = 0; attempt < 40; attempt++)
+        {
+            var paragraphs = DocumentOutline.Read(await SaveAsync(page)).Paragraphs;
+            texts = [.. new[] {1, 2, 5}.Select(_ => string.Concat(paragraphs[_].Units.Where(unit => unit.Editable).Select(unit => unit.Text)))];
+            if (texts.SequenceEqual(expected))
+            {
+                return;
+            }
+
+            await page.WaitForTimeoutAsync(250);
+        }
+
+        await Assert.That(texts).IsEquivalentTo(expected);
+    }
+
     // Each floating picture's offsets from what it stands against, in points, in the body's order.
     static List<(double Right, double Down)> PictureOffsets(string body) =>
         Regex.Matches(body, "<wp:positionH[^>]*><wp:posOffset>(-?\\d+)</wp:posOffset></wp:positionH><wp:positionV[^>]*><wp:posOffset>(-?\\d+)</wp:posOffset>")

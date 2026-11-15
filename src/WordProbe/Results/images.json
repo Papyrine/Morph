@@ -1,6 +1,6 @@
 {
   "Family": "images",
-  "Generated": "2026-11-07T13:03:34.0419502+11:00",
+  "Generated": "2026-11-11T23:09:10.6096052+11:00",
   "Word": {
     "Version": "16.0",
     "Build": "16.0.20527",
@@ -33615,19 +33615,19 @@
       "Options": {},
       "Tracked": false,
       "Status": "ok",
-      "DurationMs": 1704,
-      "RunAt": "2026-11-07T12:21:21.5549929+11:00",
+      "DurationMs": 2545,
+      "RunAt": "2026-11-11T23:09:08.7677646+11:00",
       "Lines": [
-        "[⟦⚓1First paragraph of text here.¶⟧]",
-        "⟦[Sec‸⟧ond paragraph of text here.]",
+        "[⚓1First paragraph of text here.]",
+        "[⟦Box ‸⟧Second paragraph of text here.]",
         "[Third paragraph of text here.]",
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
-        "Selection: Normal 0–34 end-active · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam"
+        "Selection: Normal 31–35 end-active · Undo: Move · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, WordOwn · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam"
       ],
       "Observation": {
         "Selection": {
-          "Start": 0,
-          "End": 34,
+          "Start": 31,
+          "End": 35,
           "Type": "Normal",
           "Flags": 24,
           "StartIsActive": false,
@@ -33644,7 +33644,7 @@
           "InlineShapes": 0,
           "Shapes": 0,
           "Overtype": false,
-          "Text": "First paragraph of text here.\rSec",
+          "Text": "Box ",
           "IsCollapsed": false
         },
         "Paragraphs": [
@@ -33677,12 +33677,12 @@
           {
             "Index": 2,
             "Start": 31,
-            "End": 62,
-            "Text": "Second paragraph of text here.\r",
+            "End": 66,
+            "Text": "Box Second paragraph of text here.\r",
             "Runs": [
               {
                 "Start": 31,
-                "End": 62,
+                "End": 66,
                 "Marks": ""
               }
             ],
@@ -33702,13 +33702,13 @@
           },
           {
             "Index": 3,
-            "Start": 62,
-            "End": 92,
+            "Start": 66,
+            "End": 96,
             "Text": "Third paragraph of text here.\r",
             "Runs": [
               {
-                "Start": 62,
-                "End": 92,
+                "Start": 66,
+                "End": 96,
                 "Marks": ""
               }
             ],
@@ -33750,21 +33750,23 @@
         "ContentControls": [],
         "InlinePictures": [],
         "SectionEnds": [],
-        "Undo": [],
-        "UndoSource": "undo-redo-count",
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
         "Tracking": false,
         "Hotspots": [
           {
             "Step": "drag(TB1:P1:0-TB1:P1:4→P2:3) from",
-            "X": 565,
-            "Y": 405,
+            "X": 972,
+            "Y": 385,
             "Under": "Range 2-2",
-            "Cursor": "IBeam"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(TB1:P1:0-TB1:P1:4→P2:3) to",
             "X": 589,
-            "Y": 446,
+            "Y": 420,
             "Under": "Range 34-34",
             "Cursor": "IBeam"
           }
@@ -33774,16 +33776,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 198,
-        "open.add": 65,
-        "open.view": 26,
-        "open.front": 0,
-        "open.park": 104,
+        "open": 782,
+        "open.add": 119,
+        "open.view": 102,
+        "open.front": 449,
+        "open.park": 108,
         "options": 0,
-        "steps": 1202,
-        "observe": 233,
-        "reset": 31,
-        "close": 40
+        "steps": 1237,
+        "observe": 447,
+        "reset": 32,
+        "close": 47
       },
       "Build": "16.0.20527.20150"
     },
@@ -33797,19 +33799,19 @@
       "Options": {},
       "Tracked": true,
       "Status": "ok",
-      "DurationMs": 1788,
-      "RunAt": "2026-11-07T12:21:23.3491396+11:00",
+      "DurationMs": 1808,
+      "RunAt": "2026-11-11T23:09:10.5988184+11:00",
       "Lines": [
-        "[⟦⚓1First paragraph of text here.¶⟧]",
-        "⟦[Second ‸⟧paragraph of text here.]",
+        "[⚓1First paragraph of text here.]",
+        "{+[⟦Box ‸⟧]+}[Second paragraph of text here.]",
         "[Third paragraph of text here.]",
         "SHP1 ⌖P1 textbox 160x80pt square @228,0",
-        "Selection: Normal 0–38 end-active · Tracking · Revisions 0 · Undo — · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, IBeam · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam"
+        "Selection: Normal 31–35 end-active · Tracking · Revisions 1 · Undo: Move · drag(TB1:P1:0-TB1:P1:4→P2:3) from → Range 2-2, WordOwn · drag(TB1:P1:0-TB1:P1:4→P2:3) to → Range 34-34, IBeam"
       ],
       "Observation": {
         "Selection": {
-          "Start": 0,
-          "End": 38,
+          "Start": 31,
+          "End": 35,
           "Type": "Normal",
           "Flags": 24,
           "StartIsActive": false,
@@ -33826,7 +33828,7 @@
           "InlineShapes": 0,
           "Shapes": 0,
           "Overtype": false,
-          "Text": "First paragraph of text here.\rSecond ",
+          "Text": "Box ",
           "IsCollapsed": false
         },
         "Paragraphs": [
@@ -33859,12 +33861,12 @@
           {
             "Index": 2,
             "Start": 31,
-            "End": 62,
-            "Text": "Second paragraph of text here.\r",
+            "End": 66,
+            "Text": "Box Second paragraph of text here.\r",
             "Runs": [
               {
                 "Start": 31,
-                "End": 62,
+                "End": 66,
                 "Marks": ""
               }
             ],
@@ -33884,13 +33886,13 @@
           },
           {
             "Index": 3,
-            "Start": 62,
-            "End": 92,
+            "Start": 66,
+            "End": 96,
             "Text": "Third paragraph of text here.\r",
             "Runs": [
               {
-                "Start": 62,
-                "End": 92,
+                "Start": 66,
+                "End": 96,
                 "Marks": ""
               }
             ],
@@ -33926,27 +33928,36 @@
           }
         ],
         "Fields": [],
-        "Revisions": [],
+        "Revisions": [
+          {
+            "Type": "Insert",
+            "Start": 31,
+            "End": 35,
+            "Author": "Simon Cropp"
+          }
+        ],
         "Notes": [],
         "Comments": [],
         "ContentControls": [],
         "InlinePictures": [],
         "SectionEnds": [],
-        "Undo": [],
-        "UndoSource": "undo-redo-count",
+        "Undo": [
+          "Move"
+        ],
+        "UndoSource": "control128",
         "Tracking": true,
         "Hotspots": [
           {
             "Step": "drag(TB1:P1:0-TB1:P1:4→P2:3) from",
-            "X": 565,
-            "Y": 405,
+            "X": 972,
+            "Y": 385,
             "Under": "Range 2-2",
-            "Cursor": "IBeam"
+            "Cursor": "WordOwn"
           },
           {
             "Step": "drag(TB1:P1:0-TB1:P1:4→P2:3) to",
             "X": 589,
-            "Y": 446,
+            "Y": 420,
             "Under": "Range 34-34",
             "Cursor": "IBeam"
           }
@@ -33956,16 +33967,16 @@
       "Remarks": [],
       "Tests": [],
       "Phases": {
-        "open": 200,
-        "open.add": 65,
-        "open.view": 24,
+        "open": 195,
+        "open.add": 71,
+        "open.view": 41,
         "open.front": 0,
-        "open.park": 108,
-        "options": 3,
-        "steps": 1220,
-        "observe": 292,
-        "reset": 30,
-        "close": 43
+        "open.park": 81,
+        "options": 4,
+        "steps": 1202,
+        "observe": 335,
+        "reset": 25,
+        "close": 47
       },
       "Build": "16.0.20527.20150"
     },

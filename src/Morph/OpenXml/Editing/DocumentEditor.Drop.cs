@@ -6,12 +6,13 @@ using Unit = ParagraphContent.Unit;
 
 // Drag and drop: text selected — with what is not text in it, a picture, a field, a note's reference —
 // dragged to another place and dropped, moved there or, with Ctrl held, copied. What Word does was
-// probed with real mouse drags (WordProbe M-80 to M-87, C-22, M-62; src/word-behavior.md):
+// probed with real mouse drags (WordProbe M-80 to M-88c, C-22, M-62; src/word-behavior.md):
 //
 //   - What is dropped keeps its own formatting, and is left selected where it went (M-80).
-//   - Dropped inside a word, text lands at the nearer end of it, past the spaces after it at its end:
-//     "beta" dropped in "ga|mma" goes before "gamma", in "Thir|d and" before "and" (M-80, M-81, M-83,
-//     M-84). A picture dropped there is not moved off the place (M-62).
+//   - Dropped inside a word, text lands at the word's start ("beta" in "ga|mma" goes before "gamma"),
+//     or past the word and its spaces once the drop is two letters or more nearer the word's end than
+//     its start ("Thir|d and" before "and") (M-80 to M-88c; Snapped). A picture dropped there is not
+//     moved off the place (M-62).
 //   - Dropped on itself or at either of its ends, nothing happens and the caret goes to the drop (M-83).
 //   - Smart cut and paste, on by default: a whole word moved away takes a space with it, as Cut does
 //     (smartCut in morph-edit.js), and where it lands it is spaced from its neighbours — a space before
@@ -240,7 +241,12 @@ static partial class DocumentEditor
         char.IsLetterOrDigit(character) ||
         character is '_' or '\'' or '’';
 
-    // A drop inside a word goes to the nearer end of it, and at the end past the spaces after it.
+    // A drop inside a word goes to the word's start, or past the word and the spaces after it once the
+    // drop is two letters or more nearer its end than its start: what is dropped does not matter, and a
+    // text box's words go as the body's. Eighteen drops across six words settle it (M-80 to M-88c):
+    // "paragraph" took letters one to five in to its start and six to eight past it; "Thir|d" and
+    // "lin|e" went past, "Bo|x" (two in, one to go) and "li|ne" (two and two) to the start — so it is
+    // neither the nearer end nor a fraction of the word, and the drop's x was where the harness pressed.
     static int Snapped(string text, int offset)
     {
         if (offset <= 0 ||
@@ -265,7 +271,7 @@ static partial class DocumentEditor
             end++;
         }
 
-        if (offset - start <= end - offset)
+        if (offset - start < end - offset + 2)
         {
             return start;
         }
