@@ -7,18 +7,20 @@
 # test output are all volume-mounted from the host at runtime, not baked in.
 # That keeps iteration fast and keeps the image cache hit rate high.
 
-# Pinned by digest (not just the mutable :11.0.100-rc.3 tag) so every build — local and
+# Pinned by digest (not just the mutable :11.0.100 tag) so every build — local and
 # CI — resolves the byte-identical SDK image; an SDK patch silently changing
 # under the tag is a source of cross-environment rendering drift. To bump:
-#   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:11.0.100-rc.3
+#   docker buildx imagetools inspect mcr.microsoft.com/dotnet/sdk:11.0.100
 # then update the digest below (and regenerate baselines in the container).
-# The pinned image's SDK must satisfy global.json (currently 11.0.100-rc.3.26522.148) — pinning
+# The pinned image's SDK must satisfy global.json (currently 11.0.100) — pinning
 # an older patch than global.json requires makes `dotnet` fail to find an SDK.
 # That is not hypothetical: bumping global.json 10.0.302 -> 10.0.400 without
 # moving this digest left every containerised run failing with "Install the
 # [10.0.400] .NET SDK", and no rebuild can fix it, since the FROM is the pin.
+# It happened again bumping 11.0.100-rc.3.26522.148 -> 11.0.100: a prerelease sorts
+# below its release, so rollForward never reaches the GA SDK from an rc image.
 # Bump the two together.
-FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:11.0.100-rc.3@sha256:3428fc2125ad5045b3223392a2a33de7f1f241641e20610f542c7fb648225335
+FROM --platform=linux/amd64 mcr.microsoft.com/dotnet/sdk:11.0.100@sha256:65f3c7c6a25a239ab3e6719f2896147e7b68242ff2d8818dd70498bde6ef8bea
 
 # SkiaSharp.NativeAssets.Linux.NoDependencies bundles freetype/expat itself.
 # The .NET SDK image already ships with ICU, so we only need to add fontconfig
