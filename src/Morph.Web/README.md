@@ -196,7 +196,7 @@ Windows.
 ```bash
 # Build (also publishes the Blazor app the Playwright tests serve) and run.
 dotnet build src/Morph.Web.Tests --configuration Release
-dotnet src/Morph.Web.Tests/bin/Release/net10.0/Morph.Web.Tests.dll
+dotnet src/Morph.Web.Tests/bin/Release/net11.0/Morph.Web.Tests.dll
 ```
 
 Most of what they cover now lives in `Morph.Blazor` rather than here; they stay in this project because

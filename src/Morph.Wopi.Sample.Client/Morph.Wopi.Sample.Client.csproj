@@ -5,7 +5,7 @@
     Morph.Wopi.Sample (the server), which answers a WOPI host's action URL with its page.
   -->
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);CS1591</NoWarn>
     <!-- Served under /morph (wwwroot/index.html's base href is the same), as an application that has pages of

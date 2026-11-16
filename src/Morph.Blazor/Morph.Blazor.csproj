@@ -1,18 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>net11.0</TargetFramework>
     <!-- Every public type sits in the single Morph namespace, matching the rest of the repo, so the
          Razor SDK must not derive per-folder namespaces from the project's folder layout. -->
     <RootNamespace>Morph</RootNamespace>
     <!-- CS1591: the Razor SDK's generated component classes carry no XML doc comments and can't be
          given any. The hand-written API in Services/ and the component parameters are documented, and
-         ProjectDefaults still emits the doc file in Release, so consumers get IntelliSense. -->
-    <NoWarn>CS0618;CS1591;CS1572</NoWarn>
+         ProjectDefaults still emits the doc file in Release, so consumers get IntelliSense.
+         BL0016 (new in .NET 11) wants every JS interop call inside a try/catch; the disconnected circuit it
+         guards against is Blazor Server's, and these components run in WebAssembly.
+         BL0012 (new in .NET 11) calls StateHasChanged unnecessary, but it cannot see the handlers JS invokes
+         (Ctrl+S, for one), after which Blazor renders nothing unless asked. -->
+    <NoWarn>CS0618;CS1591;CS1572;BL0012;BL0016</NoWarn>
     <Description>Blazor WebAssembly components that convert Word, Excel and PowerPoint files to PNG, PDF, HTML, Markdown or plain text — entirely in the browser.</Description>
     <!-- Unlike the other Morph packages this one has setup steps (AddMorph, the stylesheet link), so the
          README travels with it to the gallery rather than living only in the repo. -->
     <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- From .NET 11 the static web assets SDK packs a build\, buildMultiTargeting\ and buildTransitive\
+         Morph.Blazor.targets of its own, which collide with build\Morph.Blazor.targets below. That file
+         imports the SDK's build\Microsoft.AspNetCore.StaticWebAssets.targets itself instead. -->
+    <StaticWebAssetsDisableProjectBuildPropsFileGeneration>true</StaticWebAssetsDisableProjectBuildPropsFileGeneration>
+    <StaticWebAssetsDisableProjectBuildMultiTargetingPropsFileGeneration>true</StaticWebAssetsDisableProjectBuildMultiTargetingPropsFileGeneration>
+    <StaticWebAssetsDisableProjectBuildTransitivePropsFileGeneration>true</StaticWebAssetsDisableProjectBuildTransitivePropsFileGeneration>
   </PropertyGroup>
 
   <ItemGroup>

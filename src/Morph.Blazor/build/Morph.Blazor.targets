@@ -2,6 +2,16 @@
 <Project>
 
   <!--
+    The package's static web assets (the stylesheet, the scripts). From .NET 11 the SDK describes them in
+    build\Microsoft.AspNetCore.StaticWebAssets.targets and would generate its own build\Morph.Blazor.targets
+    to import it, which collides with this file; Morph.Blazor.csproj turns that generation off, so the
+    import is made here. Through ..\build\ so that the buildTransitive copy reaches the same file. Absent
+    when this file is imported straight from the repo, where the project reference brings the assets.
+  -->
+  <Import Project="$(MSBuildThisFileDirectory)..\build\Microsoft.AspNetCore.StaticWebAssets.targets"
+          Condition="Exists('$(MSBuildThisFileDirectory)..\build\Microsoft.AspNetCore.StaticWebAssets.targets')" />
+
+  <!--
     Trimming roots for a Blazor WebAssembly app that publishes trimmed.
 
     Trimming the BCL, the Components framework and Morph's own assemblies (verified reflection-free) is
