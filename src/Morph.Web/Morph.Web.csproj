@@ -5,7 +5,9 @@
     <!-- App, not a package: no XML docs. ProjectDefaults turns on GenerateDocumentationFile in Release,
          which (with TreatWarningsAsErrors) would fail on every undocumented component/parameter. -->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
+    <!-- BL0016 (new in .NET 11) wants every JS interop call inside a try/catch; the disconnected circuit it
+         guards against is Blazor Server's, and this app runs in WebAssembly. -->
+    <NoWarn>$(NoWarn);CS1591;BL0016</NoWarn>
     <!--
       Selective trim. Trimming is ON so the BCL, the ASP.NET Components framework and Morph's own
       assemblies (verified reflection-free) shrink to what's actually reached. The conversion pipeline's
