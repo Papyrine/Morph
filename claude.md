@@ -560,6 +560,14 @@ a grid rather than on pages. Three layers, as for Word documents:
   deletes again in every corpus workbook, expecting every formula and value back. To check a change against
   Excel itself, have Excel make the same insert or delete over COM and compare the two files cell by cell:
   over the corpus that matched on every operation but the display of a name read back as `#REF!`.
+- **Sheets added, renamed, deleted and moved** (`WorkbookEditor.Sheets.cs`; `SheetNames` holds Excel's
+  rules, probed over COM): a new sheet is Sheet1, Sheet2 and on, the first no sheet has; a rename rewrites
+  every formula, name and chart that names the sheet, quoting the new name where a formula could misread it
+  (`'2024'`, `'A1'`, `'C'`, `'TRUE'`), and leaves link targets alone as Excel does; a delete makes each
+  reference to the sheet `#REF!` whole (`Data!A1*2` → `#REF!*2`) and takes the names scoped to it. What
+  names a sheet by its place — `localSheetId`, the active and first tabs — is renumbered by every one.
+  The grid's tabs (`SheetEditor.Tabs.cs`) add with + or Shift+F11, rename on a double-click, and have a
+  right-click menu. `SheetTabTests` replays the probes and undoes each step over every corpus workbook.
 - **The grid** (`Morph.Blazor`): `SheetEditor` owns the model, the selection (an active cell and a far
   corner), undo and every edit; `wwwroot/morph-sheet.js` owns the keys, the typing (a textarea over the
   active cell holds the focus, invisible until typed into), the mouse, formula pointing, resizing and the

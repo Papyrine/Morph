@@ -25,7 +25,8 @@ spellcheck only), show-markup options, compare, read mode, web layout, split and
 Landed 2026-11-10: the grid, typing and formulas, the formula engine, formatting, clipboard, undo,
 column and row sizes. Open:
 
-- **Sheets**: add, rename, delete and reorder them.
+- **Sheets**: hide and unhide them, colour their tabs, copy one, and drag a tab to move it (the tab's
+  menu moves a sheet a place at a time).
 - **Insert and delete cells** that shift the cells beside them right or down (Excel's Insert Cells and
   Delete Cells dialog); only whole rows and columns are inserted and deleted
   (`WorkbookEditor.InsertRows` and its kind), and Ctrl+Plus on cells offers those.

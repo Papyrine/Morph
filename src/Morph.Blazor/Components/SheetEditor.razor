@@ -299,11 +299,37 @@
             @foreach (var each in grid.Sheets.Where(_ => !_.Hidden))
             {
                 var index = each.Index;
-                <button type="button" role="tab" class="sheet-tab" aria-selected="@(index == sheetIndex ? "true" : "false")"
-                        @onmousedown:preventDefault @onclick="() => SelectSheetAsync(index)">@each.Name</button>
+                @if (renaming == index)
+                {
+                    <input class="sheet-tab-rename" aria-label="Sheet name" maxlength="31" value="@renameText" spellcheck="false" autocomplete="off"
+                           @oninput="_ => renameText = _.Value?.ToString() ?? string.Empty" @onkeydown="OnRenameKey" @onblur="CommitRenameAsync" />
+                }
+                else
+                {
+                    <button type="button" role="tab" class="sheet-tab" data-sheet="@index" aria-selected="@(index == sheetIndex ? "true" : "false")"
+                            title="@(CanChangeSheets ? "Double-click to rename" : null)"
+                            @onmousedown:preventDefault @onclick="() => SelectSheetAsync(index)" @ondblclick="() => BeginRenameAsync(index)">@each.Name</button>
+                }
             }
+            <button type="button" class="viewer-button sheet-tab-add" title="New sheet (Shift+F11)" aria-label="New sheet" disabled="@(!CanChangeSheets)"
+                    @onmousedown:preventDefault @onclick="() => AddSheetAsync(sheetIndex + 1)">
+                <Iconify Value="Lucide.Plus" aria-hidden="true" focusable="false" />
+            </button>
         }
     </div>
+
+    @* A sheet's tab's menu, as Excel's offers it. *@
+    @if (menu == tabMenu)
+    {
+        <div class="editor-menu editor-context-menu sheet-menu sheet-context-menu" role="menu" aria-label="Sheet" style="@ContextStyle">
+            @MenuItem("Insert", () => AddSheetAsync(tabSheet), !CanChangeSheets)
+            @MenuItem("Delete", () => DeleteSheetAsync(tabSheet), !CanDelete(tabSheet))
+            @MenuItem("Rename", () => BeginRenameAsync(tabSheet), !CanChangeSheets)
+            <div class="editor-menu-separator" role="separator"></div>
+            @MenuItem("Move left", () => MoveSheetAsync(tabSheet, -1), !CanChangeSheets || Neighbour(tabSheet, -1) is null)
+            @MenuItem("Move right", () => MoveSheetAsync(tabSheet, 1), !CanChangeSheets || Neighbour(tabSheet, 1) is null)
+        </div>
+    }
 
     <div class="sheet-status" role="group" aria-label="Status bar">
         <span class="sheet-mode">@ModeName</span>

@@ -33,6 +33,11 @@ export function attachSheet(root, dotNet) {
         report: () => sheet.report(),
         handIn: () => sheet.handIn(),
         placeMenu: () => sheet.placeMenu(),
+        selectRename: () => {
+            const box = root.querySelector('.sheet-tab-rename');
+            box?.focus();
+            box?.select();
+        },
         editing: () => !!sheet.mode,
         dispose: () => sheet.dispose()
     };
@@ -488,6 +493,13 @@ class Sheet {
             return;
         }
 
+        // Shift+F11 adds a sheet before this one, as in Excel.
+        if (key === 'F11' && shift && !ctrl && !event.altKey) {
+            event.preventDefault();
+            this.call('OnSheetKey', 'NewSheet', false, false);
+            return;
+        }
+
         // Ctrl+Plus inserts and Ctrl+Minus deletes, as in Excel; Ctrl+Alt+= too, for a browser that keeps
         // Ctrl+Plus for its zoom.
         if (ctrl && (key === '+' || key === '-' || (event.altKey && key === '='))) {
@@ -660,6 +672,23 @@ class Sheet {
     onContextMenu(event) {
         const target = event.target;
         if (!(target instanceof Element) || this.mode) {
+            return;
+        }
+
+        // A sheet's tab: its own menu.
+        const tab = target.closest('.sheet-tab');
+        if (tab) {
+            event.preventDefault();
+            const bounds = this.root.getBoundingClientRect();
+            const box = tab.getBoundingClientRect();
+            let x = event.clientX;
+            let y = event.clientY;
+            if (x === 0 && y === 0) {
+                x = box.left;
+                y = box.top;
+            }
+
+            this.call('OnSheetTabMenu', Number(tab.dataset.sheet), x - bounds.left, y - bounds.top);
             return;
         }
 

@@ -245,6 +245,7 @@ public partial class SheetEditor : IAsyncDisposable
             }
 
             await PlaceMenuAsync();
+            await SelectRenameAsync();
         }
         catch (JSDisconnectedException)
         {
@@ -711,6 +712,8 @@ public partial class SheetEditor : IAsyncDisposable
 
                 clipboard = null;
                 break;
+            case "NewSheet":
+                return AddSheetAsync(sheetIndex);
             case "InsertCells":
                 return ShiftKeyAsync(delete: false);
             case "DeleteCells":

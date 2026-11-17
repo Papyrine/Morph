@@ -3793,6 +3793,26 @@ a.wopi-crumb:hover {
     font-weight: 600;
 }
 
+/* A tab being renamed: its name in a box of the tab's own size. */
+.sheet-tab-rename {
+    flex: none;
+    width: 10rem;
+    margin: 0.15rem 0.3rem;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid #217346;
+    border-radius: 2px;
+    background: var(--morph-surface, #ffffff);
+    color: inherit;
+    font: inherit;
+    font-size: 0.8125rem;
+}
+
+.sheet-tab-add {
+    flex: none;
+    align-self: center;
+    margin-left: 0.25rem;
+}
+
 .sheet-status {
     display: flex;
     align-items: center;

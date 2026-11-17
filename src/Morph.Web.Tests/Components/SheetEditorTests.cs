@@ -315,6 +315,93 @@ public class SheetEditorTests : BunitTestContext
         await Assert.That(cut.FindAll(".sheet-context-menu")).IsEmpty();
     }
 
+    static List<string> Tabs(IRenderedComponent<MorphEditor> cut) =>
+        cut.FindAll(".sheet-tab").Select(_ => _.TextContent).ToList();
+
+    // The + after the tabs adds a sheet after this one, named as Excel names it, and shows it; undone,
+    // the workbook is as it was.
+    [Test]
+    public async Task ThePlusButton_AddsASheet_AndShowsIt()
+    {
+        var cut = await Open();
+
+        await cut.Find(".sheet-tab-add").ClickAsync(new());
+
+        await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("Invoice|Sheet1");
+        await Assert.That(cut.Find(".sheet-tab[aria-selected='true']").TextContent).IsEqualTo("Sheet1");
+        await Assert.That(cut.Find(".sheet-name-box").GetAttribute("value")).IsEqualTo("A1");
+
+        var grid = cut.FindComponent<SheetEditor>();
+        await cut.InvokeAsync(() => grid.Instance.OnSheetKey("Undo", false, true));
+        await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("Invoice");
+    }
+
+    // A double-click on a tab opens its name for typing; Enter renames the sheet.
+    [Test]
+    public async Task ADoubleClickedTab_IsRenamed()
+    {
+        byte[]? changed = null;
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+
+        await cut.Find(".sheet-tab").DoubleClickAsync(new());
+        var box = cut.Find(".sheet-tab-rename");
+        await Assert.That(box.GetAttribute("value")).IsEqualTo("Invoice");
+        await box.InputAsync(new() { Value = "March invoice" });
+        await cut.Find(".sheet-tab-rename").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+
+        await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("March invoice");
+        await Assert.That(cut.FindAll(".sheet-tab-rename")).IsEmpty();
+        using var stream = new MemoryStream(changed!);
+        using var document = DocumentFormat.OpenXml.Packaging.SpreadsheetDocument.Open(stream, false);
+        await Assert.That(document.WorkbookPart!.Workbook!.Sheets!.Elements<DocumentFormat.OpenXml.Spreadsheet.Sheet>().Single().Name!.Value).IsEqualTo("March invoice");
+    }
+
+    // A name Excel would refuse keeps the box open, and the status bar says why; Escape gives up.
+    [Test]
+    public async Task ANameExcelRefuses_KeepsTheBoxOpen()
+    {
+        var cut = await Open();
+        await cut.Find(".sheet-tab").DoubleClickAsync(new());
+
+        await cut.Find(".sheet-tab-rename").InputAsync(new() { Value = "a/b" });
+        await cut.Find(".sheet-tab-rename").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+
+        await Assert.That(cut.FindAll(".sheet-tab-rename").Count).IsEqualTo(1);
+        await Assert.That(cut.Find(".sheet-note").TextContent).Contains("can't hold");
+
+        await cut.Find(".sheet-tab-rename").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Escape" });
+        await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("Invoice");
+    }
+
+    // A tab's right-click menu: Delete is greyed out for the only sheet, and moves are where there is a
+    // sheet to move past; with two, the first moved right is second.
+    [Test]
+    public async Task ATabsMenu_DeletesAndMoves()
+    {
+        var cut = await Open();
+        var grid = cut.FindComponent<SheetEditor>();
+
+        await cut.InvokeAsync(() => grid.Instance.OnSheetTabMenu(0, 20, 400));
+        bool Off(string label) =>
+            cut.FindAll(".sheet-context-menu .editor-menu-item").Single(_ => _.TextContent == label).HasAttribute("disabled");
+        await Assert.That(Off("Delete")).IsTrue();
+        await Assert.That(Off("Move left")).IsTrue();
+        await Assert.That(Off("Move right")).IsTrue();
+
+        await cut.FindAll(".sheet-context-menu .editor-menu-item").Single(_ => _.TextContent == "Insert").ClickAsync(new());
+        await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("Sheet1|Invoice");
+
+        await cut.InvokeAsync(() => grid.Instance.OnSheetTabMenu(0, 20, 400));
+        await cut.FindAll(".sheet-context-menu .editor-menu-item").Single(_ => _.TextContent == "Move right").ClickAsync(new());
+        await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("Invoice|Sheet1");
+        await Assert.That(cut.Find(".sheet-tab[aria-selected='true']").TextContent).IsEqualTo("Sheet1");
+
+        await cut.InvokeAsync(() => grid.Instance.OnSheetTabMenu(1, 20, 400));
+        await cut.FindAll(".sheet-context-menu .editor-menu-item").Single(_ => _.TextContent == "Delete").ClickAsync(new());
+        await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("Invoice");
+        await Assert.That(cut.Find(".sheet-tab[aria-selected='true']").TextContent).IsEqualTo("Invoice");
+    }
+
     // A right-click inside the selection keeps it.
     [Test]
     public async Task ARightClickInTheSelection_KeepsIt()
