@@ -25,9 +25,10 @@ spellcheck only), show-markup options, compare, read mode, web layout, split and
 Landed 2026-11-10: the grid, typing and formulas, the formula engine, formatting, clipboard, undo,
 column and row sizes. Open:
 
-- **Rows, columns and sheets**: insert and delete rows and columns, which moves every reference to the
-  cells after them (formulas on every sheet, defined names, merges, tables, conditional formats,
-  validations, drawings' anchors); add, rename, delete and reorder sheets.
+- **Sheets**: add, rename, delete and reorder them.
+- **Insert and delete cells** that shift the cells beside them right or down (Excel's Insert Cells and
+  Delete Cells dialog); only whole rows and columns are inserted and deleted
+  (`WorkbookEditor.InsertRows` and its kind), and Ctrl+Plus on cells offers those.
 - **Merge and unmerge**, **freeze panes** (a frozen pane is read but scrolls with the rest), **sort and
   filter**, the **fill handle**, conditional formatting and data validation edited.
 - **Drawings over the cells**: a chart or picture anchored to a sheet is not drawn in the grid; a chart

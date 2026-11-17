@@ -119,6 +119,32 @@
                 </div>
             </div>
         </div>
+        <div class="editor-group" role="group" aria-label="Cells">
+            <div class="editor-group-body">
+                <div class="editor-stack">
+                    <span class="editor-anchor">
+                        @DropButton("Insert (Ctrl+Plus)", "Insert", Lucide.BetweenHorizontalStart, insertMenu)
+                        @if (menu == insertMenu)
+                        {
+                            <div class="editor-menu sheet-menu" role="menu" aria-label="Insert">
+                                @MenuItem("Insert sheet rows", InsertRowsAsync)
+                                @MenuItem("Insert sheet columns", InsertColumnsAsync)
+                            </div>
+                        }
+                    </span>
+                    <span class="editor-anchor">
+                        @DropButton("Delete (Ctrl+Minus)", "Delete", Lucide.Trash, deleteMenu)
+                        @if (menu == deleteMenu)
+                        {
+                            <div class="editor-menu sheet-menu" role="menu" aria-label="Delete">
+                                @MenuItem("Delete sheet rows", DeleteRowsAsync)
+                                @MenuItem("Delete sheet columns", DeleteColumnsAsync)
+                            </div>
+                        }
+                    </span>
+                </div>
+            </div>
+        </div>
         <div class="editor-group" role="group" aria-label="Editing">
             <div class="editor-group-body">
                 <div class="editor-stack">
@@ -173,6 +199,36 @@
     @if (menu is not null)
     {
         <div class="editor-backdrop" @onmousedown:preventDefault @onclick="() => menu = null"></div>
+    }
+
+    @* The right-click menu: what belongs to what was clicked, as Excel's offers it. *@
+    @if (menu == contextMenu)
+    {
+        <div class="editor-menu editor-context-menu sheet-menu sheet-context-menu" role="menu" aria-label="Cells" style="@ContextStyle">
+            @MenuItem("Cut", () => CopyAsync(true), !Editable)
+            @MenuItem("Copy", () => CopyAsync(false), Sheet is null)
+            @MenuItem("Paste", PasteFromClipboardAsync, !Editable)
+            <div class="editor-menu-separator" role="separator"></div>
+            @if (WholeRows)
+            {
+                @MenuItem("Insert", InsertRowsAsync, !Editable)
+                @MenuItem("Delete", DeleteRowsAsync, !Editable)
+            }
+            else if (WholeColumns)
+            {
+                @MenuItem("Insert", InsertColumnsAsync, !Editable)
+                @MenuItem("Delete", DeleteColumnsAsync, !Editable)
+            }
+            else
+            {
+                @MenuItem("Insert sheet rows", InsertRowsAsync, !Editable)
+                @MenuItem("Insert sheet columns", InsertColumnsAsync, !Editable)
+                @MenuItem("Delete sheet rows", DeleteRowsAsync, !Editable)
+                @MenuItem("Delete sheet columns", DeleteColumnsAsync, !Editable)
+            }
+            <div class="editor-menu-separator" role="separator"></div>
+            @MenuItem("Clear contents", () => ClearAsync(true, false), !Editable)
+        </div>
     }
 
     <div class="sheet-scroll" role="grid" aria-label="@(Sheet?.Name ?? "Sheet")" aria-rowcount="@ExtentRows" aria-colcount="@ExtentColumns">
@@ -305,8 +361,17 @@
             <Iconify Value="icon" aria-hidden="true" focusable="false" />
         </button>;
 
-    RenderFragment MenuItem(string label, Func<Task> run) =>
-        @<button type="button" role="menuitem" class="editor-menu-item" @onmousedown:preventDefault @onclick="run">@label</button>;
+    RenderFragment MenuItem(string label, Func<Task> run, bool off = false) =>
+        @<button type="button" role="menuitem" class="editor-menu-item" disabled="@off" @onmousedown:preventDefault @onclick="run">@label</button>;
+
+    // A button with its name beside its icon, opening a menu.
+    RenderFragment DropButton(string title, string label, Icon icon, string name) =>
+        @<button type="button" class="editor-tool" title="@title" aria-haspopup="menu" aria-expanded="@(menu == name ? "true" : "false")"
+                 disabled="@(!Editable)" @onmousedown:preventDefault @onclick="() => ToggleMenu(name)">
+            <Iconify Value="icon" aria-hidden="true" focusable="false" />
+            @label
+            <Iconify Value="Lucide.ChevronDown" class="editor-caret" aria-hidden="true" focusable="false" />
+        </button>;
 
     RenderFragment Palette(string label, Func<string, Task> pick, string none) =>
         @<div class="editor-menu editor-palette sheet-menu" role="menu" aria-label="@label">

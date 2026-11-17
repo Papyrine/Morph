@@ -243,6 +243,8 @@ public partial class SheetEditor : IAsyncDisposable
                 focusPending = false;
                 await controller.InvokeVoidAsync("focus");
             }
+
+            await PlaceMenuAsync();
         }
         catch (JSDisconnectedException)
         {
@@ -701,8 +703,18 @@ public partial class SheetEditor : IAsyncDisposable
 
                 break;
             case "Escape":
+                if (menu != null)
+                {
+                    menu = null;
+                    break;
+                }
+
                 clipboard = null;
                 break;
+            case "InsertCells":
+                return ShiftKeyAsync(delete: false);
+            case "DeleteCells":
+                return ShiftKeyAsync(delete: true);
             case "Undo":
                 return UndoAsync();
             case "Redo":

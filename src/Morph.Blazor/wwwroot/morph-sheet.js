@@ -32,6 +32,7 @@ export function attachSheet(root, dotNet) {
         readClipboard: () => navigator.clipboard?.readText().catch(() => null) ?? Promise.resolve(null),
         report: () => sheet.report(),
         handIn: () => sheet.handIn(),
+        placeMenu: () => sheet.placeMenu(),
         editing: () => !!sheet.mode,
         dispose: () => sheet.dispose()
     };
@@ -60,6 +61,7 @@ class Sheet {
         root.addEventListener('paste', event => this.onPaste(event), { signal });
         root.addEventListener('mousedown', event => this.onMouseDown(event), { signal });
         root.addEventListener('dblclick', event => this.onDoubleClick(event), { signal });
+        root.addEventListener('contextmenu', event => this.onContextMenu(event), { signal });
         root.addEventListener('focusin', event => this.onFocusIn(event), { signal });
         root.addEventListener('scroll', () => this.onScroll(), { signal, capture: true });
         window.addEventListener('resize', () => this.onScroll(), { signal });
@@ -486,6 +488,14 @@ class Sheet {
             return;
         }
 
+        // Ctrl+Plus inserts and Ctrl+Minus deletes, as in Excel; Ctrl+Alt+= too, for a browser that keeps
+        // Ctrl+Plus for its zoom.
+        if (ctrl && (key === '+' || key === '-' || (event.altKey && key === '='))) {
+            event.preventDefault();
+            this.call('OnSheetKey', key === '-' ? 'DeleteCells' : 'InsertCells', shift, ctrl);
+            return;
+        }
+
         if (!ctrl || event.altKey) {
             // A character: it goes into the box, which starts the editing (onInput).
             return;
@@ -642,6 +652,74 @@ class Sheet {
     }
 
     // The mouse
+
+    // A right-click on a cell, a column's letter or a row's number: .NET selects what is under it, unless
+    // it is in the selection already, and opens the grid's menu there. From the keyboard (the menu key,
+    // Shift+F10) there is no pointer, and the menu opens at the active cell. While a cell is being typed
+    // in, the box's menu is the browser's own.
+    onContextMenu(event) {
+        const target = event.target;
+        if (!(target instanceof Element) || this.mode) {
+            return;
+        }
+
+        const columnHead = target.closest('.sheet-column-heads');
+        const rowHead = target.closest('.sheet-row-heads');
+        if (!columnHead && !rowHead && !target.closest('.sheet-cells')) {
+            return;
+        }
+
+        let kind = 'cell';
+        let x = event.clientX;
+        let y = event.clientY;
+        let row;
+        let column;
+        const input = this.input();
+        if (x === 0 && y === 0 && input) {
+            const box = input.getBoundingClientRect();
+            x = box.left;
+            y = box.bottom;
+            row = Number(input.dataset.row);
+            column = Number(input.dataset.column);
+        } else {
+            const at = this.cellAt(event);
+            if (!at) {
+                return;
+            }
+
+            row = at.row;
+            column = at.column;
+            if (columnHead) {
+                kind = 'column';
+            } else if (rowHead) {
+                kind = 'row';
+            }
+        }
+
+        event.preventDefault();
+        const bounds = this.root.getBoundingClientRect();
+        this.call('OnSheetContextMenu', kind, row, column, x - bounds.left, y - bounds.top);
+    }
+
+    // The right-click menu, just drawn by .NET where the pointer was: moved in from the grid's right and
+    // bottom edges where it would run past them, up from the pointer when there is room above.
+    placeMenu() {
+        const menu = this.root.querySelector('.sheet-context-menu');
+        if (!menu) {
+            return;
+        }
+
+        const bounds = this.root.getBoundingClientRect();
+        const box = menu.getBoundingClientRect();
+        if (box.right > bounds.right) {
+            menu.style.left = `${Math.max(0, bounds.width - box.width - 4)}px`;
+        }
+
+        if (box.bottom > bounds.bottom) {
+            const above = box.top - bounds.top - box.height;
+            menu.style.top = `${Math.max(4, above >= 0 ? above : bounds.height - box.height - 4)}px`;
+        }
+    }
 
     onMouseDown(event) {
         if (event.button !== 0) {

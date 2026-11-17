@@ -199,7 +199,7 @@ static partial class WorkbookEditor
 
         static readonly Regex escaped = new("_x([0-9A-Fa-f]{4})_", RegexOptions.CultureInvariant);
 
-        static string Decode(string name) =>
+        public static string Decode(string name) =>
             escaped.Replace(name, _ => ((char) int.Parse(_.Groups[1].Value, NumberStyles.HexNumber, CultureInfo.InvariantCulture)).ToString());
 
         // A line break in a column's name is written _x000a_, which an attribute keeps where a raw one

@@ -249,4 +249,89 @@ public class SheetEditorTests : BunitTestContext
         await Assert.That(string.Join('|', rows[0])).IsEqualTo("a|b");
         await Assert.That(string.Join('|', rows[1])).IsEqualTo("c\td|e \"q\"");
     }
+
+    static string? Formula(byte[] xlsx, int row, int column)
+    {
+        using var stream = new MemoryStream(xlsx);
+        using var document = DocumentFormat.OpenXml.Packaging.SpreadsheetDocument.Open(stream, false);
+        return FormulaWorkbook.Read(document.WorkbookPart!, DateTime.Now).Cell(0, row, column)?.Formula;
+    }
+
+    // Whole rows selected, Ctrl+Plus inserts as many above them, and the total below moves down, its
+    // formula's references with it.
+    [Test]
+    public async Task CtrlPlus_OnWholeRows_InsertsAsMany()
+    {
+        byte[]? changed = null;
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var grid = cut.FindComponent<SheetEditor>();
+        await cut.InvokeAsync(() => grid.Instance.OnSheetHeader("row", 16, false, "down"));
+        await cut.InvokeAsync(() => grid.Instance.OnSheetHeader("row", 17, true, "drag"));
+
+        await cut.InvokeAsync(() => grid.Instance.OnSheetKey("InsertCells", true, true));
+
+        await Assert.That(Formula(changed!, 20, 3)).IsEqualTo("IFERROR(C15*(1+C18)+C19, \"\")");
+        await Assert.That(Value(changed!, 20, 3).Number).IsEqualTo(750 * 1.0875).Within(1e-9);
+        // The rows inserted are what is selected, as in Excel.
+        await Assert.That(cut.Find(".sheet-name-box").GetAttribute("value")).IsEqualTo("16:17");
+    }
+
+    // On a cell, Ctrl+Minus asks which, where Excel's dialog asks: the tax rate's row deleted, the total's
+    // reference to it is #REF!.
+    [Test]
+    public async Task CtrlMinus_OnACell_AsksWhich()
+    {
+        byte[]? changed = null;
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var grid = cut.FindComponent<SheetEditor>();
+        await cut.InvokeAsync(() => grid.Instance.OnSheetGoTo("C16"));
+
+        await cut.InvokeAsync(() => grid.Instance.OnSheetKey("DeleteCells", false, true));
+        await Assert.That(changed).IsNull();
+        await cut.FindAll(".editor-menu[aria-label='Delete'] .editor-menu-item").First(_ => _.TextContent == "Delete sheet rows").ClickAsync(new());
+
+        await Assert.That(Formula(changed!, 17, 3)).IsEqualTo("IFERROR(C15*(1+#REF!)+C16, \"\")");
+        await Assert.That(cut.FindAll(".editor-menu")).IsEmpty();
+    }
+
+    // A right-click on a row's number selects the row and offers Insert; a row inserted inside the line
+    // items' table grows it, and the subtotal over its column is what it was.
+    [Test]
+    public async Task ARightClickOnARowsNumber_OffersToInsertThere()
+    {
+        byte[]? changed = null;
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var grid = cut.FindComponent<SheetEditor>();
+
+        await cut.InvokeAsync(() => grid.Instance.OnSheetContextMenu("row", 12, 3, 40, 300));
+
+        await Assert.That(cut.Find(".sheet-name-box").GetAttribute("value")).IsEqualTo("12:12");
+        await Assert.That(cut.Find(".sheet-context-menu").GetAttribute("style")).IsEqualTo("left:40px;top:300px");
+        await cut.FindAll(".sheet-context-menu .editor-menu-item").First(_ => _.TextContent == "Insert").ClickAsync(new());
+
+        await Assert.That(Formula(changed!, 16, 3)).IsEqualTo("IFERROR(SUM(InvoiceDetails[AMOUNT]), \"\")");
+        await Assert.That(Value(changed!, 16, 3).Number).IsEqualTo(750);
+        await Assert.That(Value(changed!, 13, 3).Number).IsEqualTo(400);
+        await Assert.That(cut.FindAll(".sheet-context-menu")).IsEmpty();
+    }
+
+    // A right-click inside the selection keeps it.
+    [Test]
+    public async Task ARightClickInTheSelection_KeepsIt()
+    {
+        var cut = await Open();
+        var grid = cut.FindComponent<SheetEditor>();
+        await cut.InvokeAsync(() => grid.Instance.OnSheetGoTo("B3:C5"));
+
+        await cut.InvokeAsync(() => grid.Instance.OnSheetContextMenu("cell", 4, 3, 10, 10));
+
+        await Assert.That(cut.Find(".sheet-name-box").GetAttribute("value")).IsEqualTo("B3:C5");
+        var lines = cut.FindAll(".sheet-context-menu .editor-menu-item").Select(_ => _.TextContent).ToList();
+        await Assert.That(lines).Contains("Insert sheet rows");
+        await Assert.That(lines).Contains("Delete sheet columns");
+
+        // Escape closes it.
+        await cut.InvokeAsync(() => grid.Instance.OnSheetKey("Escape", false, false));
+        await Assert.That(cut.FindAll(".sheet-context-menu")).IsEmpty();
+    }
 }

@@ -1969,8 +1969,9 @@ class Viewer {
 
         // Escape closes the editor's menu or dialog that is open, and goes no further: the paragraph
         // being typed in keeps what was typed, as Word's does. Neither has the focus — the ribbon does
-        // not take it — so the key is caught here, before the paragraph's own Escape.
-        if (event.key === 'Escape' && this.root.querySelector('.editor-menu, .editor-dialog')) {
+        // not take it — so the key is caught here, before the paragraph's own Escape. A workbook's grid
+        // closes its own menus (sheet-menu), from the key as it reaches the grid (morph-sheet.js).
+        if (event.key === 'Escape' && this.root.querySelector('.editor-menu:not(.sheet-menu), .editor-dialog')) {
             event.preventDefault();
             event.stopPropagation();
             this.call('OnMenuEscape');

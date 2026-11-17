@@ -548,6 +548,18 @@ a grid rather than on pages. Three layers, as for Word documents:
   (`NumberFormat`), formula-bar text, the look (the cell's style over its table's, a conditional format over
   both, as `SheetGridBuilder` composes them), Excel's pixel geometry. `WorkbookEditorTests` includes an
   `OpenXmlValidator` check over every corpus workbook edited.
+- **Rows and columns inserted and deleted** (`WorkbookEditor.Shift.cs`: `InsertRows`, `DeleteRows`,
+  `InsertColumns`, `DeleteColumns`): `SheetShift` is what a change does to a reference — moved, grown,
+  shrunk or `#REF!` — and the editor applies it to everything that names the sheet's cells: formulas on
+  every sheet, defined names, charts' `c:f`, tables, merges, validations, conditional formats (and their
+  Excel 2010 `xm:` forms), links, comments, drawings' anchors, page breaks, column spans. Every rule was
+  **probed over COM** and is written where it is applied — a new row looks like the row above, a range
+  over a table's data rows grows with rows inserted at its first data row, a calculated column's formula is
+  its first data row's, a new table column is named after the one on its left, and a table is not resized
+  while another table shares the rows changed. `SheetShiftTests` replays the probes and inserts then
+  deletes again in every corpus workbook, expecting every formula and value back. To check a change against
+  Excel itself, have Excel make the same insert or delete over COM and compare the two files cell by cell:
+  over the corpus that matched on every operation but the display of a name read back as `#REF!`.
 - **The grid** (`Morph.Blazor`): `SheetEditor` owns the model, the selection (an active cell and a far
   corner), undo and every edit; `wwwroot/morph-sheet.js` owns the keys, the typing (a textarea over the
   active cell holds the focus, invisible until typed into), the mouse, formula pointing, resizing and the
