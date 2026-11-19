@@ -62,6 +62,13 @@ sealed record TableProperties
     /// <summary>What <see cref="FloatingXOffsetPoints"/> is measured from (w:tblpPr/@w:horzAnchor).</summary>
     public FloatingTableHorizontalAnchor FloatingHorizontalAnchor { get; init; } = FloatingTableHorizontalAnchor.Text;
 
+    /// <summary>
+    /// How far text keeps from a floating table on each side, in points (w:tblpPr/@w:topFromText,
+    /// rightFromText, bottomFromText, leftFromText). Only meaningful when <see cref="IsFloating"/> is
+    /// true; the text of a cell wraps round the table's box out to these (<c>CellFloatWrap</c>).
+    /// </summary>
+    public CellSpacing FloatingDistance { get; init; } = new();
+
     /// <summary>Default borders for cells (from w:tblBorders). Null means no borders.</summary>
     public CellBorders? DefaultBorders { get; init; }
 

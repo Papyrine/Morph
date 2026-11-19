@@ -98,6 +98,12 @@ sealed class FloatingWordArtElement : DocumentElement, IWordArtVisual
     /// </summary>
     public double? VerticalPositionPercent { get; init; }
 
+    /// <summary>
+    /// The margin strip the float positions against (<c>topMargin</c> / <c>bottomMargin</c>), resolved with the
+    /// page's bands (<see cref="MarginStrip"/>); null for any other reference.
+    /// </summary>
+    public MarginStrip? VerticalStrip { get; init; }
+
 
     /// <summary>
     /// Copy re-anchored at an absolute page position — used by the table renderer to place

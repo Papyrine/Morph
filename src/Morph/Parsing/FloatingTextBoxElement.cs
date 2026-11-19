@@ -56,6 +56,13 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// </summary>
     public bool HidesOverflow { get; init; }
 
+    /// <summary>
+    /// True for a Word text box that resizes to its text (<c>wps:bodyPr/a:spAutoFit</c>): Word's box is as tall
+    /// as its content and insets, whatever extent the file declares. Only aligning the box in a margin strip
+    /// reads it (<c>Fragmenter.ResolveBandImages</c>); the box is still drawn at its declared extent.
+    /// </summary>
+    public bool FitsText { get; init; }
+
     /// <summary>Whether this text box is behind text (vs in front).</summary>
     public bool BehindText { get; init; }
 
@@ -123,6 +130,12 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// </summary>
     public double? VerticalPositionPercent { get; init; }
 
+    /// <summary>
+    /// The margin strip the float positions against (<c>topMargin</c> / <c>bottomMargin</c>), resolved with the
+    /// page's bands (<see cref="MarginStrip"/>); null for any other reference.
+    /// </summary>
+    public MarginStrip? VerticalStrip { get; init; }
+
 
     /// <summary>
     /// Copy re-anchored at an absolute page position — used by the table renderer to place
@@ -140,6 +153,7 @@ sealed class FloatingTextBoxElement : DocumentElement
             CellAnchorParagraphIndex = CellAnchorParagraphIndex,
             Content = Content,
             HidesOverflow = HidesOverflow,
+            FitsText = FitsText,
             WidthPoints = WidthPoints,
             HeightPoints = HeightPoints,
             WrapType = WrapType,

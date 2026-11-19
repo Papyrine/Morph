@@ -161,6 +161,7 @@ sealed partial class DocumentParser
         double floatingXOffsetPoints = 0;
         var floatingVAnchor = FloatingTableVerticalAnchor.Text;
         var floatingHAnchor = FloatingTableHorizontalAnchor.Text;
+        var floatingDistance = new CellSpacing();
         if (tableProps != null)
         {
             var tblCellMar = tableProps.GetFirstChild<TableCellMarginDefault>();
@@ -201,6 +202,15 @@ sealed partial class DocumentParser
                     : hAnch == HorizontalAnchorValues.Margin
                         ? FloatingTableHorizontalAnchor.Margin
                         : FloatingTableHorizontalAnchor.Text;
+            }
+
+            if (tblpPr != null)
+            {
+                floatingDistance = new(
+                    (tblpPr.TopFromText?.Value ?? 0) / OoxmlUnits.TwipsPerPoint,
+                    (tblpPr.RightFromText?.Value ?? 0) / OoxmlUnits.TwipsPerPoint,
+                    (tblpPr.BottomFromText?.Value ?? 0) / OoxmlUnits.TwipsPerPoint,
+                    (tblpPr.LeftFromText?.Value ?? 0) / OoxmlUnits.TwipsPerPoint);
             }
         }
 
@@ -816,6 +826,7 @@ sealed partial class DocumentParser
                 FloatingXOffsetPoints = floatingXOffsetPoints,
                 FloatingVerticalAnchor = floatingVAnchor,
                 FloatingHorizontalAnchor = floatingHAnchor,
+                FloatingDistance = floatingDistance,
                 DefaultBorders = defaultBorders,
                 InsideHorizontalBorder = insideHBorder,
                 InsideVerticalBorder = insideVBorder,

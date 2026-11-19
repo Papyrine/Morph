@@ -1098,6 +1098,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return;
             }
 
+            // A float still waiting for a visible line to name its page belongs to the section this break
+            // closes: what follows the break is another section's, on another page. A page-anchored floating
+            // table whose anchor is the empty paragraph carrying the break waited past it, onto the next
+            // section's first page and over its text (a landscape page's table on the portrait page after).
+            ResolvePendingFloats();
+
             if (!AtPageTop)
             {
                 FinishPage(false);
@@ -1892,10 +1898,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 // The behind-text header/footer images follow the same first/even-page variant as the band
                 // text, so a title page's decorative frame or illustration comes from its first-page header.
-                var backgroundImages = ResolveBandImages(SelectVariant(settings, sectionFirst, pageNumber, isHeader: true), settings, isFooter: false);
-                var footerImages = ResolveBandImages(SelectVariant(settings, sectionFirst, pageNumber, isHeader: false), settings, isFooter: true);
-                var headerBand = HeaderBand(pageNumber, sectionFirst, numbering[index], settings);
-                var footerBand = FooterBand(pageNumber, sectionFirst, numbering[index], settings);
+                // They stand where the bands put them: a float anchored to a band paragraph from that
+                // paragraph's top, one anchored to a margin strip in the strip the header or footer leaves.
+                var paragraphTops = new Dictionary<ParagraphElement, float>(ReferenceEqualityComparer.Instance);
+                var headerBand = HeaderBand(pageNumber, sectionFirst, numbering[index], settings, paragraphTops);
+                var footerBand = FooterBand(pageNumber, sectionFirst, numbering[index], settings, paragraphTops, out var footerTop);
+                var headerContent = SelectVariant(settings, sectionFirst, pageNumber, isHeader: true);
+                var frame = new BandFrame(
+                    paragraphTops,
+                    HeaderReservedTop(settings, headerContent),
+                    Math.Min((float)(settings.HeightPoints - settings.MarginBottom), footerTop),
+                    footerTop);
+                var backgroundImages = ResolveBandImages(headerContent, settings, isFooter: false, frame);
+                var footerImages = ResolveBandImages(SelectVariant(settings, sectionFirst, pageNumber, isHeader: false), settings, isFooter: true, frame);
 
                 // Body floats: behind-text ones paint under the body (over the header background), in-front
                 // ones over it. Anchored on the page they were reached on.
@@ -4474,6 +4489,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var limit = budget is { } allowed ? contentTop + allowed : float.MaxValue;
             CellSplitPoint? continuation = null;
 
+            // The floating tables the cell's text wraps round (CellFloatWrap), once one is reached.
+            CellFloatWrap? floatWrap = null;
+
             // Paragraph-border run (w:pBdr) within the cell — the same group law the page flow applies
             // through SharesBorderGroupWith: consecutive same-bordered paragraphs share ONE box, stroked
             // when the run ends, with w:between ruling the internal boundaries (cover-letters/10's date
@@ -4550,10 +4568,13 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 // A floating table in a cell stands at its offset from where it is anchored and takes no
-                // room in the cell's flow, which is why TableHeightCalculator leaves it out of the row.
+                // place in the cell's flow: the paragraphs either side of it keep their spacing against
+                // each other. Anchored to the text, it stands under the previous paragraph's space-after
+                // (Word-probed, _probe_cellfloat: 24pt after moves it 24pt down) and the text after it
+                // wraps round it (CellFloatWrap): beside it, or under it when there is no room beside.
                 // labels/09's ticket numbers are such tables, one in each ticket's left stub,
-                // text-anchored a twip in; anchored to the margin or the page, it stands where that puts
-                // it on the page.
+                // text-anchored a twip in. Anchored to the margin or the page, it stands where that puts it
+                // on the page and the text does not move for it.
                 if (element is TableElement { Properties.IsFloating: true } floatingTable)
                 {
                     var floating = floatingTable.Properties;
@@ -4568,9 +4589,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     {
                         FloatingTableVerticalAnchor.Page => (float)floating.FloatingYOffsetPoints,
                         FloatingTableVerticalAnchor.Margin => this.contentTop + (float)floating.FloatingYOffsetPoints,
-                        _ => cellY + (float)floating.FloatingYOffsetPoints
+                        _ => cellY + (first ? 0 : lastCellAfter) + (float)floating.FloatingYOffsetPoints
                     };
-                    lines.AddRange(LayoutNestedTable(floatingTable, floatingLeft, floatingTop, floatingWidth).Items);
+                    var (floatingItems, floatingHeight) = LayoutNestedTable(floatingTable, floatingLeft, floatingTop, floatingWidth);
+                    lines.AddRange(floatingItems);
+                    if (CellFloatWrap.Wraps(floatingTable))
+                    {
+                        (floatWrap ??= new()).Add(floatingTable, floatingLeft, floatingTop, floatingWidth, floatingHeight);
+                    }
+
                     continue;
                 }
 
@@ -4670,8 +4697,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // (ParagraphGap; cover-letters/09's Address block of five 42pt-after contextual paragraphs
                 // sits tight), and TableHeightCalculator applies the same rule.
                 // Where the paragraph's own space-before begins, which a change bar on its first line
-                // takes in (ChangeBar).
+                // takes in (ChangeBar). And where the whole space in front of it begins, which goes under
+                // a floating table with it (CellFloatWrap).
                 var spaceTop = cellY;
+                var gapTop = cellY;
                 if (first)
                 {
                     cellY += (float)properties.SpacingBeforePoints;
@@ -4730,6 +4759,26 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var isEmpty = paragraphLines is [{ Width: <= 0 } _];
                 var textLeft = contentLeft + (float)properties.LeftIndentPoints;
                 var availableWidth = contentWidth - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
+
+                // A paragraph that meets a floating table sets beside it or goes under it, as
+                // TableHeightCalculator.MeasureCellHeight sizes the row for. A paragraph resumed part-way
+                // through has already been placed.
+                if (floatWrap != null &&
+                    resumeLine == 0 &&
+                    paragraphLines.Count > 0)
+                {
+                    var (lineTop, stripLeft, stripWidth, constrained) = floatWrap.Place(gapTop, cellY, paragraphLines[0].Height, contentLeft, contentLeft + contentWidth);
+                    var moved = lineTop - cellY;
+                    spaceTop += moved;
+                    cellBetweenRule += moved;
+                    cellY = lineTop;
+                    if (constrained)
+                    {
+                        paragraphLines = measurer.LayoutLineContents(paragraph, cell.Properties.SingleLine ? TableHeightCalculator.UnboundedWidth : stripWidth);
+                        textLeft = stripLeft + (float)properties.LeftIndentPoints;
+                        availableWidth = stripWidth - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
+                    }
+                }
 
                 // How many of the paragraph's remaining lines this fragment takes. Without a budget that is
                 // all of them (the whole-row path). With one, count what fits — always at least
@@ -4869,6 +4918,14 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 cellY += lastCellVisibleAfter;
             }
 
+            // The content reaches the foot of every floating table the text wraps round, whatever stands
+            // beside it, as the row is sized (CellFloatWrap).
+            if (continuation == null &&
+                floatWrap != null)
+            {
+                cellY = Math.Max(cellY, floatWrap.Extent);
+            }
+
             // Centre/bottom alignment shifts the whole content down within the cell's available height
             // (top alignment leaves it at the padded top). A nested table moves with it: Word centres
             // _probe_cellheights' 30.6pt nested table in a 60pt centred row 14.7pt down, and resumes/06's
@@ -4964,7 +5021,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // inline via the nested-table layout, and page-number fields are substituted per page before the
         // band lays out (SubstitutePageFields). Band paragraph borders are a later slice; an empty
         // paragraph adds only its invisible mark line.
-        IReadOnlyList<PlacedItem> LayoutBand(IReadOnlyList<DocumentElement> elements, float left, float top, float width)
+        // Each paragraph's pre-spacing top goes into paragraphTops, under the paragraph as parsed, for the band
+        // floats anchored to it (ResolveBandImages).
+        IReadOnlyList<PlacedItem> LayoutBand(IReadOnlyList<DocumentElement> elements, float left, float top, float width, Dictionary<ParagraphElement, float>? paragraphTops = null)
         {
             var result = new List<PlacedItem>();
             var bandY = top;
@@ -4992,6 +5051,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 var properties = paragraph.Properties;
                 var spaceTop = bandY;
+                paragraphTops?[paragraph.Parsed] = spaceTop;
                 bandY += (float)properties.SpacingBeforePoints;
                 var paragraphLines = measurer.LayoutLineContents(paragraph, width);
                 var availableWidth = width - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
@@ -5099,7 +5159,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // section's first page takes the first-page header when the section has one (a "different first
         // page" title header, which may be empty); an even page its even variant when the document opts
         // in; other pages the default.
-        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, bool sectionFirst, PageNumbering numbering, PageSettings settings)
+        IReadOnlyList<PlacedItem> HeaderBand(int pageNumber, bool sectionFirst, PageNumbering numbering, PageSettings settings, Dictionary<ParagraphElement, float> paragraphTops)
         {
             var content = SelectVariant(settings, sectionFirst, pageNumber, isHeader: true);
             var bandLeft = (float)settings.MarginLeft;
@@ -5109,7 +5169,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return [];
             }
 
-            return LayoutBand(SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat), bandLeft, (float)settings.HeaderDistance, bandWidth);
+            return LayoutBand(SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat), bandLeft, (float)settings.HeaderDistance, bandWidth, paragraphTops);
         }
 
         // Picks the header or footer for a page from its section's set: the section's first page takes
@@ -5157,9 +5217,10 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // post-pass once the total is known). Page 1 takes the first-page footer when present (often empty —
         // Word shows no footer on a title page); an even page its even variant when the document opts in.
         // 3-way footer tab alignment is a later slice.
-        IReadOnlyList<PlacedItem> FooterBand(int pageNumber, bool sectionFirst, PageNumbering numbering, PageSettings settings)
+        IReadOnlyList<PlacedItem> FooterBand(int pageNumber, bool sectionFirst, PageNumbering numbering, PageSettings settings, Dictionary<ParagraphElement, float> paragraphTops, out float footerTop)
         {
             var content = SelectVariant(settings, sectionFirst, pageNumber, isHeader: false);
+            footerTop = (float)(settings.HeightPoints - settings.FooterDistance);
             if (content == null)
             {
                 return [];
@@ -5181,8 +5242,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
             }
 
-            var footerTop = (float)settings.HeightPoints - (float)settings.FooterDistance - height;
-            return LayoutBand(elements, bandLeft, footerTop, bandWidth);
+            footerTop = (float)settings.HeightPoints - (float)settings.FooterDistance - height;
+            return LayoutBand(elements, bandLeft, footerTop, bandWidth, paragraphTops);
         }
 
         // Replaces each page-field run's cached text with this page's displayed number (PAGE, in the
@@ -5383,7 +5444,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // full-page decorative frames of letter/label templates are anchored here — page/margin/column
         // horizontally, at the header paragraph vertically — and a header-band-top estimate suffices since
         // they span the whole page. Header/footer text and band tables lay out in LayoutBand.
-        IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings settings, bool isFooter)
+        // What a page's bands laid out that its header and footer floats stand by: each band paragraph's
+        // pre-spacing top (under the paragraph as parsed), where the top margin strip ends — the body's top,
+        // HeaderReservedTop — and where the bottom one starts, and the footer's top (MarginStrip).
+        readonly record struct BandFrame(Dictionary<ParagraphElement, float> ParagraphTops, float TopStripBottom, float BottomStripTop, float FooterTop);
+
+        IReadOnlyList<PlacedItem> ResolveBandImages(HeaderFooterContent? band, PageSettings settings, bool isFooter, BandFrame frame)
         {
             if (band == null)
             {
@@ -5392,30 +5458,49 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             var items = new List<PlacedItem>();
             var marginLeft = (float)settings.MarginLeft;
-            // A paragraph-anchored band float positions from the band's own origin: the header distance for
-            // a header, the footer distance up from the page bottom for a footer. Page/margin anchors are
-            // absolute and shared by both.
+            // A paragraph-anchored band float positions from its paragraph's top, as a body one does. Word
+            // lays a footer out upwards from the footer distance, so a footer's paragraphs start that far up
+            // plus the footer's height: Word-probed (_probe_bandmargin, a six-line footer on exact 20pt lines
+            // ending 36pt above the page's foot): a rectangle at offset 0 from the third paragraph stood at
+            // 676pt, the third paragraph's top, and in the header at 76pt. A float whose paragraph the band
+            // did not lay out falls back to the band's top.
             var bandTop = isFooter
-                ? (float)(settings.HeightPoints - settings.FooterDistance)
+                ? frame.FooterTop
                 : (float)settings.HeaderDistance;
 
             // A band's behind-text floating art is anchored like a body float but from the band origin —
-            // the page edge, the top margin, or the band itself. Both band images and band shapes (e.g.
-            // cover-letters/10's charcoal banner and its 10%-alpha accent tint) paint behind the band text
-            // and the body. A percentage offset (wp14:pctPosHOffset / pctPosVOffset) is that fraction of the
-            // page for a page anchor and of the margins' box otherwise, as a body float's is: the fold
-            // guides of cards/01, cards/07 and wedding/03 stand at half the page each way.
-            (float X, float Y) Position(HorizontalAnchor horizontalAnchor, double horizontalOffset, double? horizontalPercent, VerticalAnchor verticalAnchor, double verticalOffset, double? verticalPercent)
+            // the page edge, the top margin, a margin strip, or a paragraph of the band. Both band images and
+            // band shapes (e.g. cover-letters/10's charcoal banner and its 10%-alpha accent tint) paint behind
+            // the band text and the body. A percentage offset (wp14:pctPosHOffset / pctPosVOffset) is that
+            // fraction of the page for a page anchor and of the margins' box otherwise, as a body float's is:
+            // the fold guides of cards/01, cards/07 and wedding/03 stand at half the page each way.
+            (float X, float Y) Position(HorizontalAnchor horizontalAnchor, double horizontalOffset, double? horizontalPercent, VerticalAnchor verticalAnchor, double verticalOffset, double? verticalPercent, MarginStrip? strip, ParagraphElement? anchor)
             {
                 var x = horizontalAnchor == HorizontalAnchor.Page ? 0f : marginLeft;
                 x += horizontalPercent is { } across
                     ? (float)(across * (horizontalAnchor == HorizontalAnchor.Page ? settings.WidthPoints : settings.WidthPoints - settings.MarginLeft - settings.MarginRight))
                     : (float)horizontalOffset;
+
+                // In a margin strip: from its top by the offset, or aligned in it by the anchor's height.
+                if (strip is { } margin)
+                {
+                    var stripTop = margin.Bottom ? frame.BottomStripTop : 0f;
+                    var stripBottom = margin.Bottom ? (float)settings.HeightPoints : frame.TopStripBottom;
+                    var free = stripBottom - stripTop - (float)margin.AnchorHeightPoints;
+                    var aligned = margin.Alignment switch
+                    {
+                        StripAlignment.Center => free / 2,
+                        StripAlignment.Bottom => free,
+                        _ => 0f
+                    };
+                    return (x, stripTop + aligned + (float)verticalOffset);
+                }
+
                 var y = verticalAnchor switch
                 {
                     VerticalAnchor.Page => 0f,
                     VerticalAnchor.Margin => (float)settings.MarginTop,
-                    _ => bandTop
+                    _ => anchor != null && frame.ParagraphTops.TryGetValue(anchor, out var paragraphTop) ? paragraphTop : bandTop
                 };
                 y += verticalPercent is { } down
                     ? (float)(down * (verticalAnchor == VerticalAnchor.Page ? settings.HeightPoints : settings.HeightPoints - settings.MarginTop - settings.MarginBottom))
@@ -5423,19 +5508,28 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return (x, y);
             }
 
-            foreach (var element in band.Elements)
+            for (var index = 0; index < band.Elements.Count; index++)
             {
+                var element = band.Elements[index];
+
+                // The parser puts a paragraph's floats just ahead of it, so a float's paragraph is the next one.
+                ParagraphElement? anchor = null;
+                for (var next = index + 1; next < band.Elements.Count && anchor == null; next++)
+                {
+                    anchor = band.Elements[next] as ParagraphElement;
+                }
+
                 // Front-of-text band images are admitted, as band shapes are below: a header logo is
                 // usually behindDoc="0" (Word's default), and the band paints under the body either way.
                 if (element is FloatingImageElement image &&
                     IsDrawable(image))
                 {
-                    var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent, image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent);
+                    var (imageX, imageY) = Position(image.HorizontalAnchor, image.HorizontalPositionPoints, image.HorizontalPositionPercent, image.VerticalAnchor, image.VerticalPositionPoints, image.VerticalPositionPercent, image.VerticalStrip, anchor);
                     items.AddRange(PlaceImageItems(image, imageX, imageY));
                 }
                 else if (element is FloatingShapeElement shape)
                 {
-                    var (shapeX, shapeY) = Position(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent, shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent);
+                    var (shapeX, shapeY) = Position(shape.HorizontalAnchor, shape.HorizontalPositionPoints, shape.HorizontalPositionPercent, shape.VerticalAnchor, shape.VerticalPositionPoints, shape.VerticalPositionPercent, shape.VerticalStrip, anchor);
                     // An image-fill shape paints as a plain image (PaintShape skips image fills); a solid,
                     // gradient or outlined shape paints as a PlacedShape — mirroring the body-float shape cases.
                     // Front-of-text band shapes are admitted too (cards/05's 0.5pt fold-guide rules).
@@ -5457,7 +5551,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // placed as PlaceFloatingWordArt places a body one, from the band's anchors.
                 else if (element is FloatingWordArtElement wordArt)
                 {
-                    var (boxX, boxY) = Position(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.HorizontalPositionPercent, wordArt.VerticalAnchor, wordArt.VerticalPositionPoints, wordArt.VerticalPositionPercent);
+                    var (boxX, boxY) = Position(wordArt.HorizontalAnchor, wordArt.HorizontalPositionPoints, wordArt.HorizontalPositionPercent, wordArt.VerticalAnchor, wordArt.VerticalPositionPoints, wordArt.VerticalPositionPercent, wordArt.VerticalStrip, anchor);
                     if (wordArt.Transform != WordArtTransform.None)
                     {
                         items.Add(new PlacedWordArt(boxX, boxY, (float)wordArt.WidthPoints, (float)wordArt.HeightPoints, wordArt));
@@ -5470,7 +5564,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // A band text box places its chrome and content as PlaceTextBox does a body one.
                 else if (element is FloatingTextBoxElement textBox)
                 {
-                    var (boxX, boxY) = Position(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent, textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent);
+                    // A box that resizes to its text is aligned in a margin strip by the height its text gives
+                    // it, not the extent the file declares, when it is the anchor's whole drawing: Word-probed
+                    // (_probe_bandmargin, a box declared 20pt holding two 20pt lines and 3.6pt insets) centred
+                    // as 47.2pt. A generated file (the classification label this was found on) can declare
+                    // 23.7pt for two lines of 13.8pt, which centred 5.5pt low.
+                    var strip = textBox.VerticalStrip;
+                    if (strip is { Alignment: not StripAlignment.Top } fitted &&
+                        textBox.FitsText &&
+                        Math.Abs(fitted.AnchorHeightPoints - textBox.HeightPoints) < 0.01)
+                    {
+                        var contentWidth = Math.Max(0, (float)(textBox.WidthPoints - textBox.Insets.Left - textBox.Insets.Right));
+                        var contentHeight = TableHeightCalculator.MeasureCellHeight(new() { Content = textBox.Content }, contentWidth, new(), measurer);
+                        strip = fitted with
+                        {
+                            AnchorHeightPoints = contentHeight + textBox.Insets.Top + textBox.Insets.Bottom
+                        };
+                    }
+
+                    var (boxX, boxY) = Position(textBox.HorizontalAnchor, textBox.HorizontalPositionPoints, textBox.HorizontalPositionPercent, textBox.VerticalAnchor, textBox.VerticalPositionPoints, textBox.VerticalPositionPercent, strip, anchor);
                     var boxWidth = (float)textBox.WidthPoints;
                     var boxHeight = (float)textBox.HeightPoints;
                     if (textBox.BackgroundColorHex != null || textBox.LineColorHex != null)

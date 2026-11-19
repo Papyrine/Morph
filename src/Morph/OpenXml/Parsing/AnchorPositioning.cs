@@ -39,4 +39,10 @@ internal readonly struct AnchorPositioning
     /// <c>wp14:pctPosVOffset</c>. Null when no percentage positioning is present.
     /// </summary>
     public double? VerticalPositionPercent { get; init; }
+
+    /// <summary>
+    /// The margin strip the anchor positions against (<c>topMargin</c> / <c>bottomMargin</c>), whose extent
+    /// waits for the page's bands; null for every other reference.
+    /// </summary>
+    public MarginStrip? VerticalStrip { get; init; }
 }

@@ -226,6 +226,13 @@ The engine reserves the same box, so the rotated art overlapping text is Word's 
   (`Fragmenter.floatOrder`) and a page sorts its behind and in-front floats by it.
   `page_vertical_alignment` declares such a pair on one paragraph (z 101 and 102) and they had
   swapped over.
+- That wait ends at the first line with visible content (`ResolvePendingFloats`), so a page-2
+  background declared before page 1 finishes lands on page 2 (`brochures/01`), and an empty spacer
+  paragraph at a page boundary cannot claim it. A next-page section break also ends it, on the page
+  the break closes: the float's anchor can be the empty paragraph carrying the break, leaving no
+  visible line in its section, and waiting on carried a landscape section's page-anchored floating
+  table onto the portrait page after it, over that page's text
+  (`CanonicalFragmenterTests.An_absolute_body_float_stays_in_the_section_a_next_page_break_closes`).
 - `wp:anchor@relativeHeight` is Word's z-value across ALL floating drawings.
   `SortFloatingBatchesByZ` stable-sorts each maximal run of consecutive floating elements in the
   parse stream; behind-text vs in-front routing is untouched. Group children share their
@@ -250,6 +257,11 @@ The engine reserves the same box, so the rotated art overlapping text is Word's 
   not, and no corpus scenario carried a front-of-text band PICTURE until `header_float_image`.
   The `_probe_footerz` result below is the authority for admitting both: `behindDoc` is
   meaningless inside a band.
+- A band float's position waits for the page's bands. A paragraph anchor resolves to the
+  band paragraph's pre-spacing top, which `LayoutBand` records, and a `topMargin` /
+  `bottomMargin` anchor to the strip the header or footer leaves (`MarginStrip`, carried from
+  `ParsePositioning` because the strip's extent is unknown at parse) — `docs/word-features.md`,
+  Headers & Footers, has the `_probe_bandmargin` numbers.
 - The header/footer STORY as a whole sits below every body item, floats included.
   `Fragmenter.AssemblePages` emits
   `backgroundImages, footerImages, headerBand, footerBand, behindFloats, body, frontFloats`,

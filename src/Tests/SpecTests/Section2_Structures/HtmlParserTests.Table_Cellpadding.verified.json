@@ -82,6 +82,7 @@
     "Properties": {
       "IsFloating": false,
       "IsSheetGrid": false,
+      "FloatingDistance": {},
       "DefaultBorders": {
         "Top": {
           "IsVisible": false,

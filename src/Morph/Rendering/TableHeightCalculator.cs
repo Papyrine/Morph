@@ -371,8 +371,13 @@ static class TableHeightCalculator
         // Collapsing across the gap sank wedding/08's "GROOM'S FULL NAME" — its cell is Title,
         // inline oval (a WordArtElement), Title, and the two contextual Titles are three list entries
         // apart in the document but were neighbours once the drawing was filtered out.
+        //
+        // What stands between the paragraphs (a nested table, WordArt, a floating table the text wraps
+        // round) is charged where it stands, before the paragraph after it — blocks[i] before paragraph
+        // i, the last entry after the last paragraph — so a floating table knows where it is anchored.
         var paragraphs = new List<ParagraphElement>();
         var separatedFromPrevious = new HashSet<int>();
+        List<List<DocumentElement>> blocks = [[]];
         var sawNonParagraph = false;
         foreach (var element in cell.Content)
         {
@@ -396,27 +401,62 @@ static class TableHeightCalculator
                 }
 
                 paragraphs.Add(cellParagraph);
+                blocks.Add([]);
                 continue;
             }
 
-            if (element is TableElement {Properties.IsFloating: false} nestedTable)
+            if (element is TableElement {Properties.IsFloating: false} or WordArtElement)
             {
-                // Measured as laid out: the same column widths and row heights the Fragmenter's
-                // LayoutNestedTable places it with, at the cell's content width. A flat 50pt stood in
-                // for every nested table, which ran resumes/06's one-line skill bars (13.8pt in Word)
-                // 36pt tall each and put its last skill row on a fourth page.
-                height += NestedTableHeight(nestedTable, contentWidth, measurer);
+                blocks[^1].Add(element);
                 sawNonParagraph = true;
             }
-            else if (element is WordArtElement wordArt)
+            else if (element is TableElement floatingTable &&
+                     CellFloatWrap.Wraps(floatingTable))
             {
-                // Inline WordArt occupies its own band in the cell exactly as it does in the body
-                // flow, where RenderWordArt advances CurrentY by the same height. Leaving it out
-                // sized the row without it while the render still consumed the space, so the cell
-                // overflowed and pushed content onto a further page (brochures/08 went 2 pages to
-                // 3). Measure and render have to agree.
-                height += (float) wordArt.HeightPoints;
-                sawNonParagraph = true;
+                // A floating table takes no place in the flow, so the paragraphs either side of it stay
+                // neighbours; it only moves the text that meets it.
+                blocks[^1].Add(floatingTable);
+            }
+        }
+
+        // The width the cell's text really has — a single-line cell's text is measured unbounded, but a
+        // floating table in it still stands in the cell.
+        var cellContentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
+        CellFloatWrap? floatWrap = null;
+
+        void Charge(List<DocumentElement> standing)
+        {
+            foreach (var element in standing)
+            {
+                switch (element)
+                {
+                    case TableElement {Properties.IsFloating: true} floatingTable:
+                    {
+                        // Where the Fragmenter's cell arm stands it: at its offset under the previous
+                        // paragraph's space-after, which the height already holds, at the width its
+                        // columns take in the cell.
+                        var floating = floatingTable.Properties;
+                        var floatingWidth = TableLayout.CalculateColumnWidths(floatingTable, TableLayout.GetColumnCount(floatingTable), cellContentWidth, measurer).Sum();
+                        var floatingHeight = NestedTableHeight(floatingTable, floatingWidth, measurer);
+                        (floatWrap ??= new()).Add(floatingTable, (float) floating.FloatingXOffsetPoints, height + (float) floating.FloatingYOffsetPoints, floatingWidth, floatingHeight);
+                        break;
+                    }
+                    case TableElement nestedTable:
+                        // Measured as laid out: the same column widths and row heights the Fragmenter's
+                        // LayoutNestedTable places it with, at the cell's content width. A flat 50pt stood in
+                        // for every nested table, which ran resumes/06's one-line skill bars (13.8pt in Word)
+                        // 36pt tall each and put its last skill row on a fourth page.
+                        height += NestedTableHeight(nestedTable, contentWidth, measurer);
+                        break;
+                    case WordArtElement wordArt:
+                        // Inline WordArt occupies its own band in the cell exactly as it does in the body
+                        // flow, where RenderWordArt advances CurrentY by the same height. Leaving it out
+                        // sized the row without it while the render still consumed the space, so the cell
+                        // overflowed and pushed content onto a further page (brochures/08 went 2 pages to
+                        // 3). Measure and render have to agree.
+                        height += (float) wordArt.HeightPoints;
+                        break;
+                }
             }
         }
 
@@ -425,6 +465,8 @@ static class TableHeightCalculator
         string? previousStyleId = null;
         for (var i = 0; i < paragraphs.Count; i++)
         {
+            Charge(blocks[i]);
+
             // Measured at exactly the width the cell render lays out at — the render path
             // subtracts the paragraph's own indents internally and draws list markers into the
             // hanging area, so no extra marker inset belongs here.
@@ -457,21 +499,21 @@ static class TableHeightCalculator
                                       !separatedFromPrevious.Contains(i);
             var (keptAfter, keptBefore) = ParagraphGap.Between(previousAfter, previousContextual, previousStyleId, previousIsParagraph, props);
 
+            // Where the space in front of this paragraph begins: the previous paragraph's foot.
+            var gapTop = height - previousAfter;
+
             // The previous paragraph's after is already in the height; what it does not keep
             // against this one comes back out.
             height += keptAfter - previousAfter + keptBefore;
-
-            foreach (var lineHeight in lines)
-            {
-                height += lineHeight;
-            }
 
             // Paragraph borders (w:pBdr) reserve their rules and w:space in the cell exactly as the
             // placement path draws them (Fragmenter's cell border run): the group's first member
             // charges the top edge, its last the bottom, mirroring SharesBorderGroupWith so a run of
             // same-bordered paragraphs pays each edge once. Measure and placement must agree or the
-            // row under-sizes and the content overflows it.
-            if (props.Borders is {HasAnyBorder: true} paragraphBorders)
+            // row under-sizes and the content overflows it. The top edge and a w:between rule are
+            // charged above the first line, where the placement puts them.
+            var paragraphBorders = props.Borders is {HasAnyBorder: true} borders ? borders : null;
+            if (paragraphBorders != null)
             {
                 var opensGroup = i == 0 ||
                                  separatedFromPrevious.Contains(i) ||
@@ -488,7 +530,28 @@ static class TableHeightCalculator
                 {
                     height += (float) props.BorderBetweenReservePoints;
                 }
+            }
 
+            // A paragraph that meets a floating table sets beside it, at the strip's width, or goes
+            // under it, as the Fragmenter's cell arm places it (CellFloatWrap).
+            if (floatWrap != null &&
+                lines.Count > 0)
+            {
+                var (lineTop, _, stripWidth, constrained) = floatWrap.Place(gapTop, height, lines[0], 0, cellContentWidth);
+                height = lineTop;
+                if (constrained)
+                {
+                    lines = measurer.LayoutParagraphForMeasurement(para, cell.Properties.SingleLine ? UnboundedWidth : stripWidth);
+                }
+            }
+
+            foreach (var lineHeight in lines)
+            {
+                height += lineHeight;
+            }
+
+            if (paragraphBorders != null)
+            {
                 var closesGroup = i == paragraphs.Count - 1 ||
                                   separatedFromPrevious.Contains(i + 1) ||
                                   !props.SharesBorderGroupWith(paragraphs[i + 1].Properties);
@@ -510,6 +573,8 @@ static class TableHeightCalculator
             previousStyleId = ParagraphGap.StyleKey(props);
         }
 
+        Charge(blocks[^1]);
+
         // The paragraph that ends the cell gives its after up to contextual spacing like any other:
         // against the next cell's first paragraph, or the row's own end mark
         // (ParagraphGap.DropsCellEndAfter).
@@ -517,6 +582,13 @@ static class TableHeightCalculator
             ParagraphGap.DropsCellEndAfter(row, cell))
         {
             height -= previousAfter;
+        }
+
+        // The cell reaches the foot of every floating table its text wraps round, whatever stands beside
+        // it (CellFloatWrap). The height already holds the bottom padding, so the foot is the height.
+        if (floatWrap != null)
+        {
+            height = Math.Max(height, floatWrap.Extent);
         }
 
         return height;

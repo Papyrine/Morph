@@ -154,6 +154,7 @@ static class OpenXmlExtensions
         var vPosPoints = offsetY;
         var vAnchor = VerticalAnchor.Paragraph;
         double? vPctOffset = null;
+        MarginStrip? verticalStrip = null;
 
         var posV = FindPositionElement(anchor, "positionV");
         if (posV != null)
@@ -165,6 +166,26 @@ static class OpenXmlExtensions
                 vPosPoints += emuOffset.Value.EmuToPoints();
             }
             vPctOffset = pctOffset;
+
+            // The top or bottom margin strip runs to where the body or the footer starts, which only the
+            // page's bands settle (MarginStrip), so its alignment is carried rather than folded here.
+            if (pctOffset == null &&
+                posV.AttributeValue("relativeFrom") is "topMargin" or "bottomMargin" &&
+                !IsCellOrTextBoxAnchored(anchor))
+            {
+                var alignment = emuOffset == null
+                    ? ReadAlignValue(posV) switch
+                    {
+                        "center" => StripAlignment.Center,
+                        "bottom" or "outside" => StripAlignment.Bottom,
+                        _ => StripAlignment.Top
+                    }
+                    : StripAlignment.Top;
+                verticalStrip = new(
+                    posV.AttributeValue("relativeFrom") == "bottomMargin",
+                    alignment,
+                    anchor.Extent.GetDimensions()?.heightPoints ?? 0);
+            }
 
             // Vertical wp:align folds only against page/margin boxes — paragraph- and
             // line-relative alignment needs the flow position, which parse time doesn't have.
@@ -225,7 +246,8 @@ static class OpenXmlExtensions
             HeightPercent = heightPct,
             HeightRelativeFrom = heightRel,
             HorizontalPositionPercent = hPctOffset,
-            VerticalPositionPercent = vPctOffset
+            VerticalPositionPercent = vPctOffset,
+            VerticalStrip = verticalStrip
         };
     }
 

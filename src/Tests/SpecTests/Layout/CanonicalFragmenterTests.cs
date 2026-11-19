@@ -3197,6 +3197,58 @@ public class CanonicalFragmenterTests
     }
 
     [Test]
+    public async Task An_absolute_body_float_stays_in_the_section_a_next_page_break_closes()
+    {
+        var floatingTable = new TableElement
+        {
+            Properties = new()
+            {
+                GridColumnWidths = [100, 100],
+                IsFloating = true,
+                FloatingVerticalAnchor = FloatingTableVerticalAnchor.Page,
+                FloatingHorizontalAnchor = FloatingTableHorizontalAnchor.Margin,
+                FloatingYOffsetPoints = 40
+            },
+            Rows =
+            [
+                new()
+                {
+                    Cells =
+                    [
+                        new()
+                        {
+                            Content = [P("cell")]
+                        },
+                        new()
+                        {
+                            Content = [P("cell")]
+                        }
+                    ]
+                }
+            ]
+        };
+        var sectionMark = new ParagraphElement
+        {
+            Runs = []
+        };
+        var sectionBreak = new SectionBreakElement
+        {
+            BreakType = SectionBreakType.NextPage,
+            NewSectionSettings = Page(300)
+        };
+
+        // The table's anchor is the empty paragraph carrying the section break, so it is the closing section's
+        // last page the table stands on, although no line with text follows it there. Waiting for one carried
+        // it over the break onto the next section's first page, over that page's text (a landscape section's
+        // page-anchored table, drawn on the portrait page after it).
+        var document = fragmenter.Layout([floatingTable, sectionMark, sectionBreak, P("next section")], Page(200));
+
+        await Assert.That(document.Pages.Count).IsEqualTo(2);
+        await Assert.That(document.Pages[0].Items.OfType<PlacedTableRow>().Count()).IsEqualTo(1);
+        await Assert.That(document.Pages[1].Items.OfType<PlacedTableRow>().Any()).IsFalse();
+    }
+
+    [Test]
     public async Task A_text_anchored_floating_table_flows_inline_below_the_preceding_content()
     {
         var floatingTable = new TableElement

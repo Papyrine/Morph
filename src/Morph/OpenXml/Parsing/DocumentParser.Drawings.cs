@@ -946,6 +946,7 @@ sealed partial class DocumentParser
             HeightRelativeFrom = positioning.HeightRelativeFrom,
             HorizontalPositionPercent = positioning.HorizontalPositionPercent,
             VerticalPositionPercent = positioning.VerticalPositionPercent,
+            VerticalStrip = positioning.VerticalStrip,
             RasterFallbackData = rasterFallbackData,
             RasterFallbackContentType = rasterFallbackContentType
         };
