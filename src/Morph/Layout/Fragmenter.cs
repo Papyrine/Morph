@@ -3531,7 +3531,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // to the routing below instead.
             if (totalHeight > contentHeight * 1.10f ||
                 (atRegionTop &&
-                 !TableFitsHere(table, totalHeight, atTop: true)))
+                 !TableFitsHere(totalHeight)))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -3556,7 +3556,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // all 20 lines overleaf; LibreOffice's SwTabFrame::Split deadline is likewise the remaining
             // area). PlaceSplitRow's acceptance test turns a pathological split back into a whole-row move.
             if (!atRegionTop &&
-                !TableFitsHere(table, totalHeight, atTop: false))
+                !TableFitsHere(totalHeight))
             {
                 PlaceTableRowByRow(table, colWidths, rowHeights, colCount, tableX, tableWidth, keepAfter);
                 return;
@@ -3582,11 +3582,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return;
             }
 
-            // Whole-table move: mirrors EnsureSpaceFor(totalHeight − 2%) — a spreadsheet grid may over-spill
-            // the bottom by the shared rounding slack before it is pushed to the next region. A Word table
-            // only reaches here when it fits outright (TableFitsHere), so this never moves one.
-            EnsureSpaceFor(totalHeight - contentHeight * 0.02f);
-
+            // A table only reaches here when it fits where it stands (TableFitsHere), so it is placed whole.
             for (var rowIndex = 0; rowIndex < table.Rows.Count; rowIndex++)
             {
                 items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
@@ -3605,22 +3601,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // three-line row's first fragment needed its first line and its padding (COMPASS's stocktake
         // report is the corpus case).
         //
-        // A spreadsheet grid keeps the slack (TableProperties.IsSheetGrid): at a region top a grid may
-        // overrun by HasSpaceFor's 2%, and below one by the 4% of the whole-table move.
-        bool TableFitsHere(TableElement table, float totalHeight, bool atTop)
-        {
-            if (!table.Properties.IsSheetGrid)
-            {
-                return y + totalHeight <= contentBottom;
-            }
-
-            if (atTop)
-            {
-                return HasSpaceFor(totalHeight);
-            }
-
-            return HasSpaceFor(totalHeight - contentHeight * 0.02f);
-        }
+        // A spreadsheet grid is fitted the same way. It kept a 2-4% slack while its rows were only an
+        // approximation of Excel's; they are Excel's printed heights now (ExcelRowHeights), and Excel
+        // moves a row that does not fit: basic-business-invoice's 737.2pt of rows on a 733.9pt page
+        // print on two pages, the slack had kept them on one.
+        bool TableFitsHere(float totalHeight) =>
+            y + totalHeight <= contentBottom;
 
         // The sum of a table's declared w:trHeight boxes, in points — the floors (atLeast) and exact
         // boxes Word never lets spill past the bottom margin, whatever the content inside them does.

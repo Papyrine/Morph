@@ -647,6 +647,13 @@ Enable-WindowsOptionalFeature -Online -FeatureName Printing-PrintToPDFServices-F
 After generating, confirm the pages really are A4 rather than trusting the run to have passed — at
 150 DPI an A4 page is 1240x1754 and at 96 DPI it is 794x1123, against Letter's 1056x1632 and 816x1056.
 
+**Excel's printed rows also depend on the SCREEN's DPI.** Excel lays rows out in its screen's
+pixels and prints them through the ratio of the body font's standard heights on printer and screen
+(`src/Morph/Spreadsheet/ExcelRowHeights.cs`). The references, and the standard heights in
+`ExcelRowHeights.txt` (`scripts/excel-row-heights`), are of a 120-dpi screen (125% scaling): on a
+96-dpi one the same workbook's rows print several percent differently, and a reference regenerated
+there would not match. Check the DPI before regenerating Excel references.
+
 ## Ad hoc Word probes
 
 **When a rendering rule is in doubt, do not infer it from a corpus scenario — build a fixture that isolates it and ask Word.** Production scenarios vary in a dozen ways at once, so a measurement taken off one silently attributes an effect to the wrong cause. Two rules were settled backwards this way before probes corrected them: an HTML table's grid was read as collapsed off a single reference when Word actually draws detached per-cell boxes, and body text that looked like it should follow the host document's font turned out to be Times New Roman everywhere except inside tables and lists.

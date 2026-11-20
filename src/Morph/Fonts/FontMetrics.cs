@@ -81,6 +81,43 @@ sealed record FontMetrics
     public double LinePitchPoints(double sizePoints) => (double) LineBoxUnits / UnitsPerEm * sizePoints;
 
     /// <summary>
+    /// The hinted ascent and descent GDI reports at each ppem, from the font's <c>VDMX</c> table
+    /// (<see cref="FontMetricsReader"/> says which group); null when the font has none, and GDI then
+    /// scales <see cref="WinAscent"/> and <see cref="WinDescent"/>.
+    /// </summary>
+    public IReadOnlyDictionary<int, (int Ascent, int Descent)>? PixelExtents { get; init; }
+
+    /// <summary>
+    /// What GDI's <c>GetTextMetrics</c> reports for the face at <paramref name="ppem"/> pixels to the
+    /// em: <c>tmHeight</c> (ascent plus descent, each a whole pixel) and <c>tmExternalLeading</c>.
+    /// The ascent and descent are the <c>VDMX</c> group's where it has the ppem, otherwise
+    /// <c>usWinAscent</c> and <c>usWinDescent</c> scaled and rounded each on its own; the external
+    /// leading is the hhea line gap less what the Windows box already exceeds the hhea one by, scaled
+    /// and rounded. Reproduces GDI exactly for 20 faces at every ppem from 6 to 130 (2026-11-20). A
+    /// font with no OS/2 table falls back to the hhea box.
+    /// </summary>
+    public (int Height, int ExternalLeading) GdiCell(int ppem)
+    {
+        var ascent = WinAscent > 0 ? WinAscent : Ascender;
+        var descent = WinAscent > 0 ? WinDescent : -Descender;
+        int above;
+        int below;
+        if (PixelExtents?.TryGetValue(ppem, out var hinted) == true)
+        {
+            (above, below) = hinted;
+        }
+        else
+        {
+            above = (int) Math.Round((double) ascent * ppem / UnitsPerEm, MidpointRounding.AwayFromZero);
+            below = (int) Math.Round((double) descent * ppem / UnitsPerEm, MidpointRounding.AwayFromZero);
+        }
+
+        var gap = Math.Max(0, LineGap - (ascent + descent - (Ascender - Descender)));
+        var leading = (int) Math.Round((double) gap * ppem / UnitsPerEm, MidpointRounding.AwayFromZero);
+        return (above + below, leading);
+    }
+
+    /// <summary>
     /// <c>OS/2.usWinAscent</c> — the ascent Windows lays text out against for a font that does not opt into
     /// typographic metrics. Zero when the font declares no <c>OS/2</c> table.
     /// </summary>

@@ -13,12 +13,10 @@ sealed class SheetGeometry
     const double pointsPerPixel = 72.0 / 96.0;
 
     const double defaultColumnWidthChars = 8.43;
-    const double defaultRowHeightPoints = 15;
 
     readonly SheetRange range;
     readonly double[] columnWidths;
-    readonly Dictionary<int, double> rowHeights;
-    readonly double defaultRowHeight;
+    readonly SheetRows rows;
     readonly double maxDigitWidthPixels;
 
     /// <remarks>
@@ -26,12 +24,14 @@ sealed class SheetGeometry
     /// <see cref="SheetGridBuilder.MaxDigitWidth"/>, and must be the SAME value the grid was built
     /// with — this class exists so a drawing's cell anchor resolves to the rectangle the cells
     /// actually occupy, and it hardcoded 7 while the builder measured the real face, so the two
-    /// disagreed on every workbook whose body font was not Calibri-like.
+    /// disagreed on every workbook whose body font was not Calibri-like. <paramref name="rows"/> is
+    /// the builder's <see cref="SheetGridBuilder.RowHeights"/> for the same reason.
     /// </remarks>
-    public SheetGeometry(S.Worksheet worksheet, SheetRange range, double scale, double maxDigitWidthPixels)
+    public SheetGeometry(S.Worksheet worksheet, SheetRange range, double scale, double maxDigitWidthPixels, SheetRows rows)
     {
         this.range = range;
         this.maxDigitWidthPixels = maxDigitWidthPixels;
+        this.rows = rows;
 
         var declared = worksheet.GetFirstChild<S.Columns>()?.Elements<S.Column>().ToArray() ?? [];
         var fallbackWidth = worksheet.SheetFormatProperties?.DefaultColumnWidth?.Value ?? defaultColumnWidthChars;
@@ -47,20 +47,12 @@ sealed class SheetGeometry
             var chars = match?.Hidden?.Value == true ? 0 : match?.Width?.Value ?? fallbackWidth;
             columnWidths[i] = ToPoints(chars) * scale;
         }
-
-        defaultRowHeight = (worksheet.SheetFormatProperties?.DefaultRowHeight?.Value ?? defaultRowHeightPoints) * scale;
-        rowHeights = worksheet.GetFirstChild<S.SheetData>()?
-            .Elements<S.Row>()
-            .Where(_ => _.RowIndex?.Value != null &&
-                        _.Height?.Value != null)
-            .GroupBy(_ => (int) _.RowIndex!.Value)
-            .ToDictionary(_ => _.Key, _ => _.First().Height!.Value * scale) ?? [];
     }
 
     public IReadOnlyList<double> ColumnWidths => columnWidths;
 
     public double RowHeight(int row) =>
-        rowHeights.GetValueOrDefault(row, defaultRowHeight);
+        rows.Height(row);
 
     /// <summary>
     /// Distance in points from the grid's left edge to the left edge of a 1-based column. Columns
@@ -103,4 +95,13 @@ sealed class SheetGeometry
 
         return characters * maxDigitWidthPixels * pointsPerPixel;
     }
+}
+
+/// <summary>
+/// A sheet's row heights in points (<see cref="SheetGridBuilder.RowHeights"/>): the rows
+/// <c>sheetData</c> holds, and <paramref name="Absent"/> for a row it leaves out.
+/// </summary>
+sealed record SheetRows(IReadOnlyDictionary<int, double> Rows, double Absent)
+{
+    public double Height(int row) => Rows.GetValueOrDefault(row, Absent);
 }

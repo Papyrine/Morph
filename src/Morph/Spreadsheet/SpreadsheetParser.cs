@@ -99,7 +99,10 @@ sealed class SpreadsheetParser(
             bodyFamily,
             bodySize);
 
-        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth, culture ?? CultureInfo.InvariantCulture);
+        // Row heights are the body font's too: Excel prints a row through the ratio of the body
+        // font's standard heights on its printer and its screen (ExcelRowHeights)
+        var rowHeights = new ExcelRowHeights(bodyFamily, bodySize, LayoutFonts.ToDelegate(fontResolver));
+        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth, rowHeights, culture ?? CultureInfo.InvariantCulture);
         var drawings = new SheetDrawingParser(
             themeColors,
             themeFonts,
@@ -150,7 +153,7 @@ sealed class SpreadsheetParser(
                 // page setup says of paper, print area, titles and scale
                 var bounds = WholeSheetRange(worksheetPart, worksheet);
                 scale = 1;
-                if (builder.Build(worksheet, bounds, scale, null, conditional, tableStyles, false) is not { } table)
+                if (builder.Build(worksheet, bounds, scale, printed: false, null, conditional, tableStyles, false) is not { } table)
                 {
                     continue;
                 }
@@ -174,10 +177,10 @@ sealed class SpreadsheetParser(
                 // A strip's drawings are placed against the whole print area and moved left by the
                 // columns before the strip, so one reaching in from an earlier strip shows its part
                 // there; the fragmenter clips each to its grid's columns
-                var printedGeometry = new SheetGeometry(worksheet, printed, scale, maxDigitWidth);
+                var printedGeometry = new SheetGeometry(worksheet, printed, scale, maxDigitWidth, builder.RowHeights(worksheet, scale, printed: true));
                 foreach (var strip in Strips(builder, worksheet, worksheetPart, printed, scale, settings.ContentWidth, maxDigitWidth))
                 {
-                    if (builder.Build(worksheet, strip, scale, definedNames.PrintTitleRows(name), conditional, tableStyles, centered) is { } table)
+                    if (builder.Build(worksheet, strip, scale, printed: true, definedNames.PrintTitleRows(name), conditional, tableStyles, centered) is { } table)
                     {
                         pieces.Add((printed, printedGeometry.ColumnLeft(strip.FirstColumn), table));
                     }
@@ -195,7 +198,7 @@ sealed class SpreadsheetParser(
                 List<DocumentElement> art = [];
                 if (worksheetPart != null)
                 {
-                    art = drawings.Parse(worksheetPart, new(worksheet, artRange, scale, maxDigitWidth), scale, 0, GridLeft(table, settings) - artShift, printed: !onePagePerSheet);
+                    art = drawings.Parse(worksheetPart, new(worksheet, artRange, scale, maxDigitWidth, builder.RowHeights(worksheet, scale, !onePagePerSheet)), scale, 0, GridLeft(table, settings) - artShift, printed: !onePagePerSheet);
                 }
 
                 if (first == null)
@@ -689,7 +692,7 @@ sealed class SpreadsheetParser(
         }
 
         var valued = ValuedColumns(builder, worksheet, range);
-        var geometry = new SheetGeometry(worksheet, range, scale, maxDigitWidth);
+        var geometry = new SheetGeometry(worksheet, range, scale, maxDigitWidth, builder.RowHeights(worksheet, scale, printed: true));
         var first = 0;
         var offset = 0d;
         var yielded = false;
@@ -788,7 +791,7 @@ sealed class SpreadsheetParser(
 
         if (pagesTall > 0)
         {
-            var natural = SheetGridBuilder.NaturalHeightPoints(worksheet, range);
+            var natural = builder.NaturalHeightPoints(worksheet, range);
             var available = (settings.HeightPoints - settings.MarginTop - settings.MarginBottom) * pagesTall;
             if (natural > available &&
                 natural > 0)

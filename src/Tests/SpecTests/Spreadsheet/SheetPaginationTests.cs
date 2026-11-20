@@ -148,8 +148,9 @@ public class SheetPaginationTests
 
         await Assert.That(pages.Count).IsEqualTo(3);
         await Assert.That(PngHeight(pages[0])).IsEqualTo(3 * (int) rowHeight + margin * 2);
-        // The one cell, at the default height of a row
-        await Assert.That(PngHeight(pages[1])).IsEqualTo(15 + margin * 2);
+        // The one cell, at the standard height of a row of the 11pt body font: Excel's 24px on its
+        // 120-dpi screen, 14.4pt
+        await Assert.That(PngHeight(pages[1])).IsEqualTo((int) (14.4 + margin * 2));
         await Assert.That(PngHeight(pages[2])).IsEqualTo(7 * (int) rowHeight + margin * 2);
     }
 
@@ -168,7 +169,8 @@ public class SheetPaginationTests
         var pages = Render(stream);
 
         await Assert.That(pages.Count).IsEqualTo(3);
-        await Assert.That(PngHeight(pages[1])).IsEqualTo(15 + margin * 2);
+        // one standard row of the 11pt body font: Excel's 24px on its 120-dpi screen, 14.4pt
+        await Assert.That(PngHeight(pages[1])).IsEqualTo((int) (14.4 + margin * 2));
         await Assert.That(PngHeight(pages[2])).IsEqualTo(7 * (int) rowHeight + margin * 2);
     }
 

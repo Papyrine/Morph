@@ -932,13 +932,13 @@ public class CanonicalFragmenterTests
     /// <summary>
     /// Word fits a table row strictly: it stays only while its whole box clears the bottom margin, so a
     /// table one point short of room breaks before its last row. The 2% slack the whole-table path used
-    /// to give every table kept this one whole. A spreadsheet grid still has it, since Excel paginates by
-    /// rules the engine only approximates.
+    /// to give every table kept this one whole. A spreadsheet grid is fitted the same way, now that its
+    /// rows are Excel's printed heights: Excel moves the row too.
     /// </summary>
     [Test]
     [Arguments(false, "112")]
-    [Arguments(true, "111")]
-    public async Task A_table_a_point_short_of_room_breaks_before_its_last_row_unless_it_is_a_sheet(bool sheetGrid, string pages)
+    [Arguments(true, "112")]
+    public async Task A_table_a_point_short_of_room_breaks_before_its_last_row(bool sheetGrid, string pages)
     {
         var table = OneLineRows(3, sheetGrid);
         var height = fragmenter.Layout([table], Page(200)).Pages[0].Items.OfType<PlacedTableRow>().Sum(_ => _.Height);

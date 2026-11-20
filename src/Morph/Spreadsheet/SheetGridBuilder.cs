@@ -9,31 +9,82 @@
 /// unit of length. And merges are declared once, in a separate list, for a region the grid must then
 /// be told about cell by cell.
 /// </summary>
-sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels, CultureInfo culture)
+sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels, ExcelRowHeights rowHeights, CultureInfo culture)
 {
     const double pointsPerPixel = 72.0 / 96.0;
 
     /// <summary>Excel's default when a sheet declares no width of its own.</summary>
     const double defaultColumnWidthChars = 8.43;
 
-    /// <summary>Excel's default row height for an 11pt body font.</summary>
-    const double defaultRowHeightPoints = 15;
-
     /// <summary>
-    /// What Excel auto-sizes a row to, as a multiple of its tallest font.
+    /// Every row's height in points, as Excel prints the sheet at <paramref name="scale"/> (or, not
+    /// <paramref name="printed"/>, as its screen lays the sheet out): the rows <c>sheetData</c>
+    /// holds, and the height of a row it leaves out. The grid and <see cref="SheetGeometry"/> both
+    /// take their heights from here, so a drawing anchored to a row stands where that row is drawn.
     ///
-    /// Probe (<c>_probe_rowheight</c>: one row per font size, no declared height, row heights read
-    /// off the reference as the distance between successive ink bands) — 10pt to 12.75, 14pt to 18,
-    /// 18pt to 24, 24pt to 32.25, 36pt to 46.5. That is 1.275 to 1.344, averaging 1.31, and it also
-    /// squares with Excel's own 15pt default for an 11pt body font.
-    ///
-    /// The layout engine grows a row to the font's OpenType line height instead, around 1.2x, which
-    /// is 8% short. Small per row, but it compounds down a sheet: basic-business-invoice fitted 27
-    /// rows onto one page where Excel needs two.
+    /// <list type="bullet">
+    /// <item>A row with <c>customHeight</c> is the height it declares.</item>
+    /// <item>A row without it is sized by Excel to its tallest font, WHATEVER <c>ht</c> it carries:
+    /// Excel sizes such a row again when it opens the file. Probed 2026-11-20: rows declaring
+    /// <c>ht="40"</c> without <c>customHeight</c>, text in the body font, came back 13.2pt (Arial
+    /// 10's standard height) and printed as standard rows, under a custom sheet default and
+    /// without one. It is the same row Excel would make of an edit.</item>
+    /// <item>A row the file leaves out is <c>defaultRowHeight</c> only when <c>sheetFormatPr</c>
+    /// says <c>customHeight</c>; otherwise Excel ignores the stored default (30, in the same probe)
+    /// and gives it the body font's standard height.</item>
+    /// </list>
     /// </summary>
-    const double autoRowHeightFactor = 1.31;
+    public SheetRows RowHeights(S.Worksheet worksheet, double scale, bool printed)
+    {
+        if (rowHeightCache.TryGetValue((worksheet, scale, printed), out var cached))
+        {
+            return cached;
+        }
 
-    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, (int First, int Last)? titleRows, ConditionalFormats conditional, TableStyles tableStyles, bool horizontallyCentered)
+        var measured = MeasureRows(worksheet, scale, printed);
+        rowHeightCache[(worksheet, scale, printed)] = measured;
+        return measured;
+    }
+
+    // the grid, its strips and the drawings over it all ask for one sheet's rows
+    readonly Dictionary<(S.Worksheet Worksheet, double Scale, bool Printed), SheetRows> rowHeightCache = [];
+
+    SheetRows MeasureRows(S.Worksheet worksheet, double scale, bool printed)
+    {
+        int? zoom = printed ? (int) Math.Round(scale * 100, MidpointRounding.AwayFromZero) : null;
+        var format = worksheet.SheetFormatProperties;
+        var absent = format?.CustomHeight?.Value == true && format.DefaultRowHeight?.Value is { } declared
+            ? rowHeights.Declared(declared, zoom)
+            : rowHeights.Standard(zoom);
+
+        var rows = new Dictionary<int, double>();
+        foreach (var row in worksheet.GetFirstChild<S.SheetData>()?.Elements<S.Row>() ?? [])
+        {
+            if (row.RowIndex?.Value is not { } index)
+            {
+                continue;
+            }
+
+            rows[(int) index] = row.CustomHeight?.Value == true && row.Height?.Value is { } height
+                ? rowHeights.Declared(height, zoom)
+                : rowHeights.Auto(Fonts(row), zoom);
+        }
+
+        return new(rows, absent);
+    }
+
+    // The font of every cell in a row, which is what Excel sizes the row to: an empty cell counts,
+    // since giving one a larger font grows its row in Excel.
+    IEnumerable<(string Family, double SizePoints)> Fonts(S.Row row)
+    {
+        foreach (var cell in row.Elements<S.Cell>())
+        {
+            var style = styles.Resolve(cell.StyleIndex?.Value ?? 0);
+            yield return (style.FontFamily ?? styles.DefaultFont.Family, style.FontSizePoints ?? styles.DefaultFont.SizePoints);
+        }
+    }
+
+    public TableElement? Build(S.Worksheet worksheet, SheetRange range, double scale, bool printed, (int First, int Last)? titleRows, ConditionalFormats conditional, TableStyles tableStyles, bool horizontallyCentered)
     {
         var sheetData = worksheet.GetFirstChild<S.SheetData>();
         if (sheetData == null || range.IsEmpty)
@@ -48,7 +99,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                         range.ContainsRow((int) index))
             .ToDictionary(_ => (int) _.RowIndex!.Value);
 
-        var defaultHeight = (worksheet.SheetFormatProperties?.DefaultRowHeight?.Value ?? defaultRowHeightPoints) * scale;
+        var heights = RowHeights(worksheet, scale, printed);
 
         var rows = new List<TableRow>(range.RowCount);
         for (var rowIndex = range.FirstRow; rowIndex <= range.LastRow; rowIndex++)
@@ -56,7 +107,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             rowsByIndex.TryGetValue(rowIndex, out var row);
             var isHeader = titleRows is { } titles &&
                            rowIndex >= titles.First && rowIndex <= titles.Last;
-            rows.Add(BuildRow(row, rowIndex, range, merges, widths, defaultHeight, scale, isHeader, conditional, tableStyles));
+            rows.Add(BuildRow(row, rowIndex, range, merges, widths, heights.Height(rowIndex), scale, isHeader, conditional, tableStyles));
         }
 
         return new()
@@ -83,7 +134,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         SheetRange range,
         MergeMap merges,
         double[] widths,
-        double defaultHeight,
+        double height,
         double scale,
         bool isHeader,
         ConditionalFormats conditional,
@@ -138,11 +189,9 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         {
             Cells = cells,
             IsHeader = isHeader,
-            // A declared height is used as given; an auto-height row takes Excel's own sizing rule
-            // rather than being left to the engine's OpenType line height, which runs short.
-            HeightPoints = row?.Height?.Value is { } height
-                ? height * scale
-                : Math.Max(defaultHeight, AutoRowHeight(cellsByColumn.Values) * scale),
+            // Excel's own height for the row (RowHeights); an auto-height row still grows past it
+            // to wrapped text
+            HeightPoints = height,
             // customHeight="1" means the author fixed the height, and Excel then CLIPS wrapped text
             // to it rather than growing the row. Treating every height as a floor instead let one
             // sheet of paragraph-length text in a 2.6-character column grow into six blank pages,
@@ -150,22 +199,6 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             // auto-height row (no customHeight) grows to its content.
             IsExactHeight = row?.CustomHeight?.Value == true
         };
-    }
-
-    /// <summary>
-    /// The height Excel would auto-size a row to: its tallest font times
-    /// <see cref="autoRowHeightFactor"/>. Zero when the row holds nothing, leaving the sheet default.
-    /// </summary>
-    double AutoRowHeight(IEnumerable<S.Cell> cells)
-    {
-        var tallest = 0d;
-        foreach (var cell in cells)
-        {
-            var size = styles.Resolve(cell.StyleIndex?.Value ?? 0).FontSizePoints ?? styles.DefaultFont.SizePoints;
-            tallest = Math.Max(tallest, size);
-        }
-
-        return tallest * autoRowHeightFactor;
     }
 
     /// <summary>
@@ -606,25 +639,17 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         ColumnWidths(worksheet, range, 1).Sum();
 
     /// <summary>
-    /// The sheet's unscaled height, for the fit-to-height half of the scale. Declared row heights
-    /// are what Excel fits against; a row that would grow to its content is not known until layout,
-    /// and Excel does not fit against that either.
+    /// The sheet's unscaled height, for the fit-to-height half of the scale: its rows as Excel prints
+    /// them at 100%. A row that would grow to wrapped text is not known until layout, and Excel does
+    /// not fit against that either.
     /// </summary>
-    public static double NaturalHeightPoints(S.Worksheet worksheet, SheetRange range)
+    public double NaturalHeightPoints(S.Worksheet worksheet, SheetRange range)
     {
-        var declared = worksheet.GetFirstChild<S.SheetData>()?
-            .Elements<S.Row>()
-            .Where(_ => _.RowIndex?.Value is { } index &&
-                        range.ContainsRow((int) index))
-            .ToDictionary(_ => (int) _.RowIndex!.Value, _ => _.Height?.Value) ?? [];
-
-        var fallback = worksheet.SheetFormatProperties?.DefaultRowHeight?.Value ?? defaultRowHeightPoints;
-
+        var heights = RowHeights(worksheet, 1, printed: true);
         var total = 0d;
         for (var row = range.FirstRow; row <= range.LastRow; row++)
         {
-            total += declared.TryGetValue(row, out var height) &&
-                     height is { } value ? value : fallback;
+            total += heights.Height(row);
         }
 
         return total;

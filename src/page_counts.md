@@ -147,6 +147,20 @@ washes and regressions revert, but the measured knowledge is kept.
 
 ## Pass 4 experiment ledger (newest first)
 
+- **24 — spreadsheet rows at Excel's printed heights, sheet grids fitted strictly (2026-11-20).**
+  Excel prints a row through the ratio of the body font's standard heights on its printer and its
+  120-dpi screen, from a height held to a quarter screen pixel (`ExcelRowHeights`; todo #45), so
+  the same declared heights had printed 6% short under Arial 10 and 6% long under Verdana 11. With
+  rows exact, the 2-4% slack sheet grids kept in `Fragmenter.TableFitsHere` (2026-09-30, "since
+  Excel's pagination is only approximated") is wrong, and it went: basic-business-invoice's 737.2pt
+  of rows on a 733.9pt page stay on Excel's two pages, where the slack would have kept one.
+  **Page counts: check-register 1 → 2 against Excel's 1**, the case the slack was added for; its
+  fit zoom runs 9% over Excel's (todo #45, a print-range question), which the slack had hidden.
+  Over the 54 Excel pages Skia has 44 closer to Excel and 4 further, summed AE −1.236 and SSIM
+  +1.829 (ImageSharp −1.263 / +1.836, PDF −1.253 / +1.841); the biggest gains are
+  inventory-list-accessibility-guide (AE −0.25), to-do-list and social-media-editorial-theme-calendar
+  (−0.13 each). The calendar's page 2 is experiment 22's case of "Excel keeps a boundary row that
+  Word's exact fit moves": it was its rows, not the fit.
 - **23 — the advance sidecars and the space-compression wedge removed: zero page-count changes
   (2026-10-02).** The wedge had landed on 2026-08-30 to take resumes/16 back to one page under the
   per-glyph `.wordadvances` widths (todo #43), on the reading that Word lays text out on the pixel

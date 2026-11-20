@@ -11,6 +11,7 @@
   <ItemGroup>
     <EmbeddedResource Include="EmbeddedFonts\*.ttf" />
     <EmbeddedResource Include="Hyphenation\*.txt" />
+    <EmbeddedResource Include="Spreadsheet\ExcelRowHeights.txt" />
   </ItemGroup>
 
   <ItemGroup>

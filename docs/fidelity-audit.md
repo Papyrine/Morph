@@ -80,6 +80,15 @@ said autofit is linear too and the cause turned out to be a float round-off in t
 a change encodes a claim about what Word does, settle the claim with a probe (below) and use the
 suite to look for collateral.
 
+**On spreadsheet geometry neither metric can be trusted alone.** A sheet is a lattice of rules
+and fills, so a placement change moves them all at once and the scores swing with how the
+lattice now aliases against Excel's. Fixes have scored negative while visibly correct:
+`home-contents-inventory-list` read −0.09 SSIM on the landing that took its gridline error
+against Excel's regular 104px pitch from a mean 0.9px to 0.4px. And `weekly-lesson-planner`
+scored +0.12 on a change that made its geometry measurably worse. Read row and column extents
+off the page, and crops, rather than the sums; for rows, Excel's own pitches can be read losslessly
+from an XPS export with print gridlines on (`scripts/excel-row-heights/README.md`).
+
 ## Promotion-time guard against degenerate baselines
 
 The judging loop above is a manual discipline; the suite itself has one blind spot it cannot

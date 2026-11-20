@@ -31,6 +31,8 @@ static class FontMetricsReader
     const uint gsubTag = 0x47535542;
     // 'fvar'
     const uint fvarTag = 0x66766172;
+    // 'VDMX'
+    const uint vdmxTag = 0x56444D58;
 
     // Safety bound on the eagerly-expanded codepoint→glyph map, so a malformed cmap claiming a
     // group spanning the whole Unicode range can't allocate unbounded memory. Far above any real
@@ -104,6 +106,7 @@ static class FontMetricsReader
             StrikeoutPosition = os2.StrikeoutPosition,
             StrikeoutSize = os2.StrikeoutSize,
             EastAsian = os2.EastAsian,
+            PixelExtents = ReadVdmx(stream, tables),
 
             AdvanceWidths = ReadAdvanceWidths(stream, tables, numberOfHMetrics),
             GlyphForCodepoint = ReadCmap(stream, tables),
@@ -322,6 +325,75 @@ static class FontMetricsReader
     // OS/2.ulCodePageRange1 bits 17 to 21: JIS, simplified Chinese (GB2312), Korean Wansung,
     // traditional Chinese (Big5) and Korean Johab.
     const uint eastAsianCodePages = 0b11111u << 17;
+
+    /// <summary>
+    /// The <c>VDMX</c> group GDI takes its ascent and descent from: per ppem, the hinted
+    /// <c>yMax</c> and <c>-yMin</c> in whole pixels. Only a group for the Windows ANSI character set
+    /// (<c>bCharSet</c> 1) whose ratio covers a square pixel counts — Tahoma and Avenir Next LT Pro
+    /// carry a <c>bCharSet</c> 0 group that GDI ignores, and scaling their <c>usWin*</c> values is
+    /// what it does instead. Checked against <c>GetTextMetrics</c> for 20 faces at every ppem from 6
+    /// to 130 (2026-11-20): ascent and descent agree on all 2,500. Null when the font has no such
+    /// group.
+    /// </summary>
+    static Dictionary<int, (int Ascent, int Descent)>? ReadVdmx(Stream stream, Dictionary<uint, (long Offset, int Length)> tables)
+    {
+        if (!tables.TryGetValue(vdmxTag, out var vdmx) || vdmx.Length < 6)
+        {
+            return null;
+        }
+
+        var bytes = new byte[vdmx.Length];
+        if (!TryReadExactAt(stream, vdmx.Offset, bytes))
+        {
+            return null;
+        }
+
+        var span = bytes.AsSpan();
+        var ratios = BinaryPrimitives.ReadUInt16BigEndian(span[4..]);
+        var offsets = 6 + 4 * ratios;
+        if (offsets + 2 * ratios > span.Length)
+        {
+            return null;
+        }
+
+        for (var i = 0; i < ratios; i++)
+        {
+            var charSet = span[6 + 4 * i];
+            var xRatio = span[7 + 4 * i];
+            var yStart = span[8 + 4 * i];
+            var yEnd = span[9 + 4 * i];
+            if (charSet != 1 ||
+                xRatio != 0 && (yStart > xRatio || xRatio > yEnd))
+            {
+                continue;
+            }
+
+            var group = BinaryPrimitives.ReadUInt16BigEndian(span[(offsets + 2 * i)..]);
+            if (group + 4 > span.Length)
+            {
+                return null;
+            }
+
+            var records = BinaryPrimitives.ReadUInt16BigEndian(span[group..]);
+            var result = new Dictionary<int, (int Ascent, int Descent)>(records);
+            for (var k = 0; k < records; k++)
+            {
+                var at = group + 4 + 6 * k;
+                if (at + 6 > span.Length)
+                {
+                    break;
+                }
+
+                result[BinaryPrimitives.ReadUInt16BigEndian(span[at..])] = (
+                    BinaryPrimitives.ReadInt16BigEndian(span[(at + 2)..]),
+                    -BinaryPrimitives.ReadInt16BigEndian(span[(at + 4)..]));
+            }
+
+            return result;
+        }
+
+        return null;
+    }
 
     /// <summary>
     /// Reads the <c>cmap</c> table, selects the best Unicode subtable, and expands it to a
