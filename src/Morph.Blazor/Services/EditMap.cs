@@ -427,6 +427,11 @@ sealed class EditMap
         {
             if (container is { } cell)
             {
+                if (Strip(cell) is { } strip)
+                {
+                    return (strip.Left + leftIndent, strip.Right - rightIndent);
+                }
+
                 // A cell pads both sides alike, and an edge the lines give says by how much.
                 var padding = cellPadding;
                 if (near is { } start)
@@ -471,6 +476,40 @@ sealed class EditMap
             }
 
             return (Math.Min(first, last - leastWidth), last);
+        }
+
+        // The strip beside a floating table that the paragraph was set in, when its first line stands
+        // beside one: the room between the table's box and the cell's padded edge, found as the layout
+        // found it (CellFloatWrap). Read as padding, the line's start beside the table mirrored that
+        // offset onto the cell's far side, and the box ended at the paragraph's widest line. The cell's
+        // padding is read off the table, which stands its tblpX from the padded left edge.
+        (float Left, float Right)? Strip(PlacedCell cell)
+        {
+            CellFloatWrap? wrap = null;
+            float? contentLeft = null;
+            foreach (var table in cell.Content.OfType<PlacedTableRow>().Where(_ => CellFloatWrap.Wraps(_.Table)).GroupBy(_ => _.Table))
+            {
+                var first = table.First();
+                var top = table.Min(_ => _.Y);
+                (wrap ??= new()).Add(first.Table, first.X, top, first.Width, table.Max(_ => _.Y + _.Height) - top);
+                contentLeft ??= first.X - (float) first.Table.Properties.FloatingXOffsetPoints;
+            }
+
+            if (wrap == null ||
+                contentLeft is not { } start)
+            {
+                return null;
+            }
+
+            var padding = Math.Max(start - cell.X, 0);
+            var line = lines[0];
+            var (_, stripLeft, stripWidth, constrained) = wrap.Place(line.Y, line.Y, line.Height, cell.X + padding, cell.X + cell.Width - padding);
+            if (!constrained)
+            {
+                return null;
+            }
+
+            return (stripLeft, stripLeft + stripWidth);
         }
     }
 }

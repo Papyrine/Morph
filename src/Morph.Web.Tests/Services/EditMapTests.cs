@@ -50,6 +50,36 @@ public class EditMapTests
     }
 
     [Test]
+    public async Task AParagraphBesideAFloatingTable_IsBoxedToTheStripItWasSetIn()
+    {
+        // A 100pt table floated in a 300pt cell padded 5.4pt each side, keeping 36pt of text off its right
+        // (rightFromText 720): the paragraph after it wraps in the strip between that and the cell's padded
+        // right edge (CellFloatWrap). Read as padding, its start mirrored onto the right, and the box ended
+        // at its widest line — here well short of the strip, so typing in it wrapped far too early.
+        var (document, _, map) = Open(
+            Build(
+                "<w:tbl><w:tblPr><w:tblW w:w=\"6000\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/>" +
+                "<w:tblCellMar><w:left w:w=\"108\" w:type=\"dxa\"/><w:right w:w=\"108\" w:type=\"dxa\"/></w:tblCellMar></w:tblPr>" +
+                "<w:tblGrid><w:gridCol w:w=\"6000\"/></w:tblGrid><w:tr><w:tc><w:tcPr><w:tcW w:w=\"6000\" w:type=\"dxa\"/></w:tcPr>" +
+                P("", R("Above the table.")) +
+                "<w:tbl><w:tblPr><w:tblpPr w:leftFromText=\"0\" w:rightFromText=\"720\" w:vertAnchor=\"text\" w:tblpY=\"1\"/>" +
+                "<w:tblW w:w=\"2000\" w:type=\"dxa\"/><w:tblLayout w:type=\"fixed\"/></w:tblPr><w:tblGrid><w:gridCol w:w=\"2000\"/></w:tblGrid>" +
+                "<w:tr><w:trPr><w:trHeight w:val=\"1440\" w:hRule=\"exact\"/></w:trPr><w:tc><w:tcPr><w:tcW w:w=\"2000\" w:type=\"dxa\"/></w:tcPr>" +
+                P("", R("Table")) +
+                "</w:tc></w:tr></w:tbl>" +
+                P("", R("Beside the table,"), "<w:r><w:br/></w:r>", R("in two short lines.")) +
+                "</w:tc></w:tr></w:tbl>" +
+                P("", R("After."))));
+        using var disposing = document;
+        var above = map.Blocks(0).Single();
+        var beside = map.Blocks(2).Single();
+
+        await Assert.That(beside.Lines.Count).IsGreaterThan(1);
+        await Assert.That((double) beside.Left).IsEqualTo(above.Left + 100 + 36).Within(0.01);
+        await Assert.That((double) beside.Right).IsEqualTo(above.Right).Within(0.01);
+    }
+
+    [Test]
     public async Task AnEmptyParagraph_HasABlockToo()
     {
         var (document, _, map) = Open(Build(P("", R("above")) + "<w:p/>" + P("", R("below"))));
