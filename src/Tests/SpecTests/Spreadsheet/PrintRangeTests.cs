@@ -1,9 +1,10 @@
 /// <summary>
-/// What of a sheet prints, which is what a fit to page shrinks to the paper. Three rules, each read off
-/// Excel's references:
+/// What of a sheet prints, which is what a fit to page shrinks to the paper. The rules, each read off
+/// Excel's references or probed over COM:
 /// * a print area of whole columns (<c>$A:$K</c>) or whole rows is a print area, not no print area;
 /// * a cell that prints nothing — no value, no formula, no fill, no border — does not extend the range;
-/// * a drawing extends it over the cells it stands on.
+/// * a drawing extends it over the cells it stands on, to the cell its end marker names at any offset;
+/// * with no print area it starts at A1.
 /// </summary>
 public class PrintRangeTests
 {
@@ -62,6 +63,25 @@ public class PrintRangeTests
         var breakdown = document.Elements.OfType<TableElement>().Skip(1).First();
 
         await Assert.That(breakdown.Rows.Count).IsGreaterThan(10);
+    }
+
+    // A drawing takes in the cell its end marker names, however little of it the drawing covers:
+    // check-register's corner art ends a quarter of a point into column K, and Excel fits A to K
+    // (73%, against A to J's 80%), printing K blank down the right of the page. Its cells are A1:J15.
+    [Test]
+    public async Task Check_register_prints_the_column_its_corner_art_just_reaches_into() =>
+        await Assert.That(Grid("check-register").Properties.GridColumnWidths!.Count).IsEqualTo(11);
+
+    // With no print area Excel prints from A1: back-to-school-planner's shopping list starts at B1,
+    // and its reference prints column A blank left of the banner, and column I, where the banner's
+    // end marker stands at offset 0, blank right of it.
+    [Test]
+    public async Task Back_to_school_planner_prints_from_column_A_to_column_I()
+    {
+        var grid = Grid("back-to-school-planner");
+
+        await Assert.That(grid.Properties.GridColumnWidths!.Count).IsEqualTo(9);
+        await Assert.That(grid.Properties.GridColumnWidths![0]).IsLessThan(20);
     }
 
     // to-do-list's $A:$M is 831.7pt wide at 100% against 770pt of landscape A4, so it prints in strips

@@ -604,6 +604,50 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     }
 
     /// <summary>
+    /// Whether the cell holds text that may run past its column: text, unwrapped, with more
+    /// characters than the column is wide. A column's width is counted in digits and most text is
+    /// narrower, so this errs towards overflow. A number never overflows (Excel shows #s), and
+    /// business-plan-checklist's "Completion date", 15 characters in a column 21.625 wide, must not
+    /// read as overflowing just for being in the last column.
+    /// </summary>
+    public bool MayOverflow(S.Worksheet worksheet, S.Cell cell)
+    {
+        var raw = cell.CellValue?.Text;
+        var type = cell.DataType?.Value;
+        string text;
+        if (type == S.CellValues.SharedString)
+        {
+            text = int.TryParse(raw, out var index) ? sharedStrings.Get(index) : string.Empty;
+        }
+        else if (type == S.CellValues.InlineString)
+        {
+            text = cell.InlineString == null ? string.Empty : SharedStrings.Flatten(cell.InlineString);
+        }
+        else if (type == S.CellValues.String)
+        {
+            text = raw ?? string.Empty;
+        }
+        else
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(text) ||
+            styles.Resolve(cell.StyleIndex?.Value ?? 0).WrapText)
+        {
+            return false;
+        }
+
+        var column = CellReference.ColumnOf(cell.CellReference?.Value);
+        if (column == 0)
+        {
+            return false;
+        }
+
+        return ToPoints(text.Length) > ColumnWidths(worksheet, new(1, column, 1, column), 1)[0];
+    }
+
+    /// <summary>
     /// Column widths in points, from the <c>cols</c> runs. Each <c>col</c> covers an inclusive
     /// <c>min..max</c> span rather than a single column, so the runs are expanded across the range.
     /// </summary>

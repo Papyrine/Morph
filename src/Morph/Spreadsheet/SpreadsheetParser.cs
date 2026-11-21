@@ -151,7 +151,7 @@ sealed class SpreadsheetParser(
             {
                 // Drawn rather than printed: the whole of the sheet at its own size, whatever its
                 // page setup says of paper, print area, titles and scale
-                var bounds = WholeSheetRange(worksheetPart, worksheet);
+                var bounds = WholeSheetRange(builder, worksheetPart, worksheet);
                 scale = 1;
                 if (builder.Build(worksheet, bounds, scale, printed: false, null, conditional, tableStyles, false) is not { } table)
                 {
@@ -165,7 +165,7 @@ sealed class SpreadsheetParser(
             {
                 settings = PageSettingsFor(worksheet, useLetterPageSize);
 
-                var range = ResolveRange(worksheetPart, worksheet, definedNames.PrintArea(name), styles);
+                var range = ResolveRange(builder, worksheetPart, worksheet, definedNames.PrintArea(name), styles, fromFirstCell: true);
                 if (range is not { } printed || printed.IsEmpty)
                 {
                     continue;
@@ -262,7 +262,7 @@ sealed class SpreadsheetParser(
     /// The range to render: the sheet's declared print area when it has one, clipped to the cells
     /// that actually exist, else the used range from <c>dimension</c>.
     /// </summary>
-    static SheetRange? ResolveRange(WorksheetPart? worksheetPart, S.Worksheet worksheet, string? printArea, CellStyles? styles)
+    static SheetRange? ResolveRange(SheetGridBuilder builder, WorksheetPart? worksheetPart, S.Worksheet worksheet, string? printArea, CellStyles? styles, bool fromFirstCell)
     {
         // dimension is a HINT, not a measurement: Excel writes the range it last tracked, keeping
         // columns and rows whose content has since gone, and it prints neither. Intersecting it with
@@ -335,7 +335,28 @@ sealed class SpreadsheetParser(
             return clipped;
         }
 
-        return ExtendForOverflow(worksheet, bounds);
+        if (fromFirstCell)
+        {
+            // With no print area Excel prints from A1, whatever the first cell is. Probed over COM
+            // (Excel 16, A4, 2026-11-21): check-register with every cell of column A deleted and A
+            // widened to 30 characters still fitted A in, its UsedRange starting at B; a value in D10
+            // with A to C at 40 characters fitted all three; and rows 1-9 at a 60pt default height
+            // with no records, cells only from row 10, shrank fit-to-one-page-tall to 68%.
+            // back-to-school-planner's reference prints column A blank down the left of its banner.
+            // The blank cells this adds are not in the file, so a range they would make larger than
+            // MaxDeclaredCells (one cell at the far corner of the grid) keeps where its cells start.
+            var fromA1 = bounds with
+            {
+                FirstRow = 1,
+                FirstColumn = 1
+            };
+            if ((long) fromA1.RowCount * fromA1.ColumnCount <= MaxDeclaredCells)
+            {
+                bounds = fromA1;
+            }
+        }
+
+        return ExtendForOverflow(builder, worksheet, bounds);
     }
 
     /// <summary>
@@ -384,7 +405,7 @@ sealed class SpreadsheetParser(
     /// empty sheet is when printing, it would leave the images one short of the sheets, and nothing
     /// to say which sheet the image after it was of.
     /// </summary>
-    static SheetRange WholeSheetRange(WorksheetPart? worksheetPart, S.Worksheet worksheet)
+    static SheetRange WholeSheetRange(SheetGridBuilder builder, WorksheetPart? worksheetPart, S.Worksheet worksheet)
     {
         // The grid is built from the rows, and a sheet nobody has typed in can have no element for
         // them at all. The DOM is in memory and never saved, as for AssignImpliedReferences
@@ -393,7 +414,7 @@ sealed class SpreadsheetParser(
             worksheet.AppendChild(new S.SheetData());
         }
 
-        var used = ResolveRange(worksheetPart, worksheet, null, null);
+        var used = ResolveRange(builder, worksheetPart, worksheet, null, null, fromFirstCell: false);
         if (used is not { IsEmpty: false } bounds)
         {
             bounds = new(1, 1, 1, 1);
@@ -428,8 +449,8 @@ sealed class SpreadsheetParser(
 
             bounds = bounds with
             {
-                LastColumn = Math.Max(bounds.LastColumn, Math.Min(LastCell<XDR.ColumnId, XDR.ColumnOffset>(to), CellReference.MaxColumn)),
-                LastRow = Math.Max(bounds.LastRow, Math.Min(LastCell<XDR.RowId, XDR.RowOffset>(to), CellReference.MaxRow))
+                LastColumn = Math.Max(bounds.LastColumn, Math.Min(LastCell<XDR.ColumnId>(to), CellReference.MaxColumn)),
+                LastRow = Math.Max(bounds.LastRow, Math.Min(LastCell<XDR.RowId>(to), CellReference.MaxRow))
             };
         }
 
@@ -437,33 +458,18 @@ sealed class SpreadsheetParser(
     }
 
     /// <summary>
-    /// The last column or row a drawing reaches into, counting from one, from the marker it ends
-    /// at. A marker counts from zero and says how far into that cell the drawing runs: with no
-    /// offset it stops on the cell's near edge, and the cell before is the last it touches.
-    ///
-    /// Nor does a drawing that only just crosses that edge reach into the cell in any way worth a
-    /// whole column: one dragged to a boundary rarely lands on it exactly. check-register's corner
-    /// art ends 3319 EMU, a quarter of a point, into column K, and taking K for that put a blank
-    /// strip a hundred pixels wide down the side of the sheet. Under a point it is taken to end on
-    /// the boundary, and what crosses it is clipped there.
+    /// The last column or row a drawing brings into the print range, counting from one, from the
+    /// marker it ends at: the marker's own cell, however far into it the drawing runs — even not
+    /// at all. Probed over COM (Excel 16, A4, 2026-11-21): check-register's corner art ending 0,
+    /// 1, 3319, 12700 and 200000 EMU into column K fitted the sheet at 73% every time, A to K,
+    /// where pulling its marker back into J gave 80%, A to J alone; a box Excel itself saved
+    /// ending on column H's left edge at offset 0 printed H, 150 characters wide; and one saved
+    /// ending on row 60's top edge printed row 60, exactly as one 38100 EMU into it did. Column K
+    /// prints blank on check-register's reference page, the strip down its right side.
     /// </summary>
-    static int LastCell<TIndex, TOffset>(XDR.ToMarker to)
-        where TIndex : OpenXmlElement
-        where TOffset : OpenXmlElement
-    {
-        if (!int.TryParse(to.GetFirstChild<TIndex>()?.InnerText, out var index))
-        {
-            return 0;
-        }
-
-        if (long.TryParse(to.GetFirstChild<TOffset>()?.InnerText, out var offset) &&
-            offset > OoxmlUnits.EmusPerPoint)
-        {
-            return index + 1;
-        }
-
-        return index;
-    }
+    static int LastCell<TIndex>(XDR.ToMarker to)
+        where TIndex : OpenXmlElement =>
+        int.TryParse(to.GetFirstChild<TIndex>()?.InnerText, out var index) ? index + 1 : 0;
 
     /// <summary>
     /// The page of a sheet drawn whole: as wide as its grid, and as tall as the grid turns out to
@@ -503,9 +509,9 @@ sealed class SpreadsheetParser(
     /// measured width and can run off the page; that needs horizontal pagination, which this parser
     /// does not do.
     /// </summary>
-    static SheetRange ExtendForOverflow(S.Worksheet worksheet, SheetRange bounds)
+    static SheetRange ExtendForOverflow(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange bounds)
     {
-        if (!HasOverflowingText(worksheet, bounds))
+        if (!HasOverflowingText(builder, worksheet, bounds))
         {
             return bounds;
         }
@@ -535,13 +541,18 @@ sealed class SpreadsheetParser(
     /// </summary>
     const uint maxShapedColumn = 1000;
 
-    /// <summary>Whether the range's final column holds text that would be clipped at its edge.</summary>
-    static bool HasOverflowingText(S.Worksheet worksheet, SheetRange bounds) =>
+    /// <summary>
+    /// Whether the range's final column holds text that would be clipped at its edge
+    /// (<see cref="SheetGridBuilder.MayOverflow"/>). Any value there used to count, which widened
+    /// business-plan-checklist to its spacer column E for a "Completion date" that fits: Excel
+    /// prints A to D (its grid as wide as B to E would be, and starting a column A further right).
+    /// </summary>
+    static bool HasOverflowingText(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange bounds) =>
         worksheet.GetFirstChild<S.SheetData>()?
             .Elements<S.Row>()
             .SelectMany(_ => _.Elements<S.Cell>())
             .Any(_ => CellReference.ColumnOf(_.CellReference?.Value) == bounds.LastColumn &&
-                      _.CellValue?.Text is { Length: > 0 }) ?? false;
+                      builder.MayOverflow(worksheet, _)) ?? false;
 
     /// <summary>The extent of the cells present, for a sheet whose <c>dimension</c> is missing.</summary>
     /// <summary>

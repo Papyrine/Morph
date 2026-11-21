@@ -287,24 +287,24 @@ public class SheetPaginationTests
     }
 
     /// <summary>
-    /// A drawing that ends on a cell boundary, or a hair past one, stops at that boundary: the cell
-    /// past it is not part of the sheet. A quarter of a point over is what the corner art of the
-    /// corpus's check-register has, which must not draw a whole empty column.
+    /// A drawing takes in the cell its end marker names however little of it the drawing covers,
+    /// none at all included, as Excel's print range does: a marker on G10's near edge still brings
+    /// in G and row 10. A quarter of a point over is what the corner art of the corpus's
+    /// check-register has, and Excel prints the column it reaches into blank.
     /// </summary>
     [Test]
     [Arguments(0)]
     [Arguments(3319)]
-    public async Task ADrawingEndingOnACellBoundaryStopsThere(long offset)
+    public async Task ADrawingEndingOnACellBoundaryTakesThatCell(long offset)
     {
-        // The same marker with no offset is the near edge of G10, so F9 is the last cell it touches
         using var stream = Workbook(new SheetSpec("Sheet", Rows: 2, DrawingTo: (Column: 6, Row: 9, Offset: offset)));
 
         var table = ExcelConverter.Parse(stream, Options())
             .Elements.OfType<TableElement>()
             .Single();
 
-        await Assert.That(table.Properties.GridColumnWidths!.Count).IsEqualTo(6);
-        await Assert.That(table.Rows.Count).IsEqualTo(9);
+        await Assert.That(table.Properties.GridColumnWidths!.Count).IsEqualTo(7);
+        await Assert.That(table.Rows.Count).IsEqualTo(10);
     }
 
     static IReadOnlyList<byte[]> Render(Stream stream) =>
