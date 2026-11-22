@@ -66,4 +66,13 @@ sealed class CompatibilitySettings
     /// presentation parser; the measurer reads it (<c>CanonicalParagraphMeasurer</c>).
     /// </summary>
     public bool UsesSlideLinePitch { get; init; }
+
+    /// <summary>
+    /// Text drawn at its linear advances rather than at Word's whole pixels: Excel prints at the
+    /// printer's resolution. Under Word's 120-dpi pen social-media-editorial-theme-calendar's
+    /// "Grand opening announcement", Arial at 7.08pt, drew 134px wide at 96 dpi against Excel's 125
+    /// and its own linear 127.5. A slide draws linearly too (<see cref="UsesSlideLinePitch"/>). Set by
+    /// the spreadsheet parser; the measurer reads it (<c>CanonicalParagraphMeasurer</c>).
+    /// </summary>
+    public bool DrawsAtLinearAdvances { get; init; }
 }

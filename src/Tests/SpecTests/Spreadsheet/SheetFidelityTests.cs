@@ -25,14 +25,16 @@ public class SheetFidelityTests
     static TableCell Cell(TableElement grid, string text) =>
         Cells(grid).First(_ => Text(_.Cell) == text).Cell;
 
-    // An indent level is three spaces of the body font, unscaled by the print zoom: the calendar's
-    // five-level "Week 1" stands 50pt in under an Arial 12 body, printed at 59%.
+    // An indent level is three spaces of the body font, each rounded to a 600-dpi printer dot and
+    // unscaled by the print zoom: the calendar's five-level "Week 1" stands 50.4pt in under an Arial 12
+    // body, printed at 59%.
     [Test]
     public async Task An_indent_is_three_spaces_of_the_body_font_whatever_the_zoom()
     {
         var paragraph = Cell(Grid("social-media-editorial-theme-calendar"), "Week 1").Content.OfType<ParagraphElement>().First();
 
-        await Assert.That(paragraph.Properties.LeftIndentPoints).IsEqualTo(50.0).Within(0.1);
+        // Arial 12's space is 27.78 of the printer's 600-dpi dots: 28, three to a level, 84 dots
+        await Assert.That(paragraph.Properties.LeftIndentPoints).IsEqualTo(5 * 84 * 72 / 600.0).Within(0.001);
     }
 
     // A rich string keeps its runs' own look: "Strengths:" is bold before a regular remainder.
@@ -165,6 +167,42 @@ public class SheetFidelityTests
     [Test]
     public async Task A_drawings_turn_is_kept() =>
         await Assert.That(Sheet("home-contents-inventory-list").OfType<FloatingImageElement>().Any(_ => _.RotationDegrees != 0)).IsTrue();
+
+    // A sheet's text is drawn at its linear advances, as Excel prints it, not at Word's pixels.
+    [Test]
+    public async Task A_sheets_text_is_drawn_at_its_linear_advances()
+    {
+        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "simple-list", "input.xlsx"));
+        var document = ExcelConverter.Parse(stream, null, ProjectFonts.Directory, useLetterPageSize: false, onePagePerSheet: false);
+
+        await Assert.That(document.Compatibility.DrawsAtLinearAdvances).IsTrue();
+    }
+
+    // to-do-list's leaf is a group turned 344 degrees: its members turn with it.
+    [Test]
+    public async Task A_turned_groups_members_turn_with_it() =>
+        await Assert.That(Sheet("to-do-list").OfType<FloatingShapeElement>().Count(_ => Math.Abs(_.RotationDegrees - 344.1) < 1)).IsGreaterThan(0);
+
+    // to-do-list's first page ends at K, and its title is merged over B:L: the text lays out over the
+    // whole merge, column L past the page's edge.
+    [Test]
+    public async Task A_merge_cut_by_the_page_lays_out_over_the_whole_merge()
+    {
+        var title = Cell(Grid("to-do-list"), "TO-DO LIST").Content.OfType<ParagraphElement>().First();
+
+        await Assert.That(title.Properties.RightIndentPoints).IsLessThan(0);
+    }
+
+    // The HTML export shows a data bar as a gradient across the cell, and an icon as its character.
+    [Test]
+    public async Task The_html_export_shows_data_bars_and_icons()
+    {
+        using var projects = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "to-do-list-for-projects", "input.xlsx"));
+        using var inventory = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "inventory-list-with-highlighting", "input.xlsx"));
+
+        await Assert.That(ExcelConverter.ConvertToHtml(projects)).Contains("linear-gradient(to right");
+        await Assert.That(ExcelConverter.ConvertToHtml(inventory)).Contains("⚑");
+    }
 
     // A three-colour scale passes through its middle colour at its middle stop, its stops worked out
     // over the range: red at the least, yellow at the 50th percentile, green at the greatest.

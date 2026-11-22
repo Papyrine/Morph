@@ -5068,16 +5068,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // _probe_cellheights' 30.6pt nested table in a 60pt centred row 14.7pt down, and resumes/06's
             // skill bars sit mid-row. Skipped for a split row — its content no longer has one box to be
             // centred in, and Word tops each fragment out.
+            // A spreadsheet cell (ClipOverflow) centres or bottoms text taller than its row as well, the
+            // overhang cut at both edges: modern-basic-black-yellow-standard's 60pt INVOICE in a 55pt
+            // centred row stands as high as Excel prints it, where topping it out put it 9pt low and
+            // cut its foot.
+            var overhangs = cell.Properties.ClipOverflow;
             var offset = budget != null
                 ? 0f
                 : verticalAlignment switch
                 {
-                    CellVerticalAlignment.Center => Math.Max(0f, (availableHeight - (cellY - contentTop)) / 2),
-                    CellVerticalAlignment.Bottom => Math.Max(0f, availableHeight - (cellY - contentTop)),
+                    CellVerticalAlignment.Center => (availableHeight - (cellY - contentTop)) / 2,
+                    CellVerticalAlignment.Bottom => availableHeight - (cellY - contentTop),
                     _ => 0f
                 };
+            if (!overhangs)
+            {
+                offset = Math.Max(0f, offset);
+            }
 
-            if (offset > 0.01f)
+            if (Math.Abs(offset) > 0.01f)
             {
                 for (var lineIndex = 0; lineIndex < lines.Count; lineIndex++)
                 {

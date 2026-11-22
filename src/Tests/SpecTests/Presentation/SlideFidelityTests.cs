@@ -73,13 +73,14 @@ public class SlideFidelityTests
     }
 
     // pebble's body text is tx1 at 70% on the terracotta slide: (232, 207, 202) in PowerPoint's
-    // export, not white; and its text stands 0.1in inside its box.
+    // export, not white, which the colour's own alpha composites to; and its text stands 0.1in
+    // inside its box.
     [Test]
-    public async Task Translucent_text_blends_over_the_background_and_sits_inside_its_insets()
+    public async Task Translucent_text_keeps_its_alpha_and_sits_inside_its_insets()
     {
         var box = TextBox(Slide("pebble", 2), "Topic two");
 
-        await Assert.That(Paragraph(box, "Topic two").Runs[0].Properties.ColorHex).IsEqualTo("E8CFCA");
+        await Assert.That(Paragraph(box, "Topic two").Runs[0].Properties.ColorHex).IsEqualTo("B3FFFFFF");
         await Assert.That(box.Insets.Left).IsEqualTo(7.2).Within(0.001);
         await Assert.That(box.Insets.Top).IsEqualTo(3.6).Within(0.001);
     }
@@ -175,6 +176,58 @@ public class SlideFidelityTests
         var geometry = new A.PresetGeometry(new A.AdjustValueList()) { Preset = new(new A.ShapeTypeValues(preset)) };
 
         await Assert.That(PresetShapeGeometry.TryBuild(geometry, 100, 50)).IsNotNull();
+    }
+
+    // sketchlines' agenda layout fills three blobs with photos: each is the picture cut to its
+    // outline, two of them duotoned.
+    [Test]
+    public async Task A_picture_filled_shape_is_its_picture_cut_to_the_shape()
+    {
+        var pictures = Slide("sketchlines", 2).OfType<FloatingImageElement>().Where(_ => _.ClipSubpaths != null).ToList();
+
+        await Assert.That(pictures.Count).IsGreaterThanOrEqualTo(3);
+        await Assert.That(pictures.Count(_ => _.DuotoneColorHex != null)).IsEqualTo(2);
+    }
+
+    // funky-shapes-dark's wave is a group filled tx1 whose members say a:grpFill.
+    [Test]
+    public async Task A_group_fill_reaches_its_members() =>
+        await Assert.That(Slide("funky-shapes-dark", 1).OfType<FloatingShapeElement>().Count(_ => _.FillColorHex == "FFFFFF")).IsGreaterThan(5);
+
+    // business-cards-horizontal-layout keeps a "Business Cards" title on its slide, hidden.
+    [Test]
+    public async Task A_hidden_shape_is_not_drawn() =>
+        await Assert.That(Slide("business-cards-horizontal-layout", 1).OfType<FloatingTextBoxElement>()
+            .Any(_ => _.Content.OfType<ParagraphElement>().Any(paragraph => paragraph.Runs.Any(run => run.Text.Contains("Business Cards"))))).IsFalse();
+
+    // offset's layout frames the slide in dashed connectors.
+    [Test]
+    public async Task A_dashed_connector_keeps_its_dash() =>
+        await Assert.That(Slide("offset", 1).OfType<FloatingShapeElement>().Any(_ => _.LineDashPattern is [4, 3])).IsTrue();
+
+    // leaf's master bullets in Wingdings 0x9E, an orange middle dot; archive's at 80% of the text;
+    // color-block's in Arial, drawn in it.
+    [Test]
+    public async Task A_bullet_keeps_its_glyph_colour_size_and_font()
+    {
+        var leaf = Paragraph(TextBox(Slide("leaf", 2), "Eco-friendly"), "Eco-friendly").Properties.Numbering!;
+        var archive = Paragraph(TextBox(Slide("archive", 2), "Topic one"), "Topic one");
+        var colorBlock = Paragraph(TextBox(Slide("color-block", 2), "Introduction"), "Introduction").Properties.Numbering!;
+
+        await Assert.That(leaf.Text).IsEqualTo("·");
+        await Assert.That(leaf.ColorHex).IsNotNull();
+        await Assert.That(archive.Properties.Numbering!.FontSizePoints!.Value).IsEqualTo(archive.Runs[0].Properties.FontSizePoints * 0.8).Within(0.01);
+        await Assert.That(colorBlock is { DrawsInOwnFont: true, FontFamily: "Arial" }).IsTrue();
+    }
+
+    // shoji's agenda leaves the master's 9.3pt before and the layout's 6pt after between its items,
+    // both: the before carries the after it follows.
+    [Test]
+    public async Task Space_after_and_space_before_add_up()
+    {
+        var box = TextBox(Slide("shoji", 2), "Building confidence");
+
+        await Assert.That(Paragraph(box, "Building confidence").Properties.SpacingBeforePoints).IsEqualTo(15.3).Within(0.01);
     }
 
     // sketchlines' title blob stands on a hard shadow of its own white at half alpha, 107% of its size

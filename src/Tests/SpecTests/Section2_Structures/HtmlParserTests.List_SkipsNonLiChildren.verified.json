@@ -42,6 +42,7 @@
       "Numbering": {
         "Text": "•",
         "Level": 0,
+        "DrawsInOwnFont": false,
         "IndentPoints": 36.0,
         "HangingIndentPoints": 18.0,
         "MarkerRightAligned": false,

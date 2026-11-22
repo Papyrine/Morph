@@ -572,7 +572,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var useBulletFont = FontHelpers.UseBulletFont(numbering.Text, numbering.FontFamily);
         return new()
         {
-            FontFamily = useBulletFont ? "Morph Bullets" : firstProperties.FontFamily,
+            FontFamily = useBulletFont
+                ? "Morph Bullets"
+                : numbering is { DrawsInOwnFont: true, FontFamily: { } own } ? own : firstProperties.FontFamily,
             FontSizePoints = numbering.FontSizePoints ?? firstProperties.FontSizePoints,
             Bold = !useBulletFont &&
                    firstProperties.Bold,
@@ -1222,6 +1224,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // 12pt are 4px and 1px wider bold than regular, where the 0.6pt a glyph Word adds would
             // make them 20px wider; drawn at Word's pixels the regular 40pt line was 4px wide too.
             if (!slideLinePitch &&
+                compatibility?.DrawsAtLinearAdvances != true &&
                 extraGapPixels == 0 &&
                 images.Count == 0 &&
                 !HasTab(linePieces))

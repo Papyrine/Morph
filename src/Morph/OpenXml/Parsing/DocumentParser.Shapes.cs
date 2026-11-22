@@ -1529,7 +1529,7 @@ sealed partial class DocumentParser
     /// DrawingML convention (ECMA-376 ST_PresetLineDashVal). Null = solid (or an unmapped
     /// preset, which draws solid rather than inventing a pattern).
     /// </summary>
-    static IReadOnlyList<double>? MapPresetDashPattern(EnumValue<A.PresetLineDashValues>? dash)
+    internal static IReadOnlyList<double>? MapPresetDashPattern(EnumValue<A.PresetLineDashValues>? dash)
     {
         if (dash?.Value is not { } value || value == A.PresetLineDashValues.Solid)
         {

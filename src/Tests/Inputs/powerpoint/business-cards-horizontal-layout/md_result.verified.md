@@ -1,6 +1,4 @@
-﻿## Business Cards
-
-**Robert Tamburello**
+﻿**Robert Tamburello**
 
 Vice President
 

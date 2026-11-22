@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Draws a <see cref="ChartModel"/> into its box as placed shapes and laid-out label paragraphs — the
 /// items every painter already draws, so a chart needs nothing of its own downstream.
 ///
@@ -22,6 +22,14 @@ sealed partial class ChartComposer(
     // chart's own scale.
     float padding = 5f;
     float labelGap = 4f;
+
+    // How far an axis's labels stand from the plot: beside it 0.95 of their size, under it 0.63.
+    // Probed in PowerPoint 16 (2026-11-22) on chart-scatter's slide with its axis labels at 8, 12 and
+    // 24pt: the value labels' ink ends 11, 16 and 31px (96 dpi) short of the plot and the axis labels'
+    // ink starts 10, 16 and 31px under it, where a fixed 4pt left 6 or 7px beside and 8 to 16 under.
+    static float Beside(ChartTextStyle style) => (float) (0.95 * style.SizePoints);
+
+    static float Under(ChartTextStyle style) => (float) (0.63 * style.SizePoints);
 
     /// <summary>
     /// The chart in its box. <paramref name="scale"/> shrinks its text, rules and spacing with a sheet
@@ -68,8 +76,13 @@ sealed partial class ChartComposer(
             }
             else
             {
+                // Under it the plot stands 5.25pt further down than the chart's padding: probed in
+                // PowerPoint 16 (2026-11-22) on chart-scatter's slide with its title at 10, 18.6 and 36pt
+                // and its axis labels at 8, 12 and 24pt, the plot's top 7px (96 dpi) lower than drawn
+                // in every one
+                var underTitle = padding + 5.25f * (float) scale;
                 titleItems.AddRange(Label(title.Text, title.Style, inner.X, inner.Y + insetY, inner.Width, titleHeight, TextAlignment.Center));
-                inner = (inner.X, inner.Y + titleHeight + padding, inner.Width, inner.Height - titleHeight - padding);
+                inner = (inner.X, inner.Y + titleHeight + underTitle, inner.Width, inner.Height - titleHeight - underTitle);
             }
         }
 
@@ -214,8 +227,8 @@ sealed partial class ChartComposer(
             var categoryHeight = showCategoryLabels ? LineHeight("0", categoryStyle) : 0;
             var left = horizontal ? categoryWidth : valueWidth;
             var bottom = horizontal ? valueHeight : categoryHeight;
-            var leftReserve = left > 0 ? left + labelGap : 0;
-            var bottomReserve = bottom > 0 ? bottom + labelGap : 0;
+            var leftReserve = left > 0 ? left + Beside(horizontal ? categoryStyle : valueStyle) : 0;
+            var bottomReserve = bottom > 0 ? bottom + Under(horizontal ? valueStyle : categoryStyle) : 0;
 
             // Half a label overhangs each end of the axis that carries them along its length.
             var top = horizontal ? 0 : showValueLabels ? valueHeight / 2 : 0;
@@ -225,7 +238,7 @@ sealed partial class ChartComposer(
             // The secondary axis's labels stand at the plot's right, as the primary's do at its left.
             if (showSecondaryLabels)
             {
-                right = Math.Max(right, secondaryLabels.Max(_ => TextWidth(_, secondaryStyle)) + labelGap);
+                right = Math.Max(right, secondaryLabels.Max(_ => TextWidth(_, secondaryStyle)) + Beside(secondaryStyle));
                 top = Math.Max(top, LineHeight("0", secondaryStyle) / 2);
             }
 
@@ -364,7 +377,7 @@ sealed partial class ChartComposer(
             for (var index = 0; index < secondaryTicks.Count; index++)
             {
                 var labelWidth = TextWidth(secondaryLabels[index], secondaryStyle) + 2;
-                items.AddRange(Label(secondaryLabels[index], secondaryStyle, plot.X + plot.Width + labelGap, SecondaryAt(secondaryTicks[index]) - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Left));
+                items.AddRange(Label(secondaryLabels[index], secondaryStyle, plot.X + plot.Width + Beside(secondaryStyle), SecondaryAt(secondaryTicks[index]) - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Left));
             }
         }
 
@@ -377,12 +390,12 @@ sealed partial class ChartComposer(
                 if (horizontal)
                 {
                     var labelWidth = TextWidth(valueLabels[index], valueStyle) + 2;
-                    items.AddRange(Label(valueLabels[index], valueStyle, at - labelWidth / 2, plot.Y + plot.Height + labelGap, labelWidth, labelHeight, TextAlignment.Center));
+                    items.AddRange(Label(valueLabels[index], valueStyle, at - labelWidth / 2, plot.Y + plot.Height + Under(valueStyle), labelWidth, labelHeight, TextAlignment.Center));
                 }
                 else
                 {
                     var labelWidth = TextWidth(valueLabels[index], valueStyle) + 2;
-                    items.AddRange(Label(valueLabels[index], valueStyle, plot.X - labelGap - labelWidth, at - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
+                    items.AddRange(Label(valueLabels[index], valueStyle, plot.X - Beside(valueStyle) - labelWidth, at - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
                 }
             }
         }
@@ -397,12 +410,12 @@ sealed partial class ChartComposer(
                 if (horizontal)
                 {
                     var labelWidth = TextWidth(text, categoryStyle) + 2;
-                    items.AddRange(Label(text, categoryStyle, plot.X - labelGap - labelWidth, start + band / 2 - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
+                    items.AddRange(Label(text, categoryStyle, plot.X - Beside(categoryStyle) - labelWidth, start + band / 2 - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
                 }
                 else
                 {
                     var left = onTicks ? Along(category) - pitch / 2 : start;
-                    items.AddRange(Label(text, categoryStyle, left, plot.Y + plot.Height + labelGap, pitch, labelHeight, TextAlignment.Center));
+                    items.AddRange(Label(text, categoryStyle, left, plot.Y + plot.Height + Under(categoryStyle), pitch, labelHeight, TextAlignment.Center));
                 }
             }
         }
@@ -752,8 +765,8 @@ sealed partial class ChartComposer(
             var yWidth = showY ? yLabels.Max(_ => TextWidth(_, yStyle)) : 0;
             var yHeight = showY ? LineHeight("0", yStyle) : 0;
             var xHeight = showX ? LineHeight("0", xStyle) : 0;
-            var left = yWidth > 0 ? yWidth + labelGap : 0;
-            var bottom = xHeight > 0 ? xHeight + labelGap : 0;
+            var left = yWidth > 0 ? yWidth + Beside(yStyle) : 0;
+            var bottom = xHeight > 0 ? xHeight + Under(xStyle) : 0;
             var right = showX ? TextWidth(xLabels[^1], xStyle) / 2 : 0;
             plot = (plot.X + left, plot.Y + yHeight / 2, plot.Width - left - right, plot.Height - bottom - yHeight / 2);
         }
@@ -900,7 +913,7 @@ sealed partial class ChartComposer(
             for (var index = 0; index < yTicks.Count; index++)
             {
                 var labelWidth = TextWidth(yLabels[index], yStyle) + 2;
-                items.AddRange(Label(yLabels[index], yStyle, plot.X - labelGap - labelWidth, YAt(yTicks[index]) - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
+                items.AddRange(Label(yLabels[index], yStyle, plot.X - Beside(yStyle) - labelWidth, YAt(yTicks[index]) - labelHeight / 2, labelWidth, labelHeight, TextAlignment.Right));
             }
         }
 
@@ -910,7 +923,7 @@ sealed partial class ChartComposer(
             for (var index = 0; index < xTicks.Count; index++)
             {
                 var labelWidth = TextWidth(xLabels[index], xStyle) + 2;
-                items.AddRange(Label(xLabels[index], xStyle, XAt(xTicks[index]) - labelWidth / 2, plot.Y + plot.Height + labelGap, labelWidth, labelHeight, TextAlignment.Center));
+                items.AddRange(Label(xLabels[index], xStyle, XAt(xTicks[index]) - labelWidth / 2, plot.Y + plot.Height + Under(xStyle), labelWidth, labelHeight, TextAlignment.Center));
             }
         }
 
@@ -1404,8 +1417,13 @@ sealed partial class ChartComposer(
              });
 
         var strokeKeys = entries.Any(_ => _.Series is {NoLine: false} && LineKey(_.Plot));
-        var keyWidth = strokeKeys ? (float) (style.SizePoints * 2) : key;
-        var keyGap = 3f;
+        // PowerPoint's stroke is 21.75pt whatever the legend's size, the text 0.75pt after it, and a
+        // column's bar beside it 1.5pt shorter at each end: probed in PowerPoint 16 (2026-11-22) on
+        // chart-combo's slide with its legend at 8, 12 and 24pt, the line keys 29, 29 and 28px long
+        // (96 dpi) and the bars 25, 25 and 26, where two font sizes made them 21 to 61
+        var slideKeys = strokeKeys && chart.OnSlide;
+        var keyWidth = slideKeys ? 21.75f * labelGap / 4f : strokeKeys ? (float) (style.SizePoints * 2) : key;
+        var keyGap = slideKeys ? 0.75f * labelGap / 4f : 3f;
         var entryGap = (float) style.SizePoints;
         var widths = entries.Select(_ => keyWidth + keyGap + TextWidth(_.Text, style) + 2).ToList();
         var across = legend.Position is ChartLegendPosition.Top or ChartLegendPosition.Bottom;
@@ -1476,8 +1494,10 @@ sealed partial class ChartComposer(
             }
             else if (strokeKeys)
             {
-                // Beside line keys, a column's key is a bar as long as theirs (chart-combo).
-                items.Add(Rectangle(x, y + (lineHeight - key) / 2, keyWidth, key, color, null));
+                // Beside line keys, a column's key is a bar as long as theirs, or on a slide 1.5pt
+                // shorter at each end (chart-combo)
+                var inset = slideKeys ? 1.5f * labelGap / 4f : 0f;
+                items.Add(Rectangle(x + inset, y + (lineHeight - key) / 2, keyWidth - 2 * inset, key, color, null));
             }
             else
             {

@@ -98,6 +98,12 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
     {
         foreach (var child in container.ChildElements)
         {
+            // A drawing hidden in the selection pane neither shows nor prints
+            if (SlideShapeParser.Hidden(child))
+            {
+                continue;
+            }
+
             switch (child)
             {
                 case XDR.Picture picture:
@@ -131,7 +137,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
                 {
                     // A group's children are authored in its own coordinate space, so the anchor
                     // rectangle maps onto the group's chOff/chExt exactly as it does on a slide.
-                    var groupTransform = GroupTransform(group, box);
+                    var groupTransform = anchorIsRoot ? GroupTransform(group, box) : transform.Compose(group.GroupShapeProperties?.TransformGroup);
                     Walk(group, box, groupTransform, drawingsPart, elements, ref ordinal, anchorIsRoot: false, notPrinted);
                     break;
                 }
@@ -160,7 +166,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
             return null;
         }
 
-        var (placed, rotation, flipHorizontal, flipVertical) = Turned(picture.ShapeProperties?.Transform2D, Placement(picture.ShapeProperties?.Transform2D, box, transform, anchorIsRoot), anchorIsRoot);
+        var (placed, rotation, flipHorizontal, flipVertical) = Turned(picture.ShapeProperties?.Transform2D, Placement(picture.ShapeProperties?.Transform2D, box, transform, anchorIsRoot), transform, anchorIsRoot);
 
         return new FloatingImageElement
         {
@@ -241,7 +247,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
     DocumentElement? ParseShape(XDR.Shape shape, DrawingBox box, SlideTransform transform, bool anchorIsRoot, uint ordinal, bool notPrinted)
     {
         var properties = shape.ShapeProperties;
-        var (placed, rotation, flipHorizontal, flipVertical) = Turned(properties?.Transform2D, Placement(properties?.Transform2D, box, transform, anchorIsRoot), anchorIsRoot);
+        var (placed, rotation, flipHorizontal, flipVertical) = Turned(properties?.Transform2D, Placement(properties?.Transform2D, box, transform, anchorIsRoot), transform, anchorIsRoot);
 
         var solid = properties?.GetFirstChild<A.SolidFill>();
         var fill = solid != null ? ShapeParser.ExtractSolidFillColor(solid, themeColors) : null;
@@ -350,8 +356,15 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
     /// extent, scaled as the anchor is, about the anchor's centre. home-contents-inventory-list's
     /// blender and lamp lean 30 and 20 degrees and stood upright.
     /// </summary>
-    (DrawingBox Box, double Rotation, bool FlipHorizontal, bool FlipVertical) Turned(A.Transform2D? shapeTransform, DrawingBox placed, bool anchorIsRoot)
+    (DrawingBox Box, double Rotation, bool FlipHorizontal, bool FlipVertical) Turned(A.Transform2D? shapeTransform, DrawingBox placed, SlideTransform transform, bool anchorIsRoot)
     {
+        // Inside a group the group's own turn and mirror carry down to its members, as on a slide
+        if (!anchorIsRoot &&
+            SlideShapeParser.ResolveGeometry(shapeTransform, transform) is { } member)
+        {
+            return (new(member.X, member.Y, member.Width, member.Height), member.RotationDegrees, member.FlipHorizontal, member.FlipVertical);
+        }
+
         var rotation = (shapeTransform?.Rotation?.Value ?? 0) / 60000.0;
         var flipHorizontal = shapeTransform?.HorizontalFlip?.Value == true;
         var flipVertical = shapeTransform?.VerticalFlip?.Value == true;
@@ -369,25 +382,48 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
         return (new(centerX - width / 2, centerY - height / 2, width, height), rotation, flipHorizontal, flipVertical);
     }
 
-    /// <summary>Maps a group's child coordinate space onto the anchor rectangle it occupies.</summary>
+    /// <summary>
+    /// Maps an anchored group's child coordinate space onto the sheet: the group's own frame
+    /// (<c>a:off</c>/<c>a:ext</c>) onto the anchor rectangle — swapped end for end about its centre
+    /// when the group's turn lays it on its side, as for a drawing (<see cref="Turned"/>) — and then
+    /// the group's turn, mirror and child space as a slide composes them. Nested groups compose on
+    /// from there. to-do-list's leaf is a group turned 344 degrees, and stood upright; a group
+    /// inside a group was mapped onto the outer anchor as though it were the outer group.
+    /// </summary>
     static SlideTransform GroupTransform(XDR.GroupShape group, DrawingBox box)
     {
         var xfrm = group.GroupShapeProperties?.TransformGroup;
-        var childExtentX = xfrm?.ChildExtents?.Cx?.Value ?? 0;
-        var childExtentY = xfrm?.ChildExtents?.Cy?.Value ?? 0;
-        var childOffsetX = xfrm?.ChildOffset?.X?.Value ?? 0;
-        var childOffsetY = xfrm?.ChildOffset?.Y?.Value ?? 0;
+        var extentX = (double) (xfrm?.Extents?.Cx?.Value ?? 0);
+        var extentY = (double) (xfrm?.Extents?.Cy?.Value ?? 0);
+        if (xfrm == null ||
+            extentX <= 0 ||
+            extentY <= 0)
+        {
+            var childExtentX = xfrm?.ChildExtents?.Cx?.Value ?? 0;
+            var childExtentY = xfrm?.ChildExtents?.Cy?.Value ?? 0;
+            var childOffsetX = xfrm?.ChildOffset?.X?.Value ?? 0;
+            var childOffsetY = xfrm?.ChildOffset?.Y?.Value ?? 0;
+            var scaleX = childExtentX > 0 ? box.Width * OoxmlUnits.EmusPerPoint / childExtentX : 1;
+            var scaleY = childExtentY > 0 ? box.Height * OoxmlUnits.EmusPerPoint / childExtentY : 1;
+            return new(scaleX, 0, 0, scaleY, box.X * OoxmlUnits.EmusPerPoint - childOffsetX * scaleX, box.Y * OoxmlUnits.EmusPerPoint - childOffsetY * scaleY);
+        }
 
-        var scaleX = childExtentX > 0 ? box.Width * OoxmlUnits.EmusPerPoint / childExtentX : 1;
-        var scaleY = childExtentY > 0 ? box.Height * OoxmlUnits.EmusPerPoint / childExtentY : 1;
-
-        return new(
-            scaleX,
+        var degrees = ((xfrm.Rotation?.Value ?? 0) / 60000.0 % 360 + 360) % 360;
+        var onItsSide = degrees is >= 45 and < 135 or >= 225 and < 315;
+        var frameWidth = onItsSide ? box.Height : box.Width;
+        var frameHeight = onItsSide ? box.Width : box.Height;
+        var frameX = box.X + box.Width / 2 - frameWidth / 2;
+        var frameY = box.Y + box.Height / 2 - frameHeight / 2;
+        var frameScaleX = frameWidth * OoxmlUnits.EmusPerPoint / extentX;
+        var frameScaleY = frameHeight * OoxmlUnits.EmusPerPoint / extentY;
+        var frame = new SlideTransform(
+            frameScaleX,
             0,
             0,
-            scaleY,
-            box.X * OoxmlUnits.EmusPerPoint - childOffsetX * scaleX,
-            box.Y * OoxmlUnits.EmusPerPoint - childOffsetY * scaleY);
+            frameScaleY,
+            frameX * OoxmlUnits.EmusPerPoint - (xfrm.Offset?.X?.Value ?? 0) * frameScaleX,
+            frameY * OoxmlUnits.EmusPerPoint - (xfrm.Offset?.Y?.Value ?? 0) * frameScaleY);
+        return frame.Compose(xfrm);
     }
 
     /// <summary>

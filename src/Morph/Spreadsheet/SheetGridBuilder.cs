@@ -25,7 +25,10 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     /// Calibri, 0.84 of Arial, 0.75 of Times New Roman and 1.05 of Verdana — three times each face's
     /// space — with the cells in Calibri 11, Arial 12 and Arial 24 alike; at 50% and 75% zoom the text
     /// shrank and the step stayed 10.08pt under Arial 12. social-media-editorial-theme-calendar's
-    /// five-level "Week 1" prints clipped to "Week" for it, in a sheet fitted to 59%.
+    /// five-level "Week 1" prints clipped to "Week" for it, in a sheet fitted to 59%. Every step
+    /// measured is a whole number of the 600-dpi printer's dots — 45, 57, 90 and 186 under Calibri 8,
+    /// 10, 16 and 33, 84 under Arial 12 — three times the space rounded to a dot: Arial 12's space is
+    /// 27.78 dots, so 28, and 84.
     /// </summary>
     double IndentPoints
     {
@@ -36,10 +39,11 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 return known;
             }
 
+            const double dotsPerPoint = 600.0 / 72;
             var (family, size) = styles.DefaultFont;
             var metrics = resolveFont?.Invoke(family ?? defaultFont, false, false);
             return (indentPoints = metrics is { UnitsPerEm: > 0 }
-                ? 3.0 * metrics.AdvanceUnits(' ') / metrics.UnitsPerEm * size
+                ? 3 * Math.Round((double) metrics.AdvanceUnits(' ') / metrics.UnitsPerEm * size * dotsPerPoint, MidpointRounding.AwayFromZero) / dotsPerPoint
                 : 9).Value;
         }
     }
@@ -125,6 +129,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             return null;
         }
 
+        building = worksheet;
         var merges = MergeMap.For(worksheet, range);
         var widths = ColumnWidths(worksheet, range, scale);
         var rowsByIndex = sheetData.Elements<S.Row>()
@@ -327,6 +332,15 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 IsExactHeight = row.IsExactHeight
             };
     }
+
+    // The worksheet being built, for the widths of a merge's columns outside the range (CutWidth)
+    S.Worksheet? building;
+
+    /// <summary>The width in points of a merge's columns a strip cuts off, at the sheet's scale.</summary>
+    double CutWidth((int First, int Count) cut, double scale) =>
+        cut.Count <= 0 || building == null
+            ? 0
+            : ColumnWidths(building, new SheetRange(1, cut.First, 1, cut.First + cut.Count - 1), scale).Sum();
 
     /// <summary>The style each column of the range gives a position no cell is written for (<c>col/@style</c>).</summary>
     static Dictionary<int, uint> ColumnStyles(S.Worksheet worksheet, SheetRange range)
@@ -624,8 +638,11 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                     : [],
                 // Excel indents from the side the text is set against: a right-aligned cell's indent
                 // stands it in from the right (modern-basic-black-yellow-standard's prices and totals)
-                LeftIndentPoints = alignment == TextAlignment.Right ? 0 : style.IndentLevel * IndentPoints,
-                RightIndentPoints = alignment == TextAlignment.Right ? style.IndentLevel * IndentPoints : 0,
+                // A merge cut by the strip's edge lays its text out over the whole merge, the part past
+                // the edge cut off by the cell's clip: Excel centres to-do-list's title over B:L though
+                // its first page ends at K, where centring over B:K put it 39px left
+                LeftIndentPoints = (alignment == TextAlignment.Right ? 0 : style.IndentLevel * IndentPoints) - CutWidth(merge.CutBefore, scale),
+                RightIndentPoints = (alignment == TextAlignment.Right ? style.IndentLevel * IndentPoints : 0) - CutWidth(merge.CutAfter, scale),
                 SpacingBeforePoints = 0,
                 SpacingAfterPoints = 0,
                 LineSpacingMultiplier = 1,

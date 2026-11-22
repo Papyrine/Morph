@@ -318,8 +318,14 @@
         (fontFamily.StartsWith("Symbol", StringComparison.OrdinalIgnoreCase) ||
          fontFamily.StartsWith("Wingdings", StringComparison.OrdinalIgnoreCase));
 
-    // Single marker-font decision shared by the three render backends.
+    // What the embedded subset draws (src/Morph/EmbeddedFonts/Bullets.ttf's cmap).
+    static readonly HashSet<char> bulletFontGlyphs = ['o', '•', '■', '▪', '▸', '►', '◆', '○', '●', '☐', '☑', '☒', '✓'];
+
+    // Single marker-font decision shared by the three render backends. A symbol font's marker the
+    // subset has no glyph for stays in the paragraph's face, which draws it: leaf's Wingdings middle
+    // dot drew as nothing from the subset.
     internal static bool UseBulletFont(string? markerText, string? declaredFontFamily) =>
-        IsProprietaryBulletFont(declaredFontFamily) ||
+        (IsProprietaryBulletFont(declaredFontFamily) &&
+         (markerText is not { Length: 1 } || bulletFontGlyphs.Contains(markerText[0]))) ||
         RequiresBulletFont(markerText);
 }

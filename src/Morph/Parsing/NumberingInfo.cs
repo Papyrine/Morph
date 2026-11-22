@@ -28,6 +28,13 @@ sealed record NumberingInfo
     public string? FontFamily { get; init; }
 
     /// <summary>
+    /// Whether the marker is drawn in <see cref="FontFamily"/> rather than the text's face: a slide
+    /// bullet's a:buFont names the face PowerPoint draws it in (color-block's Arial dot is half the
+    /// size of its body face's). A symbol font's marker is never drawn in it, which no face here is.
+    /// </summary>
+    public bool DrawsInOwnFont { get; init; }
+
+    /// <summary>
     /// The label's own size, from the numbering level's <c>w:lvl/w:rPr/w:sz</c>. Null = the level
     /// declares none and the label is set at the size of the paragraph's text.
     /// </summary>

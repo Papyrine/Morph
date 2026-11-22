@@ -1,4 +1,4 @@
-using A = DocumentFormat.OpenXml.Drawing;
+﻿using A = DocumentFormat.OpenXml.Drawing;
 using P = DocumentFormat.OpenXml.Presentation;
 
 /// <summary>
@@ -73,8 +73,6 @@ sealed class SlideShapeParser(
         {
             slideBackground = null;
         }
-
-        textParser.Backdrop = slideBackgroundHex;
 
         // A layout may suppress the master's decoration (p:sldLayout/@showMasterSp), and a slide may
         // suppress whatever it inherits (p:sld/@showMasterShapes); both default to true.
@@ -197,8 +195,25 @@ sealed class SlideShapeParser(
     {
         foreach (var child in tree.ChildElements)
         {
+            // A shape hidden in the selection pane (cNvPr/@hidden) is not drawn: business-cards-
+            // horizontal-layout keeps a "Business Cards" title on its slide, hidden
+            if (Hidden(child))
+            {
+                continue;
+            }
+
             WalkOne(child, hostPart, placeholders, defaultTextStyle, master, elements, ref ordinal, transform);
         }
+    }
+
+    // Whether a shape, picture, connector, frame or group says cNvPr hidden="1"
+    internal static bool Hidden(OpenXmlElement child)
+    {
+        var properties = child.FirstChild?.LocalName.StartsWith("nv", StringComparison.Ordinal) == true
+            ? child.FirstChild.FirstChild
+            : null;
+        return properties is { LocalName: "cNvPr" } &&
+               properties.GetAttributes().Any(_ => _.LocalName == "hidden" && _.Value is "1" or "true");
     }
 
     void WalkOne(
@@ -220,7 +235,7 @@ sealed class SlideShapeParser(
             switch (child)
             {
                 case P.Shape shape:
-                    if (ParseShape(shape, transform, placeholders, defaultTextStyle, master, ordinal) is { } parsed)
+                    if (ParseShape(shape, transform, placeholders, defaultTextStyle, master, ordinal, hostPart) is { } parsed)
                     {
                         if (HardShadow(placeholders.ResolveEffectSource(shape), parsed) is { } shadow)
                         {
@@ -264,6 +279,15 @@ sealed class SlideShapeParser(
                     break;
 
                 case P.GroupShape group:
+                {
+                    // a:grpFill in a member takes the nearest group's own fill
+                    var outerFill = groupFillSource;
+                    if (group.GroupShapeProperties is { } own &&
+                        (own.GetFirstChild<A.NoFill>() != null || own.GetFirstChild<A.SolidFill>() != null || own.GetFirstChild<A.GradientFill>() != null))
+                    {
+                        groupFillSource = own;
+                    }
+
                     Walk(
                         group,
                         transform.Compose(group.GroupShapeProperties?.TransformGroup),
@@ -273,7 +297,9 @@ sealed class SlideShapeParser(
                         master,
                         elements,
                         ref ordinal);
+                    groupFillSource = outerFill;
                     break;
+                }
             }
         }
     }
@@ -342,7 +368,8 @@ sealed class SlideShapeParser(
         SlidePlaceholders placeholders,
         OpenXmlElement? defaultTextStyle,
         P.SlideMaster? master,
-        uint ordinal)
+        uint ordinal,
+        OpenXmlPart? hostPart = null)
     {
         var geometry = ResolveGeometry(placeholders.ResolveTransform(shape), transform);
         if (geometry is not { } box)
@@ -359,6 +386,17 @@ sealed class SlideShapeParser(
             ? (ColorHex: slideBackground?.FillColorHex, Alpha: slideBackground?.FillAlpha ?? 1, Gradient: slideBackground?.Gradient)
             : ResolveFill(placeholders.ResolveFillSource(shape), shape.ShapeStyle);
         var outline = ResolveOutline(placeholders.ResolveOutlineSource(shape), shape.ShapeStyle);
+
+        // A shape filled with a picture is that picture cut to the shape: sketchlines' agenda layout
+        // fills three blobs with photos (two duotoned), which drew in the style's accent red
+        if (shape.UseBackgroundFill?.Value != true &&
+            !HasVisibleText(shape.TextBody) &&
+            shape.ShapeProperties?.GetFirstChild<A.BlipFill>() is { } pictureFill &&
+            hostPart != null &&
+            PictureFilled(pictureFill, shapeProperties, hostPart, box, ordinal) is { } picture)
+        {
+            return picture;
+        }
 
         if (HasVisibleText(shape.TextBody))
         {
@@ -413,6 +451,8 @@ sealed class SlideShapeParser(
             Gradient = fill.Gradient,
             LineColorHex = outline.ColorHex,
             LineWidthPoints = outline.WidthPoints,
+            LineDashPattern = DocumentParser.MapPresetDashPattern(placeholders.ResolveOutlineSource(shape)?.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val),
+            RoundCap = placeholders.ResolveOutlineSource(shape)?.GetFirstChild<A.Outline>()?.CapType?.Value == A.LineCapValues.Round,
             Preset = ResolvePreset(shapeProperties),
             Subpaths = ResolveSubpaths(shapeProperties, box.Width, box.Height),
             OpenOutline = OpenCustomGeometry(shapeProperties),
@@ -504,6 +544,9 @@ sealed class SlideShapeParser(
             VerticalAnchor = VerticalAnchor.Paragraph,
             LineColorHex = outline.ColorHex,
             LineWidthPoints = outline.WidthPoints,
+            // A connector's a:prstDash and a:ln/@cap: offset's frame of dashed rules drew solid
+            LineDashPattern = DocumentParser.MapPresetDashPattern(shapeProperties?.GetFirstChild<A.Outline>()?.GetFirstChild<A.PresetDash>()?.Val),
+            RoundCap = shapeProperties?.GetFirstChild<A.Outline>()?.CapType?.Value == A.LineCapValues.Round,
             Subpaths = [[(startX, startY), (1 - startX, 1 - startY)]],
             RotationDegrees = box.RotationDegrees,
             RelativeHeight = ordinal
@@ -563,6 +606,44 @@ sealed class SlideShapeParser(
             Opacity = BlipReader.ReadBlipOpacity(blip),
             Description = picture.NonVisualPictureProperties?
                 .NonVisualDrawingProperties?.Description?.Value,
+            RelativeHeight = ordinal
+        };
+    }
+
+    /// <summary>A shape's picture fill, drawn as the picture clipped to the shape's geometry.</summary>
+    FloatingImageElement? PictureFilled(A.BlipFill fill, OpenXmlElement? geometrySource, OpenXmlPart hostPart, ResolvedBox box, uint ordinal)
+    {
+        var (data, contentType, rasterFallback, rasterFallbackContentType) = ShapeParser.ExtractPicture(fill, hostPart, partBytes);
+        if (data is not { Length: > 0 })
+        {
+            return null;
+        }
+
+        var (colorEffect, duotoneColorHex, duotoneLightColorHex) = BlipReader.ReadBlipColorEffect(fill.Blip, themeColors);
+        var (clipToEllipse, clipSubpaths) = BlipReader.ReadPictureClip(geometrySource, (box.Width, box.Height));
+        return new()
+        {
+            ImageData = data,
+            ContentType = contentType,
+            RasterFallbackData = rasterFallback,
+            RasterFallbackContentType = rasterFallbackContentType,
+            WidthPoints = box.Width,
+            HeightPoints = box.Height,
+            HorizontalPositionPoints = box.X,
+            VerticalPositionPoints = box.Y,
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Paragraph,
+            WrapType = WrapType.None,
+            RotationDegrees = box.RotationDegrees,
+            FlipHorizontal = box.FlipHorizontal,
+            FlipVertical = box.FlipVertical,
+            Crop = ReadCrop(fill),
+            ClipToEllipse = clipToEllipse,
+            ClipSubpaths = clipSubpaths,
+            ColorEffect = colorEffect,
+            DuotoneColorHex = duotoneColorHex,
+            DuotoneLightColorHex = duotoneLightColorHex,
+            Opacity = BlipReader.ReadBlipOpacity(fill.Blip),
             RelativeHeight = ordinal
         };
     }
@@ -705,10 +786,12 @@ sealed class SlideShapeParser(
             string.IsNullOrEmpty(relationshipId) ||
             !hostPart.TryGetPartById(relationshipId, out var part) ||
             ResolveGeometry(frame.Transform, transform) is not { } box ||
-            chartReader.Read(part.RootElement) is not { } chart)
+            chartReader.Read(part.RootElement) is not { } read)
         {
             return null;
         }
+
+        var chart = read with { OnSlide = true };
 
         return new FloatingChartElement
         {
@@ -967,7 +1050,7 @@ sealed class SlideShapeParser(
     /// Maps a shape's <c>a:xfrm</c> through the accumulated group transform into slide points.
     /// Null when nothing in the placeholder chain declared geometry, or the shape is degenerate.
     /// </summary>
-    static ResolvedBox? ResolveGeometry(OpenXmlElement? shapeTransform, SlideTransform transform)
+    internal static ResolvedBox? ResolveGeometry(OpenXmlElement? shapeTransform, SlideTransform transform)
     {
         if (shapeTransform == null)
         {
@@ -1060,7 +1143,7 @@ sealed class SlideShapeParser(
         return null;
     }
 
-    readonly record struct ResolvedBox(
+    internal readonly record struct ResolvedBox(
         double X,
         double Y,
         double Width,
@@ -1074,8 +1157,18 @@ sealed class SlideShapeParser(
     /// <c>p:style/a:fillRef</c> theme reference. The reference matters — template shapes routinely
     /// carry no direct fill at all and take their entire colour from it.
     /// </summary>
+    // The fill of the group being walked, for members that say a:grpFill
+    OpenXmlElement? groupFillSource;
+
     (string? ColorHex, double Alpha, GradientFill? Gradient) ResolveFill(OpenXmlElement? properties, OpenXmlElement? style)
     {
+        // A member filled as its group is takes the group's fill: funky-shapes-dark's wave and dot
+        // grid are white members of groups filled tx1, and drew nothing
+        if (properties?.GetFirstChild<A.GroupFill>() != null)
+        {
+            return groupFillSource is { } group ? ResolveFill(group, null) : (null, 1, null);
+        }
+
         if (properties?.GetFirstChild<A.NoFill>() != null)
         {
             return (null, 1, null);

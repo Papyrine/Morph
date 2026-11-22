@@ -41,6 +41,7 @@
       "Numbering": {
         "Text": "5.",
         "Level": 0,
+        "DrawsInOwnFont": false,
         "IndentPoints": 36.0,
         "HangingIndentPoints": 18.0,
         "MarkerRightAligned": false,
@@ -109,6 +110,7 @@
       "Numbering": {
         "Text": "6.",
         "Level": 0,
+        "DrawsInOwnFont": false,
         "IndentPoints": 36.0,
         "HangingIndentPoints": 18.0,
         "MarkerRightAligned": false,

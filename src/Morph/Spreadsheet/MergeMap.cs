@@ -1,4 +1,4 @@
-using S = DocumentFormat.OpenXml.Spreadsheet;
+﻿using S = DocumentFormat.OpenXml.Spreadsheet;
 
 /// <summary>
 /// Where a sheet's merged regions fall, indexed for the per-cell questions the grid builder asks.
@@ -42,7 +42,11 @@ sealed class MergeMap
                     clipped.ColumnCount,
                     clipped.RowCount > 1
                         ? isAnchorRow ? VerticalMergeType.Restart : VerticalMergeType.Continue
-                        : VerticalMergeType.None);
+                        : VerticalMergeType.None)
+                {
+                    CutBefore = (region.FirstColumn, clipped.FirstColumn - region.FirstColumn),
+                    CutAfter = (clipped.LastColumn + 1, region.LastColumn - clipped.LastColumn)
+                };
 
                 for (var column = clipped.FirstColumn + 1; column <= clipped.LastColumn; column++)
                 {
@@ -75,5 +79,14 @@ sealed class MergeMap
 /// <summary>How one grid position participates in a merge.</summary>
 readonly record struct MergeInfo(int ColumnSpan, VerticalMergeType VerticalMerge)
 {
+    /// <summary>
+    /// The merge's columns left of the range it was clipped to, as the first of them and their count:
+    /// a strip of a sheet printed in strips holds only part of a merge that runs across two.
+    /// </summary>
+    public (int First, int Count) CutBefore { get; init; }
+
+    /// <summary>The merge's columns right of the range, as for <see cref="CutBefore"/>.</summary>
+    public (int First, int Count) CutAfter { get; init; }
+
     public static MergeInfo None => new(1, VerticalMergeType.None);
 }

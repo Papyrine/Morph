@@ -28,6 +28,9 @@ static class SymbolFonts
         [0x76] = '❖',
         [0x77] = '⬥',
         [0x78] = '☒',
+        // The small dot leaf's slide master bullets with: Unicode's middle dot, as Microsoft's own
+        // Wingdings mapping gives it
+        [0x9E] = '·',
         [0x9F] = '•',
         [0xA1] = '○',
         [0xA7] = '▪',

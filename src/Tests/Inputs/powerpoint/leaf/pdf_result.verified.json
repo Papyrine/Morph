@@ -19,7 +19,7 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "A G E N D A\nEco-friendly packaging and materials\nRenewable energy technologies and their\nintegration\nCircular economy and product lifecycle\nmanagement \nSustainability and plant-based alternatives"
+        "Text": "A G E N D A\n· Eco-friendly packaging and materials\n· Renewable energy technologies and their\nintegration\n· Circular economy and product lifecycle\nmanagement \n· Sustainability and plant-based alternatives"
       }
     ]
   },
@@ -34,8 +34,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.4723,
-      "Ssim": 0.9629,
+      "ErrorMetric": 0.4718,
+      "Ssim": 0.963,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

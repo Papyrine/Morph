@@ -27,15 +27,15 @@
     {
       "Page": 1,
       "ErrorMetric": 0.07,
-      "Ssim": 0.9234,
+      "Ssim": 0.9223,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0393,
-      "Ssim": 0.9465,
+      "ErrorMetric": 0.0394,
+      "Ssim": 0.9476,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

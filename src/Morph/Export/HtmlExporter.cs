@@ -2690,6 +2690,12 @@ static class HtmlExporter
 
                 builder.Append('>');
                 AppendCellFloats(cell);
+                if (properties.Icon is { } icon &&
+                    IconGlyph(icon) is var (glyph, glyphColor))
+                {
+                    builder.Append("<span style=\"color: #").Append(glyphColor).Append("\">").Append(glyph).Append("</span>");
+                }
+
                 AppendCellContent(cell.Content, depth + 1, CellMeasure(properties, table.Properties), table.Properties.IsSheetGrid || rows[rowIndex].IsExactHeight);
                 builder.Append($"</{tag}>\n");
                 gridColumn += span;
@@ -2702,6 +2708,32 @@ static class HtmlExporter
         // a non-default vertical alignment, declared cell margins, text direction, diagonals, and
         // resolved borders. Top alignment is the td/th stylesheet default, so only middle/bottom
         // are emitted.
+        // A spreadsheet icon set's icon as a character in its colour: the flags, the checks and the
+        // arrows the page renderers draw (Fragmenter.IconParts); null for an icon they do not draw
+        static (string Glyph, string Color)? IconGlyph(CellIcon icon)
+        {
+            var color = icon.Id switch
+            {
+                0 => "D45431",
+                1 => "FFC000",
+                _ => "4F9A43"
+            };
+            var arrow = icon.Id switch
+            {
+                0 => "\u2193",
+                1 => "\u2192",
+                _ => "\u2191"
+            };
+            return icon.Set switch
+            {
+                "3Flags" or "4Flags" => ("\u2691", color),
+                "3Arrows" => (arrow, color),
+                "3ArrowsGray" => (arrow, "808080"),
+                "3Symbols2" when icon.Id == 2 => ("\u2714", "447E6B"),
+                _ => null
+            };
+        }
+
         static string? CellStyle(TableCellProperties properties, CellBorders? borders, TableProperties tableProperties, TableRow row)
         {
             var parts = new List<string>();
@@ -2722,6 +2754,14 @@ static class HtmlExporter
             if (background != null)
             {
                 parts.Add($"background-color: {background}");
+            }
+
+            // A spreadsheet data bar: its share of the cell in its colour from the left, over the fill
+            if (properties.DataBar is { } bar &&
+                DocumentExportHelpers.NormalizeColor(bar.ColorHex) is { } barColor)
+            {
+                var share = Number(Math.Clamp(bar.Fraction, 0, 1) * 100);
+                parts.Add($"background-image: linear-gradient(to right, {barColor} {share}%, transparent {share}%)");
             }
 
             var verticalAlign = properties.VerticalAlignment switch

@@ -1,4 +1,4 @@
-using A = DocumentFormat.OpenXml.Drawing;
+﻿using A = DocumentFormat.OpenXml.Drawing;
 
 /// <summary>
 /// Converts a DrawingML text body (<c>p:txBody</c>, <c>a:txBody</c> or <c>dsp:txBody</c>) into the
@@ -35,7 +35,25 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         var reduction = (body.GetFirstChild<A.BodyProperties>()?.GetFirstChild<A.NormalAutoFit>()?.LineSpaceReduction?.Value ?? 0) / thousandthsPerPercent;
         foreach (var paragraph in body.Elements<A.Paragraph>())
         {
-            elements.Add(ParseParagraph(paragraph, chain, fontScale, reduction, styleId, counters, first: elements.Count == 0));
+            var parsed = ParseParagraph(paragraph, chain, fontScale, reduction, styleId, counters, first: elements.Count == 0);
+
+            // PowerPoint leaves a paragraph's space-after AND the next one's space-before between
+            // them, where the layout engine keeps Word's larger of the two (ParagraphGap): shoji's
+            // agenda steps 60px, a 30pt line with the master's 9.3pt before and the layout's 6pt
+            // after, and stepped 53. The before carries the after it follows, so the larger is the sum.
+            if (elements.LastOrDefault() is ParagraphElement { Properties.SpacingAfterPoints: > 0 } previous)
+            {
+                parsed = new()
+                {
+                    Runs = parsed.Runs,
+                    Properties = parsed.Properties with
+                    {
+                        SpacingBeforePoints = parsed.Properties.SpacingBeforePoints + previous.Properties.SpacingAfterPoints
+                    }
+                };
+            }
+
+            elements.Add(parsed);
         }
 
         return elements;
@@ -98,11 +116,51 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
             }
         }
 
+        // A marker's size (a:buSzPct of its text's, or a:buSzPts outright), through the cascade as the
+        // marker itself is: archive's master bullets at 80%, which drew at the text's full size
+        if (numbering != null &&
+            BulletSize(properties, chain, level, runs.FirstOrDefault()?.Properties.FontSizePoints, fontScale) is { } markerSize)
+        {
+            numbering = numbering with { FontSizePoints = markerSize };
+        }
+
         return new()
         {
             Runs = runs,
             Properties = ParseParagraphProperties(paragraph, chain, level, numbering, fontScale, lineReduction, styleId, first)
         };
+    }
+
+    // The nearest a:buSzPct / a:buSzPts in the cascade, or null where it says a:buSzTx (the text's)
+    static double? BulletSize(A.ParagraphProperties? properties, TextStyleChain chain, int level, double? textSize, double fontScale)
+    {
+        var sources = new List<OpenXmlElement>();
+        if (properties != null)
+        {
+            sources.Add(properties);
+        }
+
+        sources.AddRange(chain.LevelProperties(level));
+        foreach (var source in sources)
+        {
+            if (source.GetFirstChild<A.BulletSizeText>() != null)
+            {
+                return null;
+            }
+
+            if (source.GetFirstChild<A.BulletSizePercentage>()?.Val?.Value is { } percent &&
+                textSize is { } size)
+            {
+                return size * percent / 100000.0;
+            }
+
+            if (source.GetFirstChild<A.BulletSizePoints>()?.Val?.Value is { } points)
+            {
+                return points / 100.0 * fontScale;
+            }
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -214,11 +272,16 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         };
     }
 
-    /// <summary>
-    /// The slide's background colour, which translucent text is blended over (set per slide by
-    /// <see cref="SlideShapeParser"/>); null where the background is not one solid colour.
-    /// </summary>
-    public string? Backdrop { get; set; }
+    // A bullet's own typeface, its theme references resolved as a run's are; null leaves the
+    // marker in the text's face
+    string? BulletTypeface(string? typeface) =>
+        typeface switch
+        {
+            null or "" => null,
+            "+mn-lt" => themeFonts?.MinorFont ?? defaultFont,
+            "+mj-lt" => themeFonts?.MajorFont ?? defaultFont,
+            _ => typeface
+        };
 
     string? ResolveColor(List<A.TextCharacterPropertiesType> sources)
     {
@@ -229,14 +292,14 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
                 var color = ShapeParser.ExtractSolidFillColor(solidFill, themeColors);
                 var alpha = ShapeParser.ExtractSolidFillAlpha(solidFill);
 
-                // A run carries no opacity of its own, so translucent text is drawn as the colour it
-                // shows over the slide's background: pebble's master sets body text in tx1 at 70%,
-                // which reads as a pale tint of the terracotta slide, not white.
-                if (color != null &&
-                    alpha < 1 &&
-                    Backdrop != null)
+                // Translucent text carries its opacity in its colour (AARRGGBB), which every painter
+                // composites over what is under it: pebble's master sets body text in tx1 at 70%, a
+                // pale tint of its terracotta slide, and lines' presenter name at 70% stands over a
+                // photo, where blending with the slide's background drew it white
+                if (color is { Length: 6 } &&
+                    alpha < 1)
                 {
-                    return TableStyleResolver.Blend(color, Backdrop, alpha);
+                    return $"{(int) Math.Round(Math.Clamp(alpha, 0, 1) * 255, MidpointRounding.AwayFromZero):X2}{color}";
                 }
 
                 return color;
@@ -377,14 +440,23 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
 
             if (source.GetFirstChild<A.CharacterBullet>()?.Char?.Value is { } character)
             {
+                // A symbol font's bullet is a code in its private-use block, which no face here
+                // draws: leaf's master bullets in Wingdings F09F, its small bullet, and drew none
+                var font = source.GetFirstChild<A.BulletFont>()?.Typeface?.Value;
+                if (character.Length == 1 &&
+                    font != null &&
+                    SymbolFonts.IsSymbolFont(font))
+                {
+                    character = SymbolFonts.ToUnicode(font, character[0])?.ToString() ?? NumberingParser.MapBulletPuaToUnicode(character, font);
+                }
+
                 return new()
                 {
                     Text = character,
                     Level = level,
-                    FontFamily = source.GetFirstChild<A.BulletFont>()?.Typeface?.Value,
-                    ColorHex = source.GetFirstChild<A.BulletColor>()?.GetFirstChild<A.SolidFill>() is { } fill
-                        ? ShapeParser.ExtractSolidFillColor(fill, themeColors)
-                        : null
+                    FontFamily = BulletTypeface(source.GetFirstChild<A.BulletFont>()?.Typeface?.Value),
+                    DrawsInOwnFont = BulletTypeface(source.GetFirstChild<A.BulletFont>()?.Typeface?.Value) is { } own && !SymbolFonts.IsSymbolFont(own),
+                    ColorHex = BulletColor(sources)
                 };
             }
 
@@ -397,8 +469,32 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
                 {
                     Text = "1.",
                     Level = level,
-                    FontFamily = source.GetFirstChild<A.BulletFont>()?.Typeface?.Value
+                    FontFamily = BulletTypeface(source.GetFirstChild<A.BulletFont>()?.Typeface?.Value)
                 };
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// A bullet's colour: the nearest <c>a:buClr</c> in the cascade, which holds its colour directly
+    /// (leaf's master: accent1 lightened, an orange dot the text's pink would hide), or none where the
+    /// nearest says <c>a:buClrTx</c> and the bullet follows the text.
+    /// </summary>
+    string? BulletColor(List<OpenXmlElement> sources)
+    {
+        foreach (var source in sources)
+        {
+            if (source.GetFirstChild<A.BulletColorText>() != null)
+            {
+                return null;
+            }
+
+            if (source.GetFirstChild<A.BulletColor>() is { } color)
+            {
+                return ShapeParser.ExtractSolidFillColor(color, themeColors) ??
+                       (color.GetFirstChild<A.SolidFill>() is { } fill ? ShapeParser.ExtractSolidFillColor(fill, themeColors) : null);
             }
         }
 

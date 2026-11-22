@@ -241,7 +241,11 @@ sealed class SpreadsheetParser(
             PageSettings = first ?? new(),
             Elements = elements,
             ThemeColors = themeColors,
-            ThemeFonts = themeFonts
+            ThemeFonts = themeFonts,
+            Compatibility = new()
+            {
+                DrawsAtLinearAdvances = true
+            }
         };
     }
 

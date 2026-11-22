@@ -1,10 +1,16 @@
-/// <summary>
+﻿/// <summary>
 /// A chart (<c>c:chartSpace</c>) as <see cref="ChartComposer"/> draws it: the plot's kind, the cached
 /// series values, and the look of its axes, legend, title and labels. <see cref="ChartReader"/> builds it
 /// from a chart part; the chart is drawn at layout time, where label widths can be measured.
 /// </summary>
 sealed record ChartModel
 {
+    /// <summary>
+    /// Whether the chart is a slide's, whose legend keys a line series by a stroke of PowerPoint's
+    /// fixed length rather than Word's two font sizes (<c>ChartComposer.Legend</c>).
+    /// </summary>
+    public bool OnSlide { get; init; }
+
     public required ChartKind Kind { get; init; }
 
     /// <summary><c>c:barDir="bar"</c>: bars run across from a vertical category axis.</summary>

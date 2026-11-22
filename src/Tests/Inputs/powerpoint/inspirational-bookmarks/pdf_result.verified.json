@@ -11,15 +11,15 @@
           "Width": 792.0,
           "Height": 612.0
         },
-        "Text": "Bookmarks Birds\nLet your imagination\nsoar\nTime to cozy up with a\ngreat book\nReading a great book is like\nlistening to a great song,\nboth are music for the soul\nA good book is like a\ngood friend"
+        "Text": "Let your imagination\nsoar\nTime to cozy up with a\ngreat book\nReading a great book is like\nlistening to a great song,\nboth are music for the soul\nA good book is like a\ngood friend"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.2882,
-      "Ssim": 0.9574,
+      "ErrorMetric": 0.2862,
+      "Ssim": 0.9619,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

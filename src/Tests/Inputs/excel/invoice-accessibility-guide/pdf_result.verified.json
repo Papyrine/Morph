@@ -19,15 +19,15 @@
           "Width": 841.8900146484375,
           "Height": 595.280029296875
         },
-        "Text": "Page 2 of 10\nE\nxc\nel\nlogo\nin\nce\nllB1\n2, A\ncc\nes\nsi\nbl e\nIn\nvo\nice\nimageandN\nav\nig\nati onb\nut\nton\nto\nIn\nvo\nicew\nor\nkshe\net\ninC1\n2."
+        "Text": "Page 2 of 10\nE\nxc\nel\nlo\ng\no\nin\nce\nll\nB\n1\n2,\nA\ncc\nes\nsi\nbl\ne\nIn\nvo\nic\ne\nim\na\ng\ne\na\nn\nd\nN\nav\nig\nati\no\nn\nb\nut\nto\nn\nto\nIn\nvo\nic\ne\nw\nor\nks\nh\ne\net\nin\nC\n1\n2."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.0531,
-      "Ssim": 0.907,
+      "ErrorMetric": 0.0479,
+      "Ssim": 0.9171,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

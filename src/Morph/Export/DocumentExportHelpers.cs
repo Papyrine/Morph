@@ -447,6 +447,13 @@ static class DocumentExportHelpers
     /// </summary>
     public static string? NormalizeColor(string? hex)
     {
+        // A colour with its opacity (AARRGGBB: a slide's translucent text) as CSS's rgba()
+        if (hex is {Length: 8} &&
+            hex.TryParseArgb(out var alpha, out var red, out var green, out var blue))
+        {
+            return string.Create(CultureInfo.InvariantCulture, $"rgba({red}, {green}, {blue}, {Math.Round(alpha / 255.0, 3)})");
+        }
+
         if (hex is not {Length: 6})
         {
             return null;
