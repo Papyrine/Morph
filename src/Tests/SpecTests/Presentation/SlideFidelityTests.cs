@@ -176,4 +176,19 @@ public class SlideFidelityTests
 
         await Assert.That(PresetShapeGeometry.TryBuild(geometry, 100, 50)).IsNotNull();
     }
+
+    // sketchlines' title blob stands on a hard shadow of its own white at half alpha, 107% of its size
+    // about its centre, drawn just behind it.
+    [Test]
+    public async Task A_hard_shadow_is_drawn_behind_its_shape()
+    {
+        var slide = Slide("sketchlines", 1);
+        var title = TextBox(slide, "Basic presentation");
+        var shadow = (FloatingShapeElement) slide[slide.IndexOf(title) - 1];
+
+        await Assert.That(shadow.FillAlpha).IsEqualTo(0.5).Within(0.001);
+        await Assert.That(shadow.WidthPoints).IsEqualTo(title.WidthPoints * 1.07).Within(0.01);
+        await Assert.That(shadow.HorizontalPositionPoints + shadow.WidthPoints / 2)
+            .IsEqualTo(title.HorizontalPositionPoints + title.WidthPoints / 2).Within(0.01);
+    }
 }

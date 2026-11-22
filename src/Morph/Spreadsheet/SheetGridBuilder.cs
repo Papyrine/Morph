@@ -9,12 +9,40 @@
 /// unit of length. And merges are declared once, in a separate list, for a region the grid must then
 /// be told about cell by cell.
 /// </summary>
-sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels, ExcelRowHeights rowHeights, CultureInfo culture, Func<string, bool, bool, FontMetrics?>? resolveFont = null)
+sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels, ExcelRowHeights rowHeights, CultureInfo culture, Func<string, bool, bool, FontMetrics?>? resolveFont = null, ThemeFonts? themeFonts = null)
 {
     const double pointsPerPixel = 72.0 / 96.0;
 
     /// <summary>Excel's default when a sheet declares no width of its own.</summary>
     const double defaultColumnWidthChars = 8.43;
+
+    double? indentPoints;
+
+    /// <summary>
+    /// One level of <c>alignment/@indent</c>, in points: three spaces of the body font (the Normal
+    /// style's), whatever the cell's own font, and NOT scaled by the print zoom. Probed 2026-11-22 over
+    /// COM and Excel's XPS export, five levels each under twelve body fonts: 0.676pt per point of
+    /// Calibri, 0.84 of Arial, 0.75 of Times New Roman and 1.05 of Verdana — three times each face's
+    /// space — with the cells in Calibri 11, Arial 12 and Arial 24 alike; at 50% and 75% zoom the text
+    /// shrank and the step stayed 10.08pt under Arial 12. social-media-editorial-theme-calendar's
+    /// five-level "Week 1" prints clipped to "Week" for it, in a sheet fitted to 59%.
+    /// </summary>
+    double IndentPoints
+    {
+        get
+        {
+            if (indentPoints is { } known)
+            {
+                return known;
+            }
+
+            var (family, size) = styles.DefaultFont;
+            var metrics = resolveFont?.Invoke(family ?? defaultFont, false, false);
+            return (indentPoints = metrics is { UnitsPerEm: > 0 }
+                ? 3.0 * metrics.AdvanceUnits(' ') / metrics.UnitsPerEm * size
+                : 9).Value;
+        }
+    }
 
     /// <summary>
     /// Every row's height in points, as Excel prints the sheet at <paramref name="scale"/> (or, not
@@ -65,9 +93,14 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 continue;
             }
 
-            rows[(int) index] = row.CustomHeight?.Value == true && row.Height?.Value is { } height
-                ? rowHeights.Declared(height, zoom)
-                : rowHeights.Auto(Fonts(row), zoom);
+            // A hidden row prints nothing and takes no room. Probed over COM (Excel 16, A4,
+            // 2026-11-22): twelve 30pt rows with 3-5 hidden outright and 8-9 collapsed in an
+            // outline group print Row1, Row2, Row6, Row7, Row10 to Row12 at one even pitch
+            rows[(int) index] = row.Hidden?.Value == true
+                ? 0
+                : row.CustomHeight?.Value == true && row.Height?.Value is { } height
+                    ? rowHeights.Declared(height, zoom)
+                    : rowHeights.Auto(Fonts(row), zoom);
         }
 
         return new(rows, absent);
@@ -100,6 +133,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             .ToDictionary(_ => (int) _.RowIndex!.Value);
 
         var heights = RowHeights(worksheet, scale, printed);
+        var columnStyles = ColumnStyles(worksheet, range);
 
         var rows = new List<TableRow>(range.RowCount);
         for (var rowIndex = range.FirstRow; rowIndex <= range.LastRow; rowIndex++)
@@ -107,8 +141,10 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             rowsByIndex.TryGetValue(rowIndex, out var row);
             var isHeader = titleRows is { } titles &&
                            rowIndex >= titles.First && rowIndex <= titles.Last;
-            rows.Add(BuildRow(row, rowIndex, range, merges, widths, heights.Height(rowIndex), scale, isHeader, conditional, tableStyles));
+            rows.Add(BuildRow(row, rowIndex, range, merges, widths, heights.Height(rowIndex), scale, isHeader, conditional, tableStyles, columnStyles));
         }
+
+        HandEdgesDown(rows);
 
         return new()
         {
@@ -138,7 +174,8 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
         double scale,
         bool isHeader,
         ConditionalFormats conditional,
-        TableStyles tableStyles)
+        TableStyles tableStyles,
+        Dictionary<int, uint> columnStyles)
     {
         var cellsByColumn = row?.Elements<S.Cell>()
             .Select(cell => (Column: CellReference.ColumnOf(cell.CellReference?.Value), Cell: cell))
@@ -146,6 +183,20 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                         _.Column <= range.LastColumn)
             .GroupBy(_ => _.Column)
             .ToDictionary(_ => _.Key, _ => _.First().Cell) ?? [];
+
+        // A position the row holds no cell for still prints a style: the row's, where the row says
+        // customFormat, else its column's. address-and-phone-list fills every column cream through
+        // col/@style and writes cells only where there is text, and its margins and the gaps of its
+        // title row printed white.
+        var rowStyle = row is { CustomFormat.Value: true, StyleIndex.Value: var ownStyle } ? ownStyle : (uint?) null;
+        for (var column = range.FirstColumn; column <= range.LastColumn; column++)
+        {
+            if (!cellsByColumn.ContainsKey(column) &&
+                (rowStyle ?? columnStyles.GetValueOrDefault(column)) is var implied and not 0)
+            {
+                cellsByColumn[column] = new() { StyleIndex = implied };
+            }
+        }
 
         var cells = new List<TableCell>();
         for (var column = range.FirstColumn; column <= range.LastColumn; column++)
@@ -196,9 +247,108 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             // to it rather than growing the row. Treating every height as a floor instead let one
             // sheet of paragraph-length text in a 2.6-character column grow into six blank pages,
             // where Excel renders a single page and simply shows almost none of that text. Only an
-            // auto-height row (no customHeight) grows to its content.
-            IsExactHeight = row?.CustomHeight?.Value == true
+            // auto-height row (no customHeight) grows to its content. A hidden row is pinned at the
+            // nothing it prints (MeasureRows), or its text would grow it back.
+            IsExactHeight = row?.CustomHeight?.Value == true || row?.Hidden?.Value == true
         };
+    }
+
+    /// <summary>
+    /// Excel draws a cell's edges over every fill, its neighbours' included, where the engine paints a
+    /// row's fills over the row above it, and a bottom edge hangs into the row below: simple-blue-
+    /// timesheet-invoice's rule under Tax vanished under the white of the Total row. A bottom edge whose
+    /// cell beneath states no top edge of its own is handed down to be that cell's top, which it paints
+    /// after its fill. Only a cell beneath that starts and ends where the cell above does takes it.
+    /// </summary>
+    static void HandEdgesDown(List<TableRow> rows)
+    {
+        for (var index = 0; index + 1 < rows.Count; index++)
+        {
+            var below = Starts(rows[index + 1]);
+            var cells = rows[index].Cells.ToList();
+            var lower = rows[index + 1].Cells.ToList();
+            var changed = false;
+            var column = 0;
+            for (var position = 0; position < cells.Count; position++)
+            {
+                var cell = cells[position];
+                var span = cell.Properties.GridSpan;
+                if (cell.Properties.Borders is { Bottom.IsVisible: true } borders &&
+                    below.TryGetValue(column, out var match) &&
+                    lower[match].Properties.GridSpan == span &&
+                    lower[match].Properties.VerticalMerge == VerticalMergeType.None &&
+                    cell.Properties.VerticalMerge == VerticalMergeType.None &&
+                    lower[match].Properties.Borders is not { Top.IsVisible: true })
+                {
+                    var edge = borders.Bottom;
+                    cells[position] = Retouched(cell, borders with { Bottom = BorderEdge.None });
+                    lower[match] = Retouched(lower[match], (lower[match].Properties.Borders ?? new()) with { Top = edge });
+                    changed = true;
+                }
+
+                column += span;
+            }
+
+            if (changed)
+            {
+                rows[index] = Rebuilt(rows[index], cells);
+                rows[index + 1] = Rebuilt(rows[index + 1], lower);
+            }
+        }
+
+        static Dictionary<int, int> Starts(TableRow row)
+        {
+            Dictionary<int, int> starts = [];
+            var column = 0;
+            for (var position = 0; position < row.Cells.Count; position++)
+            {
+                starts[column] = position;
+                column += row.Cells[position].Properties.GridSpan;
+            }
+
+            return starts;
+        }
+
+        static TableCell Retouched(TableCell cell, CellBorders borders) =>
+            new()
+            {
+                Content = cell.Content,
+                Floats = cell.Floats,
+                FloatAnchorParagraphOrdinals = cell.FloatAnchorParagraphOrdinals,
+                Properties = cell.Properties with { Borders = borders }
+            };
+
+        static TableRow Rebuilt(TableRow row, List<TableCell> cells) =>
+            new()
+            {
+                Cells = cells,
+                IsHeader = row.IsHeader,
+                HeightPoints = row.HeightPoints,
+                IsExactHeight = row.IsExactHeight
+            };
+    }
+
+    /// <summary>The style each column of the range gives a position no cell is written for (<c>col/@style</c>).</summary>
+    static Dictionary<int, uint> ColumnStyles(S.Worksheet worksheet, SheetRange range)
+    {
+        Dictionary<int, uint> found = [];
+        foreach (var column in worksheet.GetFirstChild<S.Columns>()?.Elements<S.Column>() ?? [])
+        {
+            if (column.Style?.Value is not { } style ||
+                style == 0)
+            {
+                continue;
+            }
+
+            var first = Math.Max((int) (column.Min?.Value ?? 0), range.FirstColumn);
+            var last = Math.Min((int) (column.Max?.Value ?? 0), range.LastColumn);
+            for (var index = first; index <= last; index++)
+            {
+                found[index] = style;
+            }
+        }
+
+        return found;
     }
 
     /// <summary>
@@ -403,38 +553,79 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             ? null
             : conditional.For(rowIndex, column, text, Number(cell));
 
-        var runs = text.Length == 0
-            ? []
-            : new[]
-            {
-                new Run
-                {
-                    Text = text,
-                    Properties = new()
-                    {
-                        FontFamily = style.FontFamily ?? styles.DefaultFont.Family ?? defaultFont,
-                        FontSizePoints = (style.FontSizePoints ?? styles.DefaultFont.SizePoints) * scale,
-                        Bold = style.Bold || overlay?.Bold == true || table?.Bold == true,
-                        Italic = style.Italic || overlay?.Italic == true || table?.Italic == true,
-                        Underline = style.Underline,
-                        Strikethrough = style.Strikethrough,
-                        ColorHex = overlay?.ColorHex ?? colorOverride ?? tableColor ?? style.ColorHex
-                    }
-                }
-            };
+        // A data bar draws in the cell, and hides the value when its rule says showValue="0":
+        // to-do-list's progress cell is the bar alone
+        var dataBar = conditional.IsEmpty ? null : conditional.DataBarFor(rowIndex, column, Number(cell));
+        // So does an icon set's "show icon only"; a place given no icon (NoIcons) still hides it
+        var icon = conditional.IsEmpty ? null : conditional.IconFor(rowIndex, column, Number(cell));
+        if (dataBar is { ShowValue: false } ||
+            icon is { ShowValue: false })
+        {
+            text = string.Empty;
+        }
 
-        // Excel's default is right for numbers and left for text; an explicit alignment wins.
-        var alignment = style.HorizontalAlignment ?? DefaultAlignment(cell);
+        var properties = new RunProperties
+        {
+            FontFamily = style.FontFamily ?? styles.DefaultFont.Family ?? defaultFont,
+            FontSizePoints = (style.FontSizePoints ?? styles.DefaultFont.SizePoints) * scale,
+            Bold = style.Bold || overlay?.Bold == true || table?.Bold == true,
+            Italic = style.Italic || overlay?.Italic == true || table?.Italic == true,
+            Underline = style.Underline,
+            Strikethrough = overlay?.Strikethrough ?? style.Strikethrough,
+            ColorHex = overlay?.ColorHex ?? colorOverride ?? tableColor ?? style.ColorHex
+        };
+
+        // A *x fill: the text before it set against the cell's left edge and the rest against its right,
+        // by a right tab at the far side of the cell (FillLayout)
+        var fill = text.IndexOf(NumberFormat.FillMark);
+        Run[] runs;
+        if (text.Length == 0)
+        {
+            runs = [];
+        }
+        else if (fill >= 0)
+        {
+            var after = text[(fill + 1)..].Replace(NumberFormat.FillMark.ToString(), string.Empty, StringComparison.Ordinal);
+            runs = new[]
+                {
+                    new Run { Text = text[..fill], Properties = properties },
+                    new Run { Text = "\t", IsTab = true, Properties = properties },
+                    new Run { Text = after, Properties = properties }
+                }
+                .Where(_ => _.Text.Length > 0)
+                .ToArray();
+        }
+        else if (RichRuns(cell) is { } rich)
+        {
+            runs = rich
+                .Select(_ => new Run { Text = _.Text?.Text ?? string.Empty, Properties = RichProperties(_.RunProperties, properties, overlay?.ColorHex, scale) })
+                .Where(_ => _.Text.Length > 0)
+                .ToArray();
+        }
+        else
+        {
+            runs = [new() { Text = text, Properties = properties }];
+        }
+
+        // Excel's default is right for numbers and left for text; an explicit alignment wins. A fill
+        // spans the cell whatever the alignment says — Excel sets "$" at the left and "55.00" at the
+        // right of back-to-school-planner's accounting cells, where they printed together at the
+        // right. The tab runs the line to the cell's far side, and is set from the left: a right-aligned
+        // line moves by its own width, which pushed the number out of the cell.
+        var alignment = fill >= 0 ? TextAlignment.Left : style.HorizontalAlignment ?? DefaultAlignment(cell);
         var paragraph = new ParagraphElement
         {
             Runs = runs,
             Properties = new()
             {
                 Alignment = alignment,
+                TabStops = fill >= 0
+                    ? [new() { PositionPoints = Math.Max(0, widthPoints - 4 * scale), Alignment = TabAlignment.Right }]
+                    : [],
                 // Excel indents from the side the text is set against: a right-aligned cell's indent
                 // stands it in from the right (modern-basic-black-yellow-standard's prices and totals)
-                LeftIndentPoints = alignment == TextAlignment.Right ? 0 : style.IndentLevel * 9 * scale,
-                RightIndentPoints = alignment == TextAlignment.Right ? style.IndentLevel * 9 * scale : 0,
+                LeftIndentPoints = alignment == TextAlignment.Right ? 0 : style.IndentLevel * IndentPoints,
+                RightIndentPoints = alignment == TextAlignment.Right ? style.IndentLevel * IndentPoints : 0,
                 SpacingBeforePoints = 0,
                 SpacingAfterPoints = 0,
                 LineSpacingMultiplier = 1,
@@ -467,6 +658,13 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 ClipOverflow = true,
                 ClipSpillLeftPoints = spill.Left,
                 ClipSpillRightPoints = spill.Right,
+                DataBar = dataBar is { } bar ? new(bar.Fraction, bar.ColorHex, scale) : null,
+                Icon = icon is { Id: >= 0 } shown
+                    // An icon alone follows an alignment the cell states (inventory-list-with-highlighting's
+                    // centred flags); under General it stands at the left, as back-to-school-planner's
+                    // checks do, where the number it replaces would have stood at the right
+                    ? new(shown.Set, shown.Id, shown.ShowValue ? TextAlignment.Left : style.HorizontalAlignment ?? TextAlignment.Left, style.VerticalAlignment, scale)
+                    : null,
                 Padding = new(0, 2 * scale, 0, 2 * scale)
             }
         };
@@ -565,8 +763,72 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             return (raw, null);
         }
 
-        var formatted = NumberFormat.Format(number, NumberFormat.Localize(style.EffectiveFormatCode, culture));
+        var formatted = NumberFormat.FormatWithFill(number, NumberFormat.Localize(style.EffectiveFormatCode, culture));
         return (formatted.Text, formatted.ColorHex);
+    }
+
+    /// <summary>The formatted runs of a cell holding rich text, or null for plain text or a value.</summary>
+    IReadOnlyList<S.Run>? RichRuns(S.Cell? cell)
+    {
+        var type = cell?.DataType?.Value;
+        if (type == S.CellValues.SharedString)
+        {
+            return int.TryParse(cell!.CellValue?.Text, out var index) ? sharedStrings.RunsOf(index) : null;
+        }
+
+        if (type == S.CellValues.InlineString &&
+            cell!.GetFirstChild<S.InlineString>() is { } inline)
+        {
+            return SharedStrings.Runs(inline);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// A rich run's look. A run that carries <c>rPr</c> is set in that font whole — Excel writes every
+    /// member, and one it leaves out (no <c>b</c>) is off rather than the cell's — while a run without
+    /// one keeps the cell's. business-plan-checklist's "Strengths:" is a bold run before a regular one
+    /// in a regular cell. A conditional format's colour still wins over the run's, as over the cell's.
+    /// </summary>
+    RunProperties RichProperties(S.RunProperties? run, RunProperties cell, string? conditionalColor, double scale)
+    {
+        if (run == null)
+        {
+            return cell;
+        }
+
+        static bool On(OpenXmlLeafElement? element) =>
+            element switch
+            {
+                null => false,
+                S.Bold bold => bold.Val?.Value != false,
+                S.Italic italic => italic.Val?.Value != false,
+                S.Strike strike => strike.Val?.Value != false,
+                _ => true
+            };
+
+        var underline = run.GetFirstChild<S.Underline>();
+        var vertical = run.GetFirstChild<S.VerticalTextAlignment>()?.Val?.Value;
+        return cell with
+        {
+            // A run in a theme font is set in the theme's face, whatever rFont caches:
+            // inventory-list-accessibility-guide's runs name Gill Sans Nova over a theme of Gill Sans MT
+            FontFamily = run.GetFirstChild<S.FontScheme>()?.Val?.Value is { } scheme && themeFonts != null && scheme != S.FontSchemeValues.None
+                ? scheme == S.FontSchemeValues.Major ? themeFonts.MajorFont : themeFonts.MinorFont
+                : run.GetFirstChild<S.RunFont>()?.Val?.Value ?? cell.FontFamily,
+            FontSizePoints = run.GetFirstChild<S.FontSize>()?.Val?.Value * scale ?? cell.FontSizePoints,
+            Bold = On(run.GetFirstChild<S.Bold>()),
+            Italic = On(run.GetFirstChild<S.Italic>()),
+            Strikethrough = On(run.GetFirstChild<S.Strike>()),
+            Underline = underline != null && underline.Val?.Value != S.UnderlineValues.None,
+            ColorHex = conditionalColor ?? (run.GetFirstChild<S.Color>() is { } color ? styles.Resolve(color) : null),
+            VerticalAlignment = vertical == S.VerticalAlignmentRunValues.Superscript
+                ? VerticalRunAlignment.Superscript
+                : vertical == S.VerticalAlignmentRunValues.Subscript
+                    ? VerticalRunAlignment.Subscript
+                    : VerticalRunAlignment.Baseline
+        };
     }
 
     static TextAlignment DefaultAlignment(S.Cell? cell)
@@ -647,7 +909,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
             units += metrics.AdvanceUnits(character);
         }
 
-        return 2 + style.IndentLevel * 3 * maxDigitWidthPixels * pointsPerPixel + (double) units / metrics.UnitsPerEm * size;
+        return 2 + style.IndentLevel * IndentPoints + (double) units / metrics.UnitsPerEm * size;
     }
 
     /// <summary>The text a cell holds as a string, or null when it holds a number, a boolean or nothing.</summary>

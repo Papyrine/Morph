@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Formats a cell value the way Excel would, from an ECMA-376 §18.8.30 format code.
 ///
 /// A spreadsheet stores numbers, not the text a reader sees: <c>44927</c> renders as
@@ -21,8 +21,24 @@ static partial class NumberFormat
     /// </summary>
     static readonly DateTime epoch = new(1899, 12, 30);
 
+    /// <summary>
+    /// Where a <c>*x</c> fill stands in a <see cref="FormatWithFill"/> result: the gap that grows to
+    /// fill the cell, which only the cell's width decides. A private-use character, so no font draws it.
+    /// </summary>
+    public const char FillMark = '\uE000';
+
     /// <summary>Formats <paramref name="value"/>, or returns text unchanged when the cell holds a string.</summary>
     public static FormattedValue Format(double value, string? formatCode) =>
+        FormatWithFill(value, formatCode) is var formatted && formatted.Text.Contains(FillMark)
+            ? formatted with { Text = formatted.Text.Replace(FillMark.ToString(), string.Empty, StringComparison.Ordinal) }
+            : formatted;
+
+    /// <summary>
+    /// As <see cref="Format"/>, keeping a <see cref="FillMark"/> where the code repeats a character to
+    /// fill the cell: the accounting formats' <c>_($* #,##0.00_)</c> set the dollar sign against the
+    /// cell's left edge and the number against its right.
+    /// </summary>
+    public static FormattedValue FormatWithFill(double value, string? formatCode) =>
         FormatCore(value, string.IsNullOrEmpty(formatCode) ? "General" : formatCode);
 
     /// <summary>Formats a text cell: only the fourth section, if present, applies.</summary>
@@ -270,6 +286,7 @@ static partial class NumberFormat
                     i++;
                     break;
                 case '*' when i + 1 < body.Length:
+                    result.Append(FillMark);
                     i++;
                     break;
                 case '[':

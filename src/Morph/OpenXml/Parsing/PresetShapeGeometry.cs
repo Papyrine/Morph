@@ -1,4 +1,4 @@
-using A = DocumentFormat.OpenXml.Drawing;
+﻿using A = DocumentFormat.OpenXml.Drawing;
 
 /// <summary>
 /// Builds the outline contours for the <c>a:prstGeom</c> presets the corpus uses beyond the
@@ -40,6 +40,8 @@ static class PresetShapeGeometry
             _ when preset == A.ShapeTypeValues.Chevron => Chevron(width, height, adjustments),
             _ when preset == A.ShapeTypeValues.HomePlate => HomePlate(width, height, adjustments),
             _ when preset == A.ShapeTypeValues.Corner => Corner(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Donut => Donut(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.BlockArc => BlockArc(width, height, adjustments),
             _ => null
         };
 
@@ -264,6 +266,49 @@ static class PresetShapeGeometry
             (width - inset, inset)
         ];
         return [outer, innerReversed];
+    }
+
+    // A ring: the ellipse less one inset by adj (25% of the short side by default), the hole wound the
+    // other way as Frame's is.
+    static List<IReadOnlyList<(double X, double Y)>> Donut(double width, double height, Dictionary<string, double> adjustments)
+    {
+        var thickness = Math.Min(width, height) * Pin(0, Adjustment(adjustments, "adj", 25000), 50000) / 100000;
+        List<(double X, double Y)> outer = [];
+        EllipseArc(outer, width / 2, height / 2, width / 2, height / 2, 0, 360);
+        List<(double X, double Y)> inner = [];
+        EllipseArc(inner, width / 2, height / 2, width / 2 - thickness, height / 2 - thickness, 360, -360);
+        return [outer, inner];
+    }
+
+    // A band of a ring from adj1 clockwise to adj2 (angles in 60,000ths of a degree, 180 and 0 by
+    // default: the top half), adj3 thick (25% of the short side).
+    static List<IReadOnlyList<(double X, double Y)>> BlockArc(double width, double height, Dictionary<string, double> adjustments)
+    {
+        var start = Adjustment(adjustments, "adj1", 10800000) / 60000;
+        var end = Adjustment(adjustments, "adj2", 0) / 60000;
+        var sweep = end - start;
+        if (sweep < 0)
+        {
+            sweep += 360;
+        }
+
+        var thickness = Math.Min(width, height) * Pin(0, Adjustment(adjustments, "adj3", 25000), 50000) / 100000;
+        List<(double X, double Y)> contour = [];
+        EllipseArc(contour, width / 2, height / 2, width / 2, height / 2, start, sweep);
+        EllipseArc(contour, width / 2, height / 2, width / 2 - thickness, height / 2 - thickness, start + sweep, -sweep);
+        return [contour];
+    }
+
+    // An elliptical arc, its angles DrawingML's: measured on the ellipse as seen, clockwise from +x.
+    static void EllipseArc(List<(double X, double Y)> contour, double centerX, double centerY, double radiusX, double radiusY, double startDegrees, double sweepDegrees)
+    {
+        var steps = Math.Max(8, (int) Math.Ceiling(Math.Abs(sweepDegrees) / 3));
+        for (var step = 0; step <= steps; step++)
+        {
+            var angle = (startDegrees + sweepDegrees * step / steps) * Math.PI / 180;
+            var parametric = Math.Atan2(radiusX * Math.Sin(angle), radiusY * Math.Cos(angle));
+            contour.Add((centerX + radiusX * Math.Cos(parametric), centerY + radiusY * Math.Sin(parametric)));
+        }
     }
 
     // Rectangle with the two top corners rounded (adj1) and the two bottom corners rounded

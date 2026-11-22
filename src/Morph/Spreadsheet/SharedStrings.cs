@@ -11,12 +11,34 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 sealed class SharedStrings
 {
     readonly string[] entries;
+    readonly S.SharedStringItem[] items;
 
-    public SharedStrings(WorkbookPart workbookPart) =>
-        entries = workbookPart.SharedStringTablePart?.SharedStringTable?
+    public SharedStrings(WorkbookPart workbookPart)
+    {
+        items = workbookPart.SharedStringTablePart?.SharedStringTable?
             .Elements<S.SharedStringItem>()
-            .Select(Flatten)
             .ToArray() ?? [];
+        entries = items.Select(Flatten).ToArray();
+    }
+
+    /// <summary>The entry's formatted runs, or null when it is plain text.</summary>
+    public IReadOnlyList<S.Run>? RunsOf(int index) =>
+        index >= 0 && index < items.Length ? Runs(items[index]) : null;
+
+    /// <summary>
+    /// The formatted runs of a rich string (<c>CT_Rst</c>), or null when it is one text node or no run
+    /// formats itself — the cell's own font then holds for the whole text.
+    /// </summary>
+    public static IReadOnlyList<S.Run>? Runs(OpenXmlElement item)
+    {
+        if (item.GetFirstChild<S.Text>() != null)
+        {
+            return null;
+        }
+
+        var runs = item.Elements<S.Run>().ToArray();
+        return runs.Any(_ => _.RunProperties != null) ? runs : null;
+    }
 
     public string Get(int index)
     {
@@ -30,9 +52,8 @@ sealed class SharedStrings
     }
 
     /// <summary>
-    /// The text of a rich string: either one text node or a sequence of formatted runs. The runs'
-    /// own formatting is dropped, because the model applies one style per cell and a cell is the
-    /// unit a spreadsheet formats.
+    /// The text of a rich string: either one text node or a sequence of formatted runs, whose own
+    /// formatting <see cref="Runs"/> keeps.
     ///
     /// Typed as <see cref="OpenXmlElement"/> because the same content model — <c>CT_Rst</c> — backs
     /// both a shared string entry and a cell's own <c>is</c>, and an inline rich string is otherwise

@@ -71,7 +71,8 @@ sealed class WorkbookGrid
 
             ReadLayout(sheet, worksheet, digit);
             var tables = new TableStyles(part, stylesheet, styles);
-            var conditional = new ConditionalFormats(worksheet, stylesheet, themeColors);
+            var sheetIndex = index;
+            var conditional = new ConditionalFormats(worksheet, stylesheet, themeColors, () => (book, sheetIndex));
 
             GridLook LookOf(uint style, int row, int column, string text, double? number)
             {
@@ -118,7 +119,7 @@ sealed class WorkbookGrid
                     Bold = resolved.Bold || table?.Bold == true || overlay?.Bold == true,
                     Italic = resolved.Italic || table?.Italic == true || overlay?.Italic == true,
                     Underline = resolved.Underline,
-                    Strikethrough = resolved.Strikethrough,
+                    Strikethrough = overlay?.Strikethrough ?? resolved.Strikethrough,
                     ColorHex = overlay?.ColorHex ?? color,
                     FillHex = overlay?.BackgroundColorHex ?? fill,
                     Horizontal = resolved.HorizontalAlignment,

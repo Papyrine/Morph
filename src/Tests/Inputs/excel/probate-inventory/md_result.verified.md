@@ -34,15 +34,15 @@
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  |   **Probate checklist** |  |  |  |  |  |  |  |  |  |  |  |  |   **Probate inventories** |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  |     **Checklist items** |  |  |  |  |  |  |  |  |  |  |  |  | **Probate assets** |  |  |  |  |  |  |  | **Value ($)** |  |  |  | **Probate liabilities** |  |  |  |  |  |  |  | **Value ($)** |  |  |  |  |  |  |  |
-|  | ***✔*** | Last will, testament or any other documents |  |  |  |  |  |  |  |  |  |  |  | Bank accounts |  |  |  |  |  |  |  | $0.00 |  |  |  | Mortgages |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
-|  | ***✔*** | Safe deposit rental agreement and keys |  |  |  |  |  |  |  |  |  |  |  | Personal investments |  |  |  |  |  |  |  | $0.00 |  |  |  | Personal loans and lines of credit |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
-|  | ***✖*** | Passwords for computers and online accounts |  |  |  |  |  |  |  |  |  |  |  | Business interests |  |  |  |  |  |  |  | $0.00 |  |  |  | Business interests |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
-|  | ***✔*** | Living trust agreements |  |  |  |  |  |  |  |  |  |  |  | Real estate |  |  |  |  |  |  |  | $0.00 |  |  |  | Credit cards |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
-|  | ***✔*** | Life insurance, health/accident and insurance policies |  |  |  |  |  |  |  |  |  |  |  | Pension plans |  |  |  |  |  |  |  | $0.00 |  |  |  | Other liabilities |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
-|  | ***✔*** | Financial statements |  |  |  |  |  |  |  |  |  |  |  | Insurance |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | ***✔*** | Income tax returns for the past three years |  |  |  |  |  |  |  |  |  |  |  | Private loans and mortgages |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | ***✔*** | Birth and death certificates |  |  |  |  |  |  |  |  |  |  |  | Interest in other estates and trusts |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | ***✖*** | Deeds, mortgages and lease statements |  |  |  |  |  |  |  |  |  |  |  | Personal effects and other assets |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | **✔** | Last will, testament or any other documents |  |  |  |  |  |  |  |  |  |  |  | Bank accounts |  |  |  |  |  |  |  | $0.00 |  |  |  | Mortgages |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
+|  | **✔** | Safe deposit rental agreement and keys |  |  |  |  |  |  |  |  |  |  |  | Personal investments |  |  |  |  |  |  |  | $0.00 |  |  |  | Personal loans and lines of credit |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
+|  | **✖** | Passwords for computers and online accounts |  |  |  |  |  |  |  |  |  |  |  | Business interests |  |  |  |  |  |  |  | $0.00 |  |  |  | Business interests |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
+|  | **✔** | Living trust agreements |  |  |  |  |  |  |  |  |  |  |  | Real estate |  |  |  |  |  |  |  | $0.00 |  |  |  | Credit cards |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
+|  | **✔** | Life insurance, health/accident and insurance policies |  |  |  |  |  |  |  |  |  |  |  | Pension plans |  |  |  |  |  |  |  | $0.00 |  |  |  | Other liabilities |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |
+|  | **✔** | Financial statements |  |  |  |  |  |  |  |  |  |  |  | Insurance |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | **✔** | Income tax returns for the past three years |  |  |  |  |  |  |  |  |  |  |  | Private loans and mortgages |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | **✔** | Birth and death certificates |  |  |  |  |  |  |  |  |  |  |  | Interest in other estates and trusts |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
+|  | **✖** | Deeds, mortgages and lease statements |  |  |  |  |  |  |  |  |  |  |  | Personal effects and other assets |  |  |  |  |  |  |  | $0.00 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | **☐** | Unpaid bills and notes |  |  |  |  |  |  |  |  |  |  |  | **Assets total** |  |  |  |  |  |  |  | **$0.00** |  |  |  | **Liabilities total** |  |  |  |  |  |  |  | **$0.00** |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |  |
@@ -155,66 +155,65 @@
 |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |  |  |
 |  | **Total** |  |  |  |  | **$0.00** |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
 
 \`
 
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-|  | **Probate liabilities** |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | Use this worksheet to capture the details of the estate's liabilities, both domestic and foreign. You will require a valuation of each liability as at the date of death. |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Total Assets** |  |  |  |  | **$0.00** |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Mortgages** |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Financial institution**  | **Address** | **Phone** | **Title held by** | **Account number** | **Balance**  | **Notes** |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Total** |  |  |  |  | **$0.00** |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Personal loans and lines of credit** |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Financial institution** | **Address** | **Phone** |  **Account number** | **Type** | **Balance**  | **Notes** |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Total** |  |  |  |  | **$0.00** |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Business interests** |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Business name** | **Address** |  **Phone** |  **Contact** | **Type** | **Value**  | **Notes** |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Total** |  |  |  |  | **$0.00** |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Credit cards** |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Credit card company** | **Company address** | **Phone** | **Card number** | **Expiry date**  | **Balance**  | **Notes** |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Total** |  |  |  | **$0.00** | **$0.00** |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Other liabilities** |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Item description** | **Location** | **Phone** | **Contact** | **Beneficiary** | **Value**  | **Notes** |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  |  |  |  |  |  |  |  |  |  |  |  |  |
-|  | **Total** |  |  |  |  | **$0.00** |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+|  | **Probate liabilities** |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | Use this worksheet to capture the details of the estate's liabilities, both domestic and foreign. You will require a valuation of each liability as at the date of death. |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Total Assets** |  |  |  |  | **$0.00** |  |
+|  |  |  |  |  |  |  |  |
+|  | **Mortgages** |  |  |  |  |  |  |
+|  | **Financial institution**  | **Address** | **Phone** | **Title held by** | **Account number** | **Balance**  | **Notes** |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Total** |  |  |  |  | **$0.00** |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Personal loans and lines of credit** |  |  |  |  |  |  |
+|  | **Financial institution** | **Address** | **Phone** |  **Account number** | **Type** | **Balance**  | **Notes** |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Total** |  |  |  |  | **$0.00** |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Business interests** |  |  |  |  |  |  |
+|  | **Business name** | **Address** |  **Phone** |  **Contact** | **Type** | **Value**  | **Notes** |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Total** |  |  |  |  | **$0.00** |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Credit cards** |  |  |  |  |  |  |
+|  | **Credit card company** | **Company address** | **Phone** | **Card number** | **Expiry date**  | **Balance**  | **Notes** |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Total** |  |  |  | **$0.00** | **$0.00** |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Other liabilities** |  |  |  |  |  |  |
+|  | **Item description** | **Location** | **Phone** | **Contact** | **Beneficiary** | **Value**  | **Notes** |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  |  |  |  |  |  |  |  |
+|  | **Total** |  |  |  |  | **$0.00** |  |

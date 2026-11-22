@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Shape-drawing primitives shared by <see cref="SkiaPainter"/>: group-shape colour, contour and
 /// picture drawing, and custGeom polygon paths.
 /// </summary>
@@ -125,12 +125,14 @@ static class SkiaShapeDrawing
     /// </summary>
     internal static void DrawCropped(SKCanvas canvas, SKBitmap image, SKRect destRect, ImageCrop? crop, SKPaint? paint = null)
     {
+        using var picture = SKImage.FromBitmap(image);
+        var whole = SKRect.Create(image.Width, image.Height);
         if (crop is {HasPadding: true})
         {
             var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
             canvas.Save();
             canvas.ClipRect(destRect);
-            canvas.DrawBitmap(image, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)), paint);
+            canvas.DrawImage(picture, whole, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)), Sampling, paint);
             canvas.Restore();
             return;
         }
@@ -142,12 +144,21 @@ static class SkiaShapeDrawing
                 (float) (crop.Top * image.Height),
                 (float) ((1 - crop.Right) * image.Width),
                 (float) ((1 - crop.Bottom) * image.Height));
-            canvas.DrawBitmap(image, source, destRect, paint);
+            canvas.DrawImage(picture, source, destRect, Sampling, paint);
             return;
         }
 
-        canvas.DrawBitmap(image, destRect, paint);
+        canvas.DrawImage(picture, whole, destRect, Sampling, paint);
     }
+
+    /// <summary>
+    /// How a picture is resampled to the box it is drawn in: linearly between mipmap levels, so a photo
+    /// drawn at a fraction of its size is averaged as Word and PowerPoint average it. DrawBitmap without a
+    /// paint sampled the nearest pixel, and sketchlines' 4x-downscaled field came out with half again
+    /// the pixel-to-pixel contrast of PowerPoint's (41.8 against 27.4 mean step, where ImageSharp's
+    /// resampler gave 27.5).
+    /// </summary>
+    internal static SKSamplingOptions Sampling { get; } = new(SKFilterMode.Linear, SKMipmapMode.Linear);
 
     internal static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
     {

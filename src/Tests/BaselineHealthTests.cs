@@ -74,10 +74,10 @@ public class BaselineHealthTests
         "basic-business-invoice/pdf_result#page_0002.verified.png",
         // weekly-lesson-planner carries its trailing empty rows onto a second page (docs/word-features.md
         // Multi-page Tables rule 8). Excel prints that page too: its expected_0002.png is near-empty.
-        // Correct output.
-        "weekly-lesson-planner/skia_result#page_0002.verified.png",
-        "weekly-lesson-planner/imagesharp_result#page_0002.verified.png",
-        "weekly-lesson-planner/pdf_result#page_0002.verified.png"
+        // Correct output. The Skia and PDF pages left the list on 2026-11-22, when the rule over the
+        // page's first row (an edge handed down from the row above, SheetGridBuilder.HandEdgesDown)
+        // took them past the threshold; ImageSharp's antialiasing keeps it under.
+        "weekly-lesson-planner/imagesharp_result#page_0002.verified.png"
     ];
 
     public static IEnumerable<string> GetScenarioDirectories() => ScenarioInputs.AllDirectories();

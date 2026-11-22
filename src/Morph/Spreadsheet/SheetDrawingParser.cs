@@ -160,10 +160,13 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
             return null;
         }
 
-        var placed = Placement(picture.ShapeProperties?.Transform2D, box, transform, anchorIsRoot);
+        var (placed, rotation, flipHorizontal, flipVertical) = Turned(picture.ShapeProperties?.Transform2D, Placement(picture.ShapeProperties?.Transform2D, box, transform, anchorIsRoot), anchorIsRoot);
 
         return new FloatingImageElement
         {
+            RotationDegrees = rotation,
+            FlipHorizontal = flipHorizontal,
+            FlipVertical = flipVertical,
             ImageData = data,
             ContentType = contentType,
             RasterFallbackData = rasterFallback,
@@ -238,7 +241,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
     DocumentElement? ParseShape(XDR.Shape shape, DrawingBox box, SlideTransform transform, bool anchorIsRoot, uint ordinal, bool notPrinted)
     {
         var properties = shape.ShapeProperties;
-        var placed = Placement(properties?.Transform2D, box, transform, anchorIsRoot);
+        var (placed, rotation, flipHorizontal, flipVertical) = Turned(properties?.Transform2D, Placement(properties?.Transform2D, box, transform, anchorIsRoot), anchorIsRoot);
 
         var solid = properties?.GetFirstChild<A.SolidFill>();
         var fill = solid != null ? ShapeParser.ExtractSolidFillColor(solid, themeColors) : null;
@@ -255,9 +258,20 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
         if (shape.TextBody is { } body &&
             body.Descendants<A.Text>().Any(_ => !string.IsNullOrWhiteSpace(_.Text)))
         {
+            // A shape's text shrinks with the sheet as its box does, and stands in from the box by
+            // DrawingML's insets (0.1in at the sides, 0.05in top and bottom unless bodyPr says): at 100%
+            // a 16pt label filled inventory-list-accessibility-guide's 33pt buttons, printed at 46%, and
+            // "Conditional formatting" wrapped where Excel fits it on one line
+            var bodyProperties = body.BodyProperties;
+            double Inset(int? declared, int fallback) => (declared ?? fallback) / OoxmlUnits.EmusPerPoint * sheetScale;
             return new FloatingTextBoxElement
             {
-                Content = textParser.Parse(body, new([])),
+                Content = textParser.Parse(body, new([]), sheetScale),
+                Insets = new(
+                    Inset(bodyProperties?.LeftInset?.Value, 91440),
+                    Inset(bodyProperties?.TopInset?.Value, 45720),
+                    Inset(bodyProperties?.RightInset?.Value, 91440),
+                    Inset(bodyProperties?.BottomInset?.Value, 45720)),
                 WidthPoints = placed.Width,
                 HeightPoints = placed.Height,
                 HorizontalPositionPoints = placed.X,
@@ -270,6 +284,7 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
                 RelativeHeight = ordinal,
                 NotPrinted = notPrinted,
                 Subpaths = ShapeParser.TextBoxOutline(properties, placed.Width, placed.Height),
+                RotationDegrees = rotation,
                 VerticalAlignment = ShapeParser.TextAnchor(body.BodyProperties?.Anchor?.Value)
             };
         }
@@ -297,7 +312,11 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
             Preset = properties?.GetFirstChild<A.PresetGeometry>()?.Preset?.Value == A.ShapeTypeValues.Ellipse
                 ? PresetShape.Ellipse
                 : PresetShape.Rect,
-            Subpaths = ShapeParser.ExtractSubpaths(properties!),
+            Subpaths = ShapeParser.ExtractSubpaths(properties!) ??
+                       PresetShapeGeometry.TryBuild(properties!.GetFirstChild<A.PresetGeometry>(), placed.Width, placed.Height),
+            RotationDegrees = rotation,
+            FlipHorizontal = flipHorizontal,
+            FlipVertical = flipVertical,
             RelativeHeight = ordinal,
             NotPrinted = notPrinted
         };
@@ -322,6 +341,32 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
 
         var (x, y, width, height) = transform.Apply(offsetX, offsetY, extentX, extentY);
         return new(x / OoxmlUnits.EmusPerPoint, y / OoxmlUnits.EmusPerPoint, width / OoxmlUnits.EmusPerPoint, height / OoxmlUnits.EmusPerPoint);
+    }
+
+    /// <summary>
+    /// A drawing's turn and flips (<c>a:xfrm/@rot</c>, <c>@flipH</c>, <c>@flipV</c>), with the box it
+    /// turns in. An anchor holds the drawing's frame as it stands on the sheet, which Excel swaps end
+    /// for end when the turn lays the drawing on its side; the frame turned is the drawing's own
+    /// extent, scaled as the anchor is, about the anchor's centre. home-contents-inventory-list's
+    /// blender and lamp lean 30 and 20 degrees and stood upright.
+    /// </summary>
+    (DrawingBox Box, double Rotation, bool FlipHorizontal, bool FlipVertical) Turned(A.Transform2D? shapeTransform, DrawingBox placed, bool anchorIsRoot)
+    {
+        var rotation = (shapeTransform?.Rotation?.Value ?? 0) / 60000.0;
+        var flipHorizontal = shapeTransform?.HorizontalFlip?.Value == true;
+        var flipVertical = shapeTransform?.VerticalFlip?.Value == true;
+        if (rotation == 0 ||
+            !anchorIsRoot ||
+            shapeTransform?.Extents is not { Cx.Value: > 0, Cy.Value: > 0 } extent)
+        {
+            return (placed, rotation, flipHorizontal, flipVertical);
+        }
+
+        var width = extent.Cx!.Value / OoxmlUnits.EmusPerPoint * sheetScale;
+        var height = extent.Cy!.Value / OoxmlUnits.EmusPerPoint * sheetScale;
+        var centerX = placed.X + placed.Width / 2;
+        var centerY = placed.Y + placed.Height / 2;
+        return (new(centerX - width / 2, centerY - height / 2, width, height), rotation, flipHorizontal, flipVertical);
     }
 
     /// <summary>Maps a group's child coordinate space onto the anchor rectangle it occupies.</summary>

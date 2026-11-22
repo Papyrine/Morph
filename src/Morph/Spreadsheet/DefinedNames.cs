@@ -67,7 +67,17 @@ sealed class DefinedNames
     /// rows (<c>Sheet1!$A:$B,Sheet1!$1:$4</c>). Only the row part is honoured — the fragmenter can
     /// repeat header ROWS, having no notion of a repeated column.
     /// </summary>
-    public (int First, int Last)? PrintTitleRows(string sheetName)
+    public (int First, int Last)? PrintTitleRows(string sheetName) =>
+        TitleBand(sheetName, columns: false);
+
+    /// <summary>
+    /// The inclusive column band repeated on every page (<c>Sheet1!$B:$B</c>), or null when the sheet
+    /// repeats none.
+    /// </summary>
+    public (int First, int Last)? PrintTitleColumns(string sheetName) =>
+        TitleBand(sheetName, columns: true);
+
+    (int First, int Last)? TitleBand(string sheetName, bool columns)
     {
         if (!printTitles.TryGetValue(sheetName, out var value))
         {
@@ -90,11 +100,20 @@ sealed class DefinedNames
                 continue;
             }
 
-            // A row band is digits only ("1:4"); a column band would be letters.
-            if (int.TryParse(bounds[0], out var first) &&
+            // A row band is digits only ("1:4"); a column band is letters ("B:C").
+            if (!columns &&
+                int.TryParse(bounds[0], out var first) &&
                 int.TryParse(bounds[1], out var last))
             {
                 return (Math.Min(first, last), Math.Max(first, last));
+            }
+
+            if (columns &&
+                bounds.All(_ => _.Length > 0 && _.All(char.IsAsciiLetter)) &&
+                CellReference.ColumnOf(bounds[0] + "1") is > 0 and var firstColumn &&
+                CellReference.ColumnOf(bounds[1] + "1") is > 0 and var lastColumn)
+            {
+                return (Math.Min(firstColumn, lastColumn), Math.Max(firstColumn, lastColumn));
             }
         }
 

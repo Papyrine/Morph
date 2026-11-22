@@ -239,6 +239,10 @@ sealed class SlidePlaceholders
     public OpenXmlElement? ResolveGeometrySource(P.Shape shape) =>
         ResolveShapeProperties(shape, _ => _.GetFirstChild<A.PresetGeometry>() != null || _.GetFirstChild<A.CustomGeometry>() != null);
 
+    /// <summary>The <c>p:spPr</c> that declares the shape's effects (<c>a:effectLst</c>), as for the fill.</summary>
+    public OpenXmlElement? ResolveEffectSource(P.Shape shape) =>
+        ResolveShapeProperties(shape, _ => _.GetFirstChild<A.EffectList>() != null);
+
     OpenXmlElement? ResolveShapeProperties(P.Shape shape, Func<OpenXmlElement, bool> declares)
     {
         if (shape.ShapeProperties is { } own &&

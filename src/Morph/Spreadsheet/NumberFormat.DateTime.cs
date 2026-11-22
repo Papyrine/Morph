@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// The date/time half of <see cref="NumberFormat"/>.
 ///
 /// The one genuine ambiguity in the format language lives here: <c>m</c> is BOTH the month token and
@@ -55,6 +55,7 @@ static partial class NumberFormat
                     continue;
 
                 case '*' when i + 1 < body.Length:
+                    result.Append(FillMark);
                     i++;
                     continue;
 

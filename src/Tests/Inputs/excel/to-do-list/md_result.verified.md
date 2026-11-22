@@ -3,7 +3,7 @@
 |  | TO-DO LIST |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
 |  | TASK LIST |  |  |  |  |  |  | TODAY'S PROGRESS |  |  |
-|  | CATEGORY | DESCRIPTION | DUE DATE | PRIORITY | STATUS |  |  | 33% |  |  |
+|  | CATEGORY | DESCRIPTION | DUE DATE | PRIORITY | STATUS |  |  |  |  |  |
 |  | Family | Buy a gift for Mom's birthday | 7/16 | High | Completed |  |  |  |  |  |
 |  | Personal | Return borrowed book | 7/16 | Medium | Pending |  |  | TASK SUMMARY |  |  |
 |  | Work | Team meeting | 7/16 | Medium | Pending |  |  |  |  |  |

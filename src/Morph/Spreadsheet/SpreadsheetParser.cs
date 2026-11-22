@@ -102,7 +102,7 @@ sealed class SpreadsheetParser(
         // Row heights are the body font's too: Excel prints a row through the ratio of the body
         // font's standard heights on its printer and its screen (ExcelRowHeights)
         var rowHeights = new ExcelRowHeights(bodyFamily, bodySize, LayoutFonts.ToDelegate(fontResolver));
-        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth, rowHeights, culture ?? CultureInfo.InvariantCulture, LayoutFonts.ToDelegate(fontResolver));
+        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth, rowHeights, culture ?? CultureInfo.InvariantCulture, LayoutFonts.ToDelegate(fontResolver), themeFonts);
         var drawings = new SheetDrawingParser(
             themeColors,
             themeFonts,
@@ -120,6 +120,8 @@ sealed class SpreadsheetParser(
             ColorHex = styles.Resolve(0).ColorHex ?? "000000"
         };
 
+        // Read only when a sheet's expression rule first needs a cell decided
+        FormulaWorkbook? formulaBook = null;
         foreach (var sheet in VisibleSheets(workbookPart))
         {
             var worksheetPart = workbookPart.GetPartById(sheet.Id!.Value!) as WorksheetPart;
@@ -141,7 +143,11 @@ sealed class SpreadsheetParser(
             AssignImpliedReferences(worksheet);
 
             var name = sheet.Name?.Value ?? string.Empty;
-            var conditional = new ConditionalFormats(worksheet, workbookPart.WorkbookStylesPart?.Stylesheet, themeColors);
+            var conditional = new ConditionalFormats(worksheet, workbookPart.WorkbookStylesPart?.Stylesheet, themeColors, () =>
+            {
+                formulaBook ??= FormulaWorkbook.Read(workbookPart, printTime ?? DateTime.Now, culture);
+                return formulaBook.SheetIndex(name) is >= 0 and var index ? (formulaBook, index) : null;
+            });
             var tableStyles = new TableStyles(worksheetPart, workbookPart.WorkbookStylesPart?.Stylesheet, styles);
 
             PageSettings settings;
@@ -171,7 +177,7 @@ sealed class SpreadsheetParser(
                     continue;
                 }
 
-                scale = ResolveScale(builder, worksheet, printed, settings);
+                scale = ResolveScale(builder, worksheet, printed, settings, definedNames.PrintTitleColumns(name));
                 settings = SheetHeaderFooter.Apply(settings, worksheet, name, headerFont, scale, culture ?? CultureInfo.InvariantCulture, printTime ?? DateTime.Now);
                 var centered = worksheet.GetFirstChild<S.PrintOptions>()?.HorizontalCentered?.Value == true;
                 // A strip's drawings are placed against the whole print area and moved left by the
@@ -280,6 +286,18 @@ sealed class SpreadsheetParser(
         // declares A1:K, stops at F, and came out at 63% against Excel's cached 90%.
         var declaredRange = CellReference.ParseRange(worksheet.SheetDimension?.Reference?.Value);
         var populated = UsedRange(worksheet);
+
+        // With no print area Excel prints to the last cell that SHOWS something, as it does a
+        // whole-column area's rows (below), not to the last that carries a style. Probed over COM
+        // (Excel 16, A4, 2026-11-22): construction-proposal's columns I and J, whose cells carry a
+        // font and an alignment and nothing else, and its lone P36, print nothing — A to H fill the
+        // page with P36 there or deleted, the sheet's UsedRange A1:P41 or A1:J41. A table's cells
+        // show its style's fills and edges, so its whole range counts.
+        if (printArea == null &&
+            ShownRange(worksheet, styles) is { } shownCells)
+        {
+            populated = TableRanges(worksheetPart).Aggregate(shownCells, (range, table) => range.Union(table));
+        }
         var used = declaredRange is { } dr &&
                    populated is { } pr
             ? dr.Intersect(pr) is { IsEmpty: false } both ? both : populated
@@ -711,6 +729,23 @@ sealed class SpreadsheetParser(
         return new SheetRange(firstRow, firstColumn, lastRow, lastColumn);
     }
 
+    /// <summary>The ranges of the sheet's tables, which print their style whether or not a cell has a value.</summary>
+    static IEnumerable<SheetRange> TableRanges(WorksheetPart? worksheetPart)
+    {
+        if (worksheetPart == null)
+        {
+            yield break;
+        }
+
+        foreach (var part in worksheetPart.TableDefinitionParts)
+        {
+            if (CellReference.ParseRange(part.Table?.Reference?.Value) is { IsEmpty: false } range)
+            {
+                yield return range;
+            }
+        }
+    }
+
     static SheetRange? UsedRange(S.Worksheet worksheet)
     {
         var sheetData = worksheet.GetFirstChild<S.SheetData>();
@@ -830,7 +865,7 @@ sealed class SpreadsheetParser(
         return columns;
     }
 
-    static double ResolveScale(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange range, PageSettings settings)
+    static double ResolveScale(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange range, PageSettings settings, (int First, int Last)? titleColumns)
     {
         var setup = worksheet.GetFirstChild<S.PageSetup>();
 
@@ -857,7 +892,16 @@ sealed class SpreadsheetParser(
 
         if (pagesWide > 0)
         {
+            // Excel fits the columns repeated as print titles in as well as the range, though they
+            // are part of it on the first page: construction-proposal's $B:$B titles print it at 61%,
+            // and at 71% without them (probed over COM, 2026-11-22: B is 131pt of 910 at 100%, and
+            // 559pt of A4 holds 61% of 910, 71% of the 779 the range is without it).
             var natural = builder.NaturalWidthPoints(worksheet, range);
+            if (titleColumns is { } titles)
+            {
+                natural += builder.NaturalWidthPoints(worksheet, range with { FirstColumn = titles.First, LastColumn = titles.Last });
+            }
+
             var available = settings.ContentWidth * pagesWide;
             if (natural > available &&
                 natural > 0)

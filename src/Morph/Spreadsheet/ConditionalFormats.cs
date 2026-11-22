@@ -1,4 +1,4 @@
-using S = DocumentFormat.OpenXml.Spreadsheet;
+﻿using S = DocumentFormat.OpenXml.Spreadsheet;
 
 /// <summary>
 /// A sheet's conditional formatting, resolved against cached cell values.
@@ -8,21 +8,32 @@ using S = DocumentFormat.OpenXml.Spreadsheet;
 /// alone. That partiality is the whole design, and it is why this returns an overlay rather than a
 /// <see cref="CellStyle"/>.
 ///
-/// Only rules decidable from a cached value are applied. <c>expression</c> rules carry a formula and
-/// there is no evaluator here, so they are skipped rather than guessed at; <c>dataBar</c> and
-/// <c>iconSet</c> are skipped because they draw chrome inside the cell that the model has no way to
-/// express. Corpus coverage: 31 of 51 rules across 7 workbooks.
+/// Rules are decided from the cells' cached values. An <c>expression</c> rule's formula is worked out
+/// by the formula engine over those values, written against the first cell of the block's first
+/// range and moved to each cell as a relative reference moves; one resting on TODAY, NOW or RAND is
+/// skipped, since what it gave when the reference was printed is not what it gives now.
+/// <c>dataBar</c> draws inside the cell (<see cref="DataBarFor"/>); <c>iconSet</c> is skipped.
 /// </summary>
 sealed class ConditionalFormats
 {
     readonly List<(SheetRange Range, List<Rule> Rules)> blocks = [];
     readonly S.Stylesheet? stylesheet;
     readonly ThemeColors? themeColors;
+    readonly Func<(FormulaWorkbook Book, int Sheet)?>? formulas;
+    (FormulaWorkbook Book, int Sheet)? context;
+    bool contextRead;
 
-    public ConditionalFormats(S.Worksheet worksheet, S.Stylesheet? stylesheet, ThemeColors? themeColors)
+    /// <param name="worksheet">The sheet whose rules and cached values are read.</param>
+    /// <param name="stylesheet">The workbook's styles, for the rules' differential formats.</param>
+    /// <param name="themeColors">The theme, for the rules' theme colours.</param>
+    /// <param name="formulas">The workbook's formula engine and this sheet's index in it, asked for
+    /// only when a cell is under an expression rule; null leaves expression rules unapplied.</param>
+    public ConditionalFormats(S.Worksheet worksheet, S.Stylesheet? stylesheet, ThemeColors? themeColors, Func<(FormulaWorkbook Book, int Sheet)?>? formulas = null)
     {
         this.stylesheet = stylesheet;
         this.themeColors = themeColors;
+        this.formulas = formulas;
+        ParseIconSets(worksheet);
 
         foreach (var formatting in worksheet.Elements<S.ConditionalFormatting>())
         {
@@ -33,8 +44,17 @@ sealed class ConditionalFormats
                 .OfType<SheetRange>()
                 .ToArray();
 
+            var origin = ranges.Length > 0 ? (ranges[0].FirstRow, ranges[0].FirstColumn) : (1, 1);
+            foreach (var element in formatting.Elements<S.ConditionalFormattingRule>())
+            {
+                if (ParseDataBar(worksheet, element, ranges) is { } bar)
+                {
+                    dataBars.Add((ranges, element.Priority?.Value ?? int.MaxValue, bar));
+                }
+            }
+
             var rules = formatting.Elements<S.ConditionalFormattingRule>()
-                .Select(Parse)
+                .Select(_ => Parse(_, origin, worksheet, ranges))
                 .OfType<Rule>()
                 .ToList();
 
@@ -50,7 +70,221 @@ sealed class ConditionalFormats
         }
     }
 
-    public bool IsEmpty => blocks.Count == 0;
+    readonly List<(SheetRange[] Ranges, int Priority, DataBar Bar)> dataBars = [];
+
+    public bool IsEmpty => blocks.Count == 0 && dataBars.Count == 0 && iconSets.Count == 0;
+
+    /// <summary>
+    /// The data bar a cell holding <paramref name="number"/> draws, as the fraction of the cell it
+    /// fills, its colour and whether the value still shows; null when no data bar covers it. Of
+    /// several, the highest priority's.
+    /// </summary>
+    public (double Fraction, string ColorHex, bool ShowValue)? DataBarFor(int row, int column, double? number)
+    {
+        if (number is not { } value)
+        {
+            return null;
+        }
+
+        foreach (var (ranges, _, bar) in dataBars.OrderBy(_ => _.Priority))
+        {
+            if (!ranges.Any(_ => row >= _.FirstRow && row <= _.LastRow && column >= _.FirstColumn && column <= _.LastColumn))
+            {
+                continue;
+            }
+
+            var share = bar.High > bar.Low ? Math.Clamp((value - bar.Low) / (bar.High - bar.Low), 0, 1) : value >= bar.High ? 1 : 0;
+            return ((bar.MinLength + share * (bar.MaxLength - bar.MinLength)) / 100, bar.ColorHex, bar.ShowValue);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// A <c>dataBar</c> rule with its two ends worked out over the numbers its ranges hold. Excel 2010
+    /// writes the bar's lengths and fill in a twin rule under the worksheet's <c>extLst</c>, joined by
+    /// id: <c>minLength</c>/<c>maxLength</c> default to 10 and 90 percent (to-do-list-for-projects'
+    /// 0% task draws a sliver, its 100% one 90% of the cell), and to-do-list says 0 and 100. Without the
+    /// twin a bar is Excel 2007's, which draws 10 to 90 percent too.
+    /// </summary>
+    DataBar? ParseDataBar(S.Worksheet worksheet, S.ConditionalFormattingRule rule, SheetRange[] ranges)
+    {
+        if (rule.GetFirstChild<S.DataBar>() is not { } bar ||
+            Resolve(bar.GetFirstChild<S.Color>()) is not { } color)
+        {
+            return null;
+        }
+
+        var ends = bar.Elements<S.ConditionalFormatValueObject>().ToArray();
+        if (ends.Length < 2)
+        {
+            return null;
+        }
+
+        var id = rule.Descendants().FirstOrDefault(_ => _.LocalName == "id")?.InnerText;
+        var twin = id == null
+            ? null
+            : worksheet.Descendants().FirstOrDefault(_ => _.LocalName == "cfRule" &&
+                                                          _.GetAttributes().Any(attribute => attribute.LocalName == "id" && attribute.Value == id))?
+                .ChildElements.FirstOrDefault(_ => _.LocalName == "dataBar");
+
+        double Length(string name, double fallback) =>
+            twin?.GetAttributes().FirstOrDefault(_ => _.LocalName == name).Value is { } text &&
+            double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out var length)
+                ? length
+                : fallback;
+
+        var numbers = Numbers(worksheet, ranges);
+        var low = End(ends[0], numbers, true);
+        var high = End(ends[1], numbers, false);
+        if (low is not { } min || high is not { } max)
+        {
+            return null;
+        }
+
+        return new(min, max, Length("minLength", 10), Length("maxLength", 90), color, bar.ShowValue?.Value != false);
+    }
+
+    /// <summary>One end of a bar: a stated number, or the least or greatest of the range's numbers.</summary>
+    static double? End(S.ConditionalFormatValueObject end, List<double> numbers, bool low)
+    {
+        var type = end.Type?.Value is { } value ? ((IEnumValue) value).Value : null;
+        var stated = double.TryParse(end.Val?.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var number) ? number : (double?) null;
+        return type switch
+        {
+            "num" => stated,
+            "percent" when stated is { } percent && numbers.Count > 0 => numbers.Min() + (numbers.Max() - numbers.Min()) * percent / 100,
+            _ when numbers.Count == 0 => null,
+            "autoMin" => Math.Min(0, numbers.Min()),
+            "autoMax" => Math.Max(0, numbers.Max()),
+            _ => low ? numbers.Min() : numbers.Max()
+        };
+    }
+
+    /// <summary>The cached numbers of the cells in <paramref name="ranges"/>.</summary>
+    static List<double> Numbers(S.Worksheet worksheet, SheetRange[] ranges)
+    {
+        List<double> numbers = [];
+        foreach (var row in worksheet.GetFirstChild<S.SheetData>()?.Elements<S.Row>() ?? [])
+        {
+            foreach (var cell in row.Elements<S.Cell>())
+            {
+                var reference = cell.CellReference?.Value;
+                var index = CellReference.RowOf(reference);
+                var column = CellReference.ColumnOf(reference);
+                if ((cell.DataType == null || cell.DataType.Value == S.CellValues.Number) &&
+                    ranges.Any(_ => index >= _.FirstRow && index <= _.LastRow && column >= _.FirstColumn && column <= _.LastColumn) &&
+                    double.TryParse(cell.CellValue?.Text, NumberStyles.Any, CultureInfo.InvariantCulture, out var number))
+                {
+                    numbers.Add(number);
+                }
+            }
+        }
+
+        return numbers;
+    }
+
+    sealed record DataBar(double Low, double High, double MinLength, double MaxLength, string ColorHex, bool ShowValue);
+
+    readonly List<(SheetRange[] Ranges, int Priority, IconRule Rule)> iconSets = [];
+
+    /// <summary>
+    /// The icon an icon set gives a cell holding <paramref name="number"/>, as its set and id, and
+    /// whether the value still shows; null when no icon set covers it or its place has no icon.
+    /// </summary>
+    public (string Set, int Id, bool ShowValue)? IconFor(int row, int column, double? number)
+    {
+        if (number is not { } value)
+        {
+            return null;
+        }
+
+        foreach (var (ranges, _, rule) in iconSets.OrderBy(_ => _.Priority))
+        {
+            if (!ranges.Any(_ => row >= _.FirstRow && row <= _.LastRow && column >= _.FirstColumn && column <= _.LastColumn))
+            {
+                continue;
+            }
+
+            // The highest threshold the value reaches picks the place; the first always holds
+            var place = 0;
+            for (var index = 1; index < rule.Thresholds.Count; index++)
+            {
+                var (threshold, inclusive) = rule.Thresholds[index];
+                if (inclusive ? value >= threshold : value > threshold)
+                {
+                    place = index;
+                }
+            }
+
+            var (set, id) = rule.Icons[place];
+            return set == "NoIcons" ? (set, -1, rule.ShowValue) : (set, id, rule.ShowValue);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The sheet's icon sets: Excel 2007's in <c>conditionalFormatting</c> and Excel 2010's, which
+    /// alone can give each place an icon of its own set (<c>cfIcon</c>) or none, in the worksheet's
+    /// <c>extLst</c>. inventory-list-with-highlighting flags an item to reorder with a red flag on 1
+    /// and nothing below it, the value hidden.
+    /// </summary>
+    void ParseIconSets(S.Worksheet worksheet)
+    {
+        foreach (var rule in worksheet.Descendants().Where(_ => _.LocalName == "cfRule" && Attribute(_, "type") == "iconSet"))
+        {
+            var block = rule.Parent;
+            var sqref = block?.LocalName == "conditionalFormatting"
+                ? Attribute(block, "sqref") ?? block.ChildElements.FirstOrDefault(_ => _.LocalName == "sqref")?.InnerText
+                : null;
+            var ranges = (sqref ?? string.Empty)
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                .Select(CellReference.ParseRange)
+                .OfType<SheetRange>()
+                .ToArray();
+            if (ranges.Length == 0 ||
+                rule.ChildElements.FirstOrDefault(_ => _.LocalName == "iconSet") is not { } set)
+            {
+                continue;
+            }
+
+            var name = Attribute(set, "iconSet") ?? "3TrafficLights1";
+            var numbers = Numbers(worksheet, ranges);
+            List<(double, bool)> thresholds = [];
+            foreach (var end in set.ChildElements.Where(_ => _.LocalName == "cfvo"))
+            {
+                var text = Attribute(end, "val") ?? end.ChildElements.FirstOrDefault(_ => _.LocalName == "f")?.InnerText;
+                var stated = double.TryParse(text, NumberStyles.Any, CultureInfo.InvariantCulture, out var number) ? number : 0;
+                var threshold = Attribute(end, "type") switch
+                {
+                    "percent" or "percentile" when numbers.Count > 0 => numbers.Min() + (numbers.Max() - numbers.Min()) * stated / 100,
+                    _ => stated
+                };
+                thresholds.Add((threshold, Attribute(end, "gte") != "0"));
+            }
+
+            if (thresholds.Count == 0)
+            {
+                continue;
+            }
+
+            var reverse = Attribute(set, "reverse") == "1";
+            var custom = set.ChildElements.Where(_ => _.LocalName == "cfIcon").ToArray();
+            var icons = Enumerable.Range(0, thresholds.Count)
+                .Select(place => custom.Length == thresholds.Count
+                    ? (Attribute(custom[place], "iconSet") ?? name, int.TryParse(Attribute(custom[place], "iconId"), out var id) ? id : place)
+                    : (name, reverse ? thresholds.Count - 1 - place : place))
+                .ToList();
+            var priority = int.TryParse(Attribute(rule, "priority"), out var ranked) ? ranked : int.MaxValue;
+            iconSets.Add((ranges, priority, new(thresholds, icons, Attribute(set, "showValue") != "0")));
+        }
+    }
+
+    static string? Attribute(OpenXmlElement element, string name) =>
+        element.GetAttributes().FirstOrDefault(_ => _.LocalName == name).Value;
+
+    sealed record IconRule(List<(double Threshold, bool Inclusive)> Thresholds, List<(string Set, int Id)> Icons, bool ShowValue);
 
     /// <summary>
     /// The overlay for a cell, or null when no rule matches.
@@ -69,7 +303,7 @@ sealed class ConditionalFormats
                         column >= _.Range.FirstColumn &&
                         column <= _.Range.LastColumn)
             .SelectMany(_ => _.Rules)
-            .Where(_ => Matches(_, text, number))
+            .Where(_ => Matches(_, text, number, row, column))
             .OrderByDescending(_ => _.Priority);
 
         foreach (var rule in matches)
@@ -109,20 +343,59 @@ sealed class ConditionalFormats
             // one of the few places SpreadsheetML swaps the two.
             BackgroundColorHex = background ?? result.BackgroundColorHex,
             ColorHex = Resolve(format.Font?.Color) ?? result.ColorHex,
-            Bold = format.Font?.Bold != null || result.Bold,
-            Italic = format.Font?.Italic != null || result.Italic
+            // A dxf states what it turns OFF as well: <i val="0"/> keeps a cell upright, and was read
+            // as italic for being present (inventory-list-with-highlighting's highlight rules)
+            Bold = format.Font?.Bold is { } bold ? bold.Val?.Value != false : result.Bold,
+            Italic = format.Font?.Italic is { } italic ? italic.Val?.Value != false : result.Italic,
+            Strikethrough = format.Font?.Strike is { } strike ? strike.Val?.Value != false : result.Strikethrough
         };
     }
 
-    static bool Matches(Rule rule, string text, double? number) =>
+    bool Matches(Rule rule, string text, double? number, int row, int column) =>
         rule.Type switch
         {
             "containsBlanks" => text.Length == 0,
             "notContainsBlanks" => text.Length > 0,
             "colorScale" => number != null,
             "cellIs" => CellIs(rule, text, number),
+            "expression" => Expression(rule, row, column),
             _ => false
         };
+
+    /// <summary>
+    /// Whether an <c>expression</c> rule's formula is true at the cell. to-do-list colours a task's
+    /// status by <c>$F6="completed"</c>, which no cached value records.
+    /// </summary>
+    bool Expression(Rule rule, int row, int column)
+    {
+        if (rule.Formulas.Count == 0)
+        {
+            return false;
+        }
+
+        if (!contextRead)
+        {
+            context = formulas?.Invoke();
+            contextRead = true;
+        }
+
+        if (context is not var (book, sheet))
+        {
+            return false;
+        }
+
+        var formula = FormulaShifter.Shift(rule.Formulas[0], row - rule.Origin.Row, column - rule.Origin.Column);
+        if (book.Parse(formula) is not { } node)
+        {
+            return false;
+        }
+
+        var evaluator = new FormulaEvaluator(book, sheet, row, column);
+        var value = FormulaCoercion.ToBoolean(evaluator.Scalar(evaluator.Evaluate(node)));
+        return !evaluator.Volatile &&
+               !evaluator.Unsupported &&
+               value is { IsBoolean: true, Boolean: true };
+    }
 
     /// <summary>
     /// A <c>cellIs</c> comparison against the rule's constant operands. A quoted operand compares as
@@ -180,7 +453,7 @@ sealed class ConditionalFormats
         };
     }
 
-    Rule? Parse(S.ConditionalFormattingRule rule)
+    Rule? Parse(S.ConditionalFormattingRule rule, (int Row, int Column) origin, S.Worksheet worksheet, SheetRange[] ranges)
     {
         var type = rule.Type?.Value is { } value ? ((IEnumValue) value).Value : null;
         if (type == null)
@@ -188,7 +461,7 @@ sealed class ConditionalFormats
             return null;
         }
 
-        var scale = type == "colorScale" ? ParseColorScale(rule) : null;
+        var scale = type == "colorScale" ? ParseColorScale(rule, worksheet, ranges) : null;
         if (type == "colorScale" &&
             scale == null)
         {
@@ -201,14 +474,18 @@ sealed class ConditionalFormats
             [.. rule.Elements<S.Formula>().Select(_ => _.Text.Trim())],
             rule.FormatId?.Value,
             rule.Priority?.Value ?? int.MaxValue,
-            scale);
+            scale,
+            origin);
     }
 
     /// <summary>
-    /// A colour scale interpolates between stops by value. Only min/max stops are honoured; a
-    /// percentile or formula stop has no fixed value to interpolate against here.
+    /// A colour scale's stops, each a value worked out over the numbers its ranges hold — <c>min</c>,
+    /// <c>max</c>, <c>percent</c> of the way between them, <c>percentile</c> of them, or a stated
+    /// <c>num</c> — paired with its colour. Two stops or three: a three-colour scale passes through its
+    /// middle colour at its middle stop, where blending the ends alone turned red-yellow-green into a
+    /// muddy brown at the midpoint.
     /// </summary>
-    ColorScale? ParseColorScale(S.ConditionalFormattingRule rule)
+    ColorScale? ParseColorScale(S.ConditionalFormattingRule rule, S.Worksheet worksheet, SheetRange[] ranges)
     {
         var scale = rule.GetFirstChild<S.ColorScale>();
         if (scale == null)
@@ -217,15 +494,26 @@ sealed class ConditionalFormats
         }
 
         var colors = scale.Elements<S.Color>().Select(Resolve).ToArray();
+        var numbers = Numbers(worksheet, ranges);
+        numbers.Sort();
         var values = scale.Elements<S.ConditionalFormatValueObject>()
             .Select(_ =>
             {
-                if (double.TryParse(_.Val?.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var v))
+                var type = _.Type?.Value is { } kind ? ((IEnumValue) kind).Value : null;
+                var stated = double.TryParse(_.Val?.Value, NumberStyles.Any, CultureInfo.InvariantCulture, out var number) ? number : (double?) null;
+                if (numbers.Count == 0)
                 {
-                    return v;
+                    return type is "num" or "formula" ? stated : null;
                 }
 
-                return (double?) null;
+                return type switch
+                {
+                    "min" => numbers[0],
+                    "max" => numbers[^1],
+                    "percent" when stated is { } percent => numbers[0] + (numbers[^1] - numbers[0]) * percent / 100,
+                    "percentile" when stated is { } percentile => Percentile(numbers, percentile / 100),
+                    _ => stated
+                };
             })
             .ToArray();
 
@@ -237,43 +525,19 @@ sealed class ConditionalFormats
         return null;
     }
 
-    string? Resolve(S.ColorType? color)
+    // Excel's PERCENTILE.INC over sorted numbers: interpolated between the two ranks either side.
+    static double Percentile(List<double> sorted, double fraction)
     {
-        if (color == null)
-        {
-            return null;
-        }
-
-        if (color.Rgb?.Value is { Length: >= 6 } argb)
-        {
-            if (argb.Length == 8)
-            {
-                return argb[2..];
-            }
-
-            return argb;
-        }
-
-        if (color.Theme?.Value is { } theme &&
-            themeColors != null)
-        {
-            return themeColors.ResolveColor(theme switch
-            {
-                0 => "lt1",
-                1 => "dk1",
-                2 => "lt2",
-                3 => "dk2",
-                _ => "accent" + Math.Max(1, theme - 3)
-            });
-        }
-
-        if (color.Indexed?.Value is { } indexed)
-        {
-            return IndexedPalette.Resolve(indexed);
-        }
-
-        return null;
+        var rank = Math.Clamp(fraction, 0, 1) * (sorted.Count - 1);
+        var below = (int) Math.Floor(rank);
+        var above = Math.Min(below + 1, sorted.Count - 1);
+        return sorted[below] + (sorted[above] - sorted[below]) * (rank - below);
     }
+
+    // A rule's colours resolve as a cell style's do, tint included: to-do-list's colour scale and
+    // the dxf fills of several templates name a theme colour lightened by a tint, which was dropped.
+    string? Resolve(S.ColorType? color) =>
+        CellStyles.Resolve(color, themeColors);
 
     sealed record Rule(
         string Type,
@@ -281,27 +545,42 @@ sealed class ConditionalFormats
         List<string> Formulas,
         uint? DifferentialFormatId,
         int Priority,
-        ColorScale? ColorScale);
+        ColorScale? ColorScale,
+        (int Row, int Column) Origin);
 
     sealed record ColorScale(string?[] Colors, double?[] Values)
     {
         /// <summary>
-        /// The colour for a value, interpolated between the first and last stop. Without usable stop
-        /// values the midpoint colour stands in, which keeps the scale's palette without inventing a
-        /// position for the value.
+        /// The colour for a value, interpolated between the two stops either side of it; at or past an
+        /// end stop, that stop's colour. Without usable stop values the middle colour stands in, which
+        /// keeps the scale's palette without inventing a position for the value.
         /// </summary>
         public string? Resolve(double? number)
         {
-            var low = Values.Length > 0 ? Values[0] : null;
-            var high = Values.Length > 1 ? Values[^1] : null;
-
-            if (number is not { } value || low is not { } min || high is not { } max || max <= min)
+            var count = Math.Min(Colors.Length, Values.Length);
+            if (number is not { } value ||
+                count < 2 ||
+                Values.Take(count).Any(_ => _ == null))
             {
                 return Colors[Colors.Length / 2];
             }
 
-            var fraction = Math.Clamp((value - min) / (max - min), 0, 1);
-            return Blend(Colors[0], Colors[^1], fraction);
+            if (value <= Values[0]!.Value)
+            {
+                return Colors[0];
+            }
+
+            for (var index = 1; index < count; index++)
+            {
+                var low = Values[index - 1]!.Value;
+                var high = Values[index]!.Value;
+                if (value <= high)
+                {
+                    return high > low ? Blend(Colors[index - 1], Colors[index], (value - low) / (high - low)) : Colors[index];
+                }
+            }
+
+            return Colors[count - 1];
         }
 
         static string? Blend(string? from, string? to, double fraction)
@@ -331,4 +610,5 @@ readonly record struct ConditionalOverlay
     public string? ColorHex { get; init; }
     public bool Bold { get; init; }
     public bool Italic { get; init; }
+    public bool? Strikethrough { get; init; }
 }

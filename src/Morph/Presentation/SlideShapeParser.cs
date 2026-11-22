@@ -222,6 +222,11 @@ sealed class SlideShapeParser(
                 case P.Shape shape:
                     if (ParseShape(shape, transform, placeholders, defaultTextStyle, master, ordinal) is { } parsed)
                     {
+                        if (HardShadow(placeholders.ResolveEffectSource(shape), parsed) is { } shadow)
+                        {
+                            elements.Add(shadow);
+                        }
+
                         elements.Add(parsed);
                         ordinal++;
                     }
@@ -271,6 +276,64 @@ sealed class SlideShapeParser(
                     break;
             }
         }
+    }
+
+    /// <summary>
+    /// A shape's outer shadow when it is drawn hard — no <c>blurRad</c> — as a copy of the shape's
+    /// outline behind it: grown by <c>sx</c>/<c>sy</c> about the point <c>algn</c> names, moved
+    /// <c>dist</c> along <c>dir</c>, in the shadow's colour. sketchlines' title blob stands on a halo
+    /// of its own white at half alpha, 107% of its size about its centre. A blurred shadow is left
+    /// out: a hard copy of a soft one reads worse than none.
+    /// </summary>
+    DocumentElement? HardShadow(OpenXmlElement? effectSource, DocumentElement parsed)
+    {
+        if (effectSource?.GetFirstChild<A.EffectList>()?.GetFirstChild<A.OuterShadow>() is not { } shadow ||
+            shadow.BlurRadius?.Value is > 0 ||
+            ShapeParser.ExtractSolidFillColor(shadow, themeColors) is not { } color)
+        {
+            return null;
+        }
+
+        var (x, y, width, height, rotation, subpaths, ordinal) = parsed switch
+        {
+            FloatingTextBoxElement box => (box.HorizontalPositionPoints, box.VerticalPositionPoints, box.WidthPoints, box.HeightPoints, box.RotationDegrees, box.Subpaths, box.RelativeHeight),
+            FloatingShapeElement shape => (shape.HorizontalPositionPoints, shape.VerticalPositionPoints, shape.WidthPoints, shape.HeightPoints, shape.RotationDegrees, shape.Subpaths, shape.RelativeHeight),
+            _ => (0d, 0d, 0d, 0d, 0d, null, 0u)
+        };
+        if (width <= 0 ||
+            height <= 0 ||
+            (parsed is FloatingShapeElement { Preset: not PresetShape.Rect } && subpaths == null))
+        {
+            return null;
+        }
+
+        var scaleX = (shadow.HorizontalRatio?.Value ?? 100000) / 100000.0;
+        var scaleY = (shadow.VerticalRatio?.Value ?? 100000) / 100000.0;
+        var grownWidth = width * scaleX;
+        var grownHeight = height * scaleY;
+
+        // The fixed point of the growth: algn's letters say which edge holds, centre where none does
+        var align = shadow.Alignment?.Value is { } value ? ((IEnumValue) value).Value : "b";
+        var fixedX = align is "tl" or "l" or "bl" ? 0 : align is "tr" or "r" or "br" ? 1 : 0.5;
+        var fixedY = align is "tl" or "t" or "tr" ? 0 : align is "bl" or "b" or "br" ? 1 : 0.5;
+        var radians = (shadow.Direction?.Value ?? 0) / 60000.0 * Math.PI / 180;
+        var distance = (shadow.Distance?.Value ?? 0) / OoxmlUnits.EmusPerPoint;
+
+        return new FloatingShapeElement
+        {
+            WidthPoints = grownWidth,
+            HeightPoints = grownHeight,
+            HorizontalPositionPoints = x + (width - grownWidth) * fixedX + distance * Math.Cos(radians),
+            VerticalPositionPoints = y + (height - grownHeight) * fixedY + distance * Math.Sin(radians),
+            HorizontalAnchor = HorizontalAnchor.Page,
+            VerticalAnchor = VerticalAnchor.Paragraph,
+            FillColorHex = color,
+            FillAlpha = shadow.Descendants<A.Alpha>().FirstOrDefault()?.Val?.Value / 100000.0 ?? 1,
+            Preset = PresetShape.Rect,
+            Subpaths = subpaths,
+            RotationDegrees = rotation,
+            RelativeHeight = ordinal
+        };
     }
 
     DocumentElement? ParseShape(

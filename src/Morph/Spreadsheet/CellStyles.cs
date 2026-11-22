@@ -96,7 +96,11 @@ sealed class CellStyles
     /// A SpreadsheetML colour, which may be a literal ARGB, a theme index with a tint, or one of the
     /// legacy indexed palette entries.
     /// </summary>
-    public string? Resolve(S.ColorType? color)
+    public string? Resolve(S.ColorType? color) =>
+        Resolve(color, themeColors);
+
+    /// <inheritdoc cref="Resolve(S.ColorType?)"/>
+    public static string? Resolve(S.ColorType? color, ThemeColors? themeColors)
     {
         if (color == null)
         {

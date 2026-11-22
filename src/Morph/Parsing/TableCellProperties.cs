@@ -98,4 +98,24 @@ sealed record TableCellProperties
 
     /// <inheritdoc cref="ClipSpillLeftPoints"/>
     public double ClipSpillRightPoints { get; init; }
+
+    /// <summary>A spreadsheet conditional format's data bar, drawn over the fill and under the text.</summary>
+    public CellDataBar? DataBar { get; init; }
+
+    /// <summary>A spreadsheet icon set's icon, drawn over the fill and under the text.</summary>
+    public CellIcon? Icon { get; init; }
 }
+
+/// <summary>
+/// An icon set's icon: <see cref="Set"/> and <see cref="Id"/> as SpreadsheetML names them
+/// (<c>3Flags</c>, 0 the red flag), placed by the cell's alignment when it stands alone and at the
+/// cell's left beside a value. <see cref="Scale"/> is the sheet's print scale.
+/// </summary>
+sealed record CellIcon(string Set, int Id, TextAlignment Alignment, CellVerticalAlignment VerticalAlignment, double Scale);
+
+/// <summary>
+/// A data bar: <see cref="Fraction"/> of the cell's width inside its insets, from the left, in
+/// <see cref="ColorHex"/>. <see cref="InsetScale"/> is the sheet's print scale, which the bar's
+/// insets (Excel's pixels) shrink with.
+/// </summary>
+sealed record CellDataBar(double Fraction, string ColorHex, double InsetScale);

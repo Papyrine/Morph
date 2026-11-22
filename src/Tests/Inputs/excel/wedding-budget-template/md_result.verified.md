@@ -6,67 +6,67 @@
 |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
 |  | **SUMMARY** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | **SUMMARY OF ACTUAL EXPENSES** |  |  |  |  |
-|  | Reception | $5,500.00 | $5,300.00 | -$200.00 |  |  |  |  |  |  |
-|  | Apparel | $5,000.00 | $5,000.00 | $0.00 |  |  |  |  |  |  |
-|  | Photography | $2,950.00 | $2,950.00 | $0.00 |  |  |  |  |  |  |
-|  | Decorations | $2,300.00 | $2,300.00 | $0.00 |  |  |  |  |  |  |
-|  | Transportation | $1,450.00 | $1,400.00 | -$50.00 |  |  |  |  |  |  |
-|  | Gifts | $1,400.00 | $1,300.00 | -$100.00 |  |  |  |  |  |  |
-|  | Music | $1,200.00 | $1,250.00 | $50.00 |  |  |  |  |  |  |
-|  | Flowers | $800.00 | $800.00 | $0.00 |  |  |  |  |  |  |
-|  | Stationery / Printing | $400.00 | $400.00 | $0.00 |  |  |  |  |  |  |
-|  | Other Expenses | $300.00 | $300.00 | $0.00 |  |  |  |  |  |  |
-|  | **Total budget** | **$21,300.00** | **$21,000.00** | $10.00 |  |  |  |  |  |  |
+|  | Reception | $5,500.00 | $5,300.00 |  |  |  |  |  |  |  |
+|  | Apparel | $5,000.00 | $5,000.00 |  |  |  |  |  |  |  |
+|  | Photography | $2,950.00 | $2,950.00 |  |  |  |  |  |  |  |
+|  | Decorations | $2,300.00 | $2,300.00 |  |  |  |  |  |  |  |
+|  | Transportation | $1,450.00 | $1,400.00 |  |  |  |  |  |  |  |
+|  | Gifts | $1,400.00 | $1,300.00 |  |  |  |  |  |  |  |
+|  | Music | $1,200.00 | $1,250.00 |  |  |  |  |  |  |  |
+|  | Flowers | $800.00 | $800.00 |  |  |  |  |  |  |  |
+|  | Stationery / Printing | $400.00 | $400.00 |  |  |  |  |  |  |  |
+|  | Other Expenses | $300.00 | $300.00 |  |  |  |  |  |  |  |
+|  | **Total budget** | **$21,300.00** | **$21,000.00** |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
 |  | **APPAREL** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | **DECORATIONS** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  |
-|  | Engagement ring | $5,000.00 | $5,000.00 | $0.00  |  | Bows for church pews | $1,800.00 | $1,800.00 | $0.00  |  |
-|  | Wedding rings | $0.00 | $0.00 | $0.00  |  | Table centerpieces | $500.00 | $500.00 | $0.00  |  |
-|  | Tux, suit, and/or dresses | $0.00 | $0.00 | $0.00  |  | Candles | $0.00 | $0.00 | $0.00  |  |
-|  | Veil/headpiece | $0.00 | $0.00 | $0.00  |  | Lighting | $0.00 | $0.00 | $0.00  |  |
-|  | Shoes | $0.00 | $0.00 | $0.00  |  | Balloons | $0.00 | $0.00 | $0.00  |  |
-|  | Jewelry | $0.00 | $0.00 | $0.00  |  | Others | $0.00 | $0.00 | $0.00  |  |
-|  | Accessories | $0.00 | $0.00 | $0.00  |  | **Total for decorations** | **$2,300.00** | **$2,300.00** | **$0.00**  |  |
-|  | Others | $0.00 | $0.00 | $0.00  |  |  |  |  |  |  |
-|  | **Total for apparel** | **$5,000.00** | **$5,000.00** | $0.00  |  |  |  |  |  |  |
+|  | Engagement ring | $5,000.00 | $5,000.00 |  |  | Bows for church pews | $1,800.00 | $1,800.00 |  |  |
+|  | Wedding rings | $0.00 | $0.00 |  |  | Table centerpieces | $500.00 | $500.00 |  |  |
+|  | Tux, suit, and/or dresses | $0.00 | $0.00 |  |  | Candles | $0.00 | $0.00 |  |  |
+|  | Veil/headpiece | $0.00 | $0.00 |  |  | Lighting | $0.00 | $0.00 |  |  |
+|  | Shoes | $0.00 | $0.00 |  |  | Balloons | $0.00 | $0.00 |  |  |
+|  | Jewelry | $0.00 | $0.00 |  |  | Others | $0.00 | $0.00 |  |  |
+|  | Accessories | $0.00 | $0.00 |  |  | **Total for decorations** | **$2,300.00** | **$2,300.00** |  |  |
+|  | Others | $0.00 | $0.00 |  |  |  |  |  |  |  |
+|  | **Total for apparel** | **$5,000.00** | **$5,000.00** |  |  |  |  |  |  |  |
 |  |  |  |  |  |  | **FLOWERS** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  |
-|  |  |  |  |  |  | Bouquets | $800.00 | $800.00 | $0.00  |  |
-|  | **GIFTS** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | Boutonnières | $0.00 | $0.00 | $0.00  |  |
-|  | Attendants | $1,200.00 | $1,100.00 | ($100.00) |  | Corsages | $0.00 | $0.00 | $0.00  |  |
-|  | Parents | $200.00 | $200.00 | $0.00  |  | Ceremony | $0.00 | $0.00 | $0.00  |  |
-|  | Readers/other participants | $0.00 | $0.00 | $0.00  |  | Reception | $0.00 | $0.00 | $0.00  |  |
-|  | Others | $0.00 | $0.00 | $0.00  |  | Others | $0.00 | $0.00 | $0.00  |  |
-|  | **Total for gifts** | **$1,400.00** | **$1,300.00** | **($100.00)** |  | **Total for flowers** | **$800.00** | **$800.00** | **$0.00**  |  |
+|  |  |  |  |  |  | Bouquets | $800.00 | $800.00 |  |  |
+|  | **GIFTS** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | Boutonnières | $0.00 | $0.00 |  |  |
+|  | Attendants | $1,200.00 | $1,100.00 |  |  | Corsages | $0.00 | $0.00 |  |  |
+|  | Parents | $200.00 | $200.00 |  |  | Ceremony | $0.00 | $0.00 |  |  |
+|  | Readers/other participants | $0.00 | $0.00 |  |  | Reception | $0.00 | $0.00 |  |  |
+|  | Others | $0.00 | $0.00 |  |  | Others | $0.00 | $0.00 |  |  |
+|  | **Total for gifts** | **$1,400.00** | **$1,300.00** |  |  | **Total for flowers** | **$800.00** | **$800.00** |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
 |  |  |  |  |  |  |  |  |  |  |  |
 |  | **MUSIC**  | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | **PHOTOGRAPHY** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  |
-|  | Musicians for ceremony | $1,200.00 | $1,250.00 | $50.00  |  | Formals | $1,200.00 | $1,200.00 | $0.00  |  |
-|  | Band/DJ for reception | $0.00 | $0.00 | $0.00  |  | Candid's | $800.00 | $800.00 | $0.00  |  |
-|  | Others | $0.00 | $0.00 | $0.00  |  | Extra prints | $0.00 | $0.00 | $0.00  |  |
-|  | **Total for music** | **$1,200.00** | **$1,250.00** | **$50.00**  |  | Photo albums | $0.00 | $0.00 | $0.00  |  |
-|  |  |  |  |  |  | Videography | $950.00 | $950.00 | $0.00  |  |
-|  |  |  |  |  |  | Others | $0.00 | $0.00 | $0.00  |  |
-|  | **RECEPTION** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | **Total for photography** | **$2,950.00** | **$2,950.00** | **$0.00**  |  |
-|  | Room/hall fees | $5,500.00 | $5,300.00 | ($200.00) |  |  |  |  |  |  |
-|  | Tables and chairs | $0.00 | $0.00 | $0.00  |  |  |  |  |  |  |
-|  | Food | $0.00 | $0.00 | $0.00  |  | **STATIONERY / PRINTING** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  |
-|  | Drinks | $0.00 | $0.00 | $0.00  |  | Invitations | $400.00 | $400.00 | $0.00  |  |
-|  | Linens | $0.00 | $0.00 | $0.00  |  | Announcements | $0.00 | $0.00 | $0.00  |  |
-|  | Cake | $0.00 | $0.00 | $0.00  |  | Thank-You cards | $0.00 | $0.00 | $0.00  |  |
-|  | Favors | $0.00 | $0.00 | $0.00  |  | Personal stationery | $0.00 | $0.00 | $0.00  |  |
-|  | Staff and gratuities | $0.00 | $0.00 | $0.00  |  | Guest book | $0.00 | $0.00 | $0.00  |  |
-|  | Others | $0.00 | $0.00 | $0.00  |  | Programs | $0.00 | $0.00 | $0.00  |  |
-|  | **Total for reception** | **$5,500.00** | **$5,300.00** | **($200.00)** |  | Reception napkins | $0.00 | $0.00 | $0.00  |  |
-|  |  |  |  |  |  | Matchbooks | $0.00 | $0.00 | $0.00  |  |
-|  |  |  |  |  |  | Calligraphy | $0.00 | $0.00 | $0.00  |  |
-|  | **OTHER EXPENSES** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | Others | $0.00 | $0.00 | $0.00  |  |
-|  | Officiant | $300.00 | $300.00 | $0.00  |  | **Total for stationery / printing** | **$400.00** | **$400.00** | **$0.00**  |  |
-|  | Church/ceremony site fee | $0.00 | $0.00 | $0.00  |  |  |  |  |  |  |
-|  | Wedding coordinator | $0.00 | $0.00 | $0.00  |  |  |  |  |  |  |
-|  | Rehearsal dinner | $0.00 | $0.00 | $0.00  |  | **TRANSPORTATION** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  |
-|  | Engagement party | $0.00 | $0.00 | $0.00  |  | Limousines/trolleys | $900.00 | $900.00 | $0.00  |  |
-|  | Showers | $0.00 | $0.00 | $0.00  |  | Parking | $200.00 | $200.00 | $0.00  |  |
-|  | Bachelor/ette parties | $0.00 | $0.00 | $0.00  |  | Taxis | $350.00 | $300.00 | ($50.00) |  |
-|  | Hotel rooms | $0.00 | $0.00 | $0.00  |  | Others | $0.00 | $0.00 | $0.00  |  |
-|  | **Total for other expenses** | **$300.00** | **$300.00** | **$0.00**  |  | **Total for transportation** | **$1,450.00** | **$1,400.00** | **($50.00)** |  |
+|  | Musicians for ceremony | $1,200.00 | $1,250.00 |  |  | Formals | $1,200.00 | $1,200.00 |  |  |
+|  | Band/DJ for reception | $0.00 | $0.00 |  |  | Candid's | $800.00 | $800.00 |  |  |
+|  | Others | $0.00 | $0.00 |  |  | Extra prints | $0.00 | $0.00 |  |  |
+|  | **Total for music** | **$1,200.00** | **$1,250.00** |  |  | Photo albums | $0.00 | $0.00 |  |  |
+|  |  |  |  |  |  | Videography | $950.00 | $950.00 |  |  |
+|  |  |  |  |  |  | Others | $0.00 | $0.00 |  |  |
+|  | **RECEPTION** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | **Total for photography** | **$2,950.00** | **$2,950.00** |  |  |
+|  | Room/hall fees | $5,500.00 | $5,300.00 |  |  |  |  |  |  |  |
+|  | Tables and chairs | $0.00 | $0.00 |  |  |  |  |  |  |  |
+|  | Food | $0.00 | $0.00 |  |  | **STATIONERY / PRINTING** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  |
+|  | Drinks | $0.00 | $0.00 |  |  | Invitations | $400.00 | $400.00 |  |  |
+|  | Linens | $0.00 | $0.00 |  |  | Announcements | $0.00 | $0.00 |  |  |
+|  | Cake | $0.00 | $0.00 |  |  | Thank-You cards | $0.00 | $0.00 |  |  |
+|  | Favors | $0.00 | $0.00 |  |  | Personal stationery | $0.00 | $0.00 |  |  |
+|  | Staff and gratuities | $0.00 | $0.00 |  |  | Guest book | $0.00 | $0.00 |  |  |
+|  | Others | $0.00 | $0.00 |  |  | Programs | $0.00 | $0.00 |  |  |
+|  | **Total for reception** | **$5,500.00** | **$5,300.00** |  |  | Reception napkins | $0.00 | $0.00 |  |  |
+|  |  |  |  |  |  | Matchbooks | $0.00 | $0.00 |  |  |
+|  |  |  |  |  |  | Calligraphy | $0.00 | $0.00 |  |  |
+|  | **OTHER EXPENSES** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  | Others | $0.00 | $0.00 |  |  |
+|  | Officiant | $300.00 | $300.00 |  |  | **Total for stationery / printing** | **$400.00** | **$400.00** |  |  |
+|  | Church/ceremony site fee | $0.00 | $0.00 |  |  |  |  |  |  |  |
+|  | Wedding coordinator | $0.00 | $0.00 |  |  |  |  |  |  |  |
+|  | Rehearsal dinner | $0.00 | $0.00 |  |  | **TRANSPORTATION** | **ESTIMATED** | **ACTUAL** | **OVER/UNDER** |  |
+|  | Engagement party | $0.00 | $0.00 |  |  | Limousines/trolleys | $900.00 | $900.00 |  |  |
+|  | Showers | $0.00 | $0.00 |  |  | Parking | $200.00 | $200.00 |  |  |
+|  | Bachelor/ette parties | $0.00 | $0.00 |  |  | Taxis | $350.00 | $300.00 |  |  |
+|  | Hotel rooms | $0.00 | $0.00 |  |  | Others | $0.00 | $0.00 |  |  |
+|  | **Total for other expenses** | **$300.00** | **$300.00** |  |  | **Total for transportation** | **$1,450.00** | **$1,400.00** |  |  |

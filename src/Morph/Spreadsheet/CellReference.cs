@@ -189,6 +189,14 @@ readonly record struct SheetRange(int FirstRow, int FirstColumn, int LastRow, in
     public bool ContainsRow(int row) => row >= FirstRow &&
                                         row <= LastRow;
 
+    /// <summary>The smallest range holding both.</summary>
+    public SheetRange Union(SheetRange other) =>
+        new(
+            Math.Min(FirstRow, other.FirstRow),
+            Math.Min(FirstColumn, other.FirstColumn),
+            Math.Max(LastRow, other.LastRow),
+            Math.Max(LastColumn, other.LastColumn));
+
     /// <summary>This range clipped to <paramref name="bounds"/>, for a print area inside a used range.</summary>
     public SheetRange Intersect(SheetRange bounds) =>
         new(

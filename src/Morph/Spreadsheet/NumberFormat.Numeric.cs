@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// The numeric half of <see cref="NumberFormat"/>: turning a value and a section body such as
 /// <c>_("$"* #,##0.00_)</c> into text.
 ///
@@ -320,8 +320,10 @@ static partial class NumberFormat
                     inRun = false;
                     break;
 
-                // "*x" repeats x to fill the column width, which is not known at format time.
+                // "*x" repeats x to fill the column width, which is not known at format time: the
+                // mark holds its place for the cell to fill (FormatWithFill).
                 case '*' when i + 1 < body.Length:
+                    result.Append(FillMark);
                     i++;
                     inRun = false;
                     break;

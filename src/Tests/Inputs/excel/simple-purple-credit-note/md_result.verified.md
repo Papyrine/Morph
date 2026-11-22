@@ -3,7 +3,7 @@
 |  | **Credit Note** |  |  |  |  |
 |  |  |  |  |  |  |
 |  |  |  |  |  |  |
-|  | From Address: |  |  |  |  |
+|  | **From Address**: |  |  |  |  |
 |  | Company Name |  | Credit Date:  |  |  |
 |  | Street Address |  | Credit No:  |  |  |
 |  | City, State, ZIP Code |  | Customer ID/Name:  |  |  |
@@ -11,7 +11,7 @@
 |  | Phone |  | Order No:  |  |  |
 |  | Email |  | Order Date:  |  |  |
 |  |  |  |  |  |  |
-|  | Billing Address: |  |  |  |  |
+|  | **Billing Address**: |  |  |  |  |
 |  | Company Name |  |  |  |  |
 |  | Street Address |  |  |  |  |
 |  | City, State, ZIP Code |  |  |  |  |

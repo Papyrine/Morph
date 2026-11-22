@@ -4012,6 +4012,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var gridColIndex = row.GridBefore;
             var usedHeight = 0f;
             var anyContinues = false;
+            var dataBars = new List<CellDataBar?>(row.Cells.Count);
 
             // A fragment pays for its own horizontal edges, exactly as TableHeightCalculator's collapse pass
             // charges an unsplit row for its outer top and bottom: Word draws each edge on the boundary and
@@ -4048,6 +4049,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     // This cell finished on an earlier fragment; it still draws its box and sides.
                     cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, [], BottomEdgeInset: bottomEdge, Diagonals: cell.Properties.Diagonals));
+                    dataBars.Add(null);
                     cellX += cellWidth;
                     gridColIndex += span;
                     continue;
@@ -4080,6 +4082,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 cells.Add(new(cellX, rowY, cellWidth, available, cell.Properties.BackgroundColorHex, borders, content, cell.Properties.ClipOverflow, (float)cell.Properties.ClipSpillLeftPoints, (float)cell.Properties.ClipSpillRightPoints, bottomEdge, cell.Properties.Diagonals, floatShapes));
+                dataBars.Add(isFirstFragment ? cell.Properties.DataBar : null);
 
                 cellX += cellWidth;
                 gridColIndex += span;
@@ -4106,16 +4109,106 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var boxed = new List<PlacedCell>(cells.Count);
-            foreach (var cell in cells)
+            for (var index = 0; index < cells.Count; index++)
             {
+                var cell = cells[index];
                 boxed.Add(
                     cell with
                     {
-                        Height = fragmentHeight
+                        Height = fragmentHeight,
+                        Content = dataBars[index] is { } bar ? [DataBarShading(bar, cell.X, cell.Y, cell.Width, fragmentHeight), .. cell.Content] : cell.Content
                     });
             }
 
             return (new(tableX, rowY, tableWidth, fragmentHeight, table, rowIndex, false, boxed), continuations, fragmentHeight, usedHeight + horizontalEdges);
+        }
+
+        // A spreadsheet icon set's icon, as Excel draws it in a 16px square at 100%: placed by the cell's
+        // alignment when it stands alone (inventory-list-with-highlighting's centred flags), 2px in from
+        // the left beside a value. Each is a few polygons on that 16px grid in the colours sampled off
+        // the references (inventory-list-with-highlighting's red flag D45431, back-to-school-planner's
+        // check 447E6B); a set not drawn here leaves its cell blank where the value is hidden.
+        static IEnumerable<PlacedItem> IconItems(CellIcon icon, float x, float y, float width, float height)
+        {
+            var parts = IconParts(icon.Set, icon.Id);
+            if (parts.Count == 0)
+            {
+                yield break;
+            }
+
+            var unit = (float) (0.75 * icon.Scale);
+            var size = 16 * unit;
+            var left = icon.Alignment switch
+            {
+                TextAlignment.Center => x + (width - size) / 2,
+                TextAlignment.Right => x + width - size - 2 * unit,
+                _ => x + 2 * unit
+            };
+            var top = icon.VerticalAlignment switch
+            {
+                CellVerticalAlignment.Top => y + unit,
+                CellVerticalAlignment.Center => y + (height - size) / 2,
+                _ => y + height - size - unit
+            };
+            foreach (var (color, points) in parts)
+            {
+                yield return new PlacedShape(left, top, size, size, new()
+                {
+                    WidthPoints = size,
+                    HeightPoints = size,
+                    FillColorHex = color,
+                    Preset = PresetShape.Rect,
+                    Subpaths = [[.. points.Select(_ => (_.X / 16, _.Y / 16))]]
+                });
+            }
+        }
+
+        // An icon's polygons on Excel's 16px grid, each in its colour.
+        static List<(string Color, (double X, double Y)[] Points)> IconParts(string set, int id)
+        {
+            (double X, double Y)[] up = [(8, 1), (14.5, 7.5), (10.5, 7.5), (10.5, 15), (5.5, 15), (5.5, 7.5), (1.5, 7.5)];
+            (double X, double Y)[] Turned((double X, double Y)[] points, int quarterTurns) =>
+                [.. points.Select(_ => quarterTurns switch
+                {
+                    1 => (16 - _.Y, _.X),
+                    2 => (16 - _.X, 16 - _.Y),
+                    _ => _
+                })];
+            var arrow = id switch
+            {
+                0 => Turned(up, 2),
+                1 => Turned(up, 1),
+                _ => up
+            };
+            switch (set)
+            {
+                case "3Flags":
+                case "4Flags":
+                    return
+                    [
+                        ("808080", [(3, 1), (4.5, 1), (4.5, 15), (3, 15)]),
+                        (id switch { 0 => "D45431", 1 => "FFC000", _ => "4F9A43" }, [(4.5, 1.5), (13, 5), (4.5, 8.5)])
+                    ];
+                case "3ArrowsGray":
+                    return [("808080", arrow)];
+                case "3Arrows":
+                    return [(id switch { 0 => "D45431", 1 => "FFC000", _ => "4F9A43" }, arrow)];
+                case "3Symbols2" when id == 2:
+                    return [("447E6B", [(0.5, 8.5), (3.25, 5.75), (6.5, 9), (13, 2.5), (15.75, 5.25), (6.5, 14.5)])];
+                default:
+                    return [];
+            }
+        }
+
+        // A spreadsheet data bar, under the cell's text. Excel draws it 3px in from the cell's left
+        // edge, 2px from its right, 1px under its top and 2px over its bottom, in its own pixels at
+        // 100% (to-do-list-for-projects' reference, 96 dpi: a 93px cell of a 41px row holds a bar of
+        // 36px whose 90% is 78px), shrunk with the sheet.
+        static PlacedShading DataBarShading(CellDataBar bar, float x, float y, float width, float height)
+        {
+            var pixel = (float) (0.75 * bar.InsetScale);
+            var room = Math.Max(0f, width - 5 * pixel);
+            return new(x + 3 * pixel, y + pixel, room * (float) Math.Clamp(bar.Fraction, 0, 1), Math.Max(0f, height - 3 * pixel), bar.ColorHex);
         }
 
         // Every fragment draws its whole box, split edges included: Word CLOSES the fragment that carries on
@@ -4270,7 +4363,17 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                 }
 
-                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, true, (float)cell.Properties.ClipSpillLeftPoints, (float)cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipVertically: clipVertically));
+                if (cell.Properties.DataBar is { } dataBar)
+                {
+                    content = [DataBarShading(dataBar, boxX, boxY, boxWidth, boxHeight), .. content];
+                }
+
+                if (cell.Properties.Icon is { } icon)
+                {
+                    content = [.. IconItems(icon, boxX, boxY, boxWidth, boxHeight), .. content];
+                }
+
+                cells.Add(new(boxX, boxY, boxWidth, boxHeight, cell.Properties.BackgroundColorHex, drawnBorders, content, true,(float)cell.Properties.ClipSpillLeftPoints, (float)cell.Properties.ClipSpillRightPoints, cellBottomEdge, cell.Properties.Diagonals, floatShapes, ClipVertically: clipVertically));
 
                 if (sideSegments != null)
                 {
