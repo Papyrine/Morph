@@ -906,11 +906,21 @@ static class PdfPainter
     }
 
     // Each cell: shading first, then its content, then its borders on top — Word's cell paint order.
+    // A row with text spilling over its neighbours shades every cell first (PlacedTableRow.ShadesFirst).
     static void PaintTableRow(PdfRenderContext context, Surface surface, PlacedTableRow row)
     {
+        if (row.ShadesFirst)
+        {
+            foreach (var cell in row.Cells.Where(_ => !string.IsNullOrEmpty(_.BackgroundColorHex)))
+            {
+                PdfShapeDrawing.FillRectangle(context, surface, PdfRenderContext.ParseColor(cell.BackgroundColorHex!), cell.X, cell.Y, cell.Width, cell.Height);
+            }
+        }
+
         foreach (var cell in row.Cells)
         {
-            if (!string.IsNullOrEmpty(cell.BackgroundColorHex))
+            if (!row.ShadesFirst &&
+                !string.IsNullOrEmpty(cell.BackgroundColorHex))
             {
                 PdfShapeDrawing.FillRectangle(context, surface, PdfRenderContext.ParseColor(cell.BackgroundColorHex), cell.X, cell.Y, cell.Width, cell.Height);
             }

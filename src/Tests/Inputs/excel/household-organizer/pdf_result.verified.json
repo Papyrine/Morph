@@ -19,7 +19,7 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "Chore Start Date: 00000July 16, 2026\nSCHEDULE\nCHORE WHEN ASSIGNED TO NOTES\nTake out the trash Tues and Fri Roommate 1 After 7pm\nChore item Days/Times Roommate 2 Notes\nChore item Days/Times Roommate 3 Notes\nChore item Days/Times Roommate 4 Notes\nChore item Days/Times Roommate 1 Notes\nChore item Days/Times Roommate 2 Notes\nChore item Days/Times Roommate 3 Notes"
+        "Text": "Page 2 of 3\nChore Start Date: 00000July 16, 2026\nSCHEDULE\nCHORE WHEN ASSIGNED TO NOTES\nTake out the trash Tues and Fri Roommate 1 After 7pm\nChore item Days/Times Roommate 2 Notes\nChore item Days/Times Roommate 3 Notes\nChore item Days/Times Roommate 4 Notes\nChore item Days/Times Roommate 1 Notes\nChore item Days/Times Roommate 2 Notes\nChore item Days/Times Roommate 3 Notes"
       }
     ]
   },
@@ -34,8 +34,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0367,
-      "Ssim": 0.9414,
+      "ErrorMetric": 0.037,
+      "Ssim": 0.9416,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

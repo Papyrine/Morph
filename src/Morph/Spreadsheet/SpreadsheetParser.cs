@@ -213,7 +213,15 @@ sealed class SpreadsheetParser(
                     elements.Add(new SectionBreakElement
                     {
                         BreakType = SectionBreakType.NextPage,
-                        NewSectionSettings = settings
+                        // A sheet's differentFirst is the PRINT JOB's first page, not the sheet's.
+                        // Probed over COM (Excel 16, 2026-11-22): three sheets each with differentFirst
+                        // printed no footer on page 1 only, sheets 2 and 3 opening on "Page 3 of 4" and
+                        // "Page 4 of 4"; differentFirst on sheet 2 alone changed nothing. Only the
+                        // first section, then, keeps it
+                        NewSectionSettings = settings with
+                        {
+                            DifferentFirstPage = false
+                        }
                     });
                 }
 

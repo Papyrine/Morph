@@ -19,7 +19,7 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "Budget breakdown\nAdd categories and budget amounts to track against in your shopping list.\nCategory Total cost\nClothes $280.00\nSupplies $30.00\nTextbooks $55.00\nTotal cost\n$-\n$50.00\n$100.00\n$150.00\n$200.00\n$250.00\n$300.00\nClothes Supplies Textbooks"
+        "Text": "Page 2 of 4\nBudget breakdown\nAdd categories and budget amounts to track against in your shopping list.\nCategory Total cost\nClothes $280.00\nSupplies $30.00\nTextbooks $55.00\nTotal cost\n$-\n$50.00\n$100.00\n$150.00\n$200.00\n$250.00\n$300.00\nClothes Supplies Textbooks"
       }
     ]
   },
@@ -27,15 +27,15 @@
     {
       "Page": 1,
       "ErrorMetric": 0.1144,
-      "Ssim": 0.8722,
+      "Ssim": 0.8721,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0561,
-      "Ssim": 0.9129,
+      "ErrorMetric": 0.0558,
+      "Ssim": 0.9139,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

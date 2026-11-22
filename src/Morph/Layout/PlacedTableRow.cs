@@ -15,4 +15,16 @@ sealed record PlacedTableRow(
     int RowIndex,
     bool IsRepeatedHeader,
     IReadOnlyList<PlacedCell> Cells) :
-    PlacedItem(X, Y, Width, Height);
+    PlacedItem(X, Y, Width, Height)
+{
+    /// <summary>
+    /// Whether the painters lay down every cell's shading before any cell's content. A cell whose
+    /// text spills over its neighbours (<see cref="PlacedCell.ClipSpillLeft"/> /
+    /// <see cref="PlacedCell.ClipSpillRight"/>) is drawn over THEIR shading, as Excel draws
+    /// overflowing text over the fill of the cells it crosses: back-to-school-planner's titles run
+    /// over cells filled white by the workbook's Normal style, and painted cell by cell the next
+    /// cell's white covered "Budget breakdown" from column C on. Elsewhere a row keeps the cell-by-
+    /// cell order (shading, content, borders), which is Word's.
+    /// </summary>
+    public bool ShadesFirst => Cells.Any(_ => _.ClipSpillLeft > 0 || _.ClipSpillRight > 0);
+}

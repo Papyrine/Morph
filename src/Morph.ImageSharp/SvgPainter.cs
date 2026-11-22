@@ -998,11 +998,21 @@ static class SvgPainter
             return id;
         }
 
+        // As ImageSharpPainter.PaintTableRow, PlacedTableRow.ShadesFirst included.
         void TableRow(PlacedTableRow row)
         {
+            if (row.ShadesFirst)
+            {
+                foreach (var cell in row.Cells.Where(_ => !string.IsNullOrEmpty(_.BackgroundColorHex)))
+                {
+                    Rect(cell.X, cell.Y, cell.Width, cell.Height, ImageSharpRenderContext.ParseColor(cell.BackgroundColorHex!));
+                }
+            }
+
             foreach (var cell in row.Cells)
             {
-                if (!string.IsNullOrEmpty(cell.BackgroundColorHex))
+                if (!row.ShadesFirst &&
+                    !string.IsNullOrEmpty(cell.BackgroundColorHex))
                 {
                     Rect(cell.X, cell.Y, cell.Width, cell.Height, ImageSharpRenderContext.ParseColor(cell.BackgroundColorHex));
                 }

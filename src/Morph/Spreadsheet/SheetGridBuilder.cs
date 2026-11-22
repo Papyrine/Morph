@@ -175,7 +175,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 found,
                 overflow > merge.ColumnSpan ? merge with { ColumnSpan = overflow } : merge,
                 width,
-                Spill(found, merge, cellsByColumn, merges, widths, rowIndex, column, range, width),
+                Spill(found, merge, overflow, cellsByColumn, merges, widths, rowIndex, column, range, width),
                 scale,
                 conditional,
                 tableStyles,
@@ -274,9 +274,10 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     ///
     /// The clip stops overflowing text at the first occupied neighbour, so it has to know where the
     /// empty ones end — and Excel spills in the direction the alignment implies, not always
-    /// rightwards. LEFT-aligned text is not this method's business: <see cref="OverflowSpan"/>
-    /// already widened the cell itself over its empty right-hand neighbours, so the box is the clip
-    /// and a second reckoning here would double it. RIGHT-aligned text spills LEFT (the line ends at
+    /// rightwards. LEFT-aligned text has had its box widened by <see cref="OverflowSpan"/> over the
+    /// empty right-hand neighbours up to the first rule or change of fill, so it reaches only past
+    /// THAT: the empty run beyond the box (<paramref name="overflow"/> is the box's span), none when
+    /// the span stopped at a filled cell, a merge or the range edge. RIGHT-aligned text spills LEFT (the line ends at
     /// the cell's right edge and grows backwards) and CENTRED text spills both ways, and neither can
     /// be modelled by widening: the cell would re-anchor, moving every short label that fits.
     ///
@@ -285,6 +286,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     (double Left, double Right) Spill(
         S.Cell? cell,
         MergeInfo merge,
+        int overflow,
         Dictionary<int, S.Cell> cellsByColumn,
         MergeMap merges,
         double[] widths,
@@ -323,7 +325,13 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 EmptyRunPoints(cellsByColumn, merges, widths, rowIndex, last, range, step: 1));
         }
 
-        return (0, 0);
+        // Left-aligned text has taken the empty columns up to the first rule or change of fill as
+        // its box (OverflowSpan); past that it still runs on over the empty ones, drawn across the
+        // neighbour's fill rather than taking it. back-to-school-planner's sheet titles stand in
+        // unfilled cells of a workbook whose Normal style is filled white, so every empty cell
+        // beside them is a "different fill", and "Budget breakdown" was cut off at column B where
+        // Excel's print runs it on over C.
+        return (0, EmptyRunPoints(cellsByColumn, merges, widths, rowIndex, column + Math.Max(merge.ColumnSpan, overflow) - 1, range, step: 1));
     }
 
     /// <summary>

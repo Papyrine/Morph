@@ -411,6 +411,14 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
     /// <summary>
     /// A marker's position. Its column and row are ZERO-based while the range is one-based, and its
     /// offsets are EMU that scale with the sheet just as the cells do.
+    ///
+    /// An offset reaches no further than its own cell: Excel reads one past the cell's far edge as
+    /// that edge. Probed over COM (Excel 16, 2026-11-22), reading back each shape's Left and Width:
+    /// back-to-school-planner's Budget breakdown chart ends 5048250 EMU (397.5pt) into column E,
+    /// 363.6pt wide, and Excel ends it at 611.1pt against E's right edge at 611.4pt; 9000000 EMU
+    /// into column D ended at D's edge, 9000000 into the FROM marker's column C started at C's
+    /// edge, and 2000000 EMU into a 30pt row ended at that row's bottom. The chart, drawn its full
+    /// offset, ran 34pt past the page's right edge.
     /// </summary>
     static (double X, double Y) Marker(OpenXmlElement marker, SheetGeometry geometry, double scale)
     {
@@ -419,9 +427,11 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
         var columnOffset = long.TryParse(marker.GetFirstChild<XDR.ColumnOffset>()?.Text, out var co) ? co : 0;
         var rowOffset = long.TryParse(marker.GetFirstChild<XDR.RowOffset>()?.Text, out var ro) ? ro : 0;
 
+        var left = geometry.ColumnLeft(column + 1);
+        var top = geometry.RowTop(row + 1);
         return (
-            geometry.ColumnLeft(column + 1) + columnOffset / OoxmlUnits.EmusPerPoint * scale,
-            geometry.RowTop(row + 1) + rowOffset / OoxmlUnits.EmusPerPoint * scale);
+            left + Math.Min(columnOffset / OoxmlUnits.EmusPerPoint * scale, geometry.ColumnLeft(column + 2) - left),
+            top + Math.Min(rowOffset / OoxmlUnits.EmusPerPoint * scale, geometry.RowTop(row + 2) - top));
     }
 }
 

@@ -769,11 +769,21 @@ static class ImageSharpPainter
             new ColorStop(1f, ImageSharpShapeDrawing.ParseColor(gradient.EndColorHex, gradient.EndAlpha)));
     }
 
+    // See SkiaPainter.PaintTableRow, and PlacedTableRow.ShadesFirst for a row with spilling text.
     static void PaintTableRow(ImageSharpRenderContext context, DrawingCanvas canvas, PlacedTableRow row)
     {
+        if (row.ShadesFirst)
+        {
+            foreach (var cell in row.Cells.Where(_ => !string.IsNullOrEmpty(_.BackgroundColorHex)))
+            {
+                Fill(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, cell.BackgroundColorHex!);
+            }
+        }
+
         foreach (var cell in row.Cells)
         {
-            if (!string.IsNullOrEmpty(cell.BackgroundColorHex))
+            if (!row.ShadesFirst &&
+                !string.IsNullOrEmpty(cell.BackgroundColorHex))
             {
                 Fill(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, cell.BackgroundColorHex);
             }

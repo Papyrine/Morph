@@ -19,7 +19,7 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "PROJECT 2\nTO-DO LIST\nTO BE COMPLETED BY Iris Lepik\nDEADLINE 01/31/20XX\n% Done Phase Due By Notes\n100% Planning\n100% Preparation\n75% Task a\n53% Task b\n23% Task c\n0% Task d\n0% Task e\n0% Task f\n0% Follow-up"
+        "Text": "Page 2 of 3\nPROJECT 2\nTO-DO LIST\nTO BE COMPLETED BY Iris Lepik\nDEADLINE 01/31/20XX\n% Done Phase Due By Notes\n100% Planning\n100% Preparation\n75% Task a\n53% Task b\n23% Task c\n0% Task d\n0% Task e\n0% Task f\n0% Follow-up"
       }
     ]
   },
@@ -34,8 +34,8 @@
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.063,
-      "Ssim": 0.9506,
+      "ErrorMetric": 0.0633,
+      "Ssim": 0.9507,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

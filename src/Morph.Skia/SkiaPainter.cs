@@ -956,11 +956,21 @@ static class SkiaPainter
     }
 
     // Each cell: shading first, then its content, then its borders on top — Word's cell paint order.
+    // A row with text spilling over its neighbours shades every cell first (PlacedTableRow.ShadesFirst).
     static void PaintTableRow(SkiaRenderContext context, SKCanvas canvas, PlacedTableRow row)
     {
+        if (row.ShadesFirst)
+        {
+            foreach (var cell in row.Cells.Where(_ => !string.IsNullOrEmpty(_.BackgroundColorHex)))
+            {
+                Fill(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, cell.BackgroundColorHex!);
+            }
+        }
+
         foreach (var cell in row.Cells)
         {
-            if (!string.IsNullOrEmpty(cell.BackgroundColorHex))
+            if (!row.ShadesFirst &&
+                !string.IsNullOrEmpty(cell.BackgroundColorHex))
             {
                 Fill(context, canvas, cell.X, cell.Y, cell.Width, cell.Height, cell.BackgroundColorHex);
             }
