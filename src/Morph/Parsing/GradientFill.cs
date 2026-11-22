@@ -1,10 +1,25 @@
 /// <summary>
-/// Linear gradient fill for a shape (a:gradFill with a:lin direction).
-/// We capture only the start/end stop colours and the angle — multi-stop gradients are
-/// flattened to a 2-stop linear, and radial/path gradients fall back to the start colour.
+/// Linear gradient fill for a shape (a:gradFill with a:lin direction): its stops and its angle.
+/// Radial/path gradients fall back to the start colour.
 /// </summary>
 sealed record GradientFill
 {
+    /// <summary>
+    /// Every stop, in order, where there are more than two or they do not sit at the ends; null for
+    /// a plain two-stop gradient from <see cref="StartColorHex"/> to <see cref="EndColorHex"/>.
+    /// gradient's frames run blue, pink, orange: from the first stop to the last alone they ran
+    /// blue to orange through a muddy brown.
+    /// </summary>
+    public IReadOnlyList<GradientStop>? Stops { get; init; }
+
+    /// <summary>The stops to draw, positions 0..1 along the gradient.</summary>
+    public IReadOnlyList<GradientStop> AllStops =>
+        Stops ??
+        [
+            new(0, StartColorHex, StartAlpha),
+            new(1, EndColorHex, EndAlpha)
+        ];
+
     /// <summary>First stop colour as 6-digit hex (e.g. "FF0000").</summary>
     public required string StartColorHex { get; init; }
 
@@ -23,3 +38,6 @@ sealed record GradientFill
 
     public double EndAlpha { get; init; } = 1.0;
 }
+
+/// <summary>One stop of a <see cref="GradientFill"/>: where along it (0..1), its colour and opacity.</summary>
+sealed record GradientStop(double Position, string ColorHex, double Alpha);

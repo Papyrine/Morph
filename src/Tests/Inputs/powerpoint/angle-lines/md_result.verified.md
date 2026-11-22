@@ -111,7 +111,6 @@ Timing and transitions
 Practice audience
 
 - Enlist colleagues to listen & provide feedback
-- 
 
 Seek feedback
 

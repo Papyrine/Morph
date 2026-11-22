@@ -83,15 +83,29 @@ sealed class PresentationParser(string defaultFont, CultureInfo? culture = null)
         var themeColors = ThemeParser.ExtractThemeColors(themePart);
         var themeFonts = ThemeParser.ExtractThemeFonts(themePart);
 
-        var shapeParser = new SlideShapeParser(
-            themeColors,
-            themeFonts,
-            defaultFont,
-            GetPartBytes,
-            pageSettings.WidthPoints,
-            pageSettings.HeightPoints,
-            presentationPart.TableStylesPart,
-            culture);
+        // One shape parser per colour map, since every colour a slide names is read through the map
+        // in force on it (ColorMapFor). Most decks have the one.
+        var shapeParsers = new Dictionary<string, SlideShapeParser>();
+        SlideShapeParser ShapeParserFor(SlidePart slidePart)
+        {
+            var map = ColorMapFor(slidePart);
+            var key = map == null ? string.Empty : string.Join(";", map.Select(_ => $"{_.Key}={_.Value}"));
+            if (!shapeParsers.TryGetValue(key, out var parser))
+            {
+                parser = new(
+                    map == null ? themeColors : (themeColors ?? new()).WithColorMap(map),
+                    themeFonts,
+                    defaultFont,
+                    GetPartBytes,
+                    pageSettings.WidthPoints,
+                    pageSettings.HeightPoints,
+                    presentationPart.TableStylesPart,
+                    culture);
+                shapeParsers[key] = parser;
+            }
+
+            return parser;
+        }
 
         var elements = new List<DocumentElement>();
         var slideParts = OrderedSlideParts(presentationPart).ToArray();
@@ -104,7 +118,7 @@ sealed class PresentationParser(string defaultFont, CultureInfo? culture = null)
 
             var slidePart = slideParts[index];
             elements.AddRange(
-                shapeParser.ParseSlide(
+                ShapeParserFor(slidePart).ParseSlide(
                     slidePart,
                     SlidePlaceholders.For(slidePart),
                     presentation.DefaultTextStyle));
@@ -128,6 +142,44 @@ sealed class PresentationParser(string defaultFont, CultureInfo? culture = null)
             }
         };
     }
+
+    /// <summary>
+    /// The colour map in force on a slide: its own <c>a:overrideClrMapping</c>, else its layout's,
+    /// else its master's <c>p:clrMap</c>. Null when that is the identity mapping. A dark deck's
+    /// master maps <c>bg1</c> to <c>dk1</c> and <c>tx1</c> to <c>lt1</c> (leaf, pebble,
+    /// fashion-infographics-poster), and a light deck's dark layout does the same over a light
+    /// master (savon, memo).
+    /// </summary>
+    static Dictionary<string, string>? ColorMapFor(SlidePart slidePart)
+    {
+        var layoutPart = slidePart.SlideLayoutPart;
+        var map =
+            (OpenXmlElement?) slidePart.Slide?.ColorMapOverride?.OverrideColorMapping ??
+            (OpenXmlElement?) layoutPart?.SlideLayout?.ColorMapOverride?.OverrideColorMapping ??
+            layoutPart?.SlideMasterPart?.SlideMaster?.ColorMap;
+        if (map == null)
+        {
+            return null;
+        }
+
+        var entries = map.GetAttributes()
+            .Where(_ => _.NamespaceUri.Length == 0 && _.Value is {Length: > 0})
+            .ToDictionary(_ => _.LocalName.ToLowerInvariant(), _ => _.Value!.ToLowerInvariant());
+        if (entries.All(_ => _.Key == _.Value || identity.TryGetValue(_.Key, out var raw) && raw == _.Value))
+        {
+            return null;
+        }
+
+        return entries;
+    }
+
+    static readonly Dictionary<string, string> identity = new()
+    {
+        ["bg1"] = "lt1",
+        ["tx1"] = "dk1",
+        ["bg2"] = "lt2",
+        ["tx2"] = "dk2"
+    };
 
     /// <summary>
     /// Slides in presentation order. <c>p:sldIdLst</c> is authoritative — the part names

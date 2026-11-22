@@ -136,14 +136,11 @@ Subtitle
 - Add text, images, art, and videos. 
 - Add transitions, animations, and motion. 
 - Save to OneDrive, to get to your presentations from your computer, tablet, or phone. 
-- 
-- 
 
 Subtitle
 
 - Open the Design Ideas pane for instant slide makeovers. 
 - When we have design ideas, we’ll show them to you right there. 
-- 
 
 SAMPLE FOOTER TEXT
 
@@ -156,13 +153,11 @@ Subtitle
 - Add text, images, art, and videos. 
 - Add transitions, animations, and motion. 
 - Save to OneDrive, to get to your presentations from your computer, tablet, or phone. 
-- 
 
 Subtitle
 
 - Open the Design Ideas pane for instant slide makeovers. 
 - When we have design ideas, we’ll show them to you right there. 
-- 
 
 Subtitle
 

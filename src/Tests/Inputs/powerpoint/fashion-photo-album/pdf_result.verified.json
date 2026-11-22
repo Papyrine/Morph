@@ -19,23 +19,23 @@
           "Width": 960.0,
           "Height": 540.0
         },
-        "Text": "LOOKS Fresh\nNo more rules – the most\npopular trend is a unique sense\nof personal style"
+        "Text": "LOOKS Fresh\nNo more rules – the most\npopular trend is a unique\nsense of personal style"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.6473,
-      "Ssim": 0.8702,
+      "ErrorMetric": 0.6385,
+      "Ssim": 0.9005,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.4767,
-      "Ssim": 0.9046,
+      "ErrorMetric": 0.4731,
+      "Ssim": 0.9203,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

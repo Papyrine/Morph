@@ -103,6 +103,14 @@ sealed class FloatingShapeElement : DocumentElement
     /// </summary>
     public IReadOnlyList<IReadOnlyList<(double X, double Y)>>? Subpaths { get; init; }
 
+    /// <summary>
+    /// True when <see cref="Subpaths"/> came from an <c>a:custGeom</c> with no <c>a:close</c>: the
+    /// outline is an open polyline, stroked without the segment back to its start. A fill still
+    /// closes it. pebble's agenda slide strokes an open curve around its photo; closed, a straight
+    /// line ran back across the picture from its end to its start.
+    /// </summary>
+    public bool OpenOutline { get; init; }
+
     /// <summary>Rotation in degrees clockwise around the bounding-box center. 0 = no rotation.</summary>
     public double RotationDegrees { get; init; }
 

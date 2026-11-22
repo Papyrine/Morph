@@ -2022,6 +2022,7 @@ static class HtmlExporter
                 VerticalPositionPercent = textBox.VerticalPositionPercent,
                 BehindText = textBox.BehindText,
                 FillColorHex = textBox.BackgroundColorHex,
+                FillAlpha = textBox.BackgroundAlpha,
                 LineColorHex = textBox.LineWidthPoints > 0 ? textBox.LineColorHex : null,
                 LineWidthPoints = textBox.LineWidthPoints > 0 ? textBox.LineWidthPoints : null,
                 LineAlpha = textBox.LineAlpha,
@@ -3829,7 +3830,11 @@ static class HtmlExporter
             var chrome = false;
             if (DocumentExportHelpers.NormalizeColor(textBox.BackgroundColorHex) is { } fill)
             {
-                style.Append($"background-color: {fill}; ");
+                // A translucent background keeps its alpha as an eight-digit hex colour.
+                var alpha = textBox.BackgroundAlpha < 0.999 && fill.Length == 7
+                    ? ((int) Math.Round(Math.Clamp(textBox.BackgroundAlpha, 0, 1) * 255)).ToString("x2", CultureInfo.InvariantCulture)
+                    : string.Empty;
+                style.Append($"background-color: {fill}{alpha}; ");
                 chrome = true;
             }
 
@@ -4472,12 +4477,15 @@ static class HtmlExporter
             var radians = gradient.DirectionDegrees * Math.PI / 180.0;
             var directionX = Math.Sin(radians);
             var directionY = Math.Cos(radians);
-            var start = DocumentExportHelpers.NormalizeColor(gradient.StartColorHex) ?? "#000000";
-            var end = DocumentExportHelpers.NormalizeColor(gradient.EndColorHex) ?? "#000000";
+            builder.Append($"""<linearGradient id="shape-grad-{shapeId}" x1="{Number(0.5 - directionX / 2)}" y1="{Number(0.5 - directionY / 2)}" x2="{Number(0.5 + directionX / 2)}" y2="{Number(0.5 + directionY / 2)}">""");
+            foreach (var stop in gradient.AllStops)
+            {
+                var color = DocumentExportHelpers.NormalizeColor(stop.ColorHex) ?? "#000000";
+                var opacity = stop.Alpha < 1 ? $" stop-opacity=\"{Number(stop.Alpha)}\"" : "";
+                builder.Append($"""<stop offset="{Number(stop.Position)}" stop-color="{color}"{opacity} />""");
+            }
 
-            var startOpacity = gradient.StartAlpha < 1 ? $" stop-opacity=\"{Number(gradient.StartAlpha)}\"" : "";
-            var endOpacity = gradient.EndAlpha < 1 ? $" stop-opacity=\"{Number(gradient.EndAlpha)}\"" : "";
-            builder.Append($"""<linearGradient id="shape-grad-{shapeId}" x1="{Number(0.5 - directionX / 2)}" y1="{Number(0.5 - directionY / 2)}" x2="{Number(0.5 + directionX / 2)}" y2="{Number(0.5 + directionY / 2)}"><stop offset="0" stop-color="{start}"{startOpacity} /><stop offset="1" stop-color="{end}"{endOpacity} /></linearGradient>""");
+            builder.Append("</linearGradient>");
         }
 
         static string ShapeTransformAttribute(FloatingShapeElement shape, double width, double height)

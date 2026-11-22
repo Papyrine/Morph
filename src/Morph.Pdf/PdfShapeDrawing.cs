@@ -285,7 +285,8 @@ static class PdfShapeDrawing
                 points[i] = (absoluteX, absoluteY);
             }
 
-            AddContour(builder, points, close: true);
+            // An open outline strokes without its closing segment; a fill closes it regardless.
+            AddContour(builder, points, close: !shape.OpenOutline);
         }
 
         return builder.Build();
@@ -301,16 +302,17 @@ static class PdfShapeDrawing
         var centerX = x + width / 2;
         var centerY = y + height / 2;
         var halfDiagonal = Math.Sqrt(width * width + height * height) / 2;
-        var start = PdfRenderContext.ParseColor(gradient.StartColorHex);
-        var end = PdfRenderContext.ParseColor(gradient.EndColorHex);
         return Paint.LinearGradient(
             (float) (centerX - directionX * halfDiagonal),
             (float) (centerY - directionY * halfDiagonal),
             (float) (centerX + directionX * halfDiagonal),
             (float) (centerY + directionY * halfDiagonal),
             [
-                new(0, Color.Rgb(start.R, start.G, start.B), (float) Math.Clamp(gradient.StartAlpha, 0, 1)),
-                new(1, Color.Rgb(end.R, end.G, end.B), (float) Math.Clamp(gradient.EndAlpha, 0, 1))
+                .. gradient.AllStops.Select(_ =>
+                {
+                    var color = PdfRenderContext.ParseColor(_.ColorHex);
+                    return new Krilla.GradientStop((float) _.Position, Color.Rgb(color.R, color.G, color.B), (float) Math.Clamp(_.Alpha, 0, 1));
+                })
             ]);
     }
 }

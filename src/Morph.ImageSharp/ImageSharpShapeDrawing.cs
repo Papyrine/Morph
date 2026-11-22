@@ -150,7 +150,7 @@ static class ImageSharpShapeDrawing
         IntersectionRule = IntersectionRule.NonZero
     };
 
-    internal static IPath BuildPath(FloatingShapeElement shape, float x, float y, float width, float height)
+    internal static IPath BuildPath(FloatingShapeElement shape, float x, float y, float width, float height, bool close = true)
     {
         var rotRad = (float) (shape.RotationDegrees * Math.PI / 180.0);
         var cos = (float) Math.Cos(rotRad);
@@ -178,7 +178,14 @@ static class ImageSharpShapeDrawing
             // Each contour is its own closed figure so disjoint pieces and holes stay separate
             // instead of being fused into one polygon by connector lines.
             builder.AddLines(transformed);
-            builder.CloseFigure();
+            if (close)
+            {
+                builder.CloseFigure();
+            }
+            else
+            {
+                builder.StartFigure();
+            }
         }
         return builder.Build();
     }

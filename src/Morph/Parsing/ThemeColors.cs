@@ -48,6 +48,36 @@ sealed class ThemeColors
     public IReadOnlyList<long> LineStyleWidthsEmu { get; init; } = [0, 6350, 12700, 19050];
 
     /// <summary>
+    /// A slide master's <c>p:clrMap</c> (or the <c>a:overrideClrMapping</c> a layout or slide puts
+    /// over it): which of the theme's twelve colours each scheme name a shape names stands for,
+    /// keyed and valued in lower case (<c>bg1</c> → <c>dk1</c>). Null is the identity mapping —
+    /// <c>bg1</c> is <c>lt1</c> and <c>tx1</c> is <c>dk1</c> — which is all a Word document has. A
+    /// dark deck maps <c>bg1</c> to <c>dk1</c> and <c>tx1</c> to <c>lt1</c>, so its "text" colour is
+    /// the theme's light one.
+    /// </summary>
+    public IReadOnlyDictionary<string, string>? ColorMap { get; init; }
+
+    /// <summary>These colours read through <paramref name="map"/>.</summary>
+    public ThemeColors WithColorMap(IReadOnlyDictionary<string, string>? map) =>
+        new()
+        {
+            Dark1 = Dark1,
+            Light1 = Light1,
+            Dark2 = Dark2,
+            Light2 = Light2,
+            Accent1 = Accent1,
+            Accent2 = Accent2,
+            Accent3 = Accent3,
+            Accent4 = Accent4,
+            Accent5 = Accent5,
+            Accent6 = Accent6,
+            Hyperlink = Hyperlink,
+            FollowedHyperlink = FollowedHyperlink,
+            LineStyleWidthsEmu = LineStyleWidthsEmu,
+            ColorMap = map
+        };
+
+    /// <summary>
     /// Resolves a theme color name to its hex value.
     /// </summary>
     /// <param name="themeColorName">Theme color name (e.g., "text1", "accent2", "hyperlink")</param>
@@ -70,8 +100,15 @@ sealed class ThemeColors
     /// <returns>The resolved hex color value, or null if not found.</returns>
     public string? ResolveColor(string themeColorName, ColorTransforms transforms)
     {
-        // Map theme color names to base colors
-        var baseColor = themeColorName.ToLowerInvariant() switch
+        // Map theme color names to base colors, through the slide's colour map where it has one.
+        var name = themeColorName.ToLowerInvariant();
+        if (ColorMap != null &&
+            ColorMap.TryGetValue(name, out var mapped))
+        {
+            name = mapped;
+        }
+
+        var baseColor = name switch
         {
             "text1" or "dark1" or "dk1" or "tx1" => Dark1,
             "text2" or "dark2" or "dk2" or "tx2" => Dark2,

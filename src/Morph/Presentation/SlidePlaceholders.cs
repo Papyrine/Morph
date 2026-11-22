@@ -98,6 +98,8 @@ sealed class SlidePlaceholders
 
     public P.Shape? Match(P.PlaceholderShape? placeholder) => Matches(placeholder).FirstOrDefault();
 
+    const uint orphanIndex = uint.MaxValue;
+
     P.Shape? MatchHere(P.PlaceholderShape? placeholder)
     {
         if (placeholder == null)
@@ -107,6 +109,16 @@ sealed class SlidePlaceholders
 
         var type = TypeOf(placeholder);
         var index = placeholder.Index?.Value;
+
+        // idx 4294967295 is PowerPoint's orphan: a placeholder whose layout slot was deleted. It
+        // matches nothing on the layout and takes only the master's slot of its type. gradient's
+        // agenda body is one; matched by type to its layout's first body slot, a 14pt caption, its
+        // topics came out half the 28pt the master's body gives them.
+        if (index == orphanIndex &&
+            parent != null)
+        {
+            return null;
+        }
 
         if (index is { } declaredIndex &&
             byTypeAndIndex.TryGetValue((type, declaredIndex), out var exact))
@@ -182,6 +194,81 @@ sealed class SlidePlaceholders
 
         return null;
     }
+
+    /// <summary>
+    /// A value of the shape's <c>a:bodyPr</c>, or of the first one up the placeholder chain that
+    /// declares it.
+    /// </summary>
+    public T? ResolveBody<T>(P.Shape shape, Func<A.BodyProperties, T?> read)
+        where T : struct
+    {
+        if (shape.TextBody?.BodyProperties is { } own &&
+            read(own) is { } value)
+        {
+            return value;
+        }
+
+        foreach (var inherited in Matches(Placeholder(shape)))
+        {
+            if (inherited.TextBody?.BodyProperties is { } properties &&
+                read(properties) is { } found)
+            {
+                return found;
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// The <c>p:spPr</c> that declares the shape's fill: its own when it names one, else the first
+    /// up the placeholder chain that does. fashion-infographics-poster's "$2Bn" label is a body
+    /// placeholder whose slide copy declares only where it stands; its accent fill is the layout's.
+    /// </summary>
+    public OpenXmlElement? ResolveFillSource(P.Shape shape) =>
+        ResolveShapeProperties(shape, HasFill);
+
+    /// <summary>The <c>p:spPr</c> that declares the shape's outline (<c>a:ln</c>), as for the fill.</summary>
+    public OpenXmlElement? ResolveOutlineSource(P.Shape shape) =>
+        ResolveShapeProperties(shape, _ => _.GetFirstChild<A.Outline>() != null);
+
+    /// <summary>
+    /// The <c>p:spPr</c> that declares the shape's geometry (<c>a:prstGeom</c> or <c>a:custGeom</c>),
+    /// as for the fill. sketchlines' title is a blob its layout draws; the slide's copy declares none.
+    /// </summary>
+    public OpenXmlElement? ResolveGeometrySource(P.Shape shape) =>
+        ResolveShapeProperties(shape, _ => _.GetFirstChild<A.PresetGeometry>() != null || _.GetFirstChild<A.CustomGeometry>() != null);
+
+    OpenXmlElement? ResolveShapeProperties(P.Shape shape, Func<OpenXmlElement, bool> declares)
+    {
+        if (shape.ShapeProperties is { } own &&
+            declares(own))
+        {
+            return own;
+        }
+
+        if (Placeholder(shape) is { } placeholder)
+        {
+            foreach (var inherited in Matches(placeholder))
+            {
+                if (inherited.ShapeProperties is { } properties &&
+                    declares(properties))
+                {
+                    return properties;
+                }
+            }
+        }
+
+        return shape.ShapeProperties;
+    }
+
+    static bool HasFill(OpenXmlElement properties) =>
+        properties.GetFirstChild<A.NoFill>() != null ||
+        properties.GetFirstChild<A.SolidFill>() != null ||
+        properties.GetFirstChild<A.GradientFill>() != null ||
+        properties.GetFirstChild<A.BlipFill>() != null ||
+        properties.GetFirstChild<A.PatternFill>() != null ||
+        properties.GetFirstChild<A.GroupFill>() != null;
 
     /// <summary>The placeholder declaration on a shape, or null when it is a free-standing shape.</summary>
     public static P.PlaceholderShape? Placeholder(P.Shape shape) =>

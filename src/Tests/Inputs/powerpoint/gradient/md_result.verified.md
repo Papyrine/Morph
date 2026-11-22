@@ -14,7 +14,6 @@ Presenter name
 - Topic two
 - Topic three
 - Topic four
-- 
 
 **Sample Footer Text**
 
@@ -148,7 +147,6 @@ If you don’t see the Notes pane or it is completely minimized, click Notes on 
 
 - This PowerPoint theme uses its own unique set of colors, fonts, and effects to create the overall look and feel of these slides. 
 - PowerPoint has tons of themes to give your presentation just the right personality. 
-- 
 
 **Sample Footer Text**
 

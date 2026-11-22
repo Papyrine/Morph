@@ -2464,6 +2464,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     WidthPoints = textBox.WidthPoints,
                     HeightPoints = textBox.HeightPoints,
                     FillColorHex = textBox.BackgroundColorHex,
+                    FillAlpha = textBox.BackgroundAlpha,
                     LineColorHex = textBox.LineColorHex,
                     LineWidthPoints = textBox.LineWidthPoints > 0 ? textBox.LineWidthPoints : null,
                     LineAlpha = textBox.LineAlpha,
@@ -2489,11 +2490,58 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
         }
 
+        // A text box whose text runs in columns (a:bodyPr/@numCol): laid out at one column's width, then
+        // poured from the top of each column to the text rect's foot and on into the next, the last
+        // column taking whatever is left. fashion-infographics-poster's footer sets its disclaimer in two.
+        IReadOnlyList<PlacedItem> LayoutTextBoxColumns(FloatingTextBoxElement textBox, float textX, float textY)
+        {
+            var insets = textBox.Insets;
+            var count = textBox.Columns;
+            var spacing = (float)textBox.ColumnSpacingPoints;
+            var textWidth = Math.Max(0, (float)(textBox.WidthPoints - insets.Left - insets.Right));
+            var textHeight = Math.Max(0, (float)(textBox.HeightPoints - insets.Top - insets.Bottom));
+            var columnWidth = Math.Max(0, (textWidth - spacing * (count - 1)) / count);
+            var content = LayoutCellContent(
+                new()
+                {
+                    Content = textBox.Content
+                },
+                textX,
+                textY,
+                columnWidth,
+                textHeight,
+                CellVerticalAlignment.Top);
+
+            var poured = new List<PlacedItem>(content.Count);
+            var column = 0;
+            var lift = 0f;
+            foreach (var item in content)
+            {
+                var top = item.Y - lift;
+                if (column < count - 1 &&
+                    top > textY &&
+                    top + item.Height > textY + textHeight)
+                {
+                    column++;
+                    lift = item.Y - textY;
+                }
+
+                poured.Add(ShiftComposed(item, column * (columnWidth + spacing), -lift));
+            }
+
+            return poured;
+        }
+
         // A text box's content, laid out in its text rect: the box less its insets.
         IReadOnlyList<PlacedItem> LayoutTextBoxContent(FloatingTextBoxElement textBox, float boxX, float boxY)
         {
             var insets = textBox.Insets;
             var boxHeight = (float)textBox.HeightPoints;
+            if (textBox.Columns > 1)
+            {
+                return LayoutTextBoxColumns(textBox, boxX + (float)insets.Left, boxY + (float)insets.Top);
+            }
+
             var content = LayoutCellContent(
                 new()
                 {
@@ -5578,6 +5626,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                             WidthPoints = textBox.WidthPoints,
                             HeightPoints = textBox.HeightPoints,
                             FillColorHex = textBox.BackgroundColorHex,
+                            FillAlpha = textBox.BackgroundAlpha,
                             LineColorHex = textBox.LineColorHex,
                             LineWidthPoints = textBox.LineWidthPoints > 0 ? textBox.LineWidthPoints : null,
                             LineAlpha = textBox.LineAlpha,

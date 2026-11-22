@@ -152,9 +152,10 @@ static class SkiaShapeDrawing
     internal static SKPath BuildPolygonPath(FloatingShapeElement shape, float x, float y, float width, float height)
     {
         var path = new SKPath();
-        // Each sub-path is its own closed contour. SKPath's default Winding (nonzero) fill type
-        // matches DrawingML's default custGeom fill, so oppositely-wound nested contours read as
-        // holes instead of being fused into one polygon by connector lines.
+        // Each sub-path is its own contour, closed unless the outline is open (a fill closes it
+        // anyway). SKPath's default Winding (nonzero) fill type matches DrawingML's default custGeom
+        // fill, so oppositely-wound nested contours read as holes instead of being fused into one
+        // polygon by connector lines.
         foreach (var contour in shape.Subpaths!)
         {
             for (var i = 0; i < contour.Count; i++)
@@ -174,7 +175,11 @@ static class SkiaShapeDrawing
                     path.LineTo(localX, localY);
                 }
             }
-            path.Close();
+
+            if (!shape.OpenOutline)
+            {
+                path.Close();
+            }
         }
 
         // Translate so (0,0) sits at the bbox top-left, then rotate around the bbox center.

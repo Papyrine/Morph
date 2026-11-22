@@ -28,15 +28,20 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
     {
         var elements = new List<DocumentElement>();
         var counters = new AutoNumberCounters();
+
+        // a:normAutofit/@lnSpcReduction is the other half of the shrink: percentage points taken off
+        // every paragraph's line spacing. luminous's agenda (110% less 10000) sets its topics on 100%
+        // lines, 43.3pt apart in PowerPoint's export with 10pt before each, as 28pt at 1.2 em gives.
+        var reduction = (body.GetFirstChild<A.BodyProperties>()?.GetFirstChild<A.NormalAutoFit>()?.LineSpaceReduction?.Value ?? 0) / thousandthsPerPercent;
         foreach (var paragraph in body.Elements<A.Paragraph>())
         {
-            elements.Add(ParseParagraph(paragraph, chain, fontScale, styleId, counters, first: elements.Count == 0));
+            elements.Add(ParseParagraph(paragraph, chain, fontScale, reduction, styleId, counters, first: elements.Count == 0));
         }
 
         return elements;
     }
 
-    ParagraphElement ParseParagraph(A.Paragraph paragraph, TextStyleChain chain, double fontScale, string? styleId, AutoNumberCounters counters, bool first)
+    ParagraphElement ParseParagraph(A.Paragraph paragraph, TextStyleChain chain, double fontScale, double lineReduction, string? styleId, AutoNumberCounters counters, bool first)
     {
         var properties = paragraph.ParagraphProperties;
         var level = properties?.Level?.Value ?? 0;
@@ -44,11 +49,19 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         // The marker is modelled the way the DOCX path models a list marker — as numbering on the
         // paragraph — so the exporters reconstruct list nesting and the measurer hangs text off it.
         var numbering = ResolveBullet(properties, chain, level, out var autoNumber);
+        var empty = !paragraph.Descendants<A.Text>().Any(_ => _.Text.Length > 0);
         if (autoNumber == null)
         {
             counters.Break(level);
+
+            // Nor a bullet: gradient's agenda ends on an empty paragraph, bulleted by its style,
+            // which PowerPoint leaves blank.
+            if (empty)
+            {
+                numbering = null;
+            }
         }
-        else if (!paragraph.Descendants<A.Text>().Any(_ => _.Text.Length > 0))
+        else if (empty)
         {
             // PowerPoint draws no marker on an empty paragraph, and the number passes it by.
             numbering = null;
@@ -65,7 +78,7 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
             switch (child)
             {
                 case A.Run run:
-                    runs.Add(ParseRun(run, chain, level, fontScale));
+                    AddRuns(runs, ParseRun(run, chain, level, fontScale));
                     break;
 
                 // a:br is a hard line break inside the paragraph.
@@ -88,8 +101,41 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         return new()
         {
             Runs = runs,
-            Properties = ParseParagraphProperties(paragraph, chain, level, numbering, fontScale, styleId, first)
+            Properties = ParseParagraphProperties(paragraph, chain, level, numbering, fontScale, lineReduction, styleId, first)
         };
+    }
+
+    /// <summary>
+    /// Adds a run, as a tab run for each tab character in its text: DrawingML writes a tab into
+    /// <c>a:t</c> itself, where WordprocessingML has <c>w:tab</c>. Laid out as text, pebble's
+    /// "Topic one" followed by a tab drew the tab as a missing glyph's box.
+    /// </summary>
+    static void AddRuns(List<Run> runs, Run run)
+    {
+        if (!run.Text.Contains('\t'))
+        {
+            runs.Add(run);
+            return;
+        }
+
+        var pieces = run.Text.Split('\t');
+        for (var i = 0; i < pieces.Length; i++)
+        {
+            if (i > 0)
+            {
+                runs.Add(new()
+                {
+                    Text = "\t",
+                    IsTab = true,
+                    Properties = run.Properties
+                });
+            }
+
+            if (pieces[i].Length > 0)
+            {
+                runs.Add(run.WithText(pieces[i]));
+            }
+        }
     }
 
     Run ParseRun(A.Run run, TextStyleChain chain, int level, double fontScale) =>
@@ -168,13 +214,41 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         };
     }
 
+    /// <summary>
+    /// The slide's background colour, which translucent text is blended over (set per slide by
+    /// <see cref="SlideShapeParser"/>); null where the background is not one solid colour.
+    /// </summary>
+    public string? Backdrop { get; set; }
+
     string? ResolveColor(List<A.TextCharacterPropertiesType> sources)
     {
         foreach (var source in sources)
         {
             if (source.GetFirstChild<A.SolidFill>() is { } solidFill)
             {
-                return ShapeParser.ExtractSolidFillColor(solidFill, themeColors);
+                var color = ShapeParser.ExtractSolidFillColor(solidFill, themeColors);
+                var alpha = ShapeParser.ExtractSolidFillAlpha(solidFill);
+
+                // A run carries no opacity of its own, so translucent text is drawn as the colour it
+                // shows over the slide's background: pebble's master sets body text in tx1 at 70%,
+                // which reads as a pale tint of the terracotta slide, not white.
+                if (color != null &&
+                    alpha < 1 &&
+                    Backdrop != null)
+                {
+                    return TableStyleResolver.Blend(color, Backdrop, alpha);
+                }
+
+                return color;
+            }
+
+            // A run is drawn in one colour, so text filled with a gradient is drawn in the colour
+            // halfway along it, rather than in the default black: luminous's titles run violet to
+            // pink, and stood black on its white panels.
+            if (source.GetFirstChild<A.GradientFill>() is { } gradientFill &&
+                ShapeParser.ExtractGradientFill(gradientFill, themeColors) is { } gradient)
+            {
+                return SlideGradient.Midpoint(gradient.StartColorHex, gradient.EndColorHex);
             }
         }
 
@@ -187,6 +261,7 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
         int level,
         NumberingInfo? numbering,
         double fontScale,
+        double lineReduction,
         string? styleId,
         bool first)
     {
@@ -221,7 +296,7 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
             // export than with the space laid in.
             SpacingBeforePoints = first ? 0 : before.Points ?? 0,
             SpacingAfterPoints = after.Points ?? 0,
-            LineSpacingMultiplier = lineSpacing.Percent ?? 1.0,
+            LineSpacingMultiplier = Math.Max(0.1, (lineSpacing.Percent ?? 1.0) - lineReduction),
             LineSpacingPoints = lineSpacing.Points ?? 0,
             LineSpacingRule = lineSpacing.Points is > 0 ? LineSpacingRule.Exactly : LineSpacingRule.Auto,
             Numbering = numbering,

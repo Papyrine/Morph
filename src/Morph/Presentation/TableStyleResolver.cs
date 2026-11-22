@@ -196,15 +196,18 @@ sealed class TableStyleResolver
     /// a pale wash into full-strength accent stripes. A cell's shading has no alpha in the model, so
     /// the blend is made here, over the slide's background — what a slide table stands on.
     /// </summary>
-    string Composite(string colorHex, double alpha)
+    string Composite(string colorHex, double alpha) =>
+        Blend(colorHex, backdropHex is { Length: 6 } ? backdropHex : "FFFFFF", alpha);
+
+    /// <summary><paramref name="colorHex"/> at <paramref name="alpha"/> over <paramref name="backdrop"/>.</summary>
+    public static string Blend(string colorHex, string backdrop, double alpha)
     {
         if (alpha >= 1 ||
-            colorHex.Length != 6)
+            colorHex.Length != 6 ||
+            backdrop.Length != 6)
         {
             return colorHex;
         }
-
-        var backdrop = backdropHex is { Length: 6 } ? backdropHex : "FFFFFF";
 
         int Channel(int offset) =>
             (int) Math.Round(

@@ -35,6 +35,11 @@ static class PresetShapeGeometry
             _ when preset == A.ShapeTypeValues.Star5 => Star5(width, height, adjustments),
             _ when preset == A.ShapeTypeValues.Frame => Frame(width, height, adjustments),
             _ when preset == A.ShapeTypeValues.Round2SameRectangle => Round2SameRect(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Triangle => Triangle(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.RightTriangle => Single([(0, height), (0, 0), (width, height)]),
+            _ when preset == A.ShapeTypeValues.Chevron => Chevron(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.HomePlate => HomePlate(width, height, adjustments),
+            _ when preset == A.ShapeTypeValues.Corner => Corner(width, height, adjustments),
             _ => null
         };
 
@@ -186,6 +191,41 @@ static class PresetShapeGeometry
             (0, height - cut),
             (0, cut)
         ]);
+    }
+
+    // Isosceles triangle on its base, its apex adj/100000 of the way across (half, by default).
+    // angled-tri-fold-brochure's cover lays three translucent ones over its photo, with adj 100000:
+    // a right angle at the top right.
+    static List<IReadOnlyList<(double X, double Y)>> Triangle(double width, double height, Dictionary<string, double> adjustments)
+    {
+        var apex = width * Pin(0, Adjustment(adjustments, "adj", 50000), 100000) / 100000;
+        return Single([(0, height), (apex, 0), (width, height)]);
+    }
+
+    // An arrow-headed band: a notch of ss·adj/100000 cut into its left end and the same point on its
+    // right (presetShapeDefinitions chevron).
+    static List<IReadOnlyList<(double X, double Y)>> Chevron(double width, double height, Dictionary<string, double> adjustments)
+    {
+        var shortSide = Math.Min(width, height);
+        var point = shortSide * Pin(0, Adjustment(adjustments, "adj", 50000), 100000 * width / shortSide) / 100000;
+        return Single([(0, 0), (width - point, 0), (width, height / 2), (width - point, height), (0, height), (point, height / 2)]);
+    }
+
+    // A pentagon pointing right: a rectangle with a point of ss·adj/100000 on its right end.
+    static List<IReadOnlyList<(double X, double Y)>> HomePlate(double width, double height, Dictionary<string, double> adjustments)
+    {
+        var shortSide = Math.Min(width, height);
+        var point = shortSide * Pin(0, Adjustment(adjustments, "adj", 50000), 100000 * width / shortSide) / 100000;
+        return Single([(0, 0), (width - point, 0), (width, height / 2), (width - point, height), (0, height)]);
+    }
+
+    // An L: a left upright ss·adj2/100000 wide, a foot ss·adj1/100000 tall.
+    static List<IReadOnlyList<(double X, double Y)>> Corner(double width, double height, Dictionary<string, double> adjustments)
+    {
+        var shortSide = Math.Min(width, height);
+        var foot = shortSide * Pin(0, Adjustment(adjustments, "adj1", 50000), 100000 * height / shortSide) / 100000;
+        var upright = shortSide * Pin(0, Adjustment(adjustments, "adj2", 50000), 100000 * width / shortSide) / 100000;
+        return Single([(0, 0), (upright, 0), (upright, height - foot), (width, height - foot), (width, height), (0, height)]);
     }
 
     // Five-point star, point up. Outer vertices on the (hf, vf)-scaled half-axes, inner vertices

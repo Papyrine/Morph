@@ -102,7 +102,7 @@ sealed class SpreadsheetParser(
         // Row heights are the body font's too: Excel prints a row through the ratio of the body
         // font's standard heights on its printer and its screen (ExcelRowHeights)
         var rowHeights = new ExcelRowHeights(bodyFamily, bodySize, LayoutFonts.ToDelegate(fontResolver));
-        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth, rowHeights, culture ?? CultureInfo.InvariantCulture);
+        var builder = new SheetGridBuilder(styles, new(workbookPart), defaultFont, maxDigitWidth, rowHeights, culture ?? CultureInfo.InvariantCulture, LayoutFonts.ToDelegate(fontResolver));
         var drawings = new SheetDrawingParser(
             themeColors,
             themeFonts,
@@ -539,56 +539,86 @@ sealed class SpreadsheetParser(
     /// fits, 221px for text crossing one column, 672px plus a page-two continuation for text
     /// crossing seven, and a hard stop at the filled cell in C.
     ///
-    /// Clipping at the used range therefore renders such a sheet blank. The range is extended to the
-    /// last column carrying an explicit <c>customWidth</c> — the extent the author laid out, and a
-    /// far closer bound than the used range. It is not the true rule, which would follow the text's
-    /// measured width and can run off the page; that needs horizontal pagination, which this parser
-    /// does not do.
+    /// The range is extended to the column the text's measured width reaches
+    /// (<see cref="SheetGridBuilder.OverflowPoints"/>), short of the next filled cell in its row.
+    /// It once went to the last column carrying an explicit <c>customWidth</c> whenever the last
+    /// column held text with more characters than the column was wide, which widened
+    /// business-plan-checklist to its spacer column E for a "Completion date" that fits: Excel
+    /// prints A to D.
     /// </summary>
     static SheetRange ExtendForOverflow(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange bounds)
     {
-        if (!HasOverflowingText(builder, worksheet, bounds))
+        var sheetData = worksheet.GetFirstChild<S.SheetData>();
+        if (sheetData == null)
         {
             return bounds;
         }
 
-        var shaped = worksheet.GetFirstChild<S.Columns>()?
-            .Elements<S.Column>()
-            .Where(_ => _.CustomWidth?.Value == true &&
-                        _.Max?.Value is < maxShapedColumn)
-            .Select(_ => (int) _.Max!.Value)
-            .DefaultIfEmpty(0)
-            .Max() ?? 0;
-
-        if (shaped > bounds.LastColumn)
+        var merged = worksheet.Elements<S.MergeCells>()
+            .SelectMany(_ => _.Elements<S.MergeCell>())
+            .Select(_ => _.Reference?.Value?.Split(':')[0])
+            .OfType<string>()
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var widths = new Dictionary<int, double>();
+        double Width(int column)
         {
-            return bounds with
+            if (!widths.TryGetValue(column, out var width))
             {
-                LastColumn = shaped
-            };
+                width = builder.ColumnWidths(worksheet, new(1, column, 1, column), 1)[0];
+                widths[column] = width;
+            }
+
+            return width;
         }
 
-        return bounds;
+        var lastColumn = bounds.LastColumn;
+        foreach (var row in sheetData.Elements<S.Row>())
+        {
+            if (row.RowIndex?.Value is { } rowIndex &&
+                (rowIndex < bounds.FirstRow || rowIndex > bounds.LastRow))
+            {
+                continue;
+            }
+
+            var cells = row.Elements<S.Cell>()
+                .Select(_ => (Cell: _, Column: CellReference.ColumnOf(_.CellReference?.Value)))
+                .Where(_ => _.Column > 0 && builder.ShowsValue(_.Cell))
+                .OrderBy(_ => _.Column)
+                .ToList();
+            for (var index = 0; index < cells.Count; index++)
+            {
+                var (cell, column) = cells[index];
+                if (column > bounds.LastColumn ||
+                    merged.Contains(cell.CellReference?.Value ?? string.Empty) ||
+                    builder.OverflowPoints(cell) is not { } reach)
+                {
+                    continue;
+                }
+
+                // The text runs on through empty neighbours until it has room, and no further than
+                // the cell before the next one holding a value.
+                var stop = index + 1 < cells.Count ? cells[index + 1].Column - 1 : maxOverflowColumn;
+                var end = column;
+                var covered = Width(column);
+                while (covered < reach &&
+                       end < stop)
+                {
+                    end++;
+                    covered += Width(end);
+                }
+
+                lastColumn = Math.Max(lastColumn, end);
+            }
+        }
+
+        return bounds with
+        {
+            LastColumn = lastColumn
+        };
     }
 
-    /// <summary>
-    /// A <c>col</c> run reaching the sheet's last column is the default-width catch-all every
-    /// workbook ends with, not a shaped column; extending to it would widen a sheet by 16000 columns.
-    /// </summary>
-    const uint maxShapedColumn = 1000;
-
-    /// <summary>
-    /// Whether the range's final column holds text that would be clipped at its edge
-    /// (<see cref="SheetGridBuilder.MayOverflow"/>). Any value there used to count, which widened
-    /// business-plan-checklist to its spacer column E for a "Completion date" that fits: Excel
-    /// prints A to D (its grid as wide as B to E would be, and starting a column A further right).
-    /// </summary>
-    static bool HasOverflowingText(SheetGridBuilder builder, S.Worksheet worksheet, SheetRange bounds) =>
-        worksheet.GetFirstChild<S.SheetData>()?
-            .Elements<S.Row>()
-            .SelectMany(_ => _.Elements<S.Cell>())
-            .Any(_ => CellReference.ColumnOf(_.CellReference?.Value) == bounds.LastColumn &&
-                      builder.MayOverflow(worksheet, _)) ?? false;
+    /// <summary>How far text may be followed out past the cells: a bound on a pathological sheet.</summary>
+    const int maxOverflowColumn = 1000;
 
     /// <summary>The extent of the cells present, for a sheet whose <c>dimension</c> is missing.</summary>
     /// <summary>

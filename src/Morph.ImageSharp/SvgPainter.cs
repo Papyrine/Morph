@@ -911,7 +911,7 @@ static class SvgPainter
                         var localX = (shape.FlipHorizontal ? 1 - _.X : _.X) * width - width / 2;
                         var localY = (shape.FlipVertical ? 1 - _.Y : _.Y) * height - height / 2;
                         return (x + width / 2 + localX * cos - localY * sin, y + height / 2 + localX * sin + localY * cos);
-                    }));
+                    }), close: !shape.OpenOutline);
                 }
 
                 svg.Append('"');
@@ -990,11 +990,16 @@ static class SvgPainter
             Attribute("y1", centreY - dy * halfDiagonal);
             Attribute("x2", centreX + dx * halfDiagonal);
             Attribute("y2", centreY + dy * halfDiagonal);
-            svg.Append("><stop offset=\"0\"");
-            Paint("stop-color", ImageSharpShapeDrawing.ParseColor(gradient.StartColorHex, gradient.StartAlpha));
-            svg.Append("/><stop offset=\"1\"");
-            Paint("stop-color", ImageSharpShapeDrawing.ParseColor(gradient.EndColorHex, gradient.EndAlpha));
-            svg.Append("/></linearGradient>");
+            svg.Append('>');
+            foreach (var stop in gradient.AllStops)
+            {
+                svg.Append("<stop");
+                Attribute("offset", stop.Position);
+                Paint("stop-color", ImageSharpShapeDrawing.ParseColor(stop.ColorHex, stop.Alpha));
+                svg.Append("/>");
+            }
+
+            svg.Append("</linearGradient>");
             return id;
         }
 

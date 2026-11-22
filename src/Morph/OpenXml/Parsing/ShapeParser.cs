@@ -1148,13 +1148,30 @@ static class ShapeParser
         var lin = gradFill.GetFirstChild<A.LinearGradientFill>();
         var angle = lin?.Angle?.Value is { } ang ? ang / 60000.0 : 0.0;
 
+        // Every stop is kept where the gradient is more than its two ends.
+        List<GradientStop>? all = null;
+        if (stops.Count > 2 ||
+            stops[0].Position!.Value != 0 ||
+            stops[^1].Position!.Value != 100000)
+        {
+            all = [];
+            foreach (var stop in stops)
+            {
+                if (ExtractGradientStopColor(stop, themeColors) is { } color)
+                {
+                    all.Add(new(Math.Clamp(stop.Position!.Value / 100000.0, 0, 1), color, ExtractGradientStopAlpha(stop)));
+                }
+            }
+        }
+
         return new()
         {
             StartColorHex = first,
             EndColorHex = last,
             DirectionDegrees = angle,
             StartAlpha = firstAlpha,
-            EndAlpha = lastAlpha
+            EndAlpha = lastAlpha,
+            Stops = all
         };
     }
 

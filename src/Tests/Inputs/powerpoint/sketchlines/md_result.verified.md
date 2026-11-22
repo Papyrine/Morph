@@ -88,7 +88,6 @@ One of the goals of effective communication is to motivate your audience
 - Explore new techniques
 - Set personal goals
 - Iterate and adapt
-- 
 
 - Consistent rehearsal
     - Practice makes perfect, so strengthen your familiarity with the presentation

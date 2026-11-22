@@ -136,7 +136,6 @@ If you don’t see the Notes pane or it is completely minimized, click Notes on 
 - Add text, images, art, and videos. 
 - Add transitions, animations, and motion. 
 - Save to OneDrive, to get to your presentations from your computer, tablet, or phone. 
-- 
 
 **Subtitle**
 

@@ -11,7 +11,7 @@
           "Width": 792.0,
           "Height": 612.0
         },
-        "Text": "Contoso &\nContoso\n We are committed\nto protecting your\nrights and fighting for\njustice. \nContact\n4567 Main St \nBuffalo, NY 98052\n555-0100\ninfo@contoso.com\nwww.contoso.com\nPARTNERS AT LAW"
+        "Text": "Contoso &\nContoso\n We are committed\nto protecting your\nrights and fighting\nfor justice. \nContact\n4567 Main St \nBuffalo, NY 98052\n555-0100\ninfo@contoso.com\nwww.contoso.com\nPARTNERS AT LAW"
       },
       {
         "Number": 2,
@@ -19,23 +19,23 @@
           "Width": 792.0,
           "Height": 612.0
         },
-        "Text": "Our team\nAt Contoso and Contoso, we take pride in\nour exceptional team of legal professionals\nwho provide top-notch representation and\npersonalized solutions to our clients.\nOur services\nContoso and Contoso offers a\ncomprehensive range of legal services\ntailored to meet the unique needs of\nindividuals and businesses. From\ncorporate law to family law, real estate to\nintellectual property, our firm has the\nknowledge and resources to handle\ncomplex legal issues.\nWe can help\nNavigating the legal landscape can be\noverwhelming, but you don't have to face it\nalone. We are here to help you through\nevery step of your legal journey. Our team\nof attorneys will listen to your concerns,\nprovide clear explanations of your options,\nand guide you towards the most favorable\nresolution."
+        "Text": "Our team\nAt Contoso and Contoso, we take pride in\nour exceptional team of legal\nprofessionals who provide top-notch\nrepresentation and personalized solutions\nto our clients.\nOur services\nContoso and Contoso offers a\ncomprehensive range of legal services\ntailored to meet the unique needs of\nindividuals and businesses. From\ncorporate law to family law, real estate to\nintellectual property, our firm has the\nknowledge and resources to handle\ncomplex legal issues.\nWe can help\nNavigating the legal landscape can be\noverwhelming, but you don't have to face\nit alone. We are here to help you through\nevery step of your legal journey. Our team\nof attorneys will listen to your concerns,\nprovide clear explanations of your\noptions, and guide you towards the most\nfavorable resolution."
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.5649,
-      "Ssim": 0.7823,
+      "ErrorMetric": 0.5438,
+      "Ssim": 0.9447,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.5117,
-      "Ssim": 0.8392,
+      "ErrorMetric": 0.4987,
+      "Ssim": 0.9162,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

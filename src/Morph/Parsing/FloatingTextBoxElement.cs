@@ -91,6 +91,12 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// <summary>Background color (hex). Null for transparent.</summary>
     public string? BackgroundColorHex { get; init; }
 
+    /// <summary>
+    /// The background's opacity (<c>a:alpha</c>), 0..1. lines' title slide stands its title on
+    /// <c>tx1</c> at 40% over the photo: opaque, it blacked the photo out.
+    /// </summary>
+    public double BackgroundAlpha { get; init; } = 1;
+
     /// <summary>Outline color as 6-digit hex (a:ln solid fill). Null = no outline.</summary>
     public string? LineColorHex { get; init; }
 
@@ -117,6 +123,15 @@ sealed class FloatingTextBoxElement : DocumentElement
     /// every other text box still lays its content out on the box edge, so zero is the default.
     /// </summary>
     public WordArtInsets Insets { get; init; }
+
+    /// <summary>
+    /// The columns the text runs in (<c>a:bodyPr/@numCol</c>), filled one after another down to the
+    /// text rect's foot, with <see cref="ColumnSpacingPoints"/> (<c>@spcCol</c>) between them.
+    /// </summary>
+    public int Columns { get; init; } = 1;
+
+    /// <summary>The gap between <see cref="Columns"/>, in points.</summary>
+    public double ColumnSpacingPoints { get; init; }
 
     /// <summary>
     /// Horizontal position as a fraction (0..1) of the anchor reference frame, parsed from
@@ -166,12 +181,15 @@ sealed class FloatingTextBoxElement : DocumentElement
             RelativeHeight = RelativeHeight,
             LayoutInCell = LayoutInCell,
             BackgroundColorHex = BackgroundColorHex,
+            BackgroundAlpha = BackgroundAlpha,
             LineColorHex = LineColorHex,
             LineWidthPoints = LineWidthPoints,
             LineAlpha = LineAlpha,
             Subpaths = Subpaths,
             RotationDegrees = RotationDegrees,
             Insets = Insets,
+            Columns = Columns,
+            ColumnSpacingPoints = ColumnSpacingPoints,
             VerticalAlignment = VerticalAlignment,
         };
 

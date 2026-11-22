@@ -337,10 +337,12 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
         var scaleY = childExtentY > 0 ? box.Height * OoxmlUnits.EmusPerPoint / childExtentY : 1;
 
         return new(
-            box.X * OoxmlUnits.EmusPerPoint - childOffsetX * scaleX,
-            box.Y * OoxmlUnits.EmusPerPoint - childOffsetY * scaleY,
             scaleX,
-            scaleY);
+            0,
+            0,
+            scaleY,
+            box.X * OoxmlUnits.EmusPerPoint - childOffsetX * scaleX,
+            box.Y * OoxmlUnits.EmusPerPoint - childOffsetY * scaleY);
     }
 
     /// <summary>

@@ -153,21 +153,16 @@ Sample Footer Text
 - Add text, images, art, and videos. 
 - Add transitions, animations, and motion. 
 - Save to OneDrive, to get to your presentations from your computer, tablet, or phone. 
-- 
-- 
 
 **Subtitle**
 
 - Open the Design Ideas pane for instant slide makeovers. 
 - When we have design ideas, we’ll show them to you right there. 
-- 
-- 
 
 **Subtitle**
 
 - This PowerPoint theme uses its own unique set of colors, fonts, and effects to create the overall look and feel of these slides. 
 - PowerPoint has tons of themes to give your presentation just the right personality. 
-- 
 
 Sample Footer Text
 

@@ -37,6 +37,9 @@ sealed class SlideShapeParser(
     // blend over. Set per slide by ParseSlide.
     string? slideBackgroundHex;
 
+    // The slide's background fill, which a shape with p:sp/@useBgFill takes as its own. Set per slide.
+    FloatingShapeElement? slideBackground;
+
     /// <summary>
     /// Emits the slide's shapes in <c>spTree</c> order. Paint order is document order, which is also
     /// PowerPoint's z-order, so <see cref="FloatingShapeElement.RelativeHeight"/> is the running
@@ -63,8 +66,15 @@ sealed class SlideShapeParser(
         {
             elements.Add(background);
             slideBackgroundHex = (background as FloatingShapeElement)?.FillColorHex;
+            slideBackground = background as FloatingShapeElement;
             ordinal++;
         }
+        else
+        {
+            slideBackground = null;
+        }
+
+        textParser.Backdrop = slideBackgroundHex;
 
         // A layout may suppress the master's decoration (p:sldLayout/@showMasterSp), and a slide may
         // suppress whatever it inherits (p:sld/@showMasterShapes); both default to true.
@@ -141,7 +151,7 @@ sealed class SlideShapeParser(
 
         if (properties?.GetFirstChild<A.GradientFill>() is { } gradient)
         {
-            return BackgroundShape(ShapeParser.ExtractGradientFill(gradient, themeColors), null, 1, ordinal);
+            return BackgroundShape(SlideGradient.AsDrawn(ShapeParser.ExtractGradientFill(gradient, themeColors)), null, 1, ordinal);
         }
 
         var solid = properties?.GetFirstChild<A.SolidFill>();
@@ -277,9 +287,15 @@ sealed class SlideShapeParser(
             return null;
         }
 
-        var shapeProperties = shape.ShapeProperties;
-        var fill = ResolveFill(shapeProperties, shape.ShapeStyle);
-        var outline = ResolveOutline(shapeProperties, shape.ShapeStyle);
+        // The geometry may be a placeholder's up the chain, like the fill and outline below.
+        var shapeProperties = placeholders.ResolveGeometrySource(shape);
+        // useBgFill fills the shape with the slide's background: savon's title slide and luminous's
+        // agenda stand their text on a white panel cut from a white background, which the shape's
+        // style reference (accent1) would paint magenta, and its empty spPr not at all.
+        var fill = shape.UseBackgroundFill?.Value == true
+            ? (ColorHex: slideBackground?.FillColorHex, Alpha: slideBackground?.FillAlpha ?? 1, Gradient: slideBackground?.Gradient)
+            : ResolveFill(placeholders.ResolveFillSource(shape), shape.ShapeStyle);
+        var outline = ResolveOutline(placeholders.ResolveOutlineSource(shape), shape.ShapeStyle);
 
         if (HasVisibleText(shape.TextBody))
         {
@@ -295,12 +311,20 @@ sealed class SlideShapeParser(
                 HorizontalAnchor = HorizontalAnchor.Page,
                 VerticalAnchor = VerticalAnchor.Paragraph,
                 BackgroundColorHex = fill.ColorHex,
+                BackgroundAlpha = fill.Alpha,
                 LineColorHex = outline.ColorHex,
                 LineWidthPoints = outline.WidthPoints ?? 0,
                 Subpaths = ShapeParser.TextBoxOutline(shapeProperties, box.Width, box.Height),
                 RotationDegrees = box.RotationDegrees,
                 RelativeHeight = ordinal,
-                VerticalAlignment = ShapeParser.TextAnchor(placeholders.ResolveTextAnchor(shape))
+                VerticalAlignment = ShapeParser.TextAnchor(placeholders.ResolveTextAnchor(shape)),
+                Insets = new(
+                    Inset(placeholders.ResolveBody(shape, _ => _.LeftInset?.Value), defaultSideInsetEmu),
+                    Inset(placeholders.ResolveBody(shape, _ => _.TopInset?.Value), defaultEndInsetEmu),
+                    Inset(placeholders.ResolveBody(shape, _ => _.RightInset?.Value), defaultSideInsetEmu),
+                    Inset(placeholders.ResolveBody(shape, _ => _.BottomInset?.Value), defaultEndInsetEmu)),
+                Columns = Math.Clamp(placeholders.ResolveBody(shape, _ => _.ColumnCount?.Value) ?? 1, 1, 16),
+                ColumnSpacingPoints = (placeholders.ResolveBody(shape, _ => _.ColumnSpacing?.Value) ?? 0) / OoxmlUnits.EmusPerPoint
             };
         }
 
@@ -328,6 +352,7 @@ sealed class SlideShapeParser(
             LineWidthPoints = outline.WidthPoints,
             Preset = ResolvePreset(shapeProperties),
             Subpaths = ResolveSubpaths(shapeProperties, box.Width, box.Height),
+            OpenOutline = OpenCustomGeometry(shapeProperties),
             RotationDegrees = box.RotationDegrees,
             FlipHorizontal = box.FlipHorizontal,
             FlipVertical = box.FlipVertical,
@@ -830,12 +855,18 @@ sealed class SlideShapeParser(
                 HorizontalAnchor = HorizontalAnchor.Page,
                 VerticalAnchor = VerticalAnchor.Paragraph,
                 BackgroundColorHex = fill.ColorHex,
+                BackgroundAlpha = fill.Alpha,
                 LineColorHex = outline.ColorHex,
                 LineWidthPoints = outline.WidthPoints ?? 0,
                 Subpaths = ShapeParser.TextBoxOutline(shapeProperties, box.Width, box.Height),
                 RotationDegrees = box.RotationDegrees,
                 RelativeHeight = ordinal,
-                VerticalAlignment = ShapeParser.TextAnchor(textBody?.GetFirstChild<A.BodyProperties>()?.Anchor?.Value)
+                VerticalAlignment = ShapeParser.TextAnchor(textBody?.GetFirstChild<A.BodyProperties>()?.Anchor?.Value),
+                Insets = new(
+                    Inset(textBody?.GetFirstChild<A.BodyProperties>()?.LeftInset?.Value, defaultSideInsetEmu),
+                    Inset(textBody?.GetFirstChild<A.BodyProperties>()?.TopInset?.Value, defaultEndInsetEmu),
+                    Inset(textBody?.GetFirstChild<A.BodyProperties>()?.RightInset?.Value, defaultSideInsetEmu),
+                    Inset(textBody?.GetFirstChild<A.BodyProperties>()?.BottomInset?.Value, defaultEndInsetEmu))
             };
         }
 
@@ -861,6 +892,7 @@ sealed class SlideShapeParser(
             LineWidthPoints = outline.WidthPoints,
             Preset = ResolvePreset(shapeProperties),
             Subpaths = ResolveSubpaths(shapeProperties, box.Width, box.Height),
+            OpenOutline = OpenCustomGeometry(shapeProperties),
             RotationDegrees = box.RotationDegrees,
             FlipHorizontal = box.FlipHorizontal,
             FlipVertical = box.FlipVertical,
@@ -909,16 +941,32 @@ sealed class SlideShapeParser(
 
         // A mirroring group flips the shape itself on that axis, and a mirror turns a clockwise
         // rotation anticlockwise: M·R(θ) = R(−θ)·M. Mirrored on both axes the two negations cancel.
-        if (transform.MirrorsX)
+        if (!transform.IsAxisAligned)
         {
-            flipHorizontal = !flipHorizontal;
-            rotationDegrees = -rotationDegrees;
-        }
+            // Under a rotated group the map is R(θ)·S, or R(θ)·diag(s, −s) when mirrored: the shape
+            // turns by the group's θ as well as its own, and a mirror flips it top to bottom and
+            // turns its own rotation the other way.
+            if (transform.Mirrors)
+            {
+                flipVertical = !flipVertical;
+                rotationDegrees = -rotationDegrees;
+            }
 
-        if (transform.MirrorsY)
+            rotationDegrees = (rotationDegrees + transform.RotationDegrees) % 360;
+        }
+        else
         {
-            flipVertical = !flipVertical;
-            rotationDegrees = -rotationDegrees;
+            if (transform.MirrorsX)
+            {
+                flipHorizontal = !flipHorizontal;
+                rotationDegrees = -rotationDegrees;
+            }
+
+            if (transform.MirrorsY)
+            {
+                flipVertical = !flipVertical;
+                rotationDegrees = -rotationDegrees;
+            }
         }
 
         if (rotationDegrees < 0)
@@ -977,7 +1025,7 @@ sealed class SlideShapeParser(
 
         if (properties?.GetFirstChild<A.GradientFill>() is { } gradient)
         {
-            return (null, 1, ShapeParser.ExtractGradientFill(gradient, themeColors));
+            return (null, 1, SlideGradient.AsDrawn(ShapeParser.ExtractGradientFill(gradient, themeColors)));
         }
 
         if (style?.GetFirstChild<A.FillReference>() is { } fillReference)
@@ -1021,6 +1069,22 @@ sealed class SlideShapeParser(
 
         return PresetShape.Rect;
     }
+
+    // DrawingML's text insets when a:bodyPr declares none: 0.1in at the sides, 0.05in top and bottom.
+    const int defaultSideInsetEmu = 91440;
+    const int defaultEndInsetEmu = 45720;
+
+    /// <summary>
+    /// A text inset in points. Without them a slide's text stood on its box's edge, 7.2pt left of
+    /// where PowerPoint sets it (pebble's agenda at x=640px for PowerPoint's 650 at 96 dpi).
+    /// </summary>
+    static double Inset(int? declaredEmu, int defaultEmu) =>
+        (declaredEmu ?? defaultEmu) / OoxmlUnits.EmusPerPoint;
+
+    /// <summary>Whether the shape's custom geometry never closes its outline (no <c>a:close</c>).</summary>
+    static bool OpenCustomGeometry(OpenXmlElement? properties) =>
+        properties?.GetFirstChild<A.CustomGeometry>() is { } geometry &&
+        !geometry.Descendants<A.CloseShapePath>().Any();
 
     static IReadOnlyList<IReadOnlyList<(double X, double Y)>>? ResolveSubpaths(OpenXmlElement? properties, double width, double height)
     {

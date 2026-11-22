@@ -73,7 +73,6 @@ Maintain eye contact
 - Know your material in advance
 - Anticipate common questions
 - Rehearse your responses
-- 
 
 ## Speaking impact
 

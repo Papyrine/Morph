@@ -721,7 +721,8 @@ static class ImageSharpPainter
 
             if (line != null)
             {
-                canvas.Draw(line, path);
+                // An open outline is stroked without its closing segment; its fill above closes it.
+                canvas.Draw(line, shape.OpenOutline ? ImageSharpShapeDrawing.BuildPath(shape, x, y, width, height, close: false) : path);
             }
 
             canvas.Restore();
@@ -765,8 +766,7 @@ static class ImageSharpPainter
             new(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
             new(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
             GradientRepetitionMode.None,
-            new ColorStop(0f, ImageSharpShapeDrawing.ParseColor(gradient.StartColorHex, gradient.StartAlpha)),
-            new ColorStop(1f, ImageSharpShapeDrawing.ParseColor(gradient.EndColorHex, gradient.EndAlpha)));
+            [.. gradient.AllStops.Select(_ => new ColorStop((float) _.Position, ImageSharpShapeDrawing.ParseColor(_.ColorHex, _.Alpha)))]);
     }
 
     // See SkiaPainter.PaintTableRow, and PlacedTableRow.ShadesFirst for a row with spilling text.

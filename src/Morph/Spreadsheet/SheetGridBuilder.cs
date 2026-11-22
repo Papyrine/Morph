@@ -9,7 +9,7 @@
 /// unit of length. And merges are declared once, in a separate list, for a region the grid must then
 /// be told about cell by cell.
 /// </summary>
-sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels, ExcelRowHeights rowHeights, CultureInfo culture)
+sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, string defaultFont, double maxDigitWidthPixels, ExcelRowHeights rowHeights, CultureInfo culture, Func<string, bool, bool, FontMetrics?>? resolveFont = null)
 {
     const double pointsPerPixel = 72.0 / 96.0;
 
@@ -612,47 +612,60 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     }
 
     /// <summary>
-    /// Whether the cell holds text that may run past its column: text, unwrapped, with more
-    /// characters than the column is wide. A column's width is counted in digits and most text is
-    /// narrower, so this errs towards overflow. A number never overflows (Excel shows #s), and
-    /// business-plan-checklist's "Completion date", 15 characters in a column 21.625 wide, must not
-    /// read as overflowing just for being in the last column.
+    /// How far text that flows to the right runs from its cell's left edge, in points: the cell's
+    /// padding and the text's measured width in its own font. Null for what cannot overflow —
+    /// a number (Excel shows #s), wrapped text, text aligned anything but left, an empty cell — or
+    /// when the font will not resolve to measure with.
     /// </summary>
-    public bool MayOverflow(S.Worksheet worksheet, S.Cell cell)
+    public double? OverflowPoints(S.Cell cell)
+    {
+        if (resolveFont == null ||
+            CellText(cell) is not { } text ||
+            string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var style = styles.Resolve(cell.StyleIndex?.Value ?? 0);
+        if (style.WrapText ||
+            style.HorizontalAlignment is not (null or TextAlignment.Left))
+        {
+            return null;
+        }
+
+        var (bodyFamily, bodySize) = styles.DefaultFont;
+        var family = style.FontFamily ?? bodyFamily;
+        var size = style.FontSizePoints ?? bodySize;
+        if (resolveFont(family, style.Bold, style.Italic) is not { UnitsPerEm: > 0 } metrics)
+        {
+            return null;
+        }
+
+        var units = 0L;
+        foreach (var character in text)
+        {
+            units += metrics.AdvanceUnits(character);
+        }
+
+        return 2 + style.IndentLevel * 3 * maxDigitWidthPixels * pointsPerPixel + (double) units / metrics.UnitsPerEm * size;
+    }
+
+    /// <summary>The text a cell holds as a string, or null when it holds a number, a boolean or nothing.</summary>
+    string? CellText(S.Cell cell)
     {
         var raw = cell.CellValue?.Text;
         var type = cell.DataType?.Value;
-        string text;
         if (type == S.CellValues.SharedString)
         {
-            text = int.TryParse(raw, out var index) ? sharedStrings.Get(index) : string.Empty;
-        }
-        else if (type == S.CellValues.InlineString)
-        {
-            text = cell.InlineString == null ? string.Empty : SharedStrings.Flatten(cell.InlineString);
-        }
-        else if (type == S.CellValues.String)
-        {
-            text = raw ?? string.Empty;
-        }
-        else
-        {
-            return false;
+            return int.TryParse(raw, out var index) ? sharedStrings.Get(index) : null;
         }
 
-        if (string.IsNullOrWhiteSpace(text) ||
-            styles.Resolve(cell.StyleIndex?.Value ?? 0).WrapText)
+        if (type == S.CellValues.InlineString)
         {
-            return false;
+            return cell.InlineString == null ? null : SharedStrings.Flatten(cell.InlineString);
         }
 
-        var column = CellReference.ColumnOf(cell.CellReference?.Value);
-        if (column == 0)
-        {
-            return false;
-        }
-
-        return ToPoints(text.Length) > ColumnWidths(worksheet, new(1, column, 1, column), 1)[0];
+        return type == S.CellValues.String ? raw : null;
     }
 
     /// <summary>

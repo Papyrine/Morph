@@ -6,7 +6,6 @@
 - Renewable energy technologies and their integration
 - Circular economy and product lifecycle management 
 - Sustainability and plant-based alternatives
-- 
 
 # The power of communication
 
@@ -28,8 +27,6 @@
 - Weave relatable stories into your presentation using narratives that make your message memorable and impactful
 - Encourage questions and provide thoughtful responses to enhance audience participation
 - Use live polls or surveys to gather audience opinions, promoting engagement and making sure the audience feel involved
-- 
-- 
 
 # Selecting visual aids
 

@@ -35,25 +35,34 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     const double slideLineEms = 1.2;
 
     // Where the baseline sits in the line box (CanonicalTextMeasurer.LineAscentPoints). Word stands
-    // it at the face's own ascent and puts what an expanding multiple adds below it. PowerPoint keeps a
-    // fifth of the single 1.2 em line under the baseline whatever the face and the multiple, so all a
-    // multiple adds lies over the text and a slide's first line drops with its spacing. Measured off
-    // PowerPoint's renders (2026-11-03): Basic.pptx's bottom-anchored 36pt Arial Black title (own
-    // ascent 1.1 em) stands 6pt higher, as a 0.96 em ascent puts it; tech-brochure's 12pt body at 150%
-    // has its first line's ink 8pt under the box's top and inset, the 7.2pt its multiple adds lying
-    // over the text.
+    // it at the face's own ascent and puts what an expanding multiple adds below it. PowerPoint
+    // stands it by the multiple alone, whatever the face, on two rules. Probed in PowerPoint 16
+    // (2026-11-22): "HH" at 72pt and 36pt in Arial, Calibri and Arial Black, top-anchored with no
+    // insets, at 80, 90, 100, 110, 125, 150, 200 and 300%.
+    // - Up to single spacing a fifth of the 1.2 em line lies under the baseline: 80, 90 and 100% put
+    //   the 72pt Arial ink at 1, 13 and 24px, the 1.2 em slope, and Basic.pptx's bottom-anchored 36pt
+    //   Arial Black title stands where a 0.96 em ascent puts it.
+    // - Above it the baseline stands at 0.9 em times the multiple — three quarters of the line over
+    //   it: 110 to 300% put the ink at 26, 39, 61, 104 and 190px, 86.4px (0.9 em) a unit within a
+    //   pixel, and Calibri and Arial Black step by the same 83 and 86px however tall their faces.
+    //   Every multiple over 1 is under the 100% line's 0.96 em by a few pixels at 110%.
     double LineAscent(double naturalAscent, ParagraphProperties props, double naturalPitch)
     {
         if (slideLinePitch &&
             props.LineSpacingRule == LineSpacingRule.Auto)
         {
-            return naturalPitch * (props.LineSpacingMultiplier - slideDescentShare);
+            var multiple = props.LineSpacingMultiplier;
+            return multiple > 1
+                ? naturalPitch * slideAscentShare * multiple
+                : naturalPitch * (multiple - slideDescentShare);
         }
 
         return CanonicalTextMeasurer.LineAscentPoints(naturalAscent, props.LineSpacingRule, props.LineSpacingMultiplier, props.LineSpacingPoints, naturalPitch);
     }
 
     const double slideDescentShare = 0.2;
+
+    const double slideAscentShare = 0.75;
 
     public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth)
     {
@@ -1207,7 +1216,13 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             var width = (float) CanonicalTextMeasurer.PixelsToPoints(endPixels);
-            if (extraGapPixels == 0 &&
+            // Word's drawing grid is Word's: PowerPoint draws a line at its linear advances, and its
+            // bold simulation thickens strokes without widening a glyph. Probed in PowerPoint 16
+            // (2026-11-22): 25 glyphs of Franklin Gothic Book, which has no bold face, at 40pt and
+            // 12pt are 4px and 1px wider bold than regular, where the 0.6pt a glyph Word adds would
+            // make them 20px wider; drawn at Word's pixels the regular 40pt line was 4px wide too.
+            if (!slideLinePitch &&
+                extraGapPixels == 0 &&
                 images.Count == 0 &&
                 !HasTab(linePieces))
             {

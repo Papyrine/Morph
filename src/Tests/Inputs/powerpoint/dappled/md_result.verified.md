@@ -176,7 +176,7 @@ Sample Footer Text
 
 ## Additional content
 
-Subtitle	
+Subtitle 
 
 - Add text, images, art, and videos. 
 - Add transitions, animations, and motion. 
@@ -191,7 +191,6 @@ Subtitle
 
 - This PowerPoint theme uses its own unique set of colors, fonts, and effects to create the overall look and feel of these slides. 
 - PowerPoint has tons of themes to give your presentation just the right personality. 
-- 
 
 Sample Footer Text
 

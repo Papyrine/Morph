@@ -942,10 +942,12 @@ static class SkiaPainter
         var centreX = x + width / 2;
         var centreY = y + height / 2;
         var halfDiagonal = (float) Math.Sqrt(width * width + height * height) / 2;
+        var stops = gradient.AllStops;
         var shader = SKShader.CreateLinearGradient(
             new(centreX - dx * halfDiagonal, centreY - dy * halfDiagonal),
             new(centreX + dx * halfDiagonal, centreY + dy * halfDiagonal),
-            [SkiaShapeDrawing.ParseColor(gradient.StartColorHex, gradient.StartAlpha), SkiaShapeDrawing.ParseColor(gradient.EndColorHex, gradient.EndAlpha)],
+            [.. stops.Select(_ => SkiaShapeDrawing.ParseColor(_.ColorHex, _.Alpha))],
+            gradient.Stops == null ? null : [.. stops.Select(_ => (float) _.Position)],
             SKShaderTileMode.Clamp);
         return new()
         {
