@@ -27,19 +27,19 @@
 |  | Underwear | Clothes | 10  |  |  |  |  $-  |  |
 |  | Winter jacket | Clothes | 1  | 1 |  |  |  $-  |  |
 
-|  | **Budget breakdown** |  |  |  |
-| --- | --- | --- | --- | --- |
-|  | Add categories and budget amounts to track against in your shopping list. |  |  |  |
-|  | **Category** | **Total cost** |  |  |
-|  | Clothes |  $280.00  |  |  |
-|  | Supplies |  $30.00  |  |  |
-|  | Textbooks |  $55.00  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
-|  |  |  |  |  |
+|  | **Budget breakdown** |  |  |  |  |
+| --- | --- | --- | --- | --- | --- |
+|  | Add categories and budget amounts to track against in your shopping list. |  |  |  |  |
+|  | **Category** | **Total cost** |  |  |  |
+|  | Clothes |  $280.00  |  |  |  |
+|  | Supplies |  $30.00  |  |  |  |
+|  | Textbooks |  $55.00  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
+|  |  |  |  |  |  |
 
 |  | **To-do list** |  |
 | --- | --- | --- |

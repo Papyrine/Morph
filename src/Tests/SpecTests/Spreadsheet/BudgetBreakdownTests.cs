@@ -42,17 +42,23 @@ public class BudgetBreakdownTests
     }
 
     // The chart's end marker stands 5048250 EMU into column E, which is narrower than that; Excel
-    // reads the offset as E's right edge, the right edge of the grid. The grid is centred between
-    // the margins, and the chart is placed against the left margin.
+    // reads the offset as E's right edge, which is F's left edge at offset 0. The grid is centred
+    // between the margins, and the chart is placed against the left margin.
     [Test]
     public async Task The_chart_ends_at_its_end_cells_right_edge()
     {
         var sheet = Sheet();
-        var gridWidth = sheet.OfType<TableElement>().Single().Properties.GridColumnWidths!.Sum();
+        var widths = sheet.OfType<TableElement>().Single().Properties.GridColumnWidths!;
         var chart = sheet.OfType<FloatingChartElement>().Single();
         const double contentWidth = 595.28 - 2 * 0.25 * 72;
+        var gridLeft = (contentWidth - widths.Sum()) / 2;
 
         await Assert.That(chart.HorizontalPositionPoints + chart.WidthPoints)
-            .IsEqualTo((contentWidth - gridWidth) / 2 + gridWidth).Within(0.05);
+            .IsEqualTo(gridLeft + widths.Take(5).Sum()).Within(0.05);
     }
+
+    // So the grid takes in F, the spacer column past the chart, as Excel's fit does: A to F.
+    [Test]
+    public async Task The_grid_takes_in_the_column_the_charts_offset_overshoots_into() =>
+        await Assert.That(Sheet().OfType<TableElement>().Single().Properties.GridColumnWidths!.Count).IsEqualTo(6);
 }

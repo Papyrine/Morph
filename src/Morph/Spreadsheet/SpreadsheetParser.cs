@@ -294,7 +294,7 @@ sealed class SpreadsheetParser(
         // What a drawing stands over prints with it: back-to-school-planner's column chart reaches
         // eleven rows below the last of its table's, and a grid stopping at the table cut the chart
         // off there.
-        bounds = ExtendForDrawings(worksheetPart, bounds);
+        bounds = ExtendForDrawings(builder, worksheet, worksheetPart, bounds);
 
         if (CellReference.ParseArea(printArea) is { } area)
         {
@@ -311,7 +311,7 @@ sealed class SpreadsheetParser(
             if ((openRows || openColumns) &&
                 ShownRange(worksheet, styles) is { } shown)
             {
-                shown = ExtendForDrawings(worksheetPart, shown);
+                shown = ExtendForDrawings(builder, worksheet, worksheetPart, shown);
                 bounds = bounds with
                 {
                     LastRow = openRows ? shown.LastRow : bounds.LastRow,
@@ -428,7 +428,7 @@ sealed class SpreadsheetParser(
             bounds = new(1, 1, 1, 1);
         }
 
-        return ExtendForDrawings(worksheetPart, bounds);
+        return ExtendForDrawings(builder, worksheet, worksheetPart, bounds);
     }
 
     /// <summary>
@@ -440,13 +440,16 @@ sealed class SpreadsheetParser(
     /// Only the anchors that say where they end, which is the two-cell anchor nearly every drawing
     /// has. One that gives a size instead still ends where the range does.
     /// </summary>
-    static SheetRange ExtendForDrawings(WorksheetPart? worksheetPart, SheetRange bounds)
+    static SheetRange ExtendForDrawings(SheetGridBuilder builder, S.Worksheet worksheet, WorksheetPart? worksheetPart, SheetRange bounds)
     {
         var root = worksheetPart?.DrawingsPart?.WorksheetDrawing;
         if (root == null)
         {
             return bounds;
         }
+
+        var rows = builder.RowHeights(worksheet, 1, printed: true);
+        double ColumnWidth(int column) => builder.ColumnWidths(worksheet, new(1, column, 1, column), 1)[0];
 
         foreach (var anchor in root.ChildElements)
         {
@@ -457,8 +460,8 @@ sealed class SpreadsheetParser(
 
             bounds = bounds with
             {
-                LastColumn = Math.Max(bounds.LastColumn, Math.Min(LastCell<XDR.ColumnId>(to), CellReference.MaxColumn)),
-                LastRow = Math.Max(bounds.LastRow, Math.Min(LastCell<XDR.RowId>(to), CellReference.MaxRow))
+                LastColumn = Math.Max(bounds.LastColumn, Math.Min(LastCell<XDR.ColumnId, XDR.ColumnOffset>(to, ColumnWidth), CellReference.MaxColumn)),
+                LastRow = Math.Max(bounds.LastRow, Math.Min(LastCell<XDR.RowId, XDR.RowOffset>(to, rows.Height), CellReference.MaxRow))
             };
         }
 
@@ -474,10 +477,35 @@ sealed class SpreadsheetParser(
     /// ending on column H's left edge at offset 0 printed H, 150 characters wide; and one saved
     /// ending on row 60's top edge printed row 60, exactly as one 38100 EMU into it did. Column K
     /// prints blank on check-register's reference page, the strip down its right side.
+    ///
+    /// An offset as long as its cell, or longer, is read as the NEXT cell's near edge at offset 0,
+    /// which then prints that next cell. Probed over COM (2026-11-22): back-to-school-planner's
+    /// Budget breakdown chart ends 5048250 EMU into column E, longer than E; with the spacer column
+    /// F after it widened to 30 characters Excel's fit shrank to take F in, and pulling the offset
+    /// back to 3000000 (inside E) or deleting the chart left F out. Excel draws the chart ending at
+    /// E's right edge (<c>SheetDrawingParser.Marker</c>) and reports its bottom-right cell as the
+    /// column after the marker's whenever the offset overshoots. <paramref name="extent"/> is the
+    /// cell's width or height in points at 100%, from its one-based index.
     /// </summary>
-    static int LastCell<TIndex>(XDR.ToMarker to)
-        where TIndex : OpenXmlElement =>
-        int.TryParse(to.GetFirstChild<TIndex>()?.InnerText, out var index) ? index + 1 : 0;
+    static int LastCell<TIndex, TOffset>(XDR.ToMarker to, Func<int, double> extent)
+        where TIndex : OpenXmlElement
+        where TOffset : OpenXmlElement
+    {
+        if (!int.TryParse(to.GetFirstChild<TIndex>()?.InnerText, out var index))
+        {
+            return 0;
+        }
+
+        var cell = index + 1;
+        if (long.TryParse(to.GetFirstChild<TOffset>()?.InnerText, out var offset) &&
+            offset > 0 &&
+            offset / OoxmlUnits.EmusPerPoint >= extent(cell))
+        {
+            return cell + 1;
+        }
+
+        return cell;
+    }
 
     /// <summary>
     /// The page of a sheet drawn whole: as wide as its grid, and as tall as the grid turns out to
