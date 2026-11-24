@@ -58,6 +58,15 @@ sealed partial class DocumentParser
 
     int tableDepth;
 
+    // A column break in a table cell is no break at all: Word sets the text either side of it on one
+    // line. XPS-read on _probe_colbreak (2026-11-25, compatibility modes 12 and 15): "C5 cell before ",
+    // a column break and "C5 cell after" in one cell drew as the single line "C5 cell before C5 cell
+    // after", and the paragraph after the table followed on the same page. Its run's text is kept
+    // (ParseRun takes no column break for a line break).
+    bool IgnoresBreak(Break element) =>
+        tableDepth > 0 &&
+        element.Type?.Value == BreakValues.Column;
+
     IEnumerable<DocumentElement> FlattenTable(Table table, MainDocumentPart mainPart) =>
         table.Descendants<Paragraph>().SelectMany(_ => ParseParagraph(_, mainPart));
 

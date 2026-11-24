@@ -289,6 +289,19 @@ coincided with its reference. Thirteen templates behaved this way (`business-pla
 with substituted ones. The family names Word embedded are in the XPS (`MORPH_KEEP_XPS=1`;
 `scripts/read-word-xps.py` prints them), and a second render that differs from the first is the tell.
 
+**Check that Word still draws as the references were drawn.** On 2026-11-25 the reference machine's
+Word rendered `multiple_pages` — no styles part, so Word's built-in Normal — in Calibri where its
+2026-11-08 reference is Aptos, with every glyph at its linear advance (`11 10.6 6 10.6 9.6`) where
+the whole-pixel advances `DrawAtWordPixels` was read from were `11 11 6 11 10`, and its lines broke
+differently. Rendering it twice, on Word 16.0.20326 and again after updating to 16.0.20527.20150 (the
+build `DrawnPenTests` names), with a different default printer, and with the screen at 120 dpi, all
+gave the same bytes, so the cause is none of those: most likely an Office feature flight, which
+Microsoft switches per account. Vertical layout and pagination were unaffected — `letters/13`,
+`business/03` and `table_page_break`, which name their faces, put every text line within 1-2px of
+their references on the same page count — so probes of line heights and page breaks stayed sound,
+in explicitly named faces. Probes of how glyphs are drawn, and regenerated Word references, are not.
+Before either, re-render `multiple_pages` and confirm it matches its reference.
+
 **Telling the classes apart.** A raw pixel count cannot do it: a line sitting one pixel lower differs
 on every stroke edge, which on a sparse page reads like a change of typeface. What separated them
 cleanly was to slide each text band up to 3px over the reference to its best fit, and then count the

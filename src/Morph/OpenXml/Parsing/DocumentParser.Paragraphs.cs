@@ -729,7 +729,7 @@ sealed partial class DocumentParser
                             }
 
                             var breakElement = sdtChildRun.GetFirstChild<Break>();
-                            if (breakElement != null)
+                            if (breakElement != null && !IgnoresBreak(breakElement))
                             {
                                 var breakType = breakElement.Type?.Value;
                                 if (breakType == BreakValues.Page)
@@ -823,7 +823,7 @@ sealed partial class DocumentParser
                     foreach (var sdtCellRun in sdtCell.Descendants<OoxmlRun>())
                     {
                         var cellBreakElement = sdtCellRun.GetFirstChild<Break>();
-                        if (cellBreakElement != null)
+                        if (cellBreakElement != null && !IgnoresBreak(cellBreakElement))
                         {
                             var breakType = cellBreakElement.Type?.Value;
                             if (breakType == BreakValues.Page)
@@ -880,7 +880,7 @@ sealed partial class DocumentParser
                     foreach (var sdtBlockRun in sdtBlock.Descendants<OoxmlRun>())
                     {
                         var blockBreakElement = sdtBlockRun.GetFirstChild<Break>();
-                        if (blockBreakElement != null)
+                        if (blockBreakElement != null && !IgnoresBreak(blockBreakElement))
                         {
                             var breakType = blockBreakElement.Type?.Value;
                             if (breakType == BreakValues.Page)
@@ -1399,7 +1399,8 @@ sealed partial class DocumentParser
 
                                 result.Add(new PageBreakElement());
                             }
-                            else if (breakType == BreakValues.Column)
+                            else if (breakType == BreakValues.Column &&
+                                     !IgnoresBreak(breakElement))
                             {
                                 // Emit current paragraph content before the break
                                 if (runs.Count > 0)

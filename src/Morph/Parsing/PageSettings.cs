@@ -25,6 +25,14 @@ sealed record PageSettings
     /// <summary>Bottom margin in points.</summary>
     public double MarginBottom { get; init; } = 72;
 
+    /// <summary>
+    /// True when <c>w:pgMar/@w:bottom</c> was NEGATIVE: <see cref="MarginBottom"/> is then the absolute
+    /// distance from the page's foot to the body's, and a footer taller than the margin overlaps the
+    /// body. A positive margin is a MINIMUM, and the body stops at the top of a footer that reaches
+    /// above it (<c>Fragmenter.FooterReservedBottom</c>).
+    /// </summary>
+    public bool BottomMarginIsAbsolute { get; init; }
+
     /// <summary>Left margin in points.</summary>
     public double MarginLeft { get; init; } = 72;
 

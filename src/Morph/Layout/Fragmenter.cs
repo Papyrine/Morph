@@ -369,7 +369,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         {
             current = settings;
             contentTop = HeaderReservedTop(settings, Bands(settings).Header);
-            pageContentBottom = (float)(settings.HeightPoints - settings.MarginBottom);
+            pageContentBottom = FooterReservedBottom(settings, Bands(settings).Footer);
             contentHeight = pageContentBottom - contentTop;
             fullContentLeft = (float)settings.MarginLeft;
             fullContentWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
@@ -980,6 +980,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         void ReserveHeader(bool sectionFirst)
         {
             contentTop = HeaderReservedTop(current, SelectVariant(current, sectionFirst, bodies.Count + 1, isHeader: true));
+            pageContentBottom = FooterReservedBottom(current, SelectVariant(current, sectionFirst, bodies.Count + 1, isHeader: false));
             contentHeight = pageContentBottom - contentTop;
         }
 
@@ -996,30 +997,59 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 return marginTop;
             }
 
+            return Math.Max(marginTop, (float)settings.HeaderDistance + BandHeight(settings, content));
+        }
+
+        // Where the body stops: the bottom margin, or the footer's top where the footer, laid up from the
+        // footer distance, reaches above the margin — the counterpart of HeaderReservedTop, with a
+        // negative w:bottom (BottomMarginIsAbsolute) pinning the body at the margin. XPS-read on
+        // _probe_hdrspace and _probe_ftrstep (2026-11-25, 12pt Times New Roman lines on a Letter page
+        // with 1in margins and a 0.5in footer distance): an eight-line footer stopped the body at line
+        // 41 where the margin alone allows 46, and a one-line footer with space after stepped a point at
+        // a time moved the body's last line from 44 to 43 between 63pt and 64pt — exactly where the
+        // footer's top crosses line 44's foot, so nothing stands between the two. Space before and
+        // between the footer's paragraphs counts as space after does (60pt before cut the body to 44 too).
+        float FooterReservedBottom(PageSettings settings, HeaderFooterContent? content)
+        {
+            var marginBottom = (float)(settings.HeightPoints - settings.MarginBottom);
+            if (settings.BottomMarginIsAbsolute || content == null)
+            {
+                return marginBottom;
+            }
+
+            return Math.Min(marginBottom, (float)(settings.HeightPoints - settings.FooterDistance) - BandHeight(settings, content));
+        }
+
+        // How tall a header or footer stands: every paragraph with its space before and after, and every
+        // table. Every paragraph's space after counts, an empty one's too, though the body drops an empty
+        // paragraph's (MeasureParagraphHeightWithWidth). Word-probed on wedding/01's header, a lone empty
+        // paragraph (_probe_hdrafter_*): its space after at 24pt and at 48pt put the body's first baseline
+        // at 54.12pt and 78.14pt, 24pt apart, and a paragraph holding "X" at 48pt put it at 78.14pt too —
+        // the corpus case is that header's 6pt, which held wedding/01's whole page 6pt high. And again on
+        // _probe_hdrspace (2026-11-25): a header's last paragraph's space after, an empty last paragraph's,
+        // its first paragraph's space before and a header table all pushed the body down by exactly
+        // their height. A header TABLE counts toward the height exactly as a paragraph does, as LayoutBand
+        // stacks the two (a banner header's shaded table).
+        float BandHeight(PageSettings settings, HeaderFooterContent content)
+        {
             var bandWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
-            var headerHeight = 0f;
+            var height = 0f;
             foreach (var element in content.Elements)
             {
                 if (element is ParagraphElement paragraph)
                 {
-                    // Every paragraph's space after counts, an empty one's too, though the body drops an
-                    // empty paragraph's (MeasureParagraphHeightWithWidth). Word-probed on wedding/01's
-                    // header, a lone empty paragraph (_probe_hdrafter_*): its space after at 24pt and at
-                    // 48pt put the body's first baseline at 54.12pt and 78.14pt, 24pt apart, and a
-                    // paragraph holding "X" at 48pt put it at 78.14pt too. The corpus case is that
-                    // header's 6pt, which held wedding/01's whole page 6pt high.
                     var properties = paragraph.Properties;
-                    headerHeight += (float)properties.SpacingBeforePoints +
-                                    measurer.LayoutParagraphForMeasurement(paragraph, bandWidth).Sum() +
-                                    (float)properties.SpacingAfterPoints;
+                    height += (float)properties.SpacingBeforePoints +
+                              measurer.LayoutParagraphForMeasurement(paragraph, bandWidth).Sum() +
+                              (float)properties.SpacingAfterPoints;
                 }
                 else if (element is TableElement table)
                 {
-                    headerHeight += NestedTableHeight(table, bandWidth);
+                    height += NestedTableHeight(table, bandWidth);
                 }
             }
 
-            return Math.Max(marginTop, (float)settings.HeaderDistance + headerHeight);
+            return height;
         }
 
         // A section break. A continuous break keeps the same page; when it switches column count the new
@@ -1145,6 +1175,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // The page is its section's first whether or not the break brought new geometry (it is
             // flagged so below), so it is the first-page header its body has to clear.
             ReserveHeader(sectionFirst: true);
+            RefreshContentBottom();
             y = contentTop;
             columnTop = contentTop;
 
@@ -1236,6 +1267,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             // than the primary-constructor `page` (the same settings at this point): taking the parameter
             // captures it into the type while a field initializer also uses it, which is CS9124.
             contentTop = HeaderReservedTop(current, SelectVariant(current, sectionFirst: true, pageNumber: 1, isHeader: true));
+            pageContentBottom = FooterReservedBottom(current, SelectVariant(current, sectionFirst: true, pageNumber: 1, isHeader: false));
+            contentBottom = pageContentBottom;
             contentHeight = pageContentBottom - contentTop;
             columnTop = contentTop;
             y = contentTop;
@@ -1273,7 +1306,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                         break;
 
                     case ColumnBreakElement:
-                        // Move to the next column, or a new page from the last column.
+                        // Move to the next column, or a new page from the last column — a page of its
+                        // own even when the break stands at the top of one, as a page break's does.
+                        // XPS-read on _probe_colbreak (2026-11-25, compatibility modes 12 and 15): a
+                        // single-column section opening with a column break left its first page blank
+                        // and set its text on the next; two breaks in a row left one blank page between.
+                        if (currentColumn == columnCount - 1)
+                        {
+                            currentPageExplicit = true;
+                        }
+
                         AdvanceColumnOrPage();
                         break;
 

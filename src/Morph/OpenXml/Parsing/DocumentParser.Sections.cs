@@ -519,6 +519,7 @@ sealed partial class DocumentParser
         var (width, height) = DefaultPageSize.Resolve(useLetterPageSize);
         double marginTop = 72;
         var topMarginIsAbsolute = false;
+        var bottomMarginIsAbsolute = false;
         double marginBottom = 72;
         double marginLeft = 72;
         double marginRight = 72;
@@ -555,7 +556,10 @@ sealed partial class DocumentParser
 
             if (pageMargin.Bottom?.HasValue == true)
             {
+                // Likewise a negative w:bottom pins the body's foot, where a positive one yields to a
+                // footer taller than the margin leaves room for (BottomMarginIsAbsolute).
                 marginBottom = Math.Abs(pageMargin.Bottom.Value) / OoxmlUnits.TwipsPerPoint;
+                bottomMarginIsAbsolute = pageMargin.Bottom.Value < 0;
             }
 
             marginLeft = pageMargin.Left.TwipsToPoints() ?? marginLeft;
@@ -620,6 +624,7 @@ sealed partial class DocumentParser
             MarginTop = marginTop,
             TopMarginIsAbsolute = topMarginIsAbsolute,
             MarginBottom = marginBottom,
+            BottomMarginIsAbsolute = bottomMarginIsAbsolute,
             MarginLeft = marginLeft,
             MarginRight = marginRight,
             HeaderDistance = headerDistance,

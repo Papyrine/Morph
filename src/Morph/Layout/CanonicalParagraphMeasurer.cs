@@ -169,15 +169,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             for (var segment = 0; segment < segments.Count; segment++)
             {
                 runs[segment] = new(segments[segment].X, segments[segment].Width, segments[segment].Text, segments[segment].Properties, segments[segment].Leader, segments[segment].BaselineShift, segments[segment].BorderInside, segments[segment].GlyphX);
-                textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
+                if (!segments[segment].Blank)
+                {
+                    textAscent = Math.Max(textAscent, AscentPoints(segments[segment].Properties));
+                }
             }
 
             AlignToLargest(runs, props.FontAlignment);
 
             // An empty mark line has no runs; its baseline still needs the mark's ascent, and its height the
             // mark font's line pitch, so an image-only line (resumes/18's section rules) keeps the
-            // paragraph's own font-height row rather than collapsing to the image.
-            if (segments.Count == 0)
+            // paragraph's own font-height row rather than collapsing to the image. A line of blanks alone
+            // (a lone leadered tab) is sized by its mark the same way (SetsNoHeight).
+            if (segments.All(_ => _.Blank))
             {
                 textAscent = AscentPoints(ParagraphFont(paragraph));
                 textHeight = (float) CanonicalTextMeasurer.LineHeightPoints(
@@ -788,7 +792,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
     // Footnote/EndnoteReferenceId: the note the run cites, on its first text piece only.
     readonly record struct Piece(bool IsSpace, double Pixels, float Pitch, string Text, RunProperties Properties, LaidOutImage? Image, bool IsBreak, bool IsTab, PositionalTab? Positional = null, bool BreaksBefore = false, float BaselineShift = 0, bool IsInset = false, string? FootnoteReferenceId = null, string? EndnoteReferenceId = null, double FitPixels = 0, bool Closes = false, bool BorderInside = false);
 
-    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false, IReadOnlyList<float>? GlyphX = null);
+    // Blank: the segment holds only spaces, or is a tab's leader — what sets no line's height (IsBlank).
+    readonly record struct WrapSegment(float X, float Width, string Text, RunProperties Properties, TabLeader Leader = TabLeader.None, float BaselineShift = 0, bool BorderInside = false, IReadOnlyList<float>? GlyphX = null, bool Blank = false);
 
     // Width is the pen position the line reached, rounded once onto the pixel grid — where a painter
     // and an alignment place things. LinearWidth is the same total unrounded, which is the quantity Word
@@ -824,7 +829,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var textAscent = 0f;
         foreach (var segment in lines[0].Segments)
         {
-            textAscent = Math.Max(textAscent, UnsnappedAscentPoints(segment.Properties));
+            if (!segment.Blank)
+            {
+                textAscent = Math.Max(textAscent, UnsnappedAscentPoints(segment.Properties));
+            }
         }
 
         var rise = LabelAscentPoints(paragraph) - textAscent;
@@ -852,11 +860,26 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         var ascent = 0f;
         foreach (var segment in line.Segments)
         {
-            ascent = Math.Max(ascent, AscentPoints(segment.Properties));
+            if (!segment.Blank)
+            {
+                ascent = Math.Max(ascent, AscentPoints(segment.Properties));
+            }
         }
 
         return ascent;
     }
+
+    // Spaces and tabs set no line's height or baseline: Word sizes a line on what it shows. XPS-read on
+    // _probe_blanks (2026-11-25, 12pt Times New Roman lines with 48pt blanks, in compatibility modes 12
+    // and 15 alike), every line 13.8pt — as a 12pt line alone — with 48pt spaces between two words or
+    // between runs, trailing at a wrap or at the paragraph's end, a 48pt tab in the middle or at the end,
+    // with or without a dot leader; a paragraph of nothing but 48pt spaces or a 48pt tab took its 12pt
+    // mark's line. A no-break space is not a blank: three of them at 48pt grew the line to 55.2pt, as did
+    // an empty paragraph whose mark is 48pt. This is LibreOffice's IGNORE_TABS_AND_BLANKS_FOR_LINE_CALCULATION.
+    // Wrap leaves spaces and tabs out of a line's pitch, and a segment of only spaces, or a leader, is
+    // Blank and sets no ascent.
+    static bool SetsNoHeight(Piece piece) =>
+        piece.IsSpace || piece.IsTab;
 
     // How far a line may run past its measure and still fit: a three-hundredth of a layout pixel. An
     // autofit column is sized to its content plus the cell's chrome, which the cell takes back off, so
@@ -1157,6 +1180,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         // line gives its overrun back the same way whether it is justified or not, and ends at the measure.
         void CommitLine(bool justify)
         {
+            // A line of tabs alone has no pitch of its own (SetsNoHeight) and is its mark's line, as an
+            // empty paragraph is. A picture's line keeps its pitch of nought: its height is worked out
+            // from the mark where it is measured (LayoutLines).
+            if (linePitch == 0 &&
+                !linePieces.Any(_ => _.Image != null))
+            {
+                linePitch = MarkPitch(paragraph);
+            }
+
             var measurePixels = CanonicalTextMeasurer.PixelsFromPoints(LineWrapWidth());
             var endPixels = lineSqueezed ? Math.Min(linePixels, measurePixels) : linePixels;
 
@@ -1328,7 +1360,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 gapPixels += pieces[index].Pixels;
                 gapFit += pieces[index].FitPixels;
-                gapPitch = Math.Max(gapPitch, pieces[index].Pitch);
+                if (!SetsNoHeight(pieces[index]))
+                {
+                    gapPitch = Math.Max(gapPitch, pieces[index].Pitch);
+                }
+
                 gapPieces.Add(pieces[index]);
                 index++;
                 continue;
@@ -1350,7 +1386,11 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 wordPixels += pieces[index].Pixels;
                 wordFit += pieces[index].FitPixels;
-                wordPitch = Math.Max(wordPitch, pieces[index].Pitch);
+                if (!SetsNoHeight(pieces[index]))
+                {
+                    wordPitch = Math.Max(wordPitch, pieces[index].Pitch);
+                }
+
                 wordPieces.Add(pieces[index]);
                 index++;
             }
@@ -1496,6 +1536,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         RunProperties? segmentFont = null;
         var segmentShift = 0f;
         var segmentInside = false;
+        // Whether only spaces have gone into the segment: its text cannot say, since a no-break space,
+        // which does count, is measured and drawn as a space (Flatten).
+        var segmentBlank = true;
 
         void FlushSegment()
         {
@@ -1506,9 +1549,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
 
             var x = (float) CanonicalTextMeasurer.PixelsToPoints(segmentStart);
             var width = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) - x;
-            segments.Add(new(x, width, segmentText.ToString(), segmentFont, BaselineShift: segmentShift, BorderInside: segmentInside));
+            segments.Add(new(x, width, segmentText.ToString(), segmentFont, BaselineShift: segmentShift, BorderInside: segmentInside, Blank: segmentBlank && segmentText.Length > 0));
             segmentText.Clear();
             segmentFont = null;
+            segmentBlank = true;
         }
 
         for (var pieceIndex = 0; pieceIndex < linePieces.Count; pieceIndex++)
@@ -1579,7 +1623,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 {
                     var leaderX = (float) CanonicalTextMeasurer.PixelsToPoints(tabStart);
                     var leaderWidth = (float) CanonicalTextMeasurer.PixelsToPoints(cursor) - leaderX;
-                    segments.Add(new(leaderX, leaderWidth, "", piece.Properties, matchedStop.Leader));
+                    segments.Add(new(leaderX, leaderWidth, "", piece.Properties, matchedStop.Leader, Blank: true));
                 }
 
                 continue;
@@ -1625,6 +1669,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             }
 
             segmentText.Append(piece.Text);
+            segmentBlank &= piece.IsSpace;
             cursor += piece.Pixels;
         }
 
