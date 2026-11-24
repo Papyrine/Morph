@@ -83,6 +83,34 @@ public class BandMarginStripTests
         await Assert.That(Shapes(page).Single().Y).IsEqualTo(54.4f).Within(0.01f);
     }
 
+    [Test]
+    [Arguments(1, 22f, 102f)]
+    [Arguments(6, 106f, 186f)]
+    public async Task An_offset_from_the_margin_is_from_the_bodys_top(int lines, float header, float footer)
+    {
+        var page = Layout(
+            Band(lines, (0, Shape(Vertical("margin", offset: -50)))),
+            Band(1, (0, Shape(Vertical("margin", offset: 30)))));
+        var shapes = Shapes(page);
+
+        await Assert.That(shapes[0].Y).IsEqualTo(header).Within(0.01f);
+        await Assert.That(shapes[1].Y).IsEqualTo(footer).Within(0.01f);
+    }
+
+    // Word-probed 2026-11-24 with margins left 90 and right 54, on a first page.
+    [Test]
+    [Arguments("leftMargin", 10, 10f)]
+    [Arguments("outsideMargin", 10, 10f)]
+    [Arguments("rightMargin", -120, 438f)]
+    [Arguments("insideMargin", 10, 568f)]
+    public async Task An_offset_from_a_side_margin_is_from_that_strips_left_edge(string relativeFrom, int offset, float expected)
+    {
+        var horizontal = $"""<wp:positionH relativeFrom="{relativeFrom}"><wp:posOffset>{offset * 12700}</wp:posOffset></wp:positionH>""";
+        var page = Layout(Band(1, (0, Shape(Vertical("page", offset: 200), horizontal))), Band(1), left: 1800, right: 1080);
+
+        await Assert.That(Shapes(page).Single().X).IsEqualTo(expected).Within(0.01f);
+    }
+
     static string Vertical(string relativeFrom, string? align = null, double offset = 0)
     {
         var position = align == null
@@ -92,8 +120,8 @@ public class BandMarginStripTests
     }
 
     // A 100 x 40pt red rectangle at the left margin.
-    static string Shape(string vertical) =>
-        Drawing(vertical, 40, """<wps:cNvSpPr/>""", """<a:solidFill><a:srgbClr val="FF0000"/></a:solidFill><a:ln><a:noFill/></a:ln>""", "<wps:bodyPr/>");
+    static string Shape(string vertical, string horizontal = atLeftMargin) =>
+        Drawing(vertical, 40, """<wps:cNvSpPr/>""", """<a:solidFill><a:srgbClr val="FF0000"/></a:solidFill><a:ln><a:noFill/></a:ln>""", "<wps:bodyPr/>", horizontal);
 
     // A 100pt-wide text box declared 20pt tall that resizes to its two 20pt lines, outlined.
     static string TextBox(string vertical) =>
@@ -104,10 +132,12 @@ public class BandMarginStripTests
             """<a:noFill/><a:ln w="12700"><a:solidFill><a:srgbClr val="000000"/></a:solidFill></a:ln>""",
             $"""<wps:txbx><w:txbxContent>{Paragraph("BOX1")}{Paragraph("BOX2")}</w:txbxContent></wps:txbx><wps:bodyPr lIns="91440" tIns="45720" rIns="91440" bIns="45720"><a:spAutoFit/></wps:bodyPr>""");
 
-    static string Drawing(string vertical, int height, string nonVisual, string look, string body) =>
+    const string atLeftMargin = """<wp:positionH relativeFrom="margin"><wp:posOffset>0</wp:posOffset></wp:positionH>""";
+
+    static string Drawing(string vertical, int height, string nonVisual, string look, string body, string horizontal = atLeftMargin) =>
         $"""
          <w:r><w:drawing><wp:anchor distT="0" distB="0" distL="0" distR="0" simplePos="0" relativeHeight="251659265" behindDoc="0" locked="0" layoutInCell="1" allowOverlap="1">
-         <wp:simplePos x="0" y="0"/><wp:positionH relativeFrom="margin"><wp:posOffset>0</wp:posOffset></wp:positionH>{vertical}
+         <wp:simplePos x="0" y="0"/>{horizontal}{vertical}
          <wp:extent cx="1270000" cy="{height * 12700}"/><wp:effectExtent l="0" t="0" r="0" b="0"/><wp:wrapNone/><wp:docPr id="1" name="Shape 1"/><wp:cNvGraphicFramePr/>
          <a:graphic><a:graphicData uri="http://schemas.microsoft.com/office/word/2010/wordprocessingShape"><wps:wsp>{nonVisual}
          <wps:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="1270000" cy="{height * 12700}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom>{look}</wps:spPr>{body}
@@ -123,7 +153,7 @@ public class BandMarginStripTests
             Enumerable.Range(0, lines)
                 .Select(line => Paragraph($"L{line + 1}", string.Concat(drawings.Where(_ => _.Line == line).Select(_ => _.Drawing)))));
 
-    static LaidOutPage Layout(string header, string footer)
+    static LaidOutPage Layout(string header, string footer, int left = 1440, int right = 1440)
     {
         using var stream = new MemoryStream();
         using (var package = WordprocessingDocument.Create(stream, DocumentFormat.OpenXml.WordprocessingDocumentType.Document))
@@ -138,7 +168,7 @@ public class BandMarginStripTests
                 $"""
                  <w:document {namespaces}><w:body>{Paragraph("BODY")}
                  <w:sectPr><w:headerReference w:type="default" r:id="{main.GetIdOfPart(headerPart)}"/><w:footerReference w:type="default" r:id="{main.GetIdOfPart(footerPart)}"/>
-                 <w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>
+                 <w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="{right}" w:bottom="1440" w:left="{left}" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr>
                  </w:body></w:document>
                  """);
         }

@@ -997,29 +997,15 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             }
 
             var bandWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
-            var headerHeight = 0f;
-            foreach (var element in content.Elements)
-            {
-                if (element is ParagraphElement paragraph)
-                {
-                    // Every paragraph's space after counts, an empty one's too, though the body drops an
-                    // empty paragraph's (MeasureParagraphHeightWithWidth). Word-probed on wedding/01's
-                    // header, a lone empty paragraph (_probe_hdrafter_*): its space after at 24pt and at
-                    // 48pt put the body's first baseline at 54.12pt and 78.14pt, 24pt apart, and a
-                    // paragraph holding "X" at 48pt put it at 78.14pt too. The corpus case is that
-                    // header's 6pt, which held wedding/01's whole page 6pt high.
-                    var properties = paragraph.Properties;
-                    headerHeight += (float)properties.SpacingBeforePoints +
-                                    measurer.LayoutParagraphForMeasurement(paragraph, bandWidth).Sum() +
-                                    (float)properties.SpacingAfterPoints;
-                }
-                else if (element is TableElement table)
-                {
-                    headerHeight += NestedTableHeight(table, bandWidth);
-                }
-            }
 
-            return Math.Max(marginTop, (float)settings.HeaderDistance + headerHeight);
+            // The last paragraph's space after counts, an empty one's too, though the body drops an
+            // empty paragraph's (MeasureParagraphHeightWithWidth). Word-probed on wedding/01's
+            // header, a lone empty paragraph (_probe_hdrafter_*): its space after at 24pt and at
+            // 48pt put the body's first baseline at 54.12pt and 78.14pt, 24pt apart, and a
+            // paragraph holding "X" at 48pt put it at 78.14pt too. The corpus case is that
+            // header's 6pt, which held wedding/01's whole page 6pt high.
+            var headerBottom = StackBand(content.Elements, 0, (float)settings.HeaderDistance, bandWidth, null, place: false, countEmptyAfter: true).Bottom;
+            return Math.Max(marginTop, headerBottom);
         }
 
         // A section break. A continuous break keeps the same page; when it switches column count the new
@@ -5162,17 +5148,53 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             };
 
         // Lays out a header or footer's content as a self-contained band from (left, top), wrapping each
-        // paragraph to the band width and stacking it with its own spacing — no page breaks (a band fits
-        // its margin area). Reuses the body's line mapping, alignment and shading; a band table lays out
-        // inline via the nested-table layout, and page-number fields are substituted per page before the
-        // band lays out (SubstitutePageFields). Band paragraph borders are a later slice; an empty
-        // paragraph adds only its invisible mark line.
+        // paragraph to the band width and stacking it with the body's spacing and border boxes — no page
+        // breaks (a band fits its margin area). Reuses the body's line mapping, alignment and shading; a
+        // band table lays out inline via the nested-table layout, and page-number fields are substituted
+        // per page before the band lays out (SubstitutePageFields). A w:between rule is a later slice; an
+        // empty paragraph adds only its invisible mark line.
         // Each paragraph's pre-spacing top goes into paragraphTops, under the paragraph as parsed, for the band
         // floats anchored to it (ResolveBandImages).
-        IReadOnlyList<PlacedItem> LayoutBand(IReadOnlyList<DocumentElement> elements, float left, float top, float width, Dictionary<ParagraphElement, float>? paragraphTops = null)
+        IReadOnlyList<PlacedItem> LayoutBand(IReadOnlyList<DocumentElement> elements, float left, float top, float width, Dictionary<ParagraphElement, float>? paragraphTops = null) =>
+            StackBand(elements, left, top, width, paragraphTops, place: true, countEmptyAfter: true).Items;
+
+        // Stacks a band's content from (left, top) and says where it ends. Without `place` nothing is made,
+        // so the measure a header reserves and a footer is hung by cannot part from what is drawn.
+        (IReadOnlyList<PlacedItem> Items, float Bottom) StackBand(IReadOnlyList<DocumentElement> elements, float left, float top, float width, Dictionary<ParagraphElement, float>? paragraphTops, bool place, bool countEmptyAfter)
         {
             var result = new List<PlacedItem>();
             var bandY = top;
+            var lastAfter = 0f;
+            var lastContextual = false;
+            var lastIsParagraph = false;
+            string? lastStyleId = null;
+            ParagraphProperties? borderRun = null;
+            var borderRunTop = 0f;
+            var borderRunBottom = 0f;
+
+            void FlushBorderRun()
+            {
+                if (borderRun is not { Borders: { } borders } run)
+                {
+                    borderRun = null;
+                    return;
+                }
+
+                if (place)
+                {
+                    var boxLeft = left + (float)(run.LeftIndentPoints - run.HangingIndentPoints) - (float)run.BorderLeftSpacePoints - borderBoxLeftOutset;
+                    var boxWidth = width - (float)run.LeftIndentPoints - (float)run.RightIndentPoints
+                                   + (float)run.HangingIndentPoints + (float)run.BorderLeftSpacePoints + (float)run.BorderRightSpacePoints
+                                   + borderBoxLeftOutset + borderBoxRightOutset;
+                    var boxTop = borderRunTop - (float)run.BorderTopSpacePoints;
+                    var boxHeight = borderRunBottom - borderRunTop + (float)run.BorderTopSpacePoints + (float)run.BorderBottomSpacePoints;
+                    result.Add(new PlacedBorder(boxLeft, boxTop, boxWidth, boxHeight, borders));
+                }
+
+                bandY += EdgeReserve(borders.Bottom, run.BorderBottomSpacePoints);
+                borderRun = null;
+            }
+
             foreach (var element in elements)
             {
                 // A header/footer table (a page-number bar, an agenda's footer grid) lays out inline in the
@@ -5184,6 +5206,18 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // and runs the full width of the sheet.
                 if (element is TableElement bandTable)
                 {
+                    FlushBorderRun();
+                    bandY += lastAfter;
+                    lastAfter = 0;
+                    lastContextual = false;
+                    lastIsParagraph = false;
+                    lastStyleId = null;
+                    if (!place)
+                    {
+                        bandY += NestedTableHeight(bandTable, width);
+                        continue;
+                    }
+
                     var (tableItems, tableHeight) = LayoutNestedTable(bandTable, left + (float)bandTable.Properties.IndentPoints, bandY, width);
                     result.AddRange(tableItems);
                     bandY += tableHeight;
@@ -5196,13 +5230,34 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 }
 
                 var properties = paragraph.Properties;
-                var spaceTop = bandY;
+                if (borderRun is { } openRun &&
+                    !openRun.SharesBorderGroupWith(properties))
+                {
+                    FlushBorderRun();
+                }
+
+                // Word-probed 2026-11-24: band paragraphs keep max(after, before) between them, as the body's do.
+                var (keptAfter, keptBefore) = ParagraphGap.Between(lastAfter, lastContextual, lastStyleId, lastIsParagraph, properties);
+                var spaceTop = bandY + keptAfter;
                 paragraphTops?[paragraph.Parsed] = spaceTop;
-                bandY += (float)properties.SpacingBeforePoints;
-                var paragraphLines = measurer.LayoutLineContents(paragraph, width);
+                bandY += keptAfter + keptBefore;
+                if (borderRun == null &&
+                    properties.Borders is { HasAnyBorder: true } opening)
+                {
+                    bandY += EdgeReserve(opening.Top, properties.BorderTopSpacePoints);
+                }
+
+                var memberTop = bandY;
+                var paragraphLines = place || !countEmptyAfter ? measurer.LayoutLineContents(paragraph, width) : null;
+                var isEmpty = paragraphLines is [{ Width: <= 0 }];
+                if (!place)
+                {
+                    bandY += paragraphLines?.Sum(_ => _.Height) ?? measurer.LayoutParagraphForMeasurement(paragraph, width).Sum();
+                }
+
                 var availableWidth = width - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
                 var drawShift = 0f;
-                for (var lineIndex = 0; lineIndex < paragraphLines.Count; lineIndex++)
+                for (var lineIndex = 0; place && lineIndex < paragraphLines!.Count; lineIndex++)
                 {
                     var line = paragraphLines[lineIndex];
                     var indentLeft = left + (float)properties.LeftIndentPoints;
@@ -5223,10 +5278,25 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     bandY += line.Height;
                 }
 
-                bandY += (float)properties.SpacingAfterPoints;
+                if (properties.Borders is { HasAnyBorder: true })
+                {
+                    if (borderRun == null)
+                    {
+                        borderRun = properties;
+                        borderRunTop = memberTop;
+                    }
+
+                    borderRunBottom = bandY;
+                }
+
+                lastAfter = isEmpty && !countEmptyAfter ? 0 : (float)properties.SpacingAfterPoints;
+                lastContextual = properties.ContextualSpacing;
+                lastIsParagraph = true;
+                lastStyleId = ParagraphGap.StyleKey(properties);
             }
 
-            return result;
+            FlushBorderRun();
+            return (result, bandY + lastAfter);
         }
 
         // What a page's PAGE / NUMPAGES / SECTIONPAGES fields read: the displayed number (a section's
@@ -5375,19 +5445,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var bandLeft = (float)settings.MarginLeft;
             var bandWidth = (float)(settings.WidthPoints - settings.MarginLeft - settings.MarginRight);
             var elements = SubstitutePageFields(content.Elements, numbering, settings.PageNumberFormat);
-            var height = 0f;
-            foreach (var element in elements)
-            {
-                if (element is ParagraphElement paragraph)
-                {
-                    height += measurer.MeasureParagraphHeightWithWidth(paragraph, bandWidth);
-                }
-                else if (element is TableElement table)
-                {
-                    height += NestedTableHeight(table, bandWidth);
-                }
-            }
-
+            var height = StackBand(elements, 0, 0, bandWidth, null, place: false, countEmptyAfter: false).Bottom;
             footerTop = (float)settings.HeightPoints - (float)settings.FooterDistance - height;
             return LayoutBand(elements, bandLeft, footerTop, bandWidth, paragraphTops);
         }
@@ -5645,7 +5703,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 var y = verticalAnchor switch
                 {
                     VerticalAnchor.Page => 0f,
-                    VerticalAnchor.Margin => (float)settings.MarginTop,
+                    VerticalAnchor.Margin => frame.TopStripBottom,
                     _ => anchor != null && frame.ParagraphTops.TryGetValue(anchor, out var paragraphTop) ? paragraphTop : bandTop
                 };
                 y += verticalPercent is { } down

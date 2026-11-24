@@ -1232,6 +1232,21 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 width += DrawAtWordPixels(segments, CanonicalTextMeasurer.PixelsToPoints(measurePixels - endPixels - lineFit));
             }
 
+            // Word centres or right-aligns a tabbed line by where its tabs leave the pen, not by its text alone.
+            if (paragraph.Properties.Alignment is TextAlignment.Center or TextAlignment.Right &&
+                HasTab(linePieces))
+            {
+                foreach (var segment in segments)
+                {
+                    width = Math.Max(width, segment.X + segment.Width);
+                }
+
+                foreach (var image in images)
+                {
+                    width = Math.Max(width, image.X + image.BoxWidth);
+                }
+            }
+
             lines.Add(new(width, linearWidth, linePitch, segments, images, footnoteIds, endnoteIds));
         }
 

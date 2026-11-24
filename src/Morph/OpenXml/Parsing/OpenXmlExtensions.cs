@@ -115,6 +115,23 @@ static class OpenXmlExtensions
             }
             hPctOffset = pctOffset;
 
+            // Word measures a margin strip's offset from the strip's own left edge (probed on a first page only).
+            if (emuOffset.HasValue &&
+                pctOffset == null &&
+                !IsCellOrTextBoxAnchored(anchor))
+            {
+                switch (posH.AttributeValue("relativeFrom"))
+                {
+                    case "leftMargin" or "outsideMargin":
+                        hAnchor = HorizontalAnchor.Page;
+                        break;
+                    case "rightMargin" or "insideMargin" when page != null:
+                        hAnchor = HorizontalAnchor.Page;
+                        hPosPoints += page.WidthPoints - page.MarginRight;
+                        break;
+                }
+            }
+
             // <wp:align> is the schema's alternative to posOffset: the object aligns within
             // its relativeFrom reference box. The offset needs the object's extent and the
             // section's page metrics, so it folds into the position here at parse — group
