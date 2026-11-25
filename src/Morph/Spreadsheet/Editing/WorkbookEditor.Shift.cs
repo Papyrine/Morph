@@ -1637,9 +1637,9 @@ static partial class WorkbookEditor
         ids.ExceptWith(RelationshipIds(drawing));
         foreach (var id in ids)
         {
-            if (drawings.Parts.FirstOrDefault(_ => _.RelationshipId == id) is var pair)
+            if (drawings.TryGetPartById(id, out var part))
             {
-                drawings.DeletePart(pair.OpenXmlPart);
+                drawings.DeletePart(part);
                 continue;
             }
 

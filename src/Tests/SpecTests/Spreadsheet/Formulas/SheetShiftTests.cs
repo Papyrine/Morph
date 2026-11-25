@@ -495,6 +495,33 @@ public class SheetShiftTests
         await Assert.That(Anchors(xlsx)).IsEquivalentTo([(8, 13), (9, 14)]);
     }
 
+    [Test]
+    public async Task AShapeThatGoes_TakesItsLinkWithIt()
+    {
+        var xlsx = Change(Book("Data"), _ =>
+        {
+            var part = _.WorkbookPart!.WorksheetParts.First();
+            var drawings = part.AddNewPart<DrawingsPart>();
+            var link = drawings.AddHyperlinkRelationship(new("https://example.com/"), true);
+            var anchor = Anchor(null, 9, 14);
+            anchor.Descendants<XDR.NonVisualDrawingProperties>().Single()
+                .AppendChild(new DocumentFormat.OpenXml.Drawing.HyperlinkOnClick
+                {
+                    Id = link.Id
+                });
+            drawings.WorksheetDrawing = new(anchor);
+            part.Worksheet!.AppendChild(new S.Drawing
+            {
+                Id = part.GetIdOfPart(drawings)
+            });
+        });
+
+        xlsx = WorkbookEditor.DeleteRows(xlsx, 0, 9, 12, now);
+        var links = Look(xlsx, _ => Sheet(_, 0).WorksheetPart!.DrawingsPart!.HyperlinkRelationships.Count());
+        await Assert.That(Anchors(xlsx)).IsEmpty();
+        await Assert.That(links).IsEqualTo(0);
+    }
+
     // A shape over rows from to to (zero-based, as the file has them), column B.
     static XDR.TwoCellAnchor Anchor(XDR.EditAsValues? mode, int from, int to)
     {
