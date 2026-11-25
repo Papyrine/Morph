@@ -1451,7 +1451,11 @@ static partial class WorkbookEditor
         {
             switch (anchor)
             {
-                case XDR.TwoCellAnchor two when two.FromMarker is { } from && two.ToMarker is { } to:
+                case XDR.TwoCellAnchor
+                {
+                    FromMarker: { } from,
+                    ToMarker: { } to
+                } two:
                     var mode = two.EditAs?.Value;
                     if (mode == XDR.EditAsValues.Absolute)
                     {
@@ -1470,7 +1474,10 @@ static partial class WorkbookEditor
                     }
 
                     break;
-                case XDR.OneCellAnchor one when one.FromMarker is { } start:
+                case XDR.OneCellAnchor
+                {
+                    FromMarker: { } start
+                }:
                     MoveAnchor(start, null, shift);
                     break;
             }
@@ -1630,7 +1637,7 @@ static partial class WorkbookEditor
         ids.ExceptWith(RelationshipIds(drawing));
         foreach (var id in ids)
         {
-            if (drawings.Parts.FirstOrDefault(_ => _.RelationshipId == id) is { } pair)
+            if (drawings.Parts.FirstOrDefault(_ => _.RelationshipId == id) is var pair)
             {
                 drawings.DeletePart(pair.OpenXmlPart);
                 continue;

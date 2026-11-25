@@ -340,7 +340,7 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
     double CutWidth((int First, int Count) cut, double scale) =>
         cut.Count <= 0 || building == null
             ? 0
-            : ColumnWidths(building, new SheetRange(1, cut.First, 1, cut.First + cut.Count - 1), scale).Sum();
+            : ColumnWidths(building, new(1, cut.First, 1, cut.First + cut.Count - 1), scale).Sum();
 
     /// <summary>The style each column of the range gives a position no cell is written for (<c>col/@style</c>).</summary>
     static Dictionary<int, uint> ColumnStyles(S.Worksheet worksheet, SheetRange range)

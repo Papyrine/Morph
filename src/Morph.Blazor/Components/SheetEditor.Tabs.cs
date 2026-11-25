@@ -122,19 +122,19 @@ public partial class SheetEditor
         return Task.CompletedTask;
     }
 
-    internal async Task OnRenameKey(KeyboardEventArgs args)
+    internal Task OnRenameKey(KeyboardEventArgs args)
     {
         switch (args.Key)
         {
             case "Enter":
-                await CommitRenameAsync();
-                break;
+                return CommitRenameAsync();
             case "Escape":
                 renaming = null;
                 note = null;
-                await FocusAsync();
-                break;
+                return FocusAsync();
         }
+
+        return Task.CompletedTask;
     }
 
     // What the box holds becomes the sheet's name, unless Excel would refuse it: then the box stays, and the

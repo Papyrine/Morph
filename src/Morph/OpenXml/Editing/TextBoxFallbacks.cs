@@ -1,5 +1,3 @@
-using DocumentFormat.OpenXml.Wordprocessing;
-
 /// <summary>
 /// Keeps a text box's two copies of its text as one. Word writes a text box twice: the
 /// <c>wps:txbx</c> in <c>mc:Choice</c> that Word 2010 and later read, and the VML <c>v:textbox</c> in
@@ -27,8 +25,11 @@ static class TextBoxFallbacks
         ];
         foreach (var part in parts)
         {
-            if (part.IsRootElementLoaded &&
-                part.RootElement is { } root)
+            if (part is
+                {
+                    IsRootElementLoaded: true,
+                    RootElement: { } root
+                })
             {
                 Follow(root);
             }

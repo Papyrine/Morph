@@ -132,7 +132,7 @@ static class SkiaShapeDrawing
             var (paddedX, paddedY, paddedWidth, paddedHeight) = crop.Expand(destRect.Left, destRect.Top, destRect.Width, destRect.Height);
             canvas.Save();
             canvas.ClipRect(destRect);
-            canvas.DrawImage(picture, whole, new SKRect((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)), Sampling, paint);
+            canvas.DrawImage(picture, whole, new((float) paddedX, (float) paddedY, (float) (paddedX + paddedWidth), (float) (paddedY + paddedHeight)), Sampling, paint);
             canvas.Restore();
             return;
         }

@@ -93,7 +93,7 @@ public class BandMarginStripTests
 
     // A 100 x 40pt red rectangle at the left margin.
     static string Shape(string vertical) =>
-        Drawing(vertical, 40, """<wps:cNvSpPr/>""", """<a:solidFill><a:srgbClr val="FF0000"/></a:solidFill><a:ln><a:noFill/></a:ln>""", "<wps:bodyPr/>");
+        Drawing(vertical, 40, "<wps:cNvSpPr/>", """<a:solidFill><a:srgbClr val="FF0000"/></a:solidFill><a:ln><a:noFill/></a:ln>""", "<wps:bodyPr/>");
 
     // A 100pt-wide text box declared 20pt tall that resizes to its two 20pt lines, outlined.
     static string TextBox(string vertical) =>

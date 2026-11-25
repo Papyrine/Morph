@@ -26,7 +26,7 @@ public class ThemeToggleTests : BunitTestContext
         ThemeType? newTheme = null;
         var cut = Render<ThemeToggle>(_ => _
             .Add(_ => _.CurrentTheme, ThemeType.Light)
-            .Add(_ => _.OnThemeChanged, (ThemeType theme) => newTheme = theme));
+            .Add(_ => _.OnThemeChanged, _ => newTheme = _));
 
         var button = cut.Find(".theme-toggle-btn");
         await button.ClickAsync(new());
@@ -40,7 +40,7 @@ public class ThemeToggleTests : BunitTestContext
         ThemeType? newTheme = null;
         var cut = Render<ThemeToggle>(_ => _
             .Add(_ => _.CurrentTheme, ThemeType.Dark)
-            .Add(_ => _.OnThemeChanged, (ThemeType theme) => newTheme = theme));
+            .Add(_ => _.OnThemeChanged, _ => newTheme = _));
 
         var button = cut.Find(".theme-toggle-btn");
         await button.ClickAsync(new());

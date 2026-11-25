@@ -392,9 +392,16 @@ sealed class ConditionalFormats
 
         var evaluator = new FormulaEvaluator(book, sheet, row, column);
         var value = FormulaCoercion.ToBoolean(evaluator.Scalar(evaluator.Evaluate(node)));
-        return !evaluator.Volatile &&
-               !evaluator.Unsupported &&
-               value is { IsBoolean: true, Boolean: true };
+        return evaluator is
+               {
+                   Volatile: false,
+                   Unsupported: false
+               } &&
+               value is
+               {
+                   IsBoolean: true,
+                   Boolean: true
+               };
     }
 
     /// <summary>
@@ -592,8 +599,8 @@ sealed class ConditionalFormats
 
             int Channel(int offset) =>
                 (int) Math.Round(
-                    int.Parse(from.AsSpan(offset, 2), System.Globalization.NumberStyles.HexNumber) * (1 - fraction) +
-                    int.Parse(to.AsSpan(offset, 2), System.Globalization.NumberStyles.HexNumber) * fraction);
+                    int.Parse(from.AsSpan(offset, 2), NumberStyles.HexNumber) * (1 - fraction) +
+                    int.Parse(to.AsSpan(offset, 2), NumberStyles.HexNumber) * fraction);
 
             return $"{Channel(0):X2}{Channel(2):X2}{Channel(4):X2}";
         }

@@ -762,8 +762,11 @@ static partial class DocumentEditor
             }
 
             var last = chain[marks];
-            var whole = place.FromOffset == 0 &&
-                        place.ToOffset == 0;
+            var whole = place is
+            {
+                FromOffset: 0,
+                ToOffset: 0
+            };
             for (var index = marks - 1; index >= 0; index--)
             {
                 if (index == 0 &&
@@ -959,9 +962,12 @@ static partial class DocumentEditor
             foreach (var unit in Units(Find(ordinal)))
             {
                 if (at == offset &&
-                    unit.Kind == EditUnitKind.Drawing &&
-                    unit.First.Parent is OoxmlRun &&
-                    unit.Last.Parent is OoxmlRun)
+                    unit is
+                    {
+                        Kind: EditUnitKind.Drawing,
+                        First.Parent: OoxmlRun,
+                        Last.Parent: OoxmlRun
+                    })
                 {
                     var runs = RunsOf(unit);
                     var height = Stories().SelectMany(_ => _.Descendants<Wp.Anchor>()).Select(_ => _.RelativeHeight?.Value ?? 0).DefaultIfEmpty(251658239u).Max();

@@ -213,7 +213,12 @@ sealed class SlideShapeParser(
             ? child.FirstChild.FirstChild
             : null;
         return properties is { LocalName: "cNvPr" } &&
-               properties.GetAttributes().Any(_ => _.LocalName == "hidden" && _.Value is "1" or "true");
+               properties.GetAttributes()
+                   .Any(_ => _ is
+                   {
+                       LocalName: "hidden",
+                       Value: "1" or "true"
+                   });
     }
 
     void WalkOne(

@@ -34,7 +34,7 @@ public class FormatSelectorTests : BunitTestContext
             .Add(_ => _.Label, "Convert to")
             .Add(_ => _.Formats, ConversionService.WritableFormats)
             .Add(_ => _.Selected, OutputFormat.Png)
-            .Add(_ => _.SelectedChanged, (OutputFormat format) => selected = format));
+            .Add(_ => _.SelectedChanged, _ => selected = _));
 
         await cut.Find("select").ChangeAsync(nameof(OutputFormat.Pdf));
 

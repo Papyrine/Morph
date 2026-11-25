@@ -157,7 +157,7 @@ static partial class DocumentEditor
             // The first paragraph's text into the cell's first paragraph, ahead of its own; any after it as
             // paragraphs of their own after that, their marks inserted.
             var paragraphs = content.OfType<Paragraph>().ToList();
-            var at = old.GetFirstChild<OoxmlParagraphProperties>() is { } properties ? Point.Behind(properties) : new Point(old, old.FirstChild);
+            var at = old.GetFirstChild<OoxmlParagraphProperties>() is { } properties ? Point.Behind(properties) : new(old, old.FirstChild);
             if (paragraphs.Count > 0)
             {
                 foreach (var child in paragraphs[0].Elements().Where(_ => _ is not OoxmlParagraphProperties).ToList())

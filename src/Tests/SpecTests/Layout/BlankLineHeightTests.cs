@@ -16,7 +16,7 @@ public class BlankLineHeightTests
         ["spaces between words"] = Paragraph(Run("mid") + Run("   ", big) + Run("word")),
         ["a space between runs"] = Paragraph(Run("between runs") + Run(" ", big) + Run(" word")),
         ["a leading space"] = Paragraph(Run(" ", big) + Run("leading")),
-        ["spaces where the line wraps"] = Paragraph(Run("wrap " + new string('x', 70)) + Run("   ", big) + Run(new string('y', 40))),
+        ["spaces where the line wraps"] = Paragraph(Run("wrap " + new string('x', 70)) + Run("   ", big) + Run(new('y', 40))),
         ["a tab between words"] = Paragraph(Run("tab") + Tab(big) + Run("word")),
         ["a trailing tab"] = Paragraph(Run("tab trailing") + Tab(big)),
         ["a tab with a dot leader"] = Paragraph(Run("leader") + Tab(big) + Run("end"), properties: """<w:tabs><w:tab w:val="left" w:pos="5760" w:leader="dot"/></w:tabs>"""),
