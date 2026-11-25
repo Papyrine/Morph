@@ -70,7 +70,7 @@ public class SheetFidelityTests
     {
         var grid = Grid("to-do-list");
 
-        await Assert.That(Cell(grid, "Completed").Properties.BackgroundColorHex)
+        await Assert.That(Cell(grid, "Completed").Properties.BackgroundColorHex)!
             .IsNotEqualTo(Cell(grid, "Pending").Properties.BackgroundColorHex);
     }
 
@@ -209,7 +209,7 @@ public class SheetFidelityTests
     [Test]
     public async Task A_three_colour_scale_passes_through_its_middle_colour()
     {
-        S.Cell Number(string reference, double value) => new(new S.CellValue(value)) { CellReference = reference };
+        static S.Cell Number(string reference, double value) => new(new S.CellValue(value)) { CellReference = reference };
         var worksheet = new S.Worksheet(
             new S.SheetData(
                 new S.Row(Number("A1", 0)) { RowIndex = 1 },
@@ -248,7 +248,8 @@ public class SheetFidelityTests
             var workbookPart = document.AddWorkbookPart();
             workbookPart.Workbook = new(new S.Sheets(new S.Sheet { Id = "rId1", SheetId = 1, Name = "Sheet1" }));
             var sheetPart = workbookPart.AddNewPart<DocumentFormat.OpenXml.Packaging.WorksheetPart>("rId1");
-            S.Row Row(uint index, bool hidden) =>
+
+            static S.Row Row(uint index, bool hidden) =>
                 new(new S.Cell(new S.InlineString(new S.Text($"Row{index}"))) { CellReference = $"A{index}", DataType = S.CellValues.InlineString })
                 {
                     RowIndex = index,
@@ -272,8 +273,20 @@ public class SheetFidelityTests
     [Test]
     public async Task Donut_and_block_arc_presets_are_built()
     {
-        var donut = PresetShapeGeometry.TryBuild(new A.PresetGeometry { Preset = A.ShapeTypeValues.Donut }, 100, 100);
-        var arc = PresetShapeGeometry.TryBuild(new A.PresetGeometry { Preset = A.ShapeTypeValues.BlockArc }, 100, 100);
+        var donut = PresetShapeGeometry.TryBuild(
+            new()
+            {
+                Preset = A.ShapeTypeValues.Donut
+            },
+            100,
+            100);
+        var arc = PresetShapeGeometry.TryBuild(
+            new()
+            {
+                Preset = A.ShapeTypeValues.BlockArc
+            },
+            100,
+            100);
 
         await Assert.That(donut!.Count).IsEqualTo(2);
         // The default block arc is the top half: nothing of it below the centre line

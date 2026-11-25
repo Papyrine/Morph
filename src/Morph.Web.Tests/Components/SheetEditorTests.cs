@@ -83,7 +83,7 @@ public class SheetEditorTests : BunitTestContext
     public async Task ACellHandedIn_IsTheEditorsFile_ItsFormulasWorkedOut()
     {
         byte[]? changed = null;
-        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, _ => changed = _));
         var grid = cut.FindComponent<SheetEditor>();
         await cut.InvokeAsync(() => grid.Instance.OnSheetGoTo("C17"));
 
@@ -135,7 +135,7 @@ public class SheetEditorTests : BunitTestContext
     public async Task Pasting_Text_FillsTheCells()
     {
         byte[]? changed = null;
-        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, _ => changed = _));
         var grid = cut.FindComponent<SheetEditor>();
         await cut.InvokeAsync(() => grid.Instance.OnSheetGoTo("E20"));
 
@@ -152,7 +152,7 @@ public class SheetEditorTests : BunitTestContext
     public async Task Pasting_WhatWasCopied_MovesItsFormula()
     {
         byte[]? changed = null;
-        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, _ => changed = _));
         var grid = cut.FindComponent<SheetEditor>();
         await cut.InvokeAsync(() => grid.Instance.OnSheetGoTo("C18"));
         var text = await cut.InvokeAsync(() => grid.Instance.OnSheetCopy(false));
@@ -263,7 +263,7 @@ public class SheetEditorTests : BunitTestContext
     public async Task CtrlPlus_OnWholeRows_InsertsAsMany()
     {
         byte[]? changed = null;
-        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, _ => changed = _));
         var grid = cut.FindComponent<SheetEditor>();
         await cut.InvokeAsync(() => grid.Instance.OnSheetHeader("row", 16, false, "down"));
         await cut.InvokeAsync(() => grid.Instance.OnSheetHeader("row", 17, true, "drag"));
@@ -282,7 +282,7 @@ public class SheetEditorTests : BunitTestContext
     public async Task CtrlMinus_OnACell_AsksWhich()
     {
         byte[]? changed = null;
-        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, _ => changed = _));
         var grid = cut.FindComponent<SheetEditor>();
         await cut.InvokeAsync(() => grid.Instance.OnSheetGoTo("C16"));
 
@@ -300,7 +300,7 @@ public class SheetEditorTests : BunitTestContext
     public async Task ARightClickOnARowsNumber_OffersToInsertThere()
     {
         byte[]? changed = null;
-        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, _ => changed = _));
         var grid = cut.FindComponent<SheetEditor>();
 
         await cut.InvokeAsync(() => grid.Instance.OnSheetContextMenu("row", 12, 3, 40, 300));
@@ -341,13 +341,13 @@ public class SheetEditorTests : BunitTestContext
     public async Task ADoubleClickedTab_IsRenamed()
     {
         byte[]? changed = null;
-        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, (byte[] bytes) => changed = bytes));
+        var cut = await Open(parameters: _ => _.Add(_ => _.OnDocumentChanged, _ => changed = _));
 
         await cut.Find(".sheet-tab").DoubleClickAsync(new());
         var box = cut.Find(".sheet-tab-rename");
         await Assert.That(box.GetAttribute("value")).IsEqualTo("Invoice");
         await box.InputAsync(new() { Value = "March invoice" });
-        await cut.Find(".sheet-tab-rename").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+        await cut.Find(".sheet-tab-rename").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
 
         await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("March invoice");
         await Assert.That(cut.FindAll(".sheet-tab-rename")).IsEmpty();
@@ -364,12 +364,12 @@ public class SheetEditorTests : BunitTestContext
         await cut.Find(".sheet-tab").DoubleClickAsync(new());
 
         await cut.Find(".sheet-tab-rename").InputAsync(new() { Value = "a/b" });
-        await cut.Find(".sheet-tab-rename").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Enter" });
+        await cut.Find(".sheet-tab-rename").KeyDownAsync(new KeyboardEventArgs { Key = "Enter" });
 
         await Assert.That(cut.FindAll(".sheet-tab-rename").Count).IsEqualTo(1);
         await Assert.That(cut.Find(".sheet-note").TextContent).Contains("can't hold");
 
-        await cut.Find(".sheet-tab-rename").KeyDownAsync(new Microsoft.AspNetCore.Components.Web.KeyboardEventArgs { Key = "Escape" });
+        await cut.Find(".sheet-tab-rename").KeyDownAsync(new KeyboardEventArgs { Key = "Escape" });
         await Assert.That(string.Join('|', Tabs(cut))).IsEqualTo("Invoice");
     }
 

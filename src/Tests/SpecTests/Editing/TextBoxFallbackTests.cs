@@ -1,6 +1,4 @@
 using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Vml;
-using DocumentFormat.OpenXml.Wordprocessing;
 using static EditDocuments;
 using static ReviewDocuments;
 
@@ -10,7 +8,7 @@ using static ReviewDocuments;
 public class TextBoxFallbackTests
 {
     static byte[] Fixture() =>
-        File.ReadAllBytes(System.IO.Path.Combine(ProjectFiles.ProjectDirectory, "..", "WordProbe", "Fixtures", "text-box.docx"));
+        File.ReadAllBytes(Path.Combine(ProjectFiles.ProjectDirectory, "..", "WordProbe", "Fixtures", "text-box.docx"));
 
     static string Reads(byte[] docx, int paragraph) =>
         string.Concat(DocumentOutline.Read(docx).Paragraphs[paragraph].Units.Where(_ => _.Editable).Select(_ => _.Text));

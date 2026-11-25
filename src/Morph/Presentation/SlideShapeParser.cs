@@ -1157,21 +1157,29 @@ sealed class SlideShapeParser(
         bool FlipHorizontal,
         bool FlipVertical);
 
+    // The fill of the group being walked, for members that say a:grpFill
+    OpenXmlElement? groupFillSource;
+
     /// <summary>
     /// The shape's fill: a direct <c>a:solidFill</c>/<c>a:gradFill</c> first, then the
     /// <c>p:style/a:fillRef</c> theme reference. The reference matters — template shapes routinely
     /// carry no direct fill at all and take their entire colour from it.
     /// </summary>
-    // The fill of the group being walked, for members that say a:grpFill
-    OpenXmlElement? groupFillSource;
-
     (string? ColorHex, double Alpha, GradientFill? Gradient) ResolveFill(OpenXmlElement? properties, OpenXmlElement? style)
     {
         // A member filled as its group is takes the group's fill: funky-shapes-dark's wave and dot
-        // grid are white members of groups filled tx1, and drew nothing
+        // grid are white members of groups filled tx1, and drew nothing. The group's own properties
+        // are read in the member's place, and never say a:grpFill themselves: a group is only made
+        // the source when it has a fill of its own.
         if (properties?.GetFirstChild<A.GroupFill>() != null)
         {
-            return groupFillSource is { } group ? ResolveFill(group, null) : (null, 1, null);
+            if (groupFillSource is not { } group)
+            {
+                return (null, 1, null);
+            }
+
+            properties = group;
+            style = null;
         }
 
         if (properties?.GetFirstChild<A.NoFill>() != null)
