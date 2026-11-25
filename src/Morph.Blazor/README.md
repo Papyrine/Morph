@@ -356,7 +356,7 @@ so do a workbook, a deck and any file opened to view. The host's breadcrumb (`Br
 `BreadcrumbFolderName`) and its `CloseUrl` go in a bar over the editor; `DisablePrint` and `DisableExport`
 take Print and Download away, Ctrl+P and the download Ctrl+S would make with them. Leaving the page unlocks the file.
 
-### A host of your own
+### A host's own connection
 
 A host the page can reach itself, without Morph.Wopi, passes an `IWopiConnection` as `Connection`, with
 `Action` (`edit`, the default, or `view`). An example is a host whose own API takes the user's cookies on
