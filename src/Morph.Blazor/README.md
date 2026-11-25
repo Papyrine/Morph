@@ -356,6 +356,25 @@ so do a workbook, a deck and any file opened to view. The host's breadcrumb (`Br
 `BreadcrumbFolderName`) and its `CloseUrl` go in a bar over the editor; `DisablePrint` and `DisableExport`
 take Print and Download away, Ctrl+P and the download Ctrl+S would make with them. Leaving the page unlocks the file.
 
+### A host of your own
+
+A host the page can reach itself, without Morph.Wopi, passes an `IWopiConnection` as `Connection`, with
+`Action` (`edit`, the default, or `view`). An example is a host whose own API takes the user's cookies on
+the page's origin. MorphWopi then reads no launch from the page and joins no coauthoring session. It asks
+the connection for the file's info and content, then locks, refreshes, saves and unlocks through it, as it
+does through Morph.Wopi's proxy. A 409's `Reason` is shown over the editor, and an `HttpRequestException`'s
+message is shown in place of the file.
+
+```razor
+<MorphWopi Connection="connection" Action="edit" ShowIssueLink="false" />
+```
+
+`LeaveAsync` gives the request the browser sends as the page goes away, to let the lock go. Without
+`Headers` it is a beacon that posts `Fields` as a form. With them it is a fetch kept alive past the page,
+for a host that takes a write only with a header of its own, such as a request digest. It is asked again
+each time the lock is refreshed, so anything it carries that expires is current. A refresh that finds the
+lock lost drops it, so the page going never lets go of a lock that is someone else's now.
+
 ## Review
 
 A Word document's **comments** and **tracked changes** open in a pane beside the pages, one card each, in

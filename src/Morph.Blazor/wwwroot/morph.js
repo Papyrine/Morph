@@ -100,15 +100,27 @@ export function wopiLaunch() {
 }
 
 // Unlocks the file as the page goes away, when there is no time left to ask .NET: a beacon outlives the
-// page, and sends a form, which the proxy reads in place of its headers.
+// page, and sends a form, which the proxy reads in place of its headers. A host that takes the request only
+// with headers of its own (WopiLeave.Headers) gets a fetch kept alive past the page, which can carry them.
 let leaving = null;
 
-export function unlockOnLeave(url, fields) {
+export function unlockOnLeave(url, fields, headers) {
     forgetLeave();
     leaving = () => {
         const form = new FormData();
-        for (const [name, value] of Object.entries(fields)) {
+        const named = Object.entries(fields ?? {});
+        for (const [name, value] of named) {
             form.append(name, value);
+        }
+
+        if (Object.keys(headers ?? {}).length > 0) {
+            fetch(url, {
+                method: 'POST',
+                headers,
+                body: named.length > 0 ? form : undefined,
+                keepalive: true
+            }).catch(() => {});
+            return;
         }
 
         navigator.sendBeacon(url, form);

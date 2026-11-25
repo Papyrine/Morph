@@ -288,14 +288,16 @@ public class WopiHostTests
         var (_, opened) = await PostAsync(server.Client(), await server.LaunchAsync());
         var session = new WopiSession(server.Client(), opened!);
         await session.LockAsync("mine");
+        var leave = (await session.LeaveAsync("mine"))!;
+        await Assert.That(leave.Headers).IsEmpty();
 
         var form = new MultipartFormDataContent();
-        foreach (var (name, value) in session.Fields("mine"))
+        foreach (var (name, value) in leave.Fields)
         {
             form.Add(new StringContent(value), name);
         }
 
-        var response = await server.Client().PostAsync(session.Url("Unlock"), form);
+        var response = await server.Client().PostAsync(leave.Url, form);
 
         await Assert.That(response.StatusCode).IsEqualTo(HttpStatusCode.OK);
         await Assert.That((await session.LockAsync("again")).Succeeded).IsTrue();

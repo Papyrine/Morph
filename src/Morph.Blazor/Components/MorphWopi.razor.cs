@@ -11,9 +11,26 @@ namespace Morph;
 /// WOPI asks, and Save puts it back over itself. A file the user may not save, or that someone else has
 /// locked, opens read only, as do a workbook and a deck, and a file opened to view. The host's breadcrumb
 /// and its Close link go over the editor. Everything goes through Morph.Wopi, which signs it for the host.
+///
+/// A host the page can reach itself passes its own <see cref="Connection"/> in place of the launch: the file
+/// is then the connection's, opened for <see cref="Action"/>, and edited on its own under its lock.
 /// </summary>
 public partial class MorphWopi : IAsyncDisposable
 {
+    /// <summary>
+    /// The host to open the file from and save it to, in place of the launch Morph.Wopi writes into the page.
+    /// A file it opens is never coauthored: it is edited on its own, under the connection's lock.
+    /// </summary>
+    [Parameter]
+    public IWopiConnection? Connection { get; set; }
+
+    /// <summary>
+    /// With <see cref="Connection"/>, what the file is opened for: <c>edit</c>, where the user may save it and
+    /// it is a Word document, or <c>view</c>. A launch says its own.
+    /// </summary>
+    [Parameter]
+    public string Action { get; set; } = "edit";
+
     /// <summary>
     /// Whether an unexpected failure offers a pre-filled GitHub issue link against the Morph repository.
     /// </summary>
@@ -34,11 +51,14 @@ public partial class MorphWopi : IAsyncDisposable
     [Inject]
     MorphInterop Interop { get; set; } = null!;
 
+    [Inject]
+    TimeProvider Time { get; set; } = null!;
+
     // A lock lasts 30 minutes unless it is refreshed ([MS-WOPI] 3.3.5.1.3).
     static readonly TimeSpan refreshInterval = TimeSpan.FromMinutes(10);
 
     readonly CancelSource lifetime = new();
-    WopiSession? session;
+    IWopiConnection? session;
     Coauthor? coauthor;
     bool coauthorAttached;
     MorphEditor? editorComponent;
@@ -103,23 +123,38 @@ public partial class MorphWopi : IAsyncDisposable
 
     async Task OpenAsync()
     {
-        var launch = WopiLaunchInfo.Parse(await Interop.WopiLaunchAsync());
-        if (launch is null)
+        WopiLaunchInfo? launch = null;
+        IWopiConnection opened;
+        string action;
+        if (Connection is { } given)
         {
-            problem = "This page opens a file for the place it is kept. Open the file from there.";
-            return;
+            opened = given;
+            action = Action;
+        }
+        else
+        {
+            launch = WopiLaunchInfo.Parse(await Interop.WopiLaunchAsync());
+            if (launch is null)
+            {
+                problem = "This page opens a file for the place it is kept. Open the file from there.";
+                return;
+            }
+
+            opened = new WopiSession(Http, launch);
+            action = launch.Action;
         }
 
-        var opened = new WopiSession(Http, launch);
         session = opened;
         try
         {
             var file = await opened.CheckFileInfoAsync(lifetime.Token);
             info = file;
             var word = ConversionService.Detect(file.BaseFileName)?.Format == InputFormat.Docx;
-            editing = launch.Action == "edit" &&
+            editing = action == "edit" &&
                       word;
+            // Only Morph.Wopi's launch has a session to join: a connection's file is edited on its own.
             if (word &&
+                launch is not null &&
                 await JoinAsync(launch) is { } shared)
             {
                 bytes = shared;
@@ -162,7 +197,7 @@ public partial class MorphWopi : IAsyncDisposable
         }
 
         // The page leaving leaves the session at once, rather than once its events have stopped a while.
-        await Interop.UnlockOnLeaveAsync(joining.LeaveUrl, []);
+        await Interop.UnlockOnLeaveAsync(new(joining.LeaveUrl));
         return document;
     }
 
@@ -192,7 +227,7 @@ public partial class MorphWopi : IAsyncDisposable
 
     // Takes the file's lock, without which it opens read only: the user may not save it, or someone else
     // has it open.
-    async Task LockAsync(WopiSession opened, WopiFileInfo file)
+    async Task LockAsync(IWopiConnection opened, WopiFileInfo file)
     {
         if (!file.Editable)
         {
@@ -211,13 +246,23 @@ public partial class MorphWopi : IAsyncDisposable
         }
 
         lockId = id;
-        await Interop.UnlockOnLeaveAsync(opened.Url("Unlock"), opened.Fields(id));
+        await LeaveAsync(opened, id, lifetime.Token);
         _ = RefreshAsync(opened, id, lifetime.Token);
     }
 
-    async Task RefreshAsync(WopiSession opened, string id, Cancel cancel)
+    // What lets the lock go as the page goes away, asked of the host again each time the lock is kept, so
+    // what it carries that expires is current.
+    async Task LeaveAsync(IWopiConnection opened, string id, Cancel cancel)
     {
-        using var timer = new PeriodicTimer(refreshInterval);
+        if (await opened.LeaveAsync(id, cancel) is { } leave)
+        {
+            await Interop.UnlockOnLeaveAsync(leave);
+        }
+    }
+
+    async Task RefreshAsync(IWopiConnection opened, string id, Cancel cancel)
+    {
+        using var timer = new PeriodicTimer(refreshInterval, Time);
         try
         {
             while (await timer.WaitForNextTickAsync(cancel))
@@ -229,8 +274,15 @@ public partial class MorphWopi : IAsyncDisposable
                     reply = await opened.LockAsync(id, cancel);
                 }
 
-                if (!reply.Succeeded)
+                if (reply.Succeeded)
                 {
+                    await LeaveAsync(opened, id, cancel);
+                }
+                else
+                {
+                    // The lock is someone else's now: the page going must not let it go. A host without lock
+                    // ids, as one that locks by checking the file out, could not tell theirs from this page's.
+                    await Interop.ForgetLeaveAsync();
                     status = $"The file's lock is lost: {Problem(reply)}";
                     await InvokeAsync(StateHasChanged);
                 }
@@ -302,7 +354,7 @@ public partial class MorphWopi : IAsyncDisposable
         return WopiSession.Problem(reply.Status);
     }
 
-    // The editor's page goes, and the beacon unlocks the file; a prompt for unsaved edits may stop it.
+    // The editor's page goes, and the leave request unlocks the file; a prompt for unsaved edits may stop it.
     Task CloseAsync()
     {
         if (info?.CloseUrl is { } url)

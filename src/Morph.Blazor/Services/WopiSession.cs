@@ -2,9 +2,10 @@ namespace Morph;
 
 /// <summary>
 /// The WOPI operations the editor asks of the host, through Morph.Wopi's proxy (an operation by name, the
-/// WOPISrc and the token as headers), which signs them and sends them on.
+/// WOPISrc and the token as headers), which signs them and sends them on: MorphWopi's connection where the
+/// page has none of its own.
 /// </summary>
-sealed class WopiSession(HttpClient http, WopiLaunchInfo launch)
+sealed class WopiSession(HttpClient http, WopiLaunchInfo launch) : IWopiConnection
 {
     public WopiLaunchInfo Launch => launch;
 
@@ -33,6 +34,14 @@ sealed class WopiSession(HttpClient http, WopiLaunchInfo launch)
 
     public Task<WopiReply> PutFileAsync(byte[] bytes, string id, Cancel cancel = default) =>
         ReplyAsync("PutFile", id, bytes, cancel);
+
+    /// <summary>A beacon to the proxy's Unlock, its form in place of the headers a beacon cannot carry.</summary>
+    public Task<WopiLeave?> LeaveAsync(string id, Cancel cancel = default) =>
+        Task.FromResult<WopiLeave?>(
+            new(Url("Unlock"))
+            {
+                Fields = Fields(id)
+            });
 
     /// <summary>The proxy's URL for an operation, and the form a beacon posts it.</summary>
     public string Url(string operation) =>

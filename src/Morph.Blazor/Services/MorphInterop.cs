@@ -123,14 +123,14 @@ public sealed class MorphInterop(IJSRuntime jsRuntime) : IAsyncDisposable
         return await module.InvokeAsync<string?>("wopiLaunch");
     }
 
-    /// <summary>Posts <paramref name="fields"/> to <paramref name="url"/> as a beacon when the page goes away.</summary>
-    internal async Task UnlockOnLeaveAsync(string url, Dictionary<string, string> fields)
+    /// <summary>Sends <paramref name="leave"/> when the page goes away, in place of any sent before.</summary>
+    internal async Task UnlockOnLeaveAsync(WopiLeave leave)
     {
         var module = await Module;
-        await module.InvokeVoidAsync("unlockOnLeave", url, fields);
+        await module.InvokeVoidAsync("unlockOnLeave", leave.Url, leave.Fields, leave.Headers);
     }
 
-    /// <summary>Drops the beacon of <see cref="UnlockOnLeaveAsync"/>.</summary>
+    /// <summary>Drops the request of <see cref="UnlockOnLeaveAsync"/>.</summary>
     internal async Task ForgetLeaveAsync()
     {
         var module = await Module;

@@ -480,9 +480,15 @@ neither call another origin nor hold the proof key, so the proxy builds the WOPI
 ([MS-WOPI] 2.2.1) and hands back the status, the lock headers and the body. Both refuse a WOPISrc off
 `TrustedHosts`, which are also the only `frame-ancestors`. `MorphWopi` reads the launch, checks the file,
 and joins the file's coauthoring session (below); against a Morph.Wopi without sessions it locks the file,
-refreshes the lock, saves through the editor's `OnSave` and unlocks with a beacon on `pagehide`. `src/Morph.Wopi.Sample` is an OfficeHost host and the editor in one application on two ports;
-`WopiHostTests` run both halves against OfficeHost in a test server with proofs required, and
-`WopiSampleTests` drive the published sample with Playwright.
+refreshes the lock, saves through the editor's `OnSave` and unlocks with a beacon on `pagehide`. Those
+operations are an `IWopiConnection`: `WopiSession`, the proxy's, unless the page passes one of its own as
+`MorphWopi.Connection` (with `Action`), which reads no launch and joins no session. Its `LeaveAsync`
+(`WopiLeave`) is the `pagehide` request, a beacon, or a keepalive fetch when it carries headers, asked again
+at each refresh and dropped when a refresh finds the lock lost. The refresh runs on the injected
+`TimeProvider` (`AddMorph` adds the system's). `src/Morph.Wopi.Sample` is an OfficeHost host and the editor in one application on two ports;
+`WopiHostTests` run both halves against OfficeHost in a test server with proofs required,
+`WopiConnectionTests` pin `MorphWopi` against a fake connection in bUnit, and `WopiSampleTests` drive the
+published sample with Playwright.
 
 **Coauthoring** (`src/Morph/OpenXml/Coauthoring/`, `src/Morph.Wopi/Coauthoring/`, `Morph.Blazor`'s
 `Coauthor` and `MorphViewer.Coauthoring.cs`): several people editing one Word document at once, the editor's
