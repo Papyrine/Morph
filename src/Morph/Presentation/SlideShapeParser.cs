@@ -1328,6 +1328,14 @@ sealed class SlideShapeParser(
             return null;
         }
 
+        // Asked before TypeOf, which reads a placeholder with no type as body (§19.3.1.36) and so
+        // read a shape with no placeholder at all as body too: every plain shape and text box drew
+        // the body's bullet and hanging indent
+        if (placeholder == null)
+        {
+            return styles.OtherStyle;
+        }
+
         return SlidePlaceholders.TypeOf(placeholder) switch
         {
             "title" => styles.TitleStyle,

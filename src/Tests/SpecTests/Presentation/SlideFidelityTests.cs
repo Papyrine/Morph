@@ -106,6 +106,26 @@ public class SlideFidelityTests
         await Assert.That(slide.OfType<FloatingShapeElement>().Skip(1).Any(_ => _.FillColorHex == background.FillColorHex && _.WidthPoints < background.WidthPoints)).IsTrue();
     }
 
+    // A shape that is not a placeholder takes the master's otherStyle, not its bodyStyle. savon's
+    // seventh slide copies its footer into a plain text box whose own list style says nothing of a
+    // bullet: it drew the body's bullet and hung its text 0.2in off it, where PowerPoint draws
+    // neither. In a narrow box that hang broke words a letter to a line.
+    [Test]
+    public async Task A_shape_that_is_not_a_placeholder_takes_the_masters_other_style()
+    {
+        var footers = Slide("savon", 7).OfType<FloatingTextBoxElement>()
+            .SelectMany(_ => _.Content.OfType<ParagraphElement>())
+            .Where(_ => string.Concat(_.Runs.Select(run => run.Text)).Contains("Sample Footer Text"))
+            .ToList();
+
+        await Assert.That(footers.Count).IsEqualTo(2);
+        foreach (var footer in footers)
+        {
+            await Assert.That(footer.Properties.Numbering).IsNull();
+            await Assert.That(footer.Properties.HangingIndentPoints).IsEqualTo(0);
+        }
+    }
+
     // sketchlines' title is a blob its layout draws; the slide's copy declares no geometry.
     [Test]
     public async Task A_placeholder_inherits_its_layouts_geometry() =>

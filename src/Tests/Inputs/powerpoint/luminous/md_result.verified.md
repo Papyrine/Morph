@@ -168,11 +168,11 @@ SAMPLE FOOTER TEXT
 
 10
 
-- 7/15/2026
+7/15/2026
 
-- Sample footer text
+Sample footer text
 
-- ‹#›
+‹#›
 
 ## Summary
 

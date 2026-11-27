@@ -20,7 +20,7 @@ Final tips & takeaways
 
 2
 
-- 2
+2
 
 # The power of communication
 
@@ -46,7 +46,7 @@ Use live polls or surveys to gather audience opinions, promoting engagement and 
 
 5
 
-- 5
+5
 
 # Selecting <br>visual aids
 
