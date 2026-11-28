@@ -14,6 +14,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Using Include="VerifyTests" />
-    <PackageReference Include="Verify" Version="33.3.4" />
+    <PackageReference Include="Verify" Version="33.7.3" />
   </ItemGroup>
 </Project>

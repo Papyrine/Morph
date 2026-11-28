@@ -19,7 +19,7 @@
           "Width": 595.2999877929688,
           "Height": 841.9000244140625
         },
-        "Text": "thinThickMediumGap\nthickThinMediumGap\nthinThickThinMediumGap\nthinThickLargeGap\nthickThinLargeGap\nthinThickThinLargeGap\nwave\ndoubleWave\ndashSmallGap\ndashDotStroked\nthreeDEmboss\nthreeDEngrave\noutset\ninset\n3. Every ST_Border line style - run borders (w:bdr, sz 18)\nnil none single thick \n double dotted dashed dotDash \n dotDotDash triple thinThickSmallGap thickThinSmallGap \n thinThickThinSmallGap thinThickMediumGap thickThinMediumGap \nthinThickThinMediumGap "
+        "Text": "thinThickMediumGap\nthickThinMediumGap\nthinThickThinMediumGap\nthinThickLargeGap\nthickThinLargeGap\nthinThickThinLargeGap\nwave\ndoubleWave\ndashSmallGap\ndashDotStroked\nthreeDEmboss\nthreeDEngrave\noutset\ninset\n3. Every ST_Border line style - run borders (w:bdr, sz 18)\n nil none single thick \n double dotted dashed dotDash \n dotDotDash triple thinThickSmallGap thickThinSmallGap \n thinThickThinSmallGap thinThickMediumGap thickThinMediumGap \nthinThickThinMediumGap "
       },
       {
         "Number": 3,
@@ -59,7 +59,7 @@
     {
       "Page": 2,
       "ErrorMetric": 0.1526,
-      "Ssim": 0.7878,
+      "Ssim": 0.7877,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

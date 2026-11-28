@@ -26,6 +26,27 @@ public class NumberingIndentTests
         await Assert.That(heading.Properties.LeftIndentPoints).IsGreaterThan(0);
     }
 
+    /// <summary>
+    /// A paragraph's own <c>w:firstLine</c> replaces the hanging indent of its style's list level, as
+    /// <c>w:firstLine</c> and <c>w:hanging</c> are one value. ole_chart_preview's Heading 1 states
+    /// <c>left=0 firstLine=360</c> over its level's <c>left=792 hanging=432</c>; Word sets its first line
+    /// 0.25in in and its second at the margin, where keeping the level's hanging as well hung the first
+    /// line 72 twips out into the margin.
+    /// </summary>
+    [Test]
+    public async Task A_paragraph_first_line_indent_replaces_its_list_level_hanging_indent()
+    {
+        var fixture = Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "word", "ole_chart_preview", "input.docx");
+        var document = new DocumentParser().Parse(fixture);
+        var heading = AllParagraphs(document.Elements)
+            .First(_ => _.Properties.StyleId == "Heading1" &&
+                        _.Runs.Any(run => run.Text.StartsWith("Lorem ipsum dolor", StringComparison.Ordinal)));
+
+        await Assert.That(heading.Properties.LeftIndentPoints).IsEqualTo(0).Within(0.01);
+        await Assert.That(heading.Properties.FirstLineIndentPoints).IsEqualTo(18).Within(0.01);
+        await Assert.That(heading.Properties.HangingIndentPoints).IsEqualTo(0).Within(0.01);
+    }
+
     static IEnumerable<ParagraphElement> AllParagraphs(IEnumerable<DocumentElement> elements)
     {
         foreach (var element in elements)

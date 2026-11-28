@@ -11,7 +11,7 @@
           "Width": 595.280029296875,
           "Height": 841.8900146484375
         },
-        "Text": "Company Name\nAddress, City, ST, ZIP code\nPhone number | Fax Number\nINVOICE # 100\nDate: Enter invoice date\nBILL TO FOR\nName | Company Product description\nAddress, City, ST, ZIP Code\nPhone\nITEM DESCRIPTION AMOUNT\nSubtotal $0.00\nTax rate\nAdditional costs\nTOTAL COST $0.00\nMake all checks payable to Company Name\nIf you have any questions concerning this invoice, use the following contact information:\nContact Name, Phone Number, Email\nTHANK YOU FOR YOUR BUSINESS!\nLOGO\nGOES\nHERE"
+        "Text": "Company Name\n Address, City, ST, ZIP code\n Phone number | Fax Number\nINVOICE # 100\nDate: Enter invoice date\nBILL TO FOR\nName | Company Product description\nAddress, City, ST, ZIP Code\nPhone\nITEM DESCRIPTION AMOUNT\nSubtotal $0.00\nTax rate\nAdditional costs\nTOTAL COST $0.00\nMake all checks payable to Company Name\nIf you have any questions concerning this invoice, use the following contact information:\nContact Name, Phone Number, Email\nTHANK YOU FOR YOUR BUSINESS!\nLOGO\nGOES\nHERE"
       },
       {
         "Number": 2,
@@ -25,8 +25,8 @@
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.3871,
-      "Ssim": 0.9007,
+      "ErrorMetric": 0.387,
+      "Ssim": 0.901,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

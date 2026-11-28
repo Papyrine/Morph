@@ -642,7 +642,10 @@ sealed partial class DocumentParser
 
             var directInd = paraProps?.GetFirstChild<Indentation>();
             var directHasLeft = directInd?.Left?.HasValue == true;
-            var directHasHanging = directInd?.Hanging?.HasValue == true;
+            // A paragraph's own w:firstLine states its hanging too, as none (FirstLineOf): ole_chart_preview's
+            // Heading 1 indents its first line 360 over its level's 432 hanging
+            var directHasHanging = directInd?.Hanging?.HasValue == true ||
+                                   directInd?.FirstLine?.HasValue == true;
 
             // Within this block the numbering resolved, so a present direct numPr is what
             // supplied it (a direct numPr with numId 0 removes numbering entirely and never
@@ -2152,13 +2155,11 @@ sealed partial class DocumentParser
 
         if (indentation != null)
         {
-            firstLineIndent = indentation.FirstLine.TwipsToPoints() ?? firstLineIndent;
+            (firstLineIndent, hangingIndent) = FirstLineOf(indentation, firstLineIndent, hangingIndent);
 
             leftIndent = indentation.Left.TwipsToPoints() ?? leftIndent;
 
             rightIndent = indentation.Right.TwipsToPoints() ?? rightIndent;
-
-            hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
         }
 
         suppressLineNumbers = suppressLineNumbersElement != null;

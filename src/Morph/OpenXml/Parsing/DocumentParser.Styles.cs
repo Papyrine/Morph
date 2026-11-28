@@ -786,13 +786,11 @@ sealed partial class DocumentParser
                 var ownIndentation = indentation != null;
                 if (ownIndentation)
                 {
-                    firstLineIndent = indentation!.FirstLine.TwipsToPoints() ?? firstLineIndent;
+                    (firstLineIndent, hangingIndent) = FirstLineOf(indentation!, firstLineIndent, hangingIndent);
 
-                    leftIndent = indentation.Left.TwipsToPoints() ?? leftIndent;
+                    leftIndent = indentation!.Left.TwipsToPoints() ?? leftIndent;
 
                     rightIndent = indentation.Right.TwipsToPoints() ?? rightIndent;
-
-                    hangingIndent = indentation.Hanging.TwipsToPoints() ?? hangingIndent;
                 }
 
                 if (activeNumbering ||
@@ -946,6 +944,29 @@ sealed partial class DocumentParser
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// A <c>w:ind</c>'s first line over the one it inherits. <c>w:firstLine</c> and <c>w:hanging</c> are one
+    /// value, where the first line stands against the rest — Word's Paragraph dialog has one Special box
+    /// for both — so whichever a level states replaces the other it inherits, and <c>w:hanging</c> wins where
+    /// one element states both (ECMA-376 §17.3.1.12). ole_chart_preview's Heading 1 states
+    /// <c>firstLine="360"</c> over its list level's <c>hanging="432"</c>, and Word sets the first line 360
+    /// in, where keeping both hung it 72 twips out into the margin.
+    /// </summary>
+    static (double FirstLine, double Hanging) FirstLineOf(Indentation indentation, double firstLine, double hanging)
+    {
+        if (indentation.Hanging.TwipsToPoints() is { } ownHanging)
+        {
+            return (0, ownHanging);
+        }
+
+        if (indentation.FirstLine.TwipsToPoints() is { } ownFirstLine)
+        {
+            return (ownFirstLine, 0);
+        }
+
+        return (firstLine, hanging);
     }
 
     // Whether a style-numbered paragraph's style indent comes from a style at or above the one that puts

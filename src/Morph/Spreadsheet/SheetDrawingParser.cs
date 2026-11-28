@@ -109,6 +109,21 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
                 case XDR.Picture picture:
                     if (ParsePicture(picture, box, transform, drawingsPart, anchorIsRoot, ordinal, notPrinted) is { } image)
                     {
+                        // A blurred shadow stands under its picture: inventory-list-accessibility-guide's
+                        // screenshots each cast one in Excel's print. A turned picture's is left out.
+                        if (image is FloatingImageElement { RotationDegrees: 0 } upright)
+                        {
+                            elements.AddRange(SoftShadow.Layers(
+                                picture.ShapeProperties?.GetFirstChild<A.EffectList>()?.GetFirstChild<A.OuterShadow>(),
+                                themeColors,
+                                (upright.HorizontalPositionPoints, upright.VerticalPositionPoints, upright.WidthPoints, upright.HeightPoints),
+                                sheetScale,
+                                upright.HorizontalAnchor,
+                                upright.VerticalAnchor,
+                                ordinal,
+                                notPrinted));
+                        }
+
                         elements.Add(image);
                         ordinal++;
                     }

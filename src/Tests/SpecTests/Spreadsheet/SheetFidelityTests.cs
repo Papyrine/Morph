@@ -168,6 +168,40 @@ public class SheetFidelityTests
     public async Task A_drawings_turn_is_kept() =>
         await Assert.That(Sheet("home-contents-inventory-list").OfType<FloatingImageElement>().Any(_ => _.RotationDegrees != 0)).IsTrue();
 
+    // inventory-list-accessibility-guide's screenshot casts a blurred shadow in Excel's print (#333333
+    // at 65%, blur 23pt, 11pt off at 45 degrees): layers under the picture that climb to the shadow's
+    // alpha, reaching three sigmas (a third of the blur each) past the moved box on every side.
+    [Test]
+    public async Task A_pictures_blurred_shadow_is_drawn_under_it()
+    {
+        var elements = Sheet("inventory-list-accessibility-guide");
+        var picture = elements.OfType<FloatingImageElement>()
+            .First(_ => _.Description == "Screenshot of Inventory list worksheet");
+        var index = elements.ToList().IndexOf(picture);
+        var layers = elements.Take(index).Reverse()
+            .TakeWhile(_ => _ is FloatingShapeElement {FillColorHex: "333333"})
+            .Cast<FloatingShapeElement>()
+            .Reverse()
+            .ToList();
+
+        await Assert.That(layers.Count).IsEqualTo(32);
+        var covered = 1 - layers.Aggregate(1.0, (remaining, layer) => remaining * (1 - layer.FillAlpha));
+        await Assert.That(covered).IsEqualTo(0.65).Within(0.001);
+
+        // The outermost layer is the picture's box moved 11pt along 45 degrees and grown by three sigmas,
+        // 23pt, both at the sheet's scale: moved as far down as across, and grown 23/11 times as far as
+        // the move's length
+        var outer = layers[0];
+        var reach = (outer.WidthPoints - picture.WidthPoints) / 2;
+        var across = outer.HorizontalPositionPoints + reach - picture.HorizontalPositionPoints;
+        var down = outer.VerticalPositionPoints + reach - picture.VerticalPositionPoints;
+        await Assert.That(across).IsGreaterThan(0);
+        await Assert.That(down).IsEqualTo(across).Within(0.001);
+        await Assert.That(reach / Math.Sqrt(across * across + down * down)).IsEqualTo(23.0 / 11).Within(0.001);
+        await Assert.That(outer.HeightPoints - picture.HeightPoints).IsEqualTo(2 * reach).Within(0.001);
+        await Assert.That(layers.All(_ => _.RelativeHeight == picture.RelativeHeight)).IsTrue();
+    }
+
     // A sheet's text is drawn at its linear advances, as Excel prints it, not at Word's pixels.
     [Test]
     public async Task A_sheets_text_is_drawn_at_its_linear_advances()

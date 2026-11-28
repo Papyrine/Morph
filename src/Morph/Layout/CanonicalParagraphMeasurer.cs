@@ -1093,23 +1093,24 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return (count, pixels);
         }
 
-        // Opens a line with a word. What waited in the gap ahead of it is left behind on the line
-        // before, except a bordered run's opening reserve, which belongs to the word: at a wrap the
-        // reserve alone comes along (Word leaves the run's leading space hanging at the end of the line
-        // above and opens the next with the box), and where nothing was wrapped — the paragraph's own
-        // start, or after a break — the spaces that follow the reserve inside the run stay too.
+        // Opens a line with a word. At a wrap what waited in the gap ahead of it is left behind on the
+        // line before, except a bordered run's opening reserve, which belongs to the word: the reserve
+        // alone comes along (Word leaves the run's leading space hanging at the end of the line above
+        // and opens the next with the box). Where nothing was wrapped — the paragraph's own start, or
+        // after a break — the spaces stay and push the word along, as Word sets them (_probe_lead,
+        // 2026-11-28: four spaces at 24pt Aptos stand the text 40px in at a paragraph's start and
+        // after a w:br alike, and eight move a centred line 40px), and as Excel prints a cell's:
+        // modern-basic-purple-timesheet-invoice's " INVOICE" stands a space in from its cell's edge.
         void OpenLine(double wordPixels, double wordFit, float wordPitch, List<Piece> wordPieces, bool wrapped)
         {
             var opening = new List<Piece>();
             var pixels = 0.0;
             var fit = 0.0;
             var pitch = wordPitch;
-            var reserved = false;
             foreach (var piece in gapPieces)
             {
-                reserved |= piece.IsInset;
-                if (!reserved || (wrapped &&
-                                  !piece.IsInset))
+                if (wrapped &&
+                    !piece.IsInset)
                 {
                     continue;
                 }
@@ -1117,7 +1118,10 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 opening.Add(piece);
                 pixels += piece.Pixels;
                 fit += piece.FitPixels;
-                pitch = Math.Max(pitch, piece.Pitch);
+                if (!SetsNoHeight(piece))
+                {
+                    pitch = Math.Max(pitch, piece.Pitch);
+                }
             }
 
             opening.AddRange(wordPieces);

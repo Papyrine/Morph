@@ -269,6 +269,11 @@ break:
   chase that rasteriser rather than Word, and it is a floor under the error metric on text-heavy
   pages, not a defect.
 
+`complex_spacing` kept its Calibri reference until 2026-11-28. Its styles part names no font, so Word
+sets it in Aptos as it does the bare packages, but counting by styles part passed it over. Regenerated
+then, its seven pages break line for line as Morph's do, and its first three, the corpus's lowest-scoring
+Word pages but one fixture's, went from SSIM 0.73-0.75 to 0.90-0.91.
+
 Two other changes came with the build:
 
 - **A page break that ends the document makes no page.** Word 16.0.20527 counts one page for a break
