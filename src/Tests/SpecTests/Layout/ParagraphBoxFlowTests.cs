@@ -115,4 +115,21 @@ public class ParagraphBoxFlowTests
         await Assert.That(rules[0].Y).IsEqualTo(members[0].Y + members[0].Height + 8 + 4 + 1).Within(0.05f);
         await Assert.That(members[1].Y - rules[0].Y).IsEqualTo(4f).Within(0.05f);
     }
+
+    // A box no bottom rule closes draws its sides down through the 8pt after-spacing to the next
+    // paragraph, as Word's page shows for "left only"; "top + left + bottom" stops at its bottom rule.
+    [Test]
+    public async Task Side_rules_run_through_the_after_spacing_when_nothing_closes_the_box()
+    {
+        var page = fixture.Value.Pages[2];
+        var leftOnly = Line(page, "left only");
+        var next = Line(page, "right only");
+        var box = page.Items.OfType<PlacedBorder>().Single(_ => _.Y <= leftOnly.Y && _.Y + _.Height > leftOnly.Y);
+
+        await Assert.That(box.Y + box.Height).IsEqualTo(next.Y).Within(0.05f);
+
+        var closed = Line(page, "top + left + bottom (open right)");
+        var closedBox = page.Items.OfType<PlacedBorder>().Single(_ => _.Y <= closed.Y && _.Y + _.Height > closed.Y);
+        await Assert.That(closedBox.Y + closedBox.Height).IsLessThan(closed.Y + closed.Height + 2);
+    }
 }

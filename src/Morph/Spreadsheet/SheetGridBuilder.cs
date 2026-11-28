@@ -671,7 +671,11 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 SpacingBeforePoints = 0,
                 SpacingAfterPoints = 0,
                 LineSpacingMultiplier = 1,
-                WidowControl = false
+                WidowControl = false,
+                // An empty cell's line is its own font's, at the sheet's scale, not the document
+                // default's: simple-list's blank rows 1 and 3 grew from 8.2pt to the default's line
+                // and stood its grid 10.5pt under Excel's
+                ParagraphMarkRunProperties = properties
             }
         };
 
@@ -700,7 +704,9 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 ClipOverflow = true,
                 ClipSpillLeftPoints = spill.Left,
                 ClipSpillRightPoints = spill.Right,
-                DataBar = dataBar is { } bar ? new(bar.Fraction, bar.ColorHex, scale) : null,
+                // Measured over the whole merge, as the text is: to-do-list's progress bar fills a
+                // third of I:L, though its page ends at K
+                DataBar = dataBar is { } bar ? new(bar.Fraction, bar.ColorHex, scale, CutWidth(merge.CutBefore, scale), CutWidth(merge.CutAfter, scale)) : null,
                 Icon = icon is { Id: >= 0 } shown
                     // An icon alone follows an alignment the cell states (inventory-list-with-highlighting's
                     // centred flags); under General it stands at the left, as back-to-school-planner's

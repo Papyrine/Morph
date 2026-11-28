@@ -138,7 +138,8 @@ static class TableHeightCalculator
                         cellWidth += colWidths[gridColIndex + i];
                     }
 
-                    var contentHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row);
+                    // Its bottom margin is its last row's (TableLayout.MergePadding).
+                    var contentHeight = MeasureCellHeight(cell, cellWidth, table.Properties, measurer, row, table.Rows[Math.Min(rowIndex + rowSpan, table.Rows.Count) - 1]);
 
                     // The merged box runs straight across the edges between its rows, so the room the fourth
                     // pass reserves for each of them holds the merged content too. resumes/05's section
@@ -161,9 +162,15 @@ static class TableHeightCalculator
                     // 30 and 45 on the first two the third takes 129.1 - the floors hold, the remainder
                     // still goes last. Spreading it evenly put newsletters/09 rows 4-6 each 30pt below
                     // Word and its page-1 footer rows off the page.
-                    if (contentHeight > currentTotalHeight)
+                    // A last row pinned at an exact height keeps it, and the merged content is clipped as any
+                    // in an exact row is: modern-corporate-green-standard-invoice's 50pt "INVOICE" merges two
+                    // custom-height rows (30 and 20.1pt), and growing the second stood every row under it
+                    // 7px below Excel's print.
+                    var last = Math.Min(rowIndex + rowSpan, table.Rows.Count) - 1;
+                    if (contentHeight > currentTotalHeight &&
+                        !IsPinnedExact(table.Rows[last]))
                     {
-                        heights[Math.Min(rowIndex + rowSpan, table.Rows.Count) - 1] += contentHeight - currentTotalHeight;
+                        heights[last] += contentHeight - currentTotalHeight;
                     }
                 }
 
@@ -338,9 +345,12 @@ static class TableHeightCalculator
         float cellWidth,
         TableProperties tableProps,
         IParagraphMeasurer measurer,
-        TableRow? row = null)
+        TableRow? row = null,
+        TableRow? mergeLastRow = null)
     {
-        var padding = TableLayout.GetEffectivePadding(cell.Properties, tableProps, row);
+        var padding = row != null && mergeLastRow != null
+            ? TableLayout.MergePadding(cell.Properties, tableProps, row, mergeLastRow)
+            : TableLayout.GetEffectivePadding(cell.Properties, tableProps, row);
         var margin = TableLayout.GetEffectiveMargin(cell.Properties, tableProps);
 
         if (cell.Properties.TextDirection != CellTextDirection.LeftToRight)
@@ -424,6 +434,11 @@ static class TableHeightCalculator
         var cellContentWidth = cellWidth - (float) (padding.Horizontal + margin.Horizontal);
         CellFloatWrap? floatWrap = null;
 
+        // The after-spacing of what stands before a block (already in the height), and the after the
+        // block leaves for the paragraph that follows it: a WordArt's own, nothing after a table.
+        var carriedAfter = 0f;
+        var blockAfter = 0f;
+
         void Charge(List<DocumentElement> standing)
         {
             foreach (var element in standing)
@@ -447,14 +462,20 @@ static class TableHeightCalculator
                         // for every nested table, which ran resumes/06's one-line skill bars (13.8pt in Word)
                         // 36pt tall each and put its last skill row on a fourth page.
                         height += NestedTableHeight(nestedTable, contentWidth, measurer);
+                        carriedAfter = 0;
+                        blockAfter = 0;
                         break;
                     case WordArtElement wordArt:
                         // Inline WordArt occupies its own band in the cell exactly as it does in the body
                         // flow, where RenderWordArt advances CurrentY by the same height. Leaving it out
                         // sized the row without it while the render still consumed the space, so the cell
                         // overflowed and pushed content onto a further page (brochures/08 went 2 pages to
-                        // 3). Measure and render have to agree.
-                        height += (float) wordArt.HeightPoints;
+                        // 3). Measure and render have to agree. Its paragraph's spacing comes with it, as
+                        // the Fragmenter's cell arm places it: what its before adds over the after already
+                        // charged, then its own after (wedding/08's badge).
+                        height += Math.Max(0f, (float) wordArt.SpacingBeforePoints - carriedAfter) + (float) wordArt.HeightPoints + (float) wordArt.SpacingAfterPoints;
+                        carriedAfter = (float) wordArt.SpacingAfterPoints;
+                        blockAfter = carriedAfter;
                         break;
                 }
             }
@@ -465,6 +486,8 @@ static class TableHeightCalculator
         string? previousStyleId = null;
         for (var i = 0; i < paragraphs.Count; i++)
         {
+            carriedAfter = previousAfter;
+            blockAfter = 0;
             Charge(blocks[i]);
 
             // Measured at exactly the width the cell render lays out at — the render path
@@ -474,13 +497,13 @@ static class TableHeightCalculator
             var lines = measurer.LayoutParagraphForMeasurement(para, contentWidth);
             var props = para.Properties;
 
-            // A nested table or WordArt between two paragraphs takes the previous paragraph's
-            // after-spacing with it — the placement charges that after BEFORE the object and then
-            // starts the next paragraph from a zero after — so this paragraph's before is charged in
-            // full rather than collapsed against an after that no longer borders it.
+            // A nested table between two paragraphs takes the previous paragraph's after-spacing with
+            // it — the placement charges that after BEFORE the table and then starts the next paragraph
+            // from a zero after — so this paragraph's before is charged in full rather than collapsed
+            // against an after that no longer borders it. A WordArt leaves its own after instead.
             if (separatedFromPrevious.Contains(i))
             {
-                previousAfter = 0;
+                previousAfter = blockAfter;
             }
 
             // Cell padding sits between the border and the content area; paragraph
@@ -573,6 +596,7 @@ static class TableHeightCalculator
             previousStyleId = ParagraphGap.StyleKey(props);
         }
 
+        carriedAfter = previousAfter;
         Charge(blocks[^1]);
 
         // The paragraph that ends the cell gives its after up to contextual spacing like any other:

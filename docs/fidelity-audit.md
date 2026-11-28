@@ -274,6 +274,15 @@ sets it in Aptos as it does the bare packages, but counting by styles part passe
 then, its seven pages break line for line as Morph's do, and its first three, the corpus's lowest-scoring
 Word pages but one fixture's, went from SSIM 0.73-0.75 to 0.90-0.91.
 
+The same day the six table fixtures with a styles part and no `docDefaults` followed it
+(`table_default_style` and its four variants, `table_grid_styling_padding`): their references dated
+from 2026-08-10, when Word supplied Calibri 12pt, and `table_default_style`'s autofit table, set in
+the narrower face, came out 61pt narrower than Morph's Aptos table and wrapped no cell where Morph
+wraps five. Rendered from copies on today's build, every one is in Aptos and agrees with Morph's render
+better than its old reference did (`table_grid_styling_padding` SSIM 0.942 to 0.968, `table_default_style`
+line for line). A fixture leaves the face to Word when its styles part has no `docDefaults` element at
+all, which is what to search for, not the absence of `word/styles.xml`.
+
 Two other changes came with the build:
 
 - **A page break that ends the document makes no page.** Word 16.0.20527 counts one page for a break

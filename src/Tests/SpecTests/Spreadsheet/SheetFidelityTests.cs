@@ -97,6 +97,25 @@ public class SheetFidelityTests
         await Assert.That(Text(cell)).IsEmpty();
     }
 
+    // The progress bar's merge, I5:L5, runs past the first page's edge at K: Excel lays the bar's third
+    // over all four columns and prints the part on the page, so it is a third of I:L, not of I:K.
+    [Test]
+    public async Task A_data_bar_in_a_cut_merge_spans_the_whole_merge()
+    {
+        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "to-do-list", "input.xlsx"));
+        var document = ExcelConverter.Parse(stream, null, ProjectFonts.Directory, useLetterPageSize: false, onePagePerSheet: false);
+        var bar = Cells(document.Elements.OfType<TableElement>().First()).Select(_ => _.Cell.Properties.DataBar).OfType<CellDataBar>().First();
+
+        await Assert.That(bar.CutAfterPoints).IsGreaterThan(0);
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility).Layout(document.Elements, document.PageSettings);
+        var cell = laidOut.Pages[0].Items.OfType<PlacedTableRow>().SelectMany(_ => _.Cells)
+            .First(_ => _.Content.OfType<PlacedShading>().Any(shading => shading.ColorHex == bar.ColorHex));
+        var placed = cell.Content.OfType<PlacedShading>().First(_ => _.ColorHex == bar.ColorHex);
+        var pixel = 0.75 * bar.InsetScale;
+        var whole = cell.Width + bar.CutAfterPoints - 5 * pixel;
+        await Assert.That((double) placed.Width).IsEqualTo(whole * bar.Fraction).Within(0.01);
+    }
+
     // An icon set flags an item to reorder with a red flag, the value hidden, and gives the rest none.
     [Test]
     public async Task An_icon_set_shows_its_icon_alone()
@@ -234,6 +253,55 @@ public class SheetFidelityTests
         // The three cells under "Email", and the one under the right-hand "Email" beside them
         await Assert.That(ruled).IsGreaterThanOrEqualTo(4);
         await Assert.That(email.Properties.Borders is {Bottom.IsVisible: true}).IsFalse();
+    }
+
+    // simple-list's blank rows 1 and 3 are 8.2pt at its print scale; their empty cells measure at their own
+    // font, scaled, so they do not grow the rows to the document default's line and stand the grid low.
+    [Test]
+    public async Task An_empty_cell_measures_at_its_own_font()
+    {
+        var empty = (ParagraphElement) Grid("simple-list").Rows[0].Cells[0].Content[0];
+
+        await Assert.That(empty.Runs.Count).IsEqualTo(0);
+        await Assert.That(empty.Properties.ParagraphMarkRunProperties).IsNotNull();
+        await Assert.That(empty.Properties.ParagraphMarkRunProperties!.FontSizePoints).IsLessThan(8);
+    }
+
+    // Excel prints a sheet's header and footer in its margins and never moves the grid for them.
+    [Test]
+    public async Task A_sheets_header_does_not_move_its_grid()
+    {
+        using var stream = File.OpenRead(Path.Combine(ProjectFiles.ProjectDirectory, "Inputs", "excel", "simple-list", "input.xlsx"));
+        var settings = ExcelConverter.Parse(stream, null, ProjectFonts.Directory, useLetterPageSize: false, onePagePerSheet: false).PageSettings;
+
+        await Assert.That(settings.TopMarginIsAbsolute).IsTrue();
+        await Assert.That(settings.BottomMarginIsAbsolute).IsTrue();
+    }
+
+    // modern-corporate-green-standard-invoice's 50pt "INVOICE" merges two custom-height rows (30 and
+    // 20.1pt); Excel keeps both at their heights and clips the text, so the merge grows neither.
+    [Test]
+    public async Task A_merge_does_not_grow_an_exact_row()
+    {
+        var table = new TableElement
+        {
+            Rows =
+            [
+                new() {HeightPoints = 20, IsExactHeight = true, Cells = [Tall(VerticalMergeType.Restart)]},
+                new() {HeightPoints = 20, IsExactHeight = true, Cells = [Tall(VerticalMergeType.Continue)]}
+            ]
+        };
+        var heights = TableHeightCalculator.CalculateRowHeights(table, [200], LayoutTestFonts.Measurer);
+
+        await Assert.That(heights[0]).IsEqualTo(20).Within(0.5f);
+        await Assert.That(heights[1]).IsEqualTo(20).Within(0.5f);
+
+        static TableCell Tall(VerticalMergeType merge) =>
+            new()
+            {
+                Content = [new ParagraphElement {Runs = [new() {Text = merge == VerticalMergeType.Restart ? "INVOICE" : "", Properties = new() {FontFamily = "Arial", FontSizePoints = 48}}]}],
+                Properties = new() {VerticalMerge = merge, WidthPoints = 200}
+            };
     }
 
     // A sheet's text is drawn at its linear advances, as Excel prints it, not at Word's pixels.

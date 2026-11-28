@@ -11,30 +11,31 @@
           "Width": 841.8900146484375,
           "Height": 595.280029296875
         },
-        "Text": "Weekly lesson planner\n8:00 – 8:45 8:45 – 9:30 9:30 – 10:15 10:30 – 11:30 11:30 – 12:00 Notes\nMON\nJul 13 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nTUE\nJul 14 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\n WED\nJul 15 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nTHU\nJul 16 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nFRI\nJul 17 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities"
+        "Text": "Weekly lesson planner\n8:00 – 8:45 8:45 – 9:30 9:30 – 10:15 10:30 – 11:30 11:30 – 12:00 Notes\nMON\nJul 13 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nTUE\nJul 14 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\n WED\nJul 15 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nTHU\nJul 16 Reading English Spelling Math Science\nTeacher\nTopic\nMaterial\nActivities\nFRI\nJul 17 Reading English Spelling Math Science\nTeacher\nTopic"
       },
       {
         "Number": 2,
         "Info": {
           "Width": 841.8900146484375,
           "Height": 595.280029296875
-        }
+        },
+        "Text": "FRI\nMaterial\nActivities"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.1588,
-      "Ssim": 0.9221,
+      "ErrorMetric": 0.1526,
+      "Ssim": 0.9293,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"
     },
     {
       "Page": 2,
-      "ErrorMetric": 0.0096,
-      "Ssim": 0.9878,
+      "ErrorMetric": 0.0085,
+      "Ssim": 0.9941,
       "ExpectedFile": "expected_0002.png",
       "VerifiedFile": "pdf_result#page_0002.verified.png",
       "ReceivedFile": "pdf_result#page_0002.received.png"

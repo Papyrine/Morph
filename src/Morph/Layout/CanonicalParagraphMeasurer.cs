@@ -513,7 +513,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        return (float) metrics.BaselineAscentPoints(fontProperties.FontSizePoints);
+        return (float) metrics.BaselineAscentPoints(fontProperties.FontSizePoints) + ShadowRise(fontProperties);
     }
 
     // The same ascent before its descent is put on the pixel grid: what a line's box is made of, as
@@ -526,8 +526,25 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        return (float) ((double) metrics.BaselineAscentUnits / metrics.UnitsPerEm * fontProperties.FontSizePoints);
+        return (float) ((double) metrics.BaselineAscentUnits / metrics.UnitsPerEm * fontProperties.FontSizePoints) + ShadowRise(fontProperties);
     }
+
+    // A run's w14:shadow takes room in its line: Word deepens the line by the shadow's vertical offset,
+    // under the text for a shadow cast down and over it for one cast up. Probed on menus/07's 66pt
+    // Rockwell Bold title over a 6pt cell rule (_probe_m07s, read off Word's pages): without its shadow
+    // the rule stands 5px (150 DPI) higher and matches the line alone (_probe_bigline: 77.5pt); a 12pt
+    // shadow cast straight down sets the rule 24px lower, cast straight up 24px lower too with the
+    // glyphs 24px lower in the line, and cast at 44 degrees 16px lower (12 sin 44 = 8.3pt is 17.4px).
+    static float ShadowReach(RunProperties properties) =>
+        properties.Shadow is { } shadow
+            ? (float) Math.Abs(shadow.DistancePoints * Math.Sin(shadow.DirectionDegrees * Math.PI / 180))
+            : 0f;
+
+    static float ShadowRise(RunProperties properties) =>
+        properties.Shadow is { DirectionDegrees: var direction } &&
+        Math.Sin(direction * Math.PI / 180) < 0
+            ? ShadowReach(properties)
+            : 0f;
 
     /// <summary>
     /// The font's strikethrough stroke at a run's size: how far its top sits ABOVE the baseline, and its
@@ -1846,7 +1863,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // A superscript or subscript measures at its reduced size and carries its shift; the line
             // pitch stays the run's declared size, since the reduced glyphs sit inside the full box.
             var size = VerticalRunPosition.RenderSizePoints(run.Properties);
-            var pitch = SinglePitch(metrics, run.Properties.FontSizePoints);
+            var pitch = SinglePitch(metrics, run.Properties.FontSizePoints) + ShadowReach(run.Properties);
             var baselineShift = VerticalRunPosition.BaselineShiftPoints(
                 run.Properties,
                 (double) metrics.DescentUnits / metrics.UnitsPerEm * run.Properties.FontSizePoints);
@@ -2297,7 +2314,9 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             return 0;
         }
 
-        return SinglePitch(metrics, mark.FontSizePoints);
+        // A shadowed mark takes its shadow's room as a shadowed run does (ShadowReach): menus/09's
+        // empty Title paragraphs beside its "Menu" set the row 2.1pt deeper in Word.
+        return SinglePitch(metrics, mark.FontSizePoints) + ShadowReach(mark);
     }
 
     // The font that sizes a paragraph's mark line. Word sizes a blank line by the mark's own run
@@ -2320,22 +2339,23 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         // since an auto line box comes straight from the font's metrics.
         var markSize = paragraph.Properties.ParagraphMarkFontSizePoints;
         var markFamily = paragraph.Properties.ParagraphMarkFontFamily;
+        var markShadow = paragraph.Properties.ParagraphMarkShadow;
         if (markSize is { } size)
         {
             if (markFamily == null)
             {
-                return new() {FontSizePoints = size};
+                return new() {FontSizePoints = size, Shadow = markShadow};
             }
 
-            return new() {FontSizePoints = size, FontFamily = markFamily};
+            return new() {FontSizePoints = size, FontFamily = markFamily, Shadow = markShadow};
         }
 
         if (markFamily == null)
         {
-            return new();
+            return new() {Shadow = markShadow};
         }
 
-        return new() {FontFamily = markFamily};
+        return new() {FontFamily = markFamily, Shadow = markShadow};
     }
 
     // Splits text into maximal runs of spaces vs non-spaces (U+0020 only — the inter-word break),

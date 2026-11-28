@@ -66,6 +66,29 @@ static class TableLayout
         };
     }
 
+    /// <summary>
+    /// A vertical merge's margins: its top as its head row shares it, and its BOTTOM as its LAST row
+    /// shares it, the row the merged box ends in. XPS-read on <c>_probe_vmergemar</c> (eight lines
+    /// merged down two one-line rows, a 40pt bottom margin on the plain cell of one row): on the last
+    /// row the table ran 39.7pt past the merged content, on the head row the head row grew to 54.1pt
+    /// and the table ended at the content. newsletters/04's sidebar ends 14.4pt below its caption, the
+    /// bottom margin of the two text cells beside the merge's last row.
+    /// </summary>
+    internal static CellSpacing MergePadding(TableCellProperties cellProps, TableProperties tableProps, TableRow head, TableRow last)
+    {
+        var padding = GetEffectivePadding(cellProps, tableProps, head);
+        if (ReferenceEquals(head, last))
+        {
+            return padding;
+        }
+
+        var own = OwnPadding(cellProps, tableProps, head);
+        return padding with
+        {
+            Bottom = Math.Max(own.Bottom, RowVerticalPadding(last, tableProps).Bottom)
+        };
+    }
+
     internal static CellSpacing OwnPadding(TableCellProperties cellProps, TableProperties tableProps, TableRow? row) =>
         cellProps.Padding ?? row?.OverrideCellPadding ?? tableProps.DefaultCellPadding;
 
@@ -1058,6 +1081,20 @@ static class TableLayout
         }
 
         return endRow;
+    }
+
+    /// <summary>The row a vertical merge covering <paramref name="rowIndex"/> in <paramref name="gridColIndex"/> starts at; the row itself when no merge continues there.</summary>
+    internal static int VerticalMergeStartRow(TableElement table, int rowIndex, int gridColIndex)
+    {
+        var continueStarts = GetVerticalMergeContinueStarts(table);
+        var startRow = rowIndex;
+        while (startRow > 0 &&
+               continueStarts[startRow].Contains(gridColIndex))
+        {
+            startRow--;
+        }
+
+        return startRow;
     }
 
     /// <summary>

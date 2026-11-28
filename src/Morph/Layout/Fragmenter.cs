@@ -3022,7 +3022,19 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 items.Insert(borderRunItemsIndex, new PlacedShading(left, top, width, height, run.BackgroundColorHex));
             }
 
-            items.Add(new PlacedBorder(left, top, width, height, borders));
+            // A box no bottom rule closes runs its sides on through the closing paragraph's after-spacing,
+            // down to where the next paragraph starts: border_style_variants' "left only", "right only"
+            // and "left + right" paragraphs (1pt rules, Word's default 8pt after) draw their rules 8pt
+            // past the last line in Word's reference, where "top + left + bottom" stops its left rule at
+            // the bottom rule and leaves the after-spacing under it. Never past the region's foot.
+            var ruled = height;
+            if (!BorderStroke.Draws(borders.Bottom) &&
+                (BorderStroke.Draws(borders.Left) || BorderStroke.Draws(borders.Right)))
+            {
+                ruled = Math.Max(height, Math.Min(height + lastAfter, contentBottom - top));
+            }
+
+            items.Add(new PlacedBorder(left, top, width, ruled, borders));
 
             // w:shadow on the box's right and bottom edges: a black band as thick as the edge beside
             // it, hugging the rule's outer face and stepped in by the opposite rule's width at its
@@ -3740,7 +3752,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 // and clipping at the paper edge if they must. Word-measured on resumes/06: a sidebar's
                 // restartless-continue rows run to the paper edge (bar band at 750–792, clipped) rather
                 // than moving to a page they would comfortably fit.
-                if (IsMergeContinuation(row))
+                //
+                // A sheet's grid has no such tie: Excel breaks its pages between rows whatever merges cross
+                // them, so a merge's rows are fitted one by one as any row is.
+                if (!table.Properties.IsSheetGrid &&
+                    IsMergeContinuation(row))
                 {
                     items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
                     ResolvePendingFloats();
@@ -3762,7 +3778,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     (rowIndex == 0 ? !keptBefore : !RowKeeps(table.Rows[rowIndex - 1])) &&
                     y + KeptRun(table, colWidths, rowHeights, rowIndex, keepAfter) > contentBottom)
                 {
-                    AdvanceColumnOrPage();
+                    BreakTable(table);
                     broke = true;
                 }
 
@@ -3779,8 +3795,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 //
                 // A row carrying a vertical merge is exempt: a merge span is one drawn unit whose overflow
                 // Word clips at the paper edge rather than moving it, so its HEAD keeps HasSpaceFor's slack
-                // (resumes/06's span head, 1.1pt over the margin, stays).
-                var overflows = HasMergedCell(row)
+                // (resumes/06's span head, 1.1pt over the margin, stays). A sheet's merge is fitted strictly:
+                // weekly-lesson-planner's two-row label merge, 5pt past the margin, prints overleaf in Excel.
+                var overflows = HasMergedCell(row) && !table.Properties.IsSheetGrid
                     ? !HasSpaceFor(rowHeight)
                     : y + rowHeight > contentBottom;
                 var doesNotFitHere = !atRegionTop &&
@@ -3803,7 +3820,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     !oversize &&
                     overflows)
                 {
-                    AdvanceColumnOrPage();
+                    BreakTable(table);
                     broke = true;
                 }
 
@@ -3819,7 +3836,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
                 }
 
-                items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false));
+                items.Add(BuildRow(y, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth, false, resumeMerges: broke && table.Properties.IsSheetGrid));
                 ResolvePendingFloats();
                 CommitRowNotes(row, y + rowHeight);
                 y += rowHeight;
@@ -4245,12 +4262,16 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // A spreadsheet data bar, under the cell's text. Excel draws it 3px in from the cell's left
         // edge, 2px from its right, 1px under its top and 2px over its bottom, in its own pixels at
         // 100% (to-do-list-for-projects' reference, 96 dpi: a 93px cell of a 41px row holds a bar of
-        // 36px whose 90% is 78px), shrunk with the sheet.
+        // 36px whose 90% is 78px), shrunk with the sheet. A merge the page's edge cuts has its bar laid
+        // over the whole merge and cut at the cell (CellDataBar.CutBeforePoints).
         static PlacedShading DataBarShading(CellDataBar bar, float x, float y, float width, float height)
         {
             var pixel = (float) (0.75 * bar.InsetScale);
-            var room = Math.Max(0f, width - 5 * pixel);
-            return new(x + 3 * pixel, y + pixel, room * (float) Math.Clamp(bar.Fraction, 0, 1), Math.Max(0f, height - 3 * pixel), bar.ColorHex);
+            var mergeX = x - (float) bar.CutBeforePoints;
+            var room = Math.Max(0f, width + (float) (bar.CutBeforePoints + bar.CutAfterPoints) - 5 * pixel);
+            var left = Math.Max(x, mergeX + 3 * pixel);
+            var right = Math.Min(x + width, mergeX + 3 * pixel + room * (float) Math.Clamp(bar.Fraction, 0, 1));
+            return new(left, y + pixel, Math.Max(0f, right - left), Math.Max(0f, height - 3 * pixel), bar.ColorHex);
         }
 
         // Every fragment draws its whole box, split edges included: Word CLOSES the fragment that carries on
@@ -4277,11 +4298,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
         // Builds a placed row at the current cursor: the row box plus each cell's box, shading, borders and
         // laid-out content. Merge-continuation cells contribute nothing (the originating cell covers them),
         // and a merge-restart cell's box spans the merged rows' heights.
-        PlacedTableRow BuildRow(float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader)
+        PlacedTableRow BuildRow(float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth, bool isRepeatedHeader, bool resumeMerges = false)
         {
             var row = table.Rows[rowIndex];
             var rowHeight = rowHeights[rowIndex];
             var cells = new List<PlacedCell>();
+            List<(int Index, int GridColumn, float X)>? resumed = null;
             var cellX = tableX + LeadingGridWidth(colWidths, row.GridBefore);
             var gridColIndex = row.GridBefore;
             var detached = table.Properties.CellSpacingPoints > 0;
@@ -4325,6 +4347,11 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
                 if (cell.Properties.VerticalMerge == VerticalMergeType.Continue)
                 {
+                    if (resumeMerges)
+                    {
+                        (resumed ??= []).Add((cells.Count, gridColIndex, cellX));
+                    }
+
                     cellX += cellWidth;
                     gridColIndex += span;
                     continue;
@@ -4351,7 +4378,9 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     boxHeight -= (float)insets.Vertical;
                 }
 
-                var padding = TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
+                var padding = endRowIndex > rowIndex
+                    ? TableLayout.MergePadding(cell.Properties, table.Properties, row, table.Rows[endRowIndex])
+                    : TableLayout.GetEffectivePadding(cell.Properties, table.Properties, row);
                 var borders = TableLayout.ResolveCellBorders(cell.Properties, table.Properties, rowIndex, gridColIndex, table.Rows.Count, colCount, row, table.Rows);
                 var (insetLeft, insetRight) = SideInsets(padding, borders);
                 var content = cell.Properties.TextDirection == CellTextDirection.LeftToRight
@@ -4433,7 +4462,105 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 gridColIndex += span;
             }
 
+            if (resumed != null)
+            {
+                ResumeMerges(cells, resumed, rowY, table, rowIndex, colWidths, rowHeights, colCount, tableX, tableWidth);
+            }
+
             return new(tableX, rowY, tableWidth, rowHeight, table, rowIndex, isRepeatedHeader, cells);
+        }
+
+        // A sheet's merge that a page break parts is printed by Excel on both pages, each cut at the rows
+        // its page holds: weekly-lesson-planner's five-row "FRI" label keeps its text centred on all five
+        // rows on the first page, cut at the page's last row, and prints its last two rows overleaf as the
+        // label's fill alone. The page breaking off cuts what the rows above it placed (CutAtFoot); the
+        // first row overleaf resumes each merge it continues here, as the merge's head would draw it from
+        // above the page, cut at the row's top. Neither part draws the edge at the cut.
+        void ResumeMerges(List<PlacedCell> cells, List<(int Index, int GridColumn, float X)> resumed, float rowY, TableElement table, int rowIndex, float[] colWidths, float[] rowHeights, int colCount, float tableX, float tableWidth)
+        {
+            var heads = new Dictionary<int, PlacedTableRow>();
+            for (var index = resumed.Count - 1; index >= 0; index--)
+            {
+                var (insertAt, gridColumn, x) = resumed[index];
+                var head = TableLayout.VerticalMergeStartRow(table, rowIndex, gridColumn);
+                if (!heads.TryGetValue(head, out var headRow))
+                {
+                    var above = 0f;
+                    for (var aboveIndex = head; aboveIndex < rowIndex; aboveIndex++)
+                    {
+                        above += rowHeights[aboveIndex];
+                    }
+
+                    headRow = BuildRow(rowY - above, table, head, colWidths, rowHeights, colCount, tableX, tableWidth, false);
+                    heads[head] = headRow;
+                }
+
+                var parts = headRow.Cells
+                    .Where(_ => Math.Abs(_.X - x) < 0.01f &&
+                                _.Y + _.Height > rowY + 0.01f)
+                    .Select(_ => CutCell(_, Math.Max(_.Y, rowY), _.Y + _.Height));
+                cells.InsertRange(insertAt, parts);
+            }
+        }
+
+        // A break between a table's rows: a sheet's merges are cut at the page's foot first.
+        void BreakTable(TableElement table)
+        {
+            if (table.Properties.IsSheetGrid)
+            {
+                CutAtFoot(table);
+            }
+
+            AdvanceColumnOrPage();
+        }
+
+        // A sheet's rows on the page a break ends: every cell running past the last row's foot (a merge
+        // the break parts) is cut there (ResumeMerges carries the rest overleaf), and a merge's side
+        // segment wholly under it is dropped.
+        void CutAtFoot(TableElement table)
+        {
+            var foot = y;
+            for (var index = 0; index < items.Count; index++)
+            {
+                if (items[index] is not PlacedTableRow { IsRepeatedHeader: false } placed ||
+                    !ReferenceEquals(placed.Table, table) ||
+                    placed.Cells.All(_ => _.Y + _.Height <= foot + 0.01f))
+                {
+                    continue;
+                }
+
+                var cells = placed.Cells
+                    .Where(_ => _.Y < foot - 0.01f)
+                    .Select(_ => _.Y + _.Height > foot + 0.01f ? CutCell(_, _.Y, foot) : _)
+                    .ToList();
+                items[index] = placed with
+                {
+                    Cells = cells
+                };
+            }
+        }
+
+        // The part of a cell between top and bottom: its content where it stood, clipped to the part, and
+        // no edge drawn where it was cut.
+        static PlacedCell CutCell(PlacedCell cell, float top, float bottom)
+        {
+            var cutAbove = top > cell.Y + 0.01f;
+            var cutBelow = bottom < cell.Y + cell.Height - 0.01f;
+            return cell with
+            {
+                Y = top,
+                Height = bottom - top,
+                Borders = cell.Borders is { } borders
+                    ? borders with
+                    {
+                        Top = cutAbove ? BorderEdge.None : borders.Top,
+                        Bottom = cutBelow ? BorderEdge.None : borders.Bottom
+                    }
+                    : null,
+                BottomEdgeInset = cutBelow ? 0 : cell.BottomEdgeInset,
+                ClipContent = true,
+                ClipVertically = true
+            };
         }
 
         // Word insets a cell's content by the LARGER of its margin and half its border stack on each side —
@@ -4803,7 +4930,12 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 if (element is WordArtElement cellWordArt)
                 {
                     FlushCellBorderRun();
-                    cellY += first ? 0 : lastCellAfter;
+
+                    // Its paragraph keeps its spacing, as in the page flow (PlaceWordArt): the larger of the
+                    // after before it and its own before, and its own after under it. wedding/08's badge
+                    // paragraph keeps its 8pt after, which Word leaves between the badge and the Title
+                    // under it, where the two Titles either side of it had closed up.
+                    cellY += first ? (float)cellWordArt.SpacingBeforePoints : Math.Max(lastCellAfter, (float)cellWordArt.SpacingBeforePoints);
                     first = false;
                     var wordArtWidth = Math.Min((float)cellWordArt.WidthPoints, contentWidth);
 
@@ -4825,8 +4957,8 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     }
 
                     cellY += (float)cellWordArt.HeightPoints;
-                    lastCellAfter = 0;
-                    lastCellVisibleAfter = 0;
+                    lastCellAfter = (float)cellWordArt.SpacingAfterPoints;
+                    lastCellVisibleAfter = lastCellAfter;
                     lastCellContextual = false;
                     lastCellIsParagraph = false;
                     continue;

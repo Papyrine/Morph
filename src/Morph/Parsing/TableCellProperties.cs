@@ -116,6 +116,8 @@ sealed record CellIcon(string Set, int Id, TextAlignment Alignment, CellVertical
 /// <summary>
 /// A data bar: <see cref="Fraction"/> of the cell's width inside its insets, from the left, in
 /// <see cref="ColorHex"/>. <see cref="InsetScale"/> is the sheet's print scale, which the bar's
-/// insets (Excel's pixels) shrink with.
+/// insets (Excel's pixels) shrink with. <see cref="CutBeforePoints"/> and <see cref="CutAfterPoints"/>
+/// are how far a merge the page's edge cuts runs on past the cell's left and right: the bar is laid
+/// over the whole merge and drawn where it falls in the cell.
 /// </summary>
-sealed record CellDataBar(double Fraction, string ColorHex, double InsetScale);
+sealed record CellDataBar(double Fraction, string ColorHex, double InsetScale, double CutBeforePoints = 0, double CutAfterPoints = 0);

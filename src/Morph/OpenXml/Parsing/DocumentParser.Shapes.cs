@@ -1480,14 +1480,59 @@ sealed partial class DocumentParser
             return null;
         }
 
+        // A line runs from one corner of its box to the other, which a flat box strokes as its own
+        // edge but a box with both extents does not: wedding/04's spine, a line 1.6pt wide and 914pt
+        // tall, drew as two rules 1.6pt apart where Word draws one, leaning across the box. Its ends
+        // (a:headEnd at the start, a:tailEnd at the end) are drawn too where they are ovals: a disc of
+        // the line's colour on the end point, as many line widths across as DrawingML's sm / med / lg
+        // say (2 / 3 / 5) - wedding/04's 2pt section rules end in Word's 6pt dots.
+        var outline = shapeProps.GetFirstChild<A.Outline>();
+        var head = OvalEnd(outline?.GetFirstChild<A.HeadEnd>(), lineWidth.Value);
+        var tail = OvalEnd(outline?.GetFirstChild<A.TailEnd>(), lineWidth.Value);
+        var unrotated = (xfrm.Rotation?.Value ?? 0) == 0 &&
+                        Math.Abs(groupDegrees) <= 0.01;
+        IReadOnlyList<IReadOnlyList<(double X, double Y)>>? segment = null;
+        var reach = 0d;
+        if (unrotated &&
+            (widthPt > 0 && heightPt > 0 || head != null || tail != null))
+        {
+            var flipH = xfrm.HorizontalFlip?.Value == true;
+            var flipV = xfrm.VerticalFlip?.Value == true ^ mapped.FlipVertical;
+            (double X, double Y) start = (flipH ? widthPt : 0, flipV ? heightPt : 0);
+            (double X, double Y) end = (flipH ? 0 : widthPt, flipV ? 0 : heightPt);
+            reach = Math.Max(head?.Reach ?? 0, tail?.Reach ?? 0);
+            var boxWidth = widthPt + 2 * reach;
+            var boxHeight = heightPt + 2 * reach;
+            (double X, double Y) Unit((double X, double Y) point) =>
+                ((point.X + reach) / boxWidth, (point.Y + reach) / boxHeight);
+
+            List<IReadOnlyList<(double X, double Y)>> contours = [new[] { Unit(start), Unit(end) }];
+            if (head is { } headEnd)
+            {
+                contours.Add(Disc(start, end, headEnd).Select(Unit).ToArray());
+            }
+
+            if (tail is { } tailEnd)
+            {
+                contours.Add(Disc(end, start, tailEnd).Select(Unit).ToArray());
+            }
+
+            segment = contours;
+            widthPt = boxWidth;
+            heightPt = boxHeight;
+        }
+
         return new()
         {
             WidthPoints = widthPt,
             HeightPoints = heightPt,
+            Subpaths = segment,
+            OpenOutline = segment != null,
+            FillColorHex = head != null || tail != null ? lineColor : null,
             RelativeHeight = positioning.RelativeHeight,
             LayoutInCell = positioning.LayoutInCell,
-            HorizontalPositionPoints = positioning.HorizontalPositionPoints + finalX.EmuToPoints(),
-            VerticalPositionPoints = positioning.VerticalPositionPoints + finalY.EmuToPoints(),
+            HorizontalPositionPoints = positioning.HorizontalPositionPoints + finalX.EmuToPoints() - reach,
+            VerticalPositionPoints = positioning.VerticalPositionPoints + finalY.EmuToPoints() - reach,
             HorizontalAnchor = positioning.HorizontalAnchor,
             VerticalAnchor = positioning.VerticalAnchor,
             HorizontalPositionPercent = positioning.HorizontalPositionPercent,
@@ -1498,6 +1543,55 @@ sealed partial class DocumentParser
             LineWidthPoints = lineWidth,
             LineDashPattern = dashPattern
         };
+    }
+
+    /// <summary>An oval line end's outer diameters in points, along the line and across it.</summary>
+    readonly record struct OvalLineEnd(double Along, double Across, double LineWidth)
+    {
+        /// <summary>How far the end reaches past its end point, in any direction.</summary>
+        public double Reach => Math.Max(Along, Across) / 2;
+    }
+
+    // An a:headEnd / a:tailEnd of type oval, sized in line widths as DrawingML sizes an end: sm 2,
+    // med 3 (the default), lg 5, its w across the line and its len along it. Null for any other end.
+    static OvalLineEnd? OvalEnd(A.LineEndPropertiesType? end, double lineWidth)
+    {
+        if (end?.Type?.Value != A.LineEndValues.Oval)
+        {
+            return null;
+        }
+
+        static double Multiple(string? size) =>
+            size switch
+            {
+                "sm" => 2,
+                "lg" => 5,
+                _ => 3
+            };
+
+        var across = Multiple(end.Width?.HasValue == true ? ((IEnumValue) end.Width.Value).Value : null);
+        var along = Multiple(end.Length?.HasValue == true ? ((IEnumValue) end.Length.Value).Value : null);
+        return new(along * lineWidth, across * lineWidth, lineWidth);
+    }
+
+    // The disc an oval end draws at a line's end point, as a polygon whose stroke (the line's width) brings
+    // it out to the end's diameters, its long axis along the line.
+    static IEnumerable<(double X, double Y)> Disc((double X, double Y) at, (double X, double Y) toward, OvalLineEnd end)
+    {
+        var deltaX = toward.X - at.X;
+        var deltaY = toward.Y - at.Y;
+        var length = Math.Sqrt(deltaX * deltaX + deltaY * deltaY);
+        var (alongX, alongY) = length > 0 ? (deltaX / length, deltaY / length) : (1d, 0d);
+        var semiAlong = Math.Max(0.05, (end.Along - end.LineWidth) / 2);
+        var semiAcross = Math.Max(0.05, (end.Across - end.LineWidth) / 2);
+        const int steps = 32;
+        for (var i = 0; i < steps; i++)
+        {
+            var angle = 2 * Math.PI * i / steps;
+            var cos = Math.Cos(angle) * semiAlong;
+            var sin = Math.Sin(angle) * semiAcross;
+            yield return (at.X + alongX * cos - alongY * sin, at.Y + alongY * cos + alongX * sin);
+        }
     }
 
     static double NormalizeDegrees(double degrees)

@@ -368,6 +368,65 @@ public class TableRowHeightRulesTests
         await Assert.That(heights[0]).IsEqualTo(12f).Within(0.01f);
     }
 
+    // A merge takes its bottom margin from its LAST row (_probe_vmergemar): eight 12pt lines merged
+    // down two one-line rows end 40pt lower when the last row's plain cell has a 40pt bottom margin,
+    // and not at all when the head row's does (that row grows by it, the merge does not).
+    [Test]
+    [Arguments(false, 12f, 124f)]
+    [Arguments(true, 52f, 44f)]
+    public async Task A_merge_takes_its_bottom_margin_from_its_last_row(bool onHead, float head, float last)
+    {
+        static TableCell Plain(double bottom) =>
+            new()
+            {
+                Content = [new ParagraphElement { Runs = [new() { Text = "x", Properties = new() }], Properties = new() }],
+                Properties = new() { Padding = new(0, 0, bottom, 0) }
+            };
+
+        var merged = new TableCell
+        {
+            Content = [.. Enumerable.Range(0, 8).Select(_ => new ParagraphElement { Runs = [new() { Text = "line", Properties = new() }], Properties = new() })],
+            Properties = new() { VerticalMerge = VerticalMergeType.Restart }
+        };
+        var table = new TableElement
+        {
+            Rows =
+            [
+                new() { Cells = [Plain(onHead ? 40 : 0), merged] },
+                new() { Cells = [Plain(onHead ? 0 : 40), new() { Content = [new ParagraphElement { Runs = [] }], Properties = new() { VerticalMerge = VerticalMergeType.Continue } }] }
+            ]
+        };
+
+        var heights = TableHeightCalculator.CalculateRowHeights(table, [100f, 100f], new StubMeasurer());
+
+        await Assert.That(heights[0]).IsEqualTo(head).Within(0.01f);
+        await Assert.That(heights[1]).IsEqualTo(last).Within(0.01f);
+    }
+
+    // A WordArt box's paragraph keeps its after-spacing in a cell (wedding/08's ampersand badge between
+    // two contextual Titles): 12 + 8 after, the 50pt box + its own 8 after, 12 + 8 after.
+    [Test]
+    public async Task A_wordart_in_a_cell_keeps_its_paragraphs_after_spacing()
+    {
+        static ParagraphElement Title() =>
+            new()
+            {
+                Runs = [new() { Text = "Title", Properties = new() }],
+                Properties = new() { StyleId = "Title", ContextualSpacing = true, SpacingAfterPoints = 8 }
+            };
+
+        var cell = new TableCell
+        {
+            Content = [Title(), new WordArtElement { Text = "&", WidthPoints = 50, HeightPoints = 50, SpacingAfterPoints = 8 }, Title()],
+            Properties = new()
+        };
+        var table = new TableElement { Rows = [new() { Cells = [cell] }] };
+
+        var heights = TableHeightCalculator.CalculateRowHeights(table, [100f], new StubMeasurer());
+
+        await Assert.That(heights[0]).IsEqualTo(12 + 8 + 50 + 8 + 12 + 8f).Within(0.01f);
+    }
+
     sealed class StubMeasurer : IParagraphMeasurer
     {
         public List<float> LayoutParagraphForMeasurement(ParagraphElement paragraph, float maxWidth) => [12f];

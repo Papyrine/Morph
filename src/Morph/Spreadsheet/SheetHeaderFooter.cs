@@ -42,6 +42,12 @@ static class SheetHeaderFooter
         var differentOddEven = headerFooter.DifferentOddEven?.Value == true;
         return settings with
         {
+            // Excel prints a header and a footer in the margins and never moves the grid for them, where
+            // Word's body clears a header taller than its margin allows: simple-list's 0.75in top
+            // margin holds its grid's first row at 0.75in under a "To Do List" header from 0.3in, where
+            // the header's band stood the grid 10.5pt lower
+            TopMarginIsAbsolute = true,
+            BottomMarginIsAbsolute = true,
             DifferentFirstPage = differentFirst,
             Bands = new()
             {

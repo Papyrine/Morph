@@ -47,6 +47,20 @@ public class WordChartTests
         }
     }
 
+    // A legend across the foot of a Word chart is a box 4.1pt taller than its line at each edge
+    // (_probe_legend): the column chart's legend line ends 4.1pt above the chart's 5pt padding.
+    [Test]
+    public async Task A_bottom_legend_stands_in_its_box_above_the_padding()
+    {
+        var document = Parse("chart_column_line");
+        var laidOut = new Fragmenter(LayoutTestFonts.Measurer, document.Compatibility)
+            .Layout(document.Elements, document.PageSettings);
+        var column = laidOut.Pages[0].Items.OfType<PlacedLine>().SelectMany(_ => _.Images).First(_ => _.Composed != null);
+        var legend = column.Composed!.OfType<PlacedLine>().First(_ => _.Runs.Any(run => run.Text == "North"));
+
+        await Assert.That(legend.Y + legend.Height).IsEqualTo(column.Y + column.Height - 5 - 4.1f).Within(0.5f);
+    }
+
     [Test]
     public async Task An_anchored_chart_floats_at_its_anchor()
     {

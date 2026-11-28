@@ -131,6 +131,12 @@ sealed record ParagraphProperties
     public string? ParagraphMarkFontFamily { get; init; }
 
     /// <summary>
+    /// The paragraph mark's w14:shadow, resolved as its size and face are, for the same fallback: a
+    /// shadowed mark's line takes its shadow's room (menus/09's empty Title paragraphs).
+    /// </summary>
+    public TextShadow? ParagraphMarkShadow { get; init; }
+
+    /// <summary>
     /// Run formatting of the paragraph mark (w:pPr/w:rPr resolved over the paragraph style
     /// chain, exactly like a run without direct formatting). Word derives an empty paragraph's
     /// line height from the mark. Null for HTML-sourced paragraphs and for paragraphs inside

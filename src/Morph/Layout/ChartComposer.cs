@@ -1455,6 +1455,14 @@ sealed partial class ChartComposer(
         var blockWidth = across ? widths.Sum() + entryGap * (entries.Count - 1) : widths.Max();
         var blockHeight = across ? lineHeight : pitch * (entries.Count - 1) + lineHeight;
 
+        // A legend across the top or the foot of a Word chart is a box 4.1pt taller than its line at each
+        // edge, whatever its size: probed in Word 16 (_probe_legend, 2026-11-28) on chart_column_line's
+        // column chart with its bottom legend at 10, 20 and 30pt, the zero gridline stood 17px (150 dpi)
+        // higher than a box of the line alone put it at every size, and the legend's text 9 to 11px higher.
+        // Slides keep the legend PowerPoint was measured with.
+        var acrossInset = across && !chart.OnSlide ? 4.1f * padding / 5f : 0f;
+        blockHeight += 2 * acrossInset;
+
         (float X, float Y, float Width, float Height) area;
         var remaining = inner;
         if (legend.Layout is { } manual)
@@ -1486,7 +1494,7 @@ sealed partial class ChartComposer(
 
         // The entries are centred in the legend's area, in a row or a column.
         var x = area.X + (area.Width - blockWidth) / 2;
-        var y = area.Y + (area.Height - blockHeight) / 2;
+        var y = area.Y + (area.Height - (blockHeight - 2 * acrossInset)) / 2;
         for (var index = 0; index < entries.Count; index++)
         {
             var (_, color, series, plot) = entries[index];
