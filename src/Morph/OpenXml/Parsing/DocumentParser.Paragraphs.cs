@@ -655,7 +655,7 @@ sealed partial class DocumentParser
             // A layer "has" the value when it's non-zero - we can't distinguish "explicitly 0"
             // from "default 0" without re-parsing, but in practice any zero indent means the
             // layer didn't set one and the next should fill in.
-            var (styleIndentsLeft, styleIndentsHanging) = paragraphStyleId == null ? (true, true) : StyleIndentBeforeList(paragraphStyleId);
+            var (styleIndentsLeft, styleIndentsHanging, styleStatesFirstLine) = paragraphStyleId == null ? (true, true, false) : StyleIndentBeforeList(paragraphStyleId);
             var styleHasLeft = styleIndentsLeft && (styleDefaults?.LeftIndentPoints ?? 0) > 0;
             var styleHasHanging = styleIndentsHanging && (styleDefaults?.HangingIndentPoints ?? 0) > 0;
             var numberingHasLeft = numberingInfo.IndentPoints > 0;
@@ -677,8 +677,13 @@ sealed partial class DocumentParser
                 leftIndent = directHasLeft ? props.LeftIndentPoints
                     : styleHasLeft ? styleDefaults!.LeftIndentPoints
                     : numberingInfo.IndentPoints;
+                // A style that states its first line replaces the level's hanging indent with it, as
+                // a paragraph's own does: resumes/14's ListBullet (left=288 firstLine=0) sets its
+                // bullets at 288 and their text at the next default stop, where keeping the level's
+                // 360 hanging stood both 38px left of Word's
                 hangingIndent = directHasHanging ? props.HangingIndentPoints
                     : styleHasHanging ? styleDefaults!.HangingIndentPoints
+                    : styleStatesFirstLine ? 0
                     : numberingInfo.HangingIndentPoints;
             }
 
@@ -687,6 +692,27 @@ sealed partial class DocumentParser
                 Numbering = numberingInfo,
                 LeftIndentPoints = leftIndent,
                 HangingIndentPoints = hangingIndent
+            };
+        }
+
+        // A right-to-left paragraph (w:bidi) starts at the right, and its w:jc and w:ind name its start
+        // and end sides rather than left and right. Probed in Word 16 (_probe_bidi, 2026-11-28): with
+        // no jc, jc="left" or jc="start" its line stands at the right margin, and with jc="right" or
+        // "end" at the left; w:left="1440" stands it an inch in from the right and w:right="1440" leaves
+        // it there. Its first line's indent is at the right too, which the layout places
+        // (Fragmenter.StartShift).
+        if (props.IsRightToLeft)
+        {
+            props = props with
+            {
+                LeftIndentPoints = props.RightIndentPoints,
+                RightIndentPoints = props.LeftIndentPoints,
+                Alignment = props.Alignment switch
+                {
+                    TextAlignment.Left => TextAlignment.Right,
+                    TextAlignment.Right => TextAlignment.Left,
+                    _ => props.Alignment
+                }
             };
         }
 
@@ -2104,7 +2130,8 @@ sealed partial class DocumentParser
             {
                 alignment = TextAlignment.Center;
             }
-            else if (justVal == JustificationValues.Right)
+            else if (justVal == JustificationValues.Right ||
+                     justVal == JustificationValues.End)
             {
                 alignment = TextAlignment.Right;
             }

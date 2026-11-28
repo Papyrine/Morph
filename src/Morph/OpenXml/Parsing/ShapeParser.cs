@@ -429,9 +429,12 @@ static class ShapeParser
     /// through a <c>schemeClr lt1</c> fontRef, while menus/03's labels take their style's white over
     /// a <c>dk1</c> fontRef). Returns null when the shape declares no fontRef colour.
     /// </summary>
-    public static string? ExtractFontReferenceColor(WPS.WordprocessingShape wsp, ThemeColors? themeColors)
+    public static string? ExtractFontReferenceColor(WPS.WordprocessingShape wsp, ThemeColors? themeColors) =>
+        ExtractFontReferenceColor(wsp.GetFirstChild<WPS.ShapeStyle>()?.FontReference, themeColors);
+
+    /// <summary>The colour an <c>a:fontRef</c> names, whichever kind of shape style holds it; null when there is none.</summary>
+    public static string? ExtractFontReferenceColor(A.FontReference? fontReference, ThemeColors? themeColors)
     {
-        var fontReference = wsp.GetFirstChild<WPS.ShapeStyle>()?.FontReference;
         if (fontReference == null)
         {
             return null;

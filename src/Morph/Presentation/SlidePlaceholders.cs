@@ -266,6 +266,33 @@ sealed class SlidePlaceholders
         return shape.ShapeProperties;
     }
 
+    /// <summary>
+    /// The <c>p:spPr</c> that declares a picture's fill: its own, else the nearest placeholder's it
+    /// fills; null when none declares one.
+    /// </summary>
+    public OpenXmlElement? ResolvePictureFillSource(P.Picture picture, P.PlaceholderShape? placeholder)
+    {
+        if (picture.ShapeProperties is { } own &&
+            HasFill(own))
+        {
+            return own;
+        }
+
+        if (placeholder != null)
+        {
+            foreach (var inherited in Matches(placeholder))
+            {
+                if (inherited.ShapeProperties is { } properties &&
+                    HasFill(properties))
+                {
+                    return properties;
+                }
+            }
+        }
+
+        return null;
+    }
+
     static bool HasFill(OpenXmlElement properties) =>
         properties.GetFirstChild<A.NoFill>() != null ||
         properties.GetFirstChild<A.SolidFill>() != null ||

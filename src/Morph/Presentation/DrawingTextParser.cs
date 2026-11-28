@@ -16,16 +16,22 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
     /// <summary>DrawingML percentages (line spacing, autofit scale) are thousandths of a percent.</summary>
     const double thousandthsPerPercent = 100000.0;
 
+    // The colour of the body being parsed when its runs name none: its shape style's fontRef
+    string? fallbackColor;
+
     /// <summary>
     /// Parses every <c>a:p</c> in the body. <paramref name="fontScale"/> is the
     /// <c>a:normAutofit/@fontScale</c> shrink PowerPoint bakes in when text overflows its box,
     /// applied to every resolved size (1.0 when the body does not autofit).
     /// <paramref name="styleId"/> names what the text is, for the exporters: a title placeholder's
     /// paragraphs are a heading (<see cref="DocumentExportHelpers.TryGetHeadingLevel"/>). Layout
-    /// reads nothing from it.
+    /// reads nothing from it. <paramref name="fontReferenceColor"/> is the colour the shape's style
+    /// names for its text (<c>xdr:style/a:fontRef</c>), which a run takes when nothing in the chain
+    /// colours it.
     /// </summary>
-    public List<DocumentElement> Parse(OpenXmlElement body, TextStyleChain chain, double fontScale = 1, string? styleId = null)
+    public List<DocumentElement> Parse(OpenXmlElement body, TextStyleChain chain, double fontScale = 1, string? styleId = null, string? fontReferenceColor = null)
     {
+        fallbackColor = fontReferenceColor;
         var elements = new List<DocumentElement>();
         var counters = new AutoNumberCounters();
 
@@ -250,7 +256,7 @@ sealed class DrawingTextParser(ThemeColors? themeColors, ThemeFonts? themeFonts,
                             strike != A.TextStrikeValues.NoStrike,
             AllCaps = First(sources, _ => _.Capital?.Value) == A.TextCapsValues.All,
             SmallCaps = First(sources, _ => _.Capital?.Value) == A.TextCapsValues.Small,
-            ColorHex = ResolveColor(sources),
+            ColorHex = ResolveColor(sources) ?? fallbackColor,
             // a:rPr/@spc is hundredths of a point, like the size.
             CharacterSpacingPoints = First(sources, _ => _.Spacing?.Value) / hundredthsPerPoint ?? 0
         };

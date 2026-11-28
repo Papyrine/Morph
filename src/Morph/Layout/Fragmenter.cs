@@ -895,7 +895,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
             var availableWidth = columnWidth - (float)properties.LeftIndentPoints - (float)properties.RightIndentPoints;
             var indentLeft = left + (float)properties.LeftIndentPoints;
             var firstLineShift = FirstLineIndentOffset(properties, row.LineIndex);
-            var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, row.Line.Width);
+            var lineLeft = indentLeft + StartShift(properties, firstLineShift) + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, row.Line.Width);
             var baseline = top + row.Line.Ascent;
             return new(lineLeft, top, row.Line.Width, row.Line.Height, baseline, paragraph, row.LineIndex, LineRuns(paragraph, row.Line, row.LineIndex, lineLeft), MapImages(row.Line, lineLeft, baseline));
         }
@@ -3397,7 +3397,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     // keeps its band even then.
                     var indentLeft = (bandConstrained ? bandLeft : ColumnLeft) + (float)properties.LeftIndentPoints;
                     var firstLineShift = FirstLineIndentOffset(properties, placedIndex);
-                    var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
+                    var lineLeft = indentLeft + StartShift(properties, firstLineShift) + AlignmentOffset(PlacedAlignment(properties, placedIndex, paragraphLines.Count), availableWidth - firstLineShift, line.Width);
                     var baseline = y + line.Ascent;
 
                     // Paragraph shading (w:shd) fills the paragraph's column box behind the text, regardless
@@ -5024,7 +5024,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                 {
                     var line = paragraphLines[lineIndex];
                     var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
-                    var lineLeft = textLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width, cell.Properties.SingleLine);
+                    var lineLeft = textLeft + StartShift(properties, firstLineShift) + AlignmentOffset(PlacedAlignment(properties, lineIndex, paragraphLines.Count), availableWidth - firstLineShift, line.Width, cell.Properties.SingleLine);
                     var baseline = cellY + line.Ascent;
 
                     // Paragraph shading fills the paragraph's box behind each line, as in the page flow.
@@ -5249,7 +5249,7 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
                     var line = paragraphLines[lineIndex];
                     var indentLeft = left + (float)properties.LeftIndentPoints;
                     var firstLineShift = FirstLineIndentOffset(properties, lineIndex);
-                    var lineLeft = indentLeft + firstLineShift + AlignmentOffset(properties.Alignment, availableWidth - firstLineShift, line.Width);
+                    var lineLeft = indentLeft + StartShift(properties, firstLineShift) + AlignmentOffset(PlacedAlignment(properties, lineIndex, paragraphLines.Count), availableWidth - firstLineShift, line.Width);
                     var baseline = bandY + line.Ascent;
                     if (!string.IsNullOrEmpty(properties.BackgroundColorHex))
                     {
@@ -6267,6 +6267,22 @@ sealed class Fragmenter(CanonicalParagraphMeasurer measurer, CompatibilitySettin
 
             return 0f;
         }
+
+        // How far the first line's indent moves the line's left edge: all of it, except in a
+        // right-to-left paragraph (w:bidi), whose first line is indented from the right, where the
+        // indent only narrows the room the line is aligned in (_probe_bidi: firstLine="1440" ends the
+        // first line an inch short of the right margin and leaves the second at it).
+        static float StartShift(ParagraphProperties properties, float firstLineShift) =>
+            properties.IsRightToLeft ? 0 : firstLineShift;
+
+        // The alignment a line is placed by. The last line of a justified right-to-left paragraph is not
+        // stretched and ends at the right, as Word sets it (_probe_bidi: at 1123 of a 1125 margin); its
+        // other lines fill the measure, so they place at no offset as a justified line does. A caller
+        // that does not know how many lines the paragraph has passes -1 and leaves it at the left.
+        static TextAlignment PlacedAlignment(ParagraphProperties properties, int lineIndex, int lineCount) =>
+            properties is {IsRightToLeft: true, Alignment: TextAlignment.Justify} && lineIndex == lineCount - 1
+                ? TextAlignment.Right
+                : properties.Alignment;
 
         // The runs to paint for a line: its text run segments, plus — on the first line of a list
         // paragraph — the list marker positioned in the hanging-indent gutter to the left of the text.

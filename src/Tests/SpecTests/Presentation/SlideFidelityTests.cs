@@ -33,6 +33,22 @@ public class SlideFidelityTests
     static ParagraphElement Paragraph(FloatingTextBoxElement box, string text) =>
         box.Content.OfType<ParagraphElement>().First(_ => string.Concat(_.Runs.Select(run => run.Text)).Contains(text));
 
+    // fashion-infographics-poster's logo is a PNG clear around its lettering in a picture placeholder
+    // its layout fills bg1, black on the dark slide: the fill stands under the picture.
+    [Test]
+    public async Task A_picture_stands_on_its_placeholders_fill()
+    {
+        var slide = Slide("fashion-infographics-poster", 1);
+        var logo = slide.OfType<FloatingImageElement>().First(_ => _.Description == "A black background with white text ");
+        var under = slide[slide.IndexOf(logo) - 1] as FloatingShapeElement;
+
+        await Assert.That(under).IsNotNull();
+        await Assert.That(under!.FillColorHex).IsEqualTo("000000");
+        // A pixel inside the picture's box, its antialiased edge under the picture
+        await Assert.That(under.WidthPoints).IsEqualTo(logo.WidthPoints - 1.5).Within(0.001);
+        await Assert.That(under.VerticalPositionPoints).IsEqualTo(logo.VerticalPositionPoints + 0.75).Within(0.001);
+    }
+
     // leaf's master maps bg1 to dk1 and tx1 to lt1: its slides are dark red with white text.
     [Test]
     public async Task A_masters_colour_map_swaps_text_and_background()

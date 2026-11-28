@@ -441,6 +441,18 @@ public class HtmlParserTests
         await Assert.That(runs.Single(_ => _.Text == "red").Properties.ColorHex).IsEqualTo("FF0000");
     }
 
+    // A header cell centres its text as a browser's does (html_table's <th>s), unless its style says otherwise.
+    [Test]
+    public async Task Table_HeaderCellsCentreTheirText()
+    {
+        var table = (TableElement) HtmlParser.Parse("<table><tr><th>H</th><th style=\"text-align: left\">L</th><td>D</td></tr></table>")[0];
+        var cells = table.Rows[0].Cells;
+
+        await Assert.That(((ParagraphElement) cells[0].Content[0]).Properties.Alignment).IsEqualTo(TextAlignment.Center);
+        await Assert.That(((ParagraphElement) cells[1].Content[0]).Properties.Alignment).IsEqualTo(TextAlignment.Left);
+        await Assert.That(((ParagraphElement) cells[2].Content[0]).Properties.Alignment).IsEqualTo(TextAlignment.Left);
+    }
+
     [Test]
     public Task Table_TheadTbodyTfoot() =>
         Verify(HtmlParser.Parse("<table><thead><tr><th>H</th></tr></thead><tbody><tr><td>B</td></tr></tbody><tfoot><tr><td>F</td></tr></tfoot></table>"));

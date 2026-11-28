@@ -180,7 +180,7 @@ sealed partial class DocumentParser(string? defaultFont = null, bool? useLetterP
     // whose indent a style-numbered paragraph takes (StyleIndentBeforeList).
     HashSet<string>? styleNumberingOwners;
 
-    Dictionary<string, (bool Left, bool Hanging, string? BasedOn)>? styleOwnIndents;
+    Dictionary<string, (bool Left, bool Hanging, bool FirstLine, string? BasedOn)>? styleOwnIndents;
 
     // Numbering counters keyed by (abstractNumId, ilvl): OOXML's counter belongs to the
     // ABSTRACT definition, shared by every numId that references it — that's how a template's

@@ -11,7 +11,7 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "f­­\nCelebrate!\nCelebrate!"
+        "Text": "f\nCelebrate!\nCelebrate!"
       },
       {
         "Number": 2,
@@ -27,7 +27,7 @@
     {
       "Page": 1,
       "ErrorMetric": 0.2722,
-      "Ssim": 0.9896,
+      "Ssim": 0.9897,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

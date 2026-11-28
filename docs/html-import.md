@@ -1,4 +1,4 @@
-﻿# HTML input
+# HTML input
 
 How HTML becomes a `ParsedDocument`, and the rules that were established by measuring Word rather than by reading a spec.
 
@@ -186,6 +186,8 @@ breaks gone `html_complex`'s intro set on one line where Word sets two; the caus
 size (11pt against Word's 12, Measured constants), and at 12pt the intro wraps where Word wraps it.
 
 ### Cell alignment and row heights (2026-11-01)
+
+A header cell (`<th>`) centres its text unless its style sets `text-align`, as a browser's does and as Word imports it: html_table's three header cells each stood 18px left of Word's (`HtmlParser`, `Table_HeaderCellsCentreTheirText`).
 
 `_probe_valign` set one word per cell beside a six-line cell. Word keeps a cell's `vertical-align`
 or `valign` (top, middle, bottom; `baseline` stands at the top), else its row's (`<tr valign>` or

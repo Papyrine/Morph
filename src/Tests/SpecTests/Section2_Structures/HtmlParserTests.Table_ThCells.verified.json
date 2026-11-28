@@ -37,6 +37,7 @@
                   }
                 ],
                 "Properties": {
+                  "Alignment": "Center",
                   "SpacingAfterPoints": 8.0,
                   "LineSpacingMultiplier": 1.1583333333333334,
                   "SnapToGrid": true,

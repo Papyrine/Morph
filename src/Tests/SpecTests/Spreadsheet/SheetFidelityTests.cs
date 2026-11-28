@@ -202,6 +202,40 @@ public class SheetFidelityTests
         await Assert.That(layers.All(_ => _.RelativeHeight == picture.RelativeHeight)).IsTrue();
     }
 
+    // basic-business-invoice's "LOGO GOES HERE" names no colour; its shape style's fontRef is lt1, white
+    // on its blue square in Excel's print.
+    [Test]
+    public async Task A_shapes_text_takes_its_styles_font_colour()
+    {
+        var label = Sheet("basic-business-invoice").OfType<FloatingTextBoxElement>()
+            .SelectMany(_ => _.Content.OfType<ParagraphElement>())
+            .SelectMany(_ => _.Runs)
+            .First(_ => _.Text.Contains("LOGO"));
+
+        await Assert.That(label.Properties.ColorHex).IsEqualTo("FFFFFF");
+    }
+
+    // simple-basic-pink-blue-timesheet's "Email" overflows across C13 and D13, so its cell spans the
+    // three: the rule under them is handed down to the three cells of the spacer row beneath, whose fill
+    // would otherwise cover it, as a one-column cell's is.
+    [Test]
+    public async Task A_rule_under_overflowing_text_is_handed_to_every_cell_beneath()
+    {
+        var grid = Grid("simple-basic-pink-blue-timesheet");
+        var index = 0;
+        while (!grid.Rows[index].Cells.Any(cell => Text(cell) == "Email" && cell.Properties.GridSpan == 3))
+        {
+            index++;
+        }
+
+        var email = grid.Rows[index].Cells.First(_ => Text(_) == "Email" && _.Properties.GridSpan == 3);
+        var ruled = grid.Rows[index + 1].Cells.Count(_ => _.Properties.Borders is {Top.IsVisible: true});
+
+        // The three cells under "Email", and the one under the right-hand "Email" beside them
+        await Assert.That(ruled).IsGreaterThanOrEqualTo(4);
+        await Assert.That(email.Properties.Borders is {Bottom.IsVisible: true}).IsFalse();
+    }
+
     // A sheet's text is drawn at its linear advances, as Excel prints it, not at Word's pixels.
     [Test]
     public async Task A_sheets_text_is_drawn_at_its_linear_advances()

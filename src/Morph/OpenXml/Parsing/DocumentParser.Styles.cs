@@ -924,9 +924,9 @@ sealed partial class DocumentParser
         return styleProps;
     }
 
-    static Dictionary<string, (bool Left, bool Hanging, string? BasedOn)> ExtractStyleOwnIndents(MainDocumentPart mainPart)
+    static Dictionary<string, (bool Left, bool Hanging, bool FirstLine, string? BasedOn)> ExtractStyleOwnIndents(MainDocumentPart mainPart)
     {
-        var result = new Dictionary<string, (bool Left, bool Hanging, string? BasedOn)>(StringComparer.OrdinalIgnoreCase);
+        var result = new Dictionary<string, (bool Left, bool Hanging, bool FirstLine, string? BasedOn)>(StringComparer.OrdinalIgnoreCase);
         foreach (var style in mainPart.StyleDefinitionsPart?.Styles?.Elements<Style>() ?? [])
         {
             if (style.StyleId?.Value is not { } id ||
@@ -940,6 +940,7 @@ sealed partial class DocumentParser
                 id,
                 (indentation?.Left?.HasValue == true || indentation?.Start?.HasValue == true,
                     indentation?.Hanging?.HasValue == true,
+                    indentation?.FirstLine?.HasValue == true,
                     style.BasedOn?.Val?.Value));
         }
 
@@ -975,17 +976,19 @@ sealed partial class DocumentParser
     // level stands between the two: resumes/19's Skills Bullets is based on Bullets Skills, which names
     // the list (level 288 left, 288 hanging), based on Body Contact Info, which indents 14 twips; Word
     // sets the items at the level's 288, with their bullets, where taking the 14 hung the bullets off
-    // the cell.
-    (bool Left, bool Hanging) StyleIndentBeforeList(string styleId)
+    // the cell. FirstLine says such a style states its first line (w:firstLine), which replaces the
+    // level's hanging indent (FirstLineOf).
+    (bool Left, bool Hanging, bool FirstLine) StyleIndentBeforeList(string styleId)
     {
         if (styleOwnIndents == null ||
             styleNumberingOwners == null)
         {
-            return (true, true);
+            return (true, true, false);
         }
 
         var left = false;
         var hanging = false;
+        var firstLine = false;
         var visited = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var current = styleId;
         while (current != null &&
@@ -994,15 +997,16 @@ sealed partial class DocumentParser
         {
             left |= own.Left;
             hanging |= own.Hanging;
+            firstLine |= own.FirstLine;
             if (styleNumberingOwners.Contains(current))
             {
-                return (left, hanging);
+                return (left, hanging, firstLine);
             }
 
             current = own.BasedOn;
         }
 
-        return (true, true);
+        return (true, true, false);
     }
 
     static (Dictionary<string, (int numId, int ilvl)> Numbering, HashSet<string> Owners) ExtractStyleNumbering(MainDocumentPart mainPart)

@@ -154,4 +154,20 @@ public class SmallCapsExpanderTests
         await Assert.That(result.Count).IsEqualTo(1);
         await Assert.That(result[0].Text).IsEqualTo("");
     }
+
+    // Word draws the small capitals at 80% of the run's size rounded to the nearest half point
+    // (_probe_smallcaps): 9 under 11pt, 8.5 under 10.5, 7.5 under 9.5 and 7 under 8.5.
+    [Test]
+    [Arguments(11, 9)]
+    [Arguments(10.5, 8.5)]
+    [Arguments(9.5, 7.5)]
+    [Arguments(8.5, 7)]
+    [Arguments(72, 57.5)]
+    public async Task SmallCapitalsAreRoundedToHalfPoints(double size, double expected)
+    {
+        var result = SmallCapsExpander.Expand([new() { Text = "x", Properties = new() { FontSizePoints = size, SmallCaps = true } }]);
+
+        await Assert.That(result[0].Text).IsEqualTo("X");
+        await Assert.That(result[0].Properties.FontSizePoints).IsEqualTo(expected);
+    }
 }

@@ -198,6 +198,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // 80% of the declared height, and an at-least box that grows anchors its ink at the bottom —
             // see LineAscentPoints for the probes.
             var naturalPitch = segments.Count == 0 ? MarkPitch(paragraph) : wrapped[i].Pitch;
+            var naturalAscent = textAscent;
             textAscent = (float) LineAscent(textAscent, props, naturalPitch);
 
             // On the document grid the box is whole grid pitches and the text is centred in it.
@@ -205,6 +206,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             {
                 textHeight = grid.Height;
                 textAscent += grid.AscentShift;
+            }
+            // An at-least line on the grid keeps its text where a single grid line would set it, that
+            // line at the foot of the box and the rest of the box above. XPS-read (_probe_gridleast,
+            // 2026-11-28, Arial on a 36pt grid): a 50pt at-least line of 12pt has its baseline 37.1pt
+            // down, the 36pt grid line's 23.0 under 14pt of the box, and a 70pt one of 24pt 61.4, where
+            // off the grid both stand at their boxes' feet (47.3) as LineAscent sets them.
+            // document_grid_lines' "I0 least1000" stood 23px low. A box shorter than its grid line is
+            // left as it is.
+            else if (props is {GridLinePitchPoints: > 0, LineSpacingRule: LineSpacingRule.AtLeast} &&
+                     CanonicalTextMeasurer.GridLine(naturalPitch, props.GridLinePitchPoints, 1) is var (cellHeight, cellShift) &&
+                     textHeight >= cellHeight)
+            {
+                textAscent = (float) (textHeight - cellHeight + naturalAscent + cellShift);
             }
 
             // A run border (w:bdr) reserves its stack plus w:space above the font's line box and 1.3 times
@@ -713,8 +727,12 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                 return (markerOffset, markerEnd + MeasureRunWidth(" ", markerProperties));
         }
 
-        if (start < -0.01f &&
-            markerEnd <= -0.01f)
+        // A right-aligned marker that ends at the LeftIndent with no hanging indent sets its text at the
+        // LeftIndent too: agendas-minutes/14's List Number (left=288 firstLine=0, its level's "I." right-
+        // aligned) puts "CALL TO ORDER" at 288 and its numeral just before it in Word, where taking the next
+        // default stop stood the text 44px right
+        if ((start < -0.01f && markerEnd <= -0.01f) ||
+            (numbering.MarkerRightAligned && markerEnd <= 0.01f))
         {
             return (markerOffset, 0);
         }
@@ -1612,6 +1630,7 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                         tabStops,
                         defaultTabStopPoints,
                         leftIndentPoints,
+                        decimalPrefixWidth: tabStops.Any(_ => _.Alignment == TabAlignment.Decimal) ? MeasureDecimalPrefix(linePieces, afterTab) : null,
                         availableEndX: clampsTabStops ? columnWidthPoints : null);
                 }
                 var advanced = CanonicalTextMeasurer.PixelsFromPoints((float) (destinationFromMargin - leftIndentPoints));
@@ -1694,12 +1713,46 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
         return CanonicalTextMeasurer.PixelsToPoints(sum);
     }
 
+    // Points of text following a tab up to its decimal point, which a decimal stop stands on the stop's
+    // position, or null when the text has none and the stop aligns its end as a right stop does. Word
+    // sets decimal_tabs/01's prices with their points on the 3.5in stop, where aligning their ends
+    // there stood them 29px left.
+    double? MeasureDecimalPrefix(List<Piece> linePieces, int startIndex)
+    {
+        double sum = 0;
+        for (var index = startIndex; index < linePieces.Count && !linePieces[index].IsTab; index++)
+        {
+            var piece = linePieces[index];
+            var point = piece.Image == null ? piece.Text.IndexOf('.') : -1;
+            if (point < 0)
+            {
+                sum += piece.Pixels;
+                continue;
+            }
+
+            var properties = piece.Properties;
+            if (resolveFont(properties.FontFamily, properties.Bold, properties.Italic) is not {UnitsPerEm: > 0} metrics)
+            {
+                return null;
+            }
+
+            var prefix = piece.Text[..point];
+            sum += CanonicalTextMeasurer.LinearPixels(metrics, prefix, VerticalRunPosition.RenderSizePoints(properties), WidthScale(properties), KerningEnabled(properties), LigaturesEnabled(properties)) +
+                   CanonicalTextMeasurer.PixelsFromPoints((float) (properties.CharacterSpacingPoints * prefix.Length));
+            return CanonicalTextMeasurer.PixelsToPoints(sum);
+        }
+
+        return null;
+    }
+
     static RunProperties ParagraphFont(ParagraphElement paragraph) => MarkProperties(paragraph);
 
     List<Piece> Flatten(ParagraphElement paragraph)
     {
         var pieces = new List<Piece>();
-        foreach (var paragraphRun in paragraph.Runs)
+        // A small-caps run lays its lowercase out as smaller capitals (SmallCapsExpander), which the
+        // engine never did until 2026-11-28: small_caps drew in plain mixed case
+        foreach (var paragraphRun in SmallCapsExpander.Expand(paragraph.Runs))
         {
             var run = paragraphRun.Symbol is { } symbol ? SymbolRun(paragraphRun, symbol) : paragraphRun;
 
@@ -1824,6 +1877,16 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             // w:caps upper-cases the run; a soft line break (the parser emits it as "\n") splits the run
             // into parts with a forced break between them.
             var runText = run.Properties.AllCaps ? run.Text.ToUpperInvariant() : run.Text;
+
+            // A soft hyphen (w:softHyphen) shows nothing and takes no room where the word does not break
+            // there (_probe_smallcaps: "Soft" and "hyphen" stand flush in Word's XPS). Breaking at one is
+            // not modelled, so it is never shown; drawn glyph by glyph it showed as a hyphen mid-word
+            // (hyphenation_soft's "hy-phens"). SourceIndex.Cursor.Find steps over it as it does a space.
+            if (runText.Contains('\u00AD'))
+            {
+                runText = runText.Replace("\u00AD", string.Empty);
+            }
+
             var borderInside = run.Properties.Border != null &&
                                !BorderStroke.RunBorderReserves(runText);
             var parts = runText.Split('\n');
@@ -1842,6 +1905,15 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     // only splits on ' '), but MEASURES and PAINTS as an ordinary space: fonts that do
                     // not map U+00A0 would give it .notdef's wide advance (business-plans/05).
                     var text = token.Contains('\u00A0') ? token.Replace('\u00A0', ' ') : token;
+
+                    // A non-breaking hyphen (w:noBreakHyphen, U+2011) holds its word together the same way
+                    // and is drawn as the face's own hyphen, which is how Word draws it: Aptos has no
+                    // U+2011, and hyphenation_nonbreaking's "non-breaking" and phone number drew .notdef
+                    // boxes. Swapped after the split, so it is still no place to break.
+                    if (text.Contains('\u2011'))
+                    {
+                        text = text.Replace('\u2011', '-');
+                    }
                     var advance = CanonicalTextMeasurer.LinearPixels(metrics, text, size, WidthScale(run.Properties), kerning, LigaturesEnabled(run.Properties));
                     if (trackingPerChar != 0)
                     {
@@ -2031,7 +2103,19 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
             var ppem = Math.Round(sizePoints * CanonicalTextMeasurer.ReferenceDpi / 72, MidpointRounding.AwayFromZero);
             var linearEm = CanonicalTextMeasurer.EmPixels(sizePoints);
             var scale = properties.CharacterScalePercent / 100.0;
-            var extra = properties.CharacterSpacingPoints +
+            // w:spacing tracking is drawn as a whole number of Word's pixels on every glyph, its own
+            // amount rounded half away from zero (_probe_track, 2026-11-28, Century Gothic 10pt): 0.1 and
+            // 0.2pt add nothing, 0.3pt (half a pixel) adds 1px, as do 0.4, 0.5 and 0.7pt, 1pt adds 2 and
+            // 2pt 3, and -0.3pt takes 1 away. A line it draws past its measure gives the excess back out
+            // of its spaces: agendas-minutes/07's 0.3pt body text runs to the margin, where adding the
+            // tracking unrounded left its lines up to 56px short of Word's. Compatibility mode 15 draws it
+            // the same (_probe_track15). A run stretched by w:w keeps it unrounded, as its painters scale
+            // the canvas.
+            var trackingPixels = scale == 1
+                ? (long) Math.Round(properties.CharacterSpacingPoints * CanonicalTextMeasurer.ReferenceDpi / 72, MidpointRounding.AwayFromZero)
+                : 0;
+            var linearTrackingPixels = scale == 1 ? properties.CharacterSpacingPoints * CanonicalTextMeasurer.ReferenceDpi / 72 : 0;
+            var extra = (scale == 1 ? 0 : properties.CharacterSpacingPoints) +
                         (properties.SyntheticBold == SyntheticBold.Simulated ? BoldSimulation.AdvancePoints : 0);
             var pieces = new List<string>();
             while (elements.MoveNext())
@@ -2086,8 +2170,8 @@ sealed class CanonicalParagraphMeasurer(Func<string, bool, bool, FontMetrics?> r
                     pixels += (long) Math.Round(kern * linearEm / metrics.UnitsPerEm, MidpointRounding.AwayFromZero);
                 }
 
-                penPixels += pixels;
-                linearPixels += (units + kern) * linearEm / metrics.UnitsPerEm;
+                penPixels += pixels + trackingPixels;
+                linearPixels += (units + kern) * linearEm / metrics.UnitsPerEm + linearTrackingPixels;
                 if (piece == " ")
                 {
                     penPixels = Math.Max(penPixels, (long) Math.Floor(linearPixels + spaceCatchUpPixels));

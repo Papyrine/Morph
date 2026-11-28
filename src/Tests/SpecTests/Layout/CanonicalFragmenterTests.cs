@@ -1239,9 +1239,11 @@ public class CanonicalFragmenterTests
                     Page(400))
                 .Pages[0].Items.OfType<PlacedLine>().Single().Width;
 
-        // w:spacing tracking adds its points to every one of the 10 characters' advances, so the line is
-        // ~20pt wider at 2pt tracking. Without it entering the width, wrap and alignment would be wrong.
-        await Assert.That(Width(2) - Width(0)).IsEqualTo(20f).Within(1f);
+        // w:spacing tracking adds to every one of the 10 characters' advances, so the line is wider at 2pt
+        // tracking. Without it entering the width, wrap and alignment would be wrong. Word draws each
+        // glyph's 2pt (3.33 of its 120-dpi pixels) as 3 whole pixels, 1.8pt (_probe_track), so the drawn
+        // line is 18pt wider.
+        await Assert.That(Width(2) - Width(0)).IsEqualTo(18f).Within(0.5f);
     }
 
     [Test]

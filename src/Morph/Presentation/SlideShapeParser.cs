@@ -256,6 +256,12 @@ sealed class SlideShapeParser(
                 case P.Picture picture:
                     if (ParsePicture(picture, transform, hostPart, placeholders, ordinal) is { } image)
                     {
+                        if (image is FloatingImageElement floating &&
+                            PictureFill(picture, placeholders, floating, ordinal) is { } backdrop)
+                        {
+                            elements.Add(backdrop);
+                        }
+
                         elements.Add(image);
                         ordinal++;
                     }
@@ -554,6 +560,57 @@ sealed class SlideShapeParser(
             RoundCap = shapeProperties?.GetFirstChild<A.Outline>()?.CapType?.Value == A.LineCapValues.Round,
             Subpaths = [[(startX, startY), (1 - startX, 1 - startY)]],
             RotationDegrees = box.RotationDegrees,
+            RelativeHeight = ordinal
+        };
+    }
+
+    /// <summary>
+    /// The fill under a picture, which shows where the picture is transparent: its own <c>spPr</c>
+    /// fill, or else that of the placeholder it fills. fashion-infographics-poster's logo is a PNG
+    /// clear around its lettering in a layout picture placeholder filled <c>bg1</c>, and PowerPoint
+    /// sets it on that black box, where it stood on the slide's grey.
+    /// </summary>
+    FloatingShapeElement? PictureFill(P.Picture picture, SlidePlaceholders placeholders, FloatingImageElement image, uint ordinal)
+    {
+        // A JPEG has no transparency for a fill to show through, and drawn under it the fill only
+        // fringed its antialiased edges (lines' and dappled's photos)
+        var placeholder = picture.NonVisualPictureProperties?.ApplicationNonVisualDrawingProperties?.GetFirstChild<P.PlaceholderShape>();
+        if (image.ContentType is "image/jpeg" or "image/jpg" ||
+            placeholders.ResolvePictureFillSource(picture, placeholder) is not { } source)
+        {
+            return null;
+        }
+
+        var (color, alpha, gradient) = ResolveFill(source, null);
+        if (color == null &&
+            gradient == null)
+        {
+            return null;
+        }
+
+        // Drawn a pixel inside the picture's box, so that its antialiased edge stays under the picture:
+        // lines' opaque PNG photos stand in placeholders filled teal, which fringed their edges
+        const double inset = 0.75;
+        if (image.WidthPoints <= 2 * inset ||
+            image.HeightPoints <= 2 * inset)
+        {
+            return null;
+        }
+
+        return new()
+        {
+            WidthPoints = image.WidthPoints - 2 * inset,
+            HeightPoints = image.HeightPoints - 2 * inset,
+            HorizontalPositionPoints = image.HorizontalPositionPoints + inset,
+            VerticalPositionPoints = image.VerticalPositionPoints + inset,
+            HorizontalAnchor = image.HorizontalAnchor,
+            VerticalAnchor = image.VerticalAnchor,
+            FillColorHex = color,
+            FillAlpha = alpha,
+            Gradient = gradient,
+            Preset = image.ClipToEllipse ? PresetShape.Ellipse : PresetShape.Rect,
+            Subpaths = image.ClipSubpaths,
+            RotationDegrees = image.RotationDegrees,
             RelativeHeight = ordinal
         };
     }

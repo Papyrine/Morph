@@ -279,15 +279,16 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 var cell = cells[position];
                 var span = cell.Properties.GridSpan;
                 if (cell.Properties.Borders is { Bottom.IsVisible: true } borders &&
-                    below.TryGetValue(column, out var match) &&
-                    lower[match].Properties.GridSpan == span &&
-                    lower[match].Properties.VerticalMerge == VerticalMergeType.None &&
                     cell.Properties.VerticalMerge == VerticalMergeType.None &&
-                    lower[match].Properties.Borders is not { Top.IsVisible: true })
+                    Beneath(lower, below, column, span) is { } matches)
                 {
                     var edge = borders.Bottom;
                     cells[position] = Retouched(cell, borders with { Bottom = BorderEdge.None });
-                    lower[match] = Retouched(lower[match], (lower[match].Properties.Borders ?? new()) with { Top = edge });
+                    foreach (var match in matches)
+                    {
+                        lower[match] = Retouched(lower[match], (lower[match].Properties.Borders ?? new()) with { Top = edge });
+                    }
+
                     changed = true;
                 }
 
@@ -299,6 +300,30 @@ sealed class SheetGridBuilder(CellStyles styles, SharedStrings sharedStrings, st
                 rows[index] = Rebuilt(rows[index], cells);
                 rows[index + 1] = Rebuilt(rows[index + 1], lower);
             }
+        }
+
+        // The cells beneath a cell above, when they start where it starts and end where it ends —
+        // one cell or several: simple-basic-pink-blue-timesheet's "Email" runs across C and D, which
+        // makes its cell span the three, and its rule under the three vanished under the spacer row's
+        // fill. Null when they do not line up, or one of them states a top edge or is merged.
+        static List<int>? Beneath(List<TableCell> lower, Dictionary<int, int> below, int column, int span)
+        {
+            var matches = new List<int>();
+            var at = column;
+            while (at < column + span)
+            {
+                if (!below.TryGetValue(at, out var match) ||
+                    lower[match].Properties.VerticalMerge != VerticalMergeType.None ||
+                    lower[match].Properties.Borders is { Top.IsVisible: true })
+                {
+                    return null;
+                }
+
+                matches.Add(match);
+                at += lower[match].Properties.GridSpan;
+            }
+
+            return at == column + span ? matches : null;
         }
 
         static Dictionary<int, int> Starts(TableRow row)

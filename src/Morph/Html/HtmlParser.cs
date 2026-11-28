@@ -1643,7 +1643,9 @@ sealed class HtmlParser
                 CellBorders? cellCssBorders = null;
                 var cellBgColor = rowBackgroundColor;
                 var cellTextColor = rowTextColor;
-                TextAlignment? cellAlignment = null;
+                // A header cell centres its text unless its style says otherwise, as a browser's does:
+                // html_table's three <th>s each stand 18px in from where a left-aligned cell starts
+                TextAlignment? cellAlignment = isHeader ? TextAlignment.Center : null;
                 var cellVerticalAlignment = VerticalAlignmentOf(cell.GetAttribute("valign"));
                 rowHeight = Taller(rowHeight, AttributeHeight(cell));
                 double? cellWidthPoints = null;

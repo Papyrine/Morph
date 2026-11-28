@@ -6,7 +6,11 @@
 /// </summary>
 static class SmallCapsExpander
 {
-    // Word draws small-caps lowercase letters at roughly 80% of the run's font size.
+    // Word sets a small-caps run's lowercase letters as capitals at 80% of the run's size, rounded to
+    // the nearest half point: read off Word's XPS (_probe_smallcaps, 2026-11-28, Calibri), the small
+    // capitals' em is 57.65 under 72pt, 9.6 under 12pt, and 9, 8.4, 7.8 and 7.2 under 11, 10.5, 9.5 and
+    // 8.5pt — 9, 8.5, 7.5 and 7pt drawn on Word's whole 120-dpi pixels, where 80% exactly would draw
+    // 8.4 and 6.6 for the first and last.
     const double smallCapsScale = 0.8;
 
     /// <summary>
@@ -56,7 +60,7 @@ static class SmallCapsExpander
         var props = run.Properties;
         var smallProps = props with
         {
-            FontSizePoints = props.FontSizePoints * smallCapsScale,
+            FontSizePoints = Math.Round(props.FontSizePoints * smallCapsScale * 2, MidpointRounding.AwayFromZero) / 2,
             SmallCaps = false
         };
         var fullProps = props with

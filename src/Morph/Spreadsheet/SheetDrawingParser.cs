@@ -287,7 +287,9 @@ sealed class SheetDrawingParser(ThemeColors? themeColors, ThemeFonts? themeFonts
             double Inset(int? declared, int fallback) => (declared ?? fallback) / OoxmlUnits.EmusPerPoint * sheetScale;
             return new FloatingTextBoxElement
             {
-                Content = textParser.Parse(body, new([]), sheetScale),
+                // Text no run colours takes its style's fontRef colour: basic-business-invoice's
+                // "LOGO GOES HERE" is lt1, white on its blue square, where it drew black
+                Content = textParser.Parse(body, new([]), sheetScale, fontReferenceColor: ShapeParser.ExtractFontReferenceColor(shape.ShapeStyle?.FontReference, themeColors)),
                 Insets = new(
                     Inset(bodyProperties?.LeftInset?.Value, 91440),
                     Inset(bodyProperties?.TopInset?.Value, 45720),

@@ -11,15 +11,15 @@
           "Width": 612.0,
           "Height": 792.0
         },
-        "Text": "Full Name\nyourname@example.com • (123) 456‐7890 • www.example.com\nEDUCATION\nCollege, location Graduation year\nBachelor of Arts, Degree, GPA\nRelevant course work:\nP ROFESSIONAL EXP ERIENCE\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\n• Remember to be concise\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\nP ROJECTS & EXTRACURRICULAR\nProject title Month Year\n• Describe what you did/built etc.\nActivity Month Year\n• Describe what you did/built etc.\n• Accomplishments\nLeadership experience Month Year\n• Describe what you did/built etc.\nSKILLS\nProgramming languages: List programming languages or skills\nComputer software/ frameworks: Microsoft office, Adobe Photoshop, Maple, Git, React, jQuery\nLanguages: Portuguese (advanced), French (advanced)"
+        "Text": "Full Name\nyourname@example.com • (123) 456‐7890 • www.example.com\nEDUC ATIO N\nCollege, location Graduation year\nBachelor of Arts, Degree, GPA\nRelevant course work:\nP RO F ES S IO NAL EX P ERIENC E\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\n• Remember to be concise\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\nCompany, location Month Year\nRole\n• Describe what you did and what your impact was\nP RO JEC TS & EX TRAC URRIC ULAR\nProject title Month Year\n• Describe what you did/built etc.\nActivity Month Year\n• Describe what you did/built etc.\n• Accomplishments\nLeadership experience Month Year\n• Describe what you did/built etc.\nS K ILLS\nProgramming languages: List programming languages or skills\nComputer software/ frameworks: Microsoft office, Adobe Photoshop, Maple, Git, React, jQuery\nLanguages: Portuguese (advanced), French (advanced)"
       }
     ]
   },
   "PageDiffs": [
     {
       "Page": 1,
-      "ErrorMetric": 0.05,
-      "Ssim": 0.9361,
+      "ErrorMetric": 0.0485,
+      "Ssim": 0.9429,
       "ExpectedFile": "expected_0001.png",
       "VerifiedFile": "pdf_result#page_0001.verified.png",
       "ReceivedFile": "pdf_result#page_0001.received.png"

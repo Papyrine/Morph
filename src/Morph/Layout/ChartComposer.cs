@@ -235,6 +235,22 @@ sealed partial class ChartComposer(
             var right = horizontal &&
                         showValueLabels ? TextWidth(valueLabels[^1], valueStyle) / 2 : 0;
 
+            // Points on the ticks put the last category's label on the plot's right edge, half of it
+            // past the plot, which keeps it clear of the legend: chart-area's "1/09/2002" ends 21px
+            // short of the legend in PowerPoint's export, where the plot ran on to the legend's gap
+            // and the label under the legend's keys
+            // and the first's on its left edge, where the plot stands in by the larger of that half and
+            // the value labels' room: chart-area's "1/05/2002" (65px) centres on a plot edge 32px in from
+            // the value labels' left in PowerPoint's export, where those labels and their gap take 30
+            if (!horizontal &&
+                chart.PointsOnTicks &&
+                showCategoryLabels &&
+                chart.Categories.Count > 1)
+            {
+                right = Math.Max(right, TextWidth(chart.Categories[^1], categoryStyle) / 2);
+                leftReserve = Math.Max(leftReserve, TextWidth(chart.Categories[0], categoryStyle) / 2);
+            }
+
             // The secondary axis's labels stand at the plot's right, as the primary's do at its left.
             if (showSecondaryLabels)
             {

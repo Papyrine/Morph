@@ -206,12 +206,15 @@ sealed class SourceIndex
             }
 
             var text = run.Text;
-            if (run.Properties.AllCaps)
+
+            // Small caps lay lowercase out as capitals (SmallCapsExpander), one for one
+            if (run.Properties.AllCaps ||
+                run.Properties.SmallCaps)
             {
                 text = text.ToUpperInvariant();
             }
 
-            return text.Replace(' ', ' ');
+            return text.Replace(' ', ' ').Replace('\u2011', '-');
         }
 
         public List<RunPiece>? Follow(string placed)
@@ -292,7 +295,9 @@ sealed class SourceIndex
                     return true;
                 }
 
-                if (candidate is not (' ' or '\n'))
+                // What a wrap or a justified line dropped, and a soft hyphen, which the measurer never
+                // lays out (CanonicalParagraphMeasurer.Flatten)
+                if (candidate is not (' ' or '\n' or '\u00AD'))
                 {
                     return false;
                 }
